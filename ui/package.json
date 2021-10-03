@@ -1,0 +1,30 @@
+{
+  "name": "ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^8.2.5",
+    "@types/mustache": "^4.1.2",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "eslint": "^7.32.0",
+    "eslint-config-preact": "^1.1.4",
+    "eslint-config-prettier": "^8.3.0",
+    "mustache": "^4.2.0",
+    "prettier": "^2.4.1",
+    "rollup": "^2.58.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "preact": "^10.5.14"
+  }
+}

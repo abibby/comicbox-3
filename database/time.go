@@ -1,0 +1,47 @@
+package database
+
+import (
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"time"
+)
+
+type Time time.Time
+
+// Scan implements the Scanner interface.
+func (nt *Time) Scan(value interface{}) error {
+	switch value := value.(type) {
+	case string:
+		t, err := time.Parse(time.RFC3339, value)
+		if err != nil {
+			return err
+		}
+		*nt = Time(t)
+	case time.Time:
+		*nt = Time(value)
+	default:
+		return errors.New("invalid date type")
+	}
+	return nil
+}
+
+// Value implements the driver Valuer interface.
+func (nt Time) Value() (driver.Value, error) {
+	return time.Time(nt), nil
+}
+
+func (nt *Time) MarshalJSON() ([]byte, error) {
+	return time.Time(*nt).MarshalJSON()
+}
+func (nt *Time) UnmarshalJSON(data []byte) error {
+	t := time.Time{}
+
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return err
+	}
+
+	*nt = Time(t)
+	return nil
+}

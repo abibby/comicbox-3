@@ -9,6 +9,7 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/ui"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -20,68 +21,16 @@ func routes() http.Handler {
 
 	r.Use(loggingMiddleware)
 
-	r.HandleFunc("/series", SeriesIndex)
+	r.HandleFunc("/series", SeriesIndex).Methods("GET")
 
-	r.HandleFunc("/books", BookIndex)
+	r.HandleFunc("/books", BookIndex).Methods("GET")
 	r.HandleFunc("/books/create", BookCreate)
 
+	r.PathPrefix("/").
+		Handler(FileServerDefault(ui.Content, "dist", "index.html")).
+		Methods("GET")
+
 	return r
-}
-
-type PaginatedResponse struct {
-	Page  int         `json:"page"`
-	Total int         `json:"total"`
-	Data  interface{} `json:"data"`
-}
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
-
-func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}) {
-	pageSize := uint(10)
-	page := uint(0)
-
-	dataSQL, dataArgs, err := query.
-		Limit(pageSize).
-		Offset(page * pageSize).
-		ToSQL()
-	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
-		return
-	}
-	countSQL, countArgs, err := query.
-		Select(goqu.COUNT('*')).
-		ToSQL()
-	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	total := 0
-
-	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		tx.Get(&total, countSQL, countArgs...)
-		return tx.Select(v, dataSQL, dataArgs...)
-	})
-	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
-		return
-	}
-
-	if v, ok := v.(models.PrepareForDisplayer); ok {
-		err = v.PrepareForDisplay()
-		if err != nil {
-			sendJSON(rw, &ErrorResponse{Error: err.Error()})
-			return
-		}
-	}
-
-	pr := PaginatedResponse{
-		Page:  int(page),
-		Total: total,
-		Data:  v,
-	}
-	sendJSON(rw, pr)
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {

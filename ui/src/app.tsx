@@ -1,3 +1,4 @@
-import { render, h } from 'preact'
-import {Button} from './components/button'
-render(<Button>test</Button>, document.body)
+import { h, render } from 'preact'
+import { Shell } from './components/shell'
+
+render(<Shell><h1>Test</h1></Shell>, document.getElementById('app')!)

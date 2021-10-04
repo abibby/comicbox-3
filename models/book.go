@@ -11,6 +11,9 @@ import (
 )
 
 type Page struct {
+	URL  string `json:"url"`
+	File string `json:"file"`
+	Type string `json:"type"`
 }
 
 type Book struct {

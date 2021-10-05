@@ -1,6 +1,6 @@
 declare const styles: {
   readonly "shell": string;
-  readonly "nope": string;
+  readonly "nav": string;
 };
 export = styles;
 

@@ -2,9 +2,9 @@ import typescript from '@rollup/plugin-typescript'
 import { RollupOptions } from 'rollup'
 import nodeResolve from 'rollup-plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
+import assetPlugin from './lib/asset-plugin'
 import createHTMLPlugin from './lib/create-html'
 import cssModuleTypes from './lib/css-module-types'
-// import { Shell } from './src/components/shell'
 
 const config: RollupOptions = {
     input: 'src/app.tsx',
@@ -14,11 +14,12 @@ const config: RollupOptions = {
     },
     plugins: [
         cssModuleTypes('src/components'),
-        postcss({ 
+        postcss({
             minimize: true,
             modules: true,
             extract: true
         }),
+        assetPlugin(),
         typescript(),
         nodeResolve(),
         createHTMLPlugin({
@@ -33,6 +34,10 @@ const config: RollupOptions = {
 const shellConfig = {
     ...config,
     input: 'src/shell.tsx',
+    output: {
+        format: 'cjs',
+        dir: 'dist',
+    },
     plugins: config.plugins?.filter(p => p && p.name !== 'create-html-plugin'),
 }
 

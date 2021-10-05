@@ -3,4 +3,4 @@ import preactRender from 'preact-render-to-string';
 import { Shell } from './components/shell';
 
 
-(global as any).shellHTML = preactRender(<Shell></Shell>)
+export const shell = preactRender(<Shell></Shell>)

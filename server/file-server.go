@@ -3,7 +3,6 @@ package server
 import (
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
@@ -11,15 +10,6 @@ import (
 )
 
 func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
-	var fallback []byte
-	f, err := root.Open(path.Join(basePath, fallbackPath))
-	if err == nil {
-		fallback, err = ioutil.ReadAll(f)
-		if err != nil {
-			fallback = nil
-		}
-	}
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := path.Join(basePath, path.Clean(r.URL.Path)[1:])
 
@@ -28,8 +18,7 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 			if err != nil {
 				log.Print(err)
 			}
-			w.Write(fallback)
-			return
+			p = path.Join(basePath, fallbackPath)
 		}
 
 		f, err := root.Open(p)

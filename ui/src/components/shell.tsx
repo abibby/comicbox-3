@@ -9,6 +9,11 @@ export const Shell: FunctionalComponent = props => {
     return <div class={styles.shell}>
         <nav class={styles.nav}>
             <ul>
+                <li class={styles.logo}>
+                    <a href="/">
+                        <img src="https://comic.adambibby.ca/icon_96x96.bf66d23aff58118f339581cffe09832a.png" />
+                    </a>
+                </li>
                 <MenuItem
                     title="Home"
                     img={home}
@@ -31,7 +36,7 @@ export const Shell: FunctionalComponent = props => {
                 />
             </ul>
         </nav>
-        {props.children}
+        {props.children ?? <div class={styles.empty}></div>}
     </div>
 }
 
@@ -44,8 +49,8 @@ interface MenuItemProps {
 const MenuItem: FunctionalComponent<MenuItemProps> = props => {
     return <li>
         <a href={props.link}>
-            <img src={props.img} />
-            {props.title}
+            <img class={styles.icon} src={props.img} />
+            <span class={styles.label}>{props.title}</span>
         </a>
     </li>
 }

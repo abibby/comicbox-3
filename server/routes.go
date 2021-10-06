@@ -21,10 +21,20 @@ func routes() http.Handler {
 
 	r.Use(loggingMiddleware)
 
-	r.HandleFunc("/series", SeriesIndex).Methods("GET")
+	api := r.PathPrefix("/api/").Subrouter()
 
-	r.HandleFunc("/books", BookIndex).Methods("GET")
-	r.HandleFunc("/books/create", BookCreate)
+	api.HandleFunc("/series", SeriesIndex).Methods("GET")
+
+	api.HandleFunc("/books", BookIndex).Methods("GET")
+	api.HandleFunc("/books/create", BookCreate)
+	api.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Add("Content-Type", "application/json")
+		rw.WriteHeader(404)
+		err := json.NewEncoder(rw).Encode(ErrorResponse{Error: "404 not found"})
+		if err != nil {
+			log.Print(err)
+		}
+	})
 
 	r.PathPrefix("/").
 		Handler(FileServerDefault(ui.Content, "dist", "index.html")).

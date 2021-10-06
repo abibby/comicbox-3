@@ -15,9 +15,16 @@ var types = map[string]string{
 }
 
 func main() {
-	ts := generateTsInterface(models.Book{}) +
-		generateTsInterface(models.Page{}) +
-		generateTsInterface(models.Series{})
+	m := []interface{}{
+		models.Book{},
+		models.Page{},
+		models.Series{},
+		models.User{},
+	}
+	ts := ""
+	for _, model := range m {
+		ts += generateTsInterface(model)
+	}
 
 	ioutil.WriteFile("./ui/src/models.ts", []byte(ts), 0644)
 }

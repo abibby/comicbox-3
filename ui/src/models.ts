@@ -22,3 +22,10 @@ export interface Series {
     updated_at: string
     deleted_at: string | null
 }
+export interface User {
+    id: string
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
+    name: string
+}

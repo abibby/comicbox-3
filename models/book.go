@@ -17,7 +17,7 @@ import (
 
 type Page struct {
 	URL        string `json:"url"`
-	FileNumber int    `json:"file"`
+	FileNumber int    `json:"file_number"`
 	Type       string `json:"type"`
 }
 
@@ -41,7 +41,7 @@ type Book struct {
 var _ PrepareForDatabaser = &Book{}
 var _ PrepareForDisplayer = &Book{}
 
-type BookList []Book
+type BookList []*Book
 
 var _ PrepareForDatabaser = BookList{}
 var _ PrepareForDisplayer = BookList{}
@@ -57,6 +57,9 @@ func (b *Book) PrepareForDatabase() error {
 
 	if b.Pages == nil {
 		b.Pages = []*Page{}
+	}
+	for _, page := range b.Pages {
+		page.URL = ""
 	}
 	err = marshal(&b.RawPages, b.Pages)
 	if err != nil {
@@ -89,27 +92,28 @@ func (b *Book) PrepareForDisplay() error {
 	if err != nil {
 		return err
 	}
+	for _, page := range b.Pages {
+		page.URL = fmt.Sprintf("/api/books/%s/page/%d", b.ID, page.FileNumber)
+	}
 	return nil
 }
 
 func (bl BookList) PrepareForDatabase() error {
-	for i, b := range bl {
+	for _, b := range bl {
 		err := b.PrepareForDatabase()
 		if err != nil {
 			return err
 		}
-		bl[i] = b
 	}
 	return nil
 }
 
 func (bl BookList) PrepareForDisplay() error {
-	for i, b := range bl {
+	for _, b := range bl {
 		err := b.PrepareForDisplay()
 		if err != nil {
 			return err
 		}
-		bl[i] = b
 	}
 	return nil
 }

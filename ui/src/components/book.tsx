@@ -8,7 +8,6 @@ interface BookProps {
 }
 
 export const BookCard: FunctionalComponent<BookProps> = props => {
-
     let title = ""
     if (props.book.volume) { 
         title += "V" + props.book.volume
@@ -27,9 +26,16 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
     }
     return <div class={styles.book}>
         <a href={`/book/${props.book.id}`} >
-            <img class={styles.cover} src={noImage} alt="cover image" />
+            <img class={styles.cover} src={bookCover(props.book)} alt="cover image" />
             <div class={styles.title}>{title}</div>
             <div class={styles.series}>{props.book.series}</div>
         </a>
     </div>
+}
+
+function bookCover(book: Book): string {    
+    if (book.pages[0] !== undefined){
+        return book.pages[0].url
+    }
+    return noImage
 }

@@ -20,7 +20,7 @@ type ErrorResponse struct {
 }
 
 func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}) {
-	pageSize := uint(1)
+	pageSize := uint(10)
 	page := uint(0)
 
 	dataSQL, dataArgs, err := query.

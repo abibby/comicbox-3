@@ -38,7 +38,13 @@ type Book struct {
 	File       string         `json:"-"          db:"file"`
 }
 
+var _ PrepareForDatabaser = &Book{}
+var _ PrepareForDisplayer = &Book{}
+
 type BookList []Book
+
+var _ PrepareForDatabaser = BookList{}
+var _ PrepareForDisplayer = BookList{}
 
 func (b *Book) PrepareForDatabase() error {
 	if b.Authors == nil {
@@ -78,6 +84,7 @@ func (b *Book) PrepareForDisplay() error {
 	if err != nil {
 		return err
 	}
+
 	err = json.Unmarshal(b.RawPages, &b.Pages)
 	if err != nil {
 		return err

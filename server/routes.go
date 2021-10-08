@@ -38,11 +38,12 @@ func routes() http.Handler {
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
-	books := []models.Book{}
+	books := models.BookList{}
 
 	query := goqu.
 		From("books").
-		Select(&models.Book{})
+		Select(&models.Book{}).
+		Order(goqu.I("sort").Asc())
 
 	index(rw, r, query, &books)
 }

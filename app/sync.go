@@ -128,7 +128,7 @@ func loadBookData(file string) (*models.Book, error) {
 			}
 		}
 	}
-
+	book.File = file
 	return book, nil
 }
 

@@ -14,9 +14,12 @@
     object-fit: cover;
 }
 
-.title {
-
+.title,
+.series {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
-.series{
+.series {
     color: var(--light-text)
 }

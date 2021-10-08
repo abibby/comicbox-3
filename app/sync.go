@@ -198,6 +198,7 @@ func parseBookJSON(book *models.Book, f *zip.File) error {
 	if err != nil {
 		return err
 	}
+
 	tmpBook := comboBook{Book: book}
 	err = json.Unmarshal(b, &tmpBook)
 	if err != nil {
@@ -208,7 +209,9 @@ func parseBookJSON(book *models.Book, f *zip.File) error {
 		tmpBook.Authors = []string{tmpBook.Author}
 	}
 
-	tmpBook.Chapter = tmpBook.Number
+	if tmpBook.Number != nil {
+		tmpBook.Chapter = tmpBook.Number
+	}
 
 	if tmpBook.Pages != nil && len(tmpBook.Pages) > 0 {
 		allZero := true

@@ -9,7 +9,6 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/nulls"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -42,11 +41,17 @@ type Book struct {
 type BookList []Book
 
 func (b *Book) PrepareForDatabase() error {
+	if b.Authors == nil {
+		b.Authors = []string{}
+	}
 	err := marshal(&b.RawAuthors, b.Authors)
 	if err != nil {
 		return err
 	}
 
+	if b.Pages == nil {
+		b.Pages = []*Page{}
+	}
 	err = marshal(&b.RawPages, b.Pages)
 	if err != nil {
 		return err
@@ -77,8 +82,6 @@ func (b *Book) PrepareForDisplay() error {
 	if err != nil {
 		return err
 	}
-
-	spew.Dump(b.Authors == nil)
 	return nil
 }
 
@@ -108,6 +111,8 @@ func (b *Book) Insert(tx *sqlx.Tx) error {
 		return errors.Wrap(err, "failed to prepare book for database")
 	}
 
+	b.CreatedAt = database.Time(time.Now())
+	b.UpdatedAt = database.Time(time.Now())
 	insertSQL, args, err := goqu.Insert("books").Rows(b).ToSQL()
 	if err != nil {
 		return errors.Wrap(err, "failed to generate insert sql")

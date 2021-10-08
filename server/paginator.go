@@ -10,16 +10,17 @@ import (
 )
 
 type PaginatedResponse struct {
-	Page  int         `json:"page"`
-	Total int         `json:"total"`
-	Data  interface{} `json:"data"`
+	Page     int         `json:"page"`
+	PageSize int         `json:"page_size"`
+	Total    int         `json:"total"`
+	Data     interface{} `json:"data"`
 }
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
 func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}) {
-	pageSize := uint(10)
+	pageSize := uint(1)
 	page := uint(0)
 
 	dataSQL, dataArgs, err := query.
@@ -57,10 +58,10 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		}
 	}
 
-	pr := PaginatedResponse{
-		Page:  int(page),
-		Total: total,
-		Data:  v,
-	}
-	sendJSON(rw, pr)
+	sendJSON(rw, &PaginatedResponse{
+		Page:     int(page),
+		PageSize: int(pageSize),
+		Total:    total,
+		Data:     v,
+	})
 }

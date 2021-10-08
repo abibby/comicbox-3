@@ -93,21 +93,23 @@ func (b *Book) PrepareForDisplay() error {
 }
 
 func (bl BookList) PrepareForDatabase() error {
-	for _, b := range bl {
+	for i, b := range bl {
 		err := b.PrepareForDatabase()
 		if err != nil {
 			return err
 		}
+		bl[i] = b
 	}
 	return nil
 }
 
 func (bl BookList) PrepareForDisplay() error {
-	for _, b := range bl {
+	for i, b := range bl {
 		err := b.PrepareForDisplay()
 		if err != nil {
 			return err
 		}
+		bl[i] = b
 	}
 	return nil
 }

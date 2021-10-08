@@ -38,24 +38,21 @@ func routes() http.Handler {
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
-	books := models.BookList{}
-
 	query := goqu.
 		From("books").
 		Select(&models.Book{}).
 		Order(goqu.I("sort").Asc())
 
-	index(rw, r, query, &books)
+	index(rw, r, query, &models.BookList{})
 }
 
 func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
-	series := []models.Series{}
-
 	query := goqu.
 		From("series").
-		Select(&models.Series{})
+		Select(&models.Series{}).
+		Order(goqu.I("name").Asc())
 
-	index(rw, r, query, &series)
+	index(rw, r, query, &[]models.Series{})
 }
 
 func sendJSON(rw http.ResponseWriter, v interface{}) {

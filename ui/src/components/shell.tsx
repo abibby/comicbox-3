@@ -2,6 +2,7 @@ import book from "asset-url:../../res/icons/book.svg";
 import home from "asset-url:../../res/icons/home.svg";
 import list from "asset-url:../../res/icons/list-check.svg";
 import search from "asset-url:../../res/icons/search.svg";
+import logo from 'asset-url:../../res/images/logo.svg';
 import { FunctionalComponent, h } from "preact";
 import styles from "./shell.module.css";
 
@@ -11,7 +12,7 @@ export const Shell: FunctionalComponent = props => {
             <ul>
                 <li class={styles.logo}>
                     <a href="/">
-                        <img src="https://comic.adambibby.ca/icon_96x96.bf66d23aff58118f339581cffe09832a.png" />
+                        <img src={logo} alt="ComicBox" />
                     </a>
                 </li>
                 <MenuItem

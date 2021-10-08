@@ -9,7 +9,8 @@ CREATE TABLE books (
     series TEXT,
     authors TEXT NOT NULL,
     pages TEXT NOT NULL,
-    sort TEXT NOT NULL
+    sort TEXT NOT NULL,
+    file TEXT NOT NULL
 );
 
 CREATE INDEX books_sort ON books (sort);

@@ -1,19 +1,25 @@
 package models
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/nulls"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 type Page struct {
-	URL  string `json:"url"`
-	File string `json:"file"`
-	Type string `json:"type"`
+	URL        string `json:"url"`
+	FileNumber int    `json:"file"`
+	Type       string `json:"type"`
 }
 
 type Book struct {
@@ -27,9 +33,10 @@ type Book struct {
 	Series     string         `json:"series"     db:"series"`
 	Authors    []string       `json:"authors"    db:"-"`
 	RawAuthors []byte         `json:"-"          db:"authors"`
-	Pages      []Page         `json:"pages"      db:"-"`
+	Pages      []*Page        `json:"pages"      db:"-"`
 	RawPages   []byte         `json:"-"          db:"pages"`
 	Sort       string         `json:"sort"       db:"sort"`
+	File       string         `json:"-"          db:"file"`
 }
 
 type BookList []Book
@@ -93,4 +100,47 @@ func (bl BookList) PrepareForDisplay() error {
 		}
 	}
 	return nil
+}
+
+func (b *Book) Insert(tx *sqlx.Tx) error {
+	err := b.PrepareForDatabase()
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare book for database")
+	}
+
+	insertSQL, args, err := goqu.Insert("books").Rows(b).ToSQL()
+	if err != nil {
+		return errors.Wrap(err, "failed to generate insert sql")
+	}
+
+	s := &Series{}
+	err = tx.Get(s, "select * from series where name = ?", b.Series)
+	if err == sql.ErrNoRows {
+		err = createSeriesFromBook(tx, b)
+		if err != nil {
+			return errors.Wrap(err, "failed to create series from book")
+		}
+	} else if err != nil {
+		return errors.Wrap(err, "failed to select series")
+	}
+	_, err = tx.Query(insertSQL, args...)
+	if err != nil {
+		print(insertSQL)
+		os.Exit(1)
+		return errors.Wrap(err, "failed to insert book")
+	}
+	return nil
+}
+
+func createSeriesFromBook(tx *sqlx.Tx, book *Book) error {
+	insertSQL, args, err := goqu.Insert("series").Rows(&Series{
+		Name:      book.Series,
+		CreatedAt: database.Time(time.Now()),
+		UpdatedAt: database.Time(time.Now()),
+	}).ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = tx.Query(insertSQL, args...)
+	return err
 }

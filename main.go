@@ -5,7 +5,9 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/queue"
 	"github.com/abibby/comicbox-3/server"
 )
 
@@ -27,13 +29,25 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
+		tries := 0
 		for range c {
-			log.Print("shutting down server")
-			s.Close()
-			database.Close()
-			os.Exit(1)
+			if tries == 0 {
+				go func() {
+					log.Print("Grasfully shutting down server Ctrl+C again to force")
+					s.Close()
+					database.Close()
+					queue.Default.Close()
+					os.Exit(1)
+				}()
+			} else {
+				log.Print("Force shutting down server")
+				os.Exit(1)
+			}
+			tries++
 		}
 	}()
+	queue.Default.Start()
+	queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
 
 	log.Print("Server started at http://localhost:8080")
 	log.Fatal(s.Run())

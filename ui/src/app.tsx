@@ -1,7 +1,11 @@
 import { h, render } from 'preact'
-import { bookList } from './api/book'
+import { BookList } from './components/book-list'
 import { Shell } from './components/shell'
 
-bookList().then(console.log)
-
-render(<Shell><h1>Test</h1></Shell>, document.getElementById('app')!)
+render(
+    <Shell>
+        <h1>Test</h1>
+        <BookList />
+    </Shell>,
+    document.getElementById('app')!
+)

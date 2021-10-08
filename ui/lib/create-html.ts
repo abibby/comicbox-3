@@ -14,6 +14,8 @@ export default function createHTMLPlugin(options: Options): Plugin {
         name: 'create-html-plugin',
         buildStart() {
             this.addWatchFile(templatePath)
+            this.addWatchFile(shellJSPath)
+            this.addWatchFile(shellCSSPath)
         },
         async generateBundle(options, bundle) {
             const template = await readFile(templatePath).then(f =>

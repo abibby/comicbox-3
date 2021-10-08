@@ -19,7 +19,6 @@ func main() {
 		models.Book{},
 		models.Page{},
 		models.Series{},
-		models.User{},
 	}
 	ts := ""
 	for _, model := range m {

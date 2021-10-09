@@ -105,6 +105,9 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
+
+	rw.Header().Add("Cache-Control", "max-age=3600")
+
 	_, err = io.Copy(rw, f)
 	if err != nil {
 		print(err)

@@ -15,6 +15,18 @@ interface PageProps {
     }
 }
 
+function notNullish<T>(v: T | null | undefined): v is T{
+    return v !== undefined && v !== null
+}
+
+function preloadImages(srcs: Array<string|undefined>): HTMLImageElement[] {
+    return srcs.filter(notNullish).map(src => {
+        const img = new Image()
+        img.src = src
+        return img
+    })
+}
+
 export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
     const page = Number(props.matches?.page || 0)
@@ -30,6 +42,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
     if (b === undefined) {
         return <Error404 />
     }
+    const preloaded = preloadImages([
+        b.pages[page+1]?.url,
+        b.pages[page-1]?.url,
+    ])
 
     const [menuOpen, setMenuOpen] = useState(false);
 

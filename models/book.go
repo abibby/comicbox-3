@@ -16,9 +16,8 @@ import (
 )
 
 type Page struct {
-	URL        string `json:"url"`
-	FileNumber int    `json:"file_number"`
-	Type       string `json:"type"`
+	URL  string `json:"url"`
+	Type string `json:"type"`
 }
 
 type Book struct {
@@ -92,8 +91,8 @@ func (b *Book) PrepareForDisplay() error {
 	if err != nil {
 		return err
 	}
-	for _, page := range b.Pages {
-		page.URL = fmt.Sprintf("/api/books/%s/page/%d", b.ID, page.FileNumber)
+	for i, page := range b.Pages {
+		page.URL = fmt.Sprintf("/api/books/%s/page/%d", b.ID, i)
 	}
 	return nil
 }

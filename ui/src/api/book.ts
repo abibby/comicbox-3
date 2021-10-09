@@ -1,6 +1,12 @@
 import { Book } from "../models";
-import { PaginatedResponse } from "./pagination";
+import { encodeParams, PaginatedResponse } from "./pagination";
 
-export async function list(): Promise<PaginatedResponse<Book>>{
-    return await fetch("/api/books").then(r => r.json())
+export type BookListRequest = {
+    page_size?: number
+    page?: number
+    id?: string
+}
+
+export async function list(req: BookListRequest = {}): Promise<PaginatedResponse<Book>> {
+    return await fetch("/api/books?" + encodeParams(req)).then(r => r.json())
 }

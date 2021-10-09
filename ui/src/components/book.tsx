@@ -20,7 +20,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
     }
     if (props.book.title) {
         if (title !== "") {
-            title += " - "
+            title += " • "
         }
         title += props.book.title
     }

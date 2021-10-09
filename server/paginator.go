@@ -15,9 +15,6 @@ type PaginatedResponse struct {
 	Total    int         `json:"total"`
 	Data     interface{} `json:"data"`
 }
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
 
 func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}) {
 	pageSize := uint(10)
@@ -28,14 +25,14 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		Offset(page * pageSize).
 		ToSQL()
 	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
+		sendError(rw, err)
 		return
 	}
 	countSQL, countArgs, err := query.
 		Select(goqu.COUNT('*')).
 		ToSQL()
 	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
+		sendError(rw, err)
 		return
 	}
 
@@ -46,14 +43,14 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		return tx.Select(v, dataSQL, dataArgs...)
 	})
 	if err != nil {
-		sendJSON(rw, &ErrorResponse{Error: err.Error()})
+		sendError(rw, err)
 		return
 	}
 
 	if v, ok := v.(models.PrepareForDisplayer); ok {
 		err = v.PrepareForDisplay()
 		if err != nil {
-			sendJSON(rw, &ErrorResponse{Error: err.Error()})
+			sendError(rw, err)
 			return
 		}
 	}

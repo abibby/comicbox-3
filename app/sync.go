@@ -108,8 +108,7 @@ func loadBookData(file string) (*models.Book, error) {
 			typ = "FrontCover"
 		}
 		tmpPages[i] = &models.Page{
-			FileNumber: i,
-			Type:       typ,
+			Type: typ,
 		}
 	}
 	book.Pages = tmpPages
@@ -213,19 +212,6 @@ func parseBookJSON(book *models.Book, f *zip.File) error {
 		tmpBook.Chapter = tmpBook.Number
 	}
 
-	if tmpBook.Pages != nil && len(tmpBook.Pages) > 0 {
-		allZero := true
-		for _, page := range tmpBook.Pages {
-			if page.FileNumber != 0 {
-				allZero = false
-			}
-		}
-		if allZero {
-			for i := range tmpBook.Pages {
-				tmpBook.Pages[i].FileNumber = i
-			}
-		}
-	}
 	tmpBook.File = ""
 	return nil
 }

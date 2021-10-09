@@ -1,11 +1,18 @@
 import { h, render } from 'preact'
-import { BookList } from './components/book-list'
+import Router from 'preact-router'
 import { Shell } from './components/shell'
+import { Error404 } from './pages/404'
+import { Home } from './pages/home'
+import { Page } from './pages/page'
 
-render(
-    <Shell>
-        <h1>Test</h1>
-        <BookList />
-    </Shell>,
-    document.getElementById('app')!
-)
+function Main() {
+    return<Shell>
+         <Router>
+            <Home path="/" />
+            <Page path="/book/:id/:page?" />
+            <Error404 default />
+        </Router>
+    </Shell>
+} 
+
+render(<Main />, document.getElementById('app')!)

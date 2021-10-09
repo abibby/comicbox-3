@@ -1,8 +1,12 @@
 import noImage from 'asset-url:../../res/images/no-cover.svg';
 import { FunctionalComponent, h } from "preact";
+import { route } from 'preact-router';
+import { useCallback, useState } from 'preact/hooks';
 import { book } from "../api";
+import classNames from '../classnames';
 import { useAsync } from "../hooks/async";
-
+import { Error404 } from './404';
+import styles from './page.module.css';
 
 interface PageProps {
     matches?: {
@@ -22,8 +26,36 @@ export const Page: FunctionalComponent<PageProps> = props => {
     if (books.error) {
         return <div>Error {books.error.message}</div>
     }
-    const image = books.result.data[0]?.pages[page]?.url ?? noImage
-    return <div>
-        <img src={image} alt="" />
+    const b = books.result.data[0]
+    if (b === undefined) {
+        return <Error404 />
+    }
+
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const click = useCallback((event: MouseEvent) => {
+        setMenuOpen(open => {
+            if (open) {
+                return false
+            } else {
+                const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]                
+                switch (section) {
+                    case 'left':
+                        route(`/book/${id}/${page-1}`)
+                        break
+                    case 'right':
+                        route(`/book/${id}/${page+1}`)
+                        break
+                    case 'center':
+                        return true
+                }
+                return open
+            }
+        })
+    }, [setMenuOpen, id, page])
+
+    const image = b.pages[page]?.url ?? noImage
+    return <div class={classNames(styles.page, {[styles.menuOpen]: menuOpen})} onClick={click}>
+        <img class={styles.image} src={image} alt="" />
     </div>
 }

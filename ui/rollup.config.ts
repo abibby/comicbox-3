@@ -13,10 +13,10 @@ const config: RollupOptions = {
         dir: 'dist',
     },
     plugins: [
-        cssModuleTypes('src/components'),
+        cssModuleTypes('src'),
         postcss({
-            minimize: true,
-            modules: true,
+            autoModules: true,
+            // minimize: true,
             extract: true
         }),
         assetPlugin(),

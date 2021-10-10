@@ -86,7 +86,6 @@ func (d *JobQueue) worker(wid int) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	for {
-		log.Print("loop")
 		select {
 		case job := <-d.jobs:
 			err := job.Run(ctx)

@@ -12,11 +12,11 @@ export interface Book {
     authors: Array<string>
     pages: Array<Page>
     sort: string
+    cover_url: string
 }
 export interface Page {
     url: string
-    file_number: number
-    type: string
+    type: PageType
 }
 export interface Series {
     name: string

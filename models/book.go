@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/server/routes"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -16,9 +17,17 @@ import (
 )
 
 type Page struct {
-	URL  string `json:"url"`
-	Type string `json:"type"`
+	URL  string   `json:"url"`
+	Type PageType `json:"type"`
 }
+
+type PageType string
+
+const (
+	FrontCover = PageType("FrontCover")
+	Story      = PageType("Story")
+	Deleted    = PageType("Deleted")
+)
 
 type Book struct {
 	ID         uuid.UUID      `json:"id"         db:"id"`
@@ -35,6 +44,7 @@ type Book struct {
 	RawPages   []byte         `json:"-"          db:"pages"`
 	Sort       string         `json:"sort"       db:"sort"`
 	File       string         `json:"-"          db:"file"`
+	CoverURL   string         `json:"cover_url"  db:"-"`
 }
 
 var _ PrepareForDatabaser = &Book{}
@@ -91,8 +101,15 @@ func (b *Book) PrepareForDisplay() error {
 	if err != nil {
 		return err
 	}
+
 	for i, page := range b.Pages {
-		page.URL = fmt.Sprintf("/api/books/%s/page/%d", b.ID, i)
+		page.URL = routes.MustURL("book.thumbnail", "ID", b.ID.String(), "Page", fmt.Sprint(i))
+		if page.Type == FrontCover && b.CoverURL == "" {
+			b.CoverURL = routes.MustURL("book.page", "ID", b.ID.String(), "Page", fmt.Sprint(i))
+		}
+	}
+	if b.CoverURL == "" {
+		b.CoverURL = routes.MustURL("book.page", "ID", b.ID.String(), "Page", "0")
 	}
 	return nil
 }

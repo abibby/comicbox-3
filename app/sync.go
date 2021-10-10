@@ -103,9 +103,9 @@ func loadBookData(file string) (*models.Book, error) {
 	numPages := len(imgs)
 	tmpPages := make([]*models.Page, numPages)
 	for i := 0; i < numPages; i++ {
-		typ := "Story"
+		typ := models.Story
 		if i == 0 {
-			typ = "FrontCover"
+			typ = models.FrontCover
 		}
 		tmpPages[i] = &models.Page{
 			Type: typ,

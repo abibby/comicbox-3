@@ -24,7 +24,7 @@ export default function assetPlugin(): Plugin {
                 source: await readFile(id.slice(prefix.length)),
             })
             
-            return `export default "/${fileName}"`;
+            return `export default ${JSON.stringify('/' + fileName)}`;
         }
     };
   }

@@ -1,7 +1,8 @@
-package server
+package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -51,4 +52,8 @@ func sendError(rw http.ResponseWriter, err error) {
 	if err != nil {
 		log.Print(err)
 	}
+}
+
+func API404(rw http.ResponseWriter, r *http.Request) {
+	sendError(rw, NewHttpError(404, fmt.Errorf("404 not found")))
 }

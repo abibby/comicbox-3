@@ -1,0 +1,19 @@
+.controller {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    max-width: 100%;
+}
+
+.alert {
+    background-color: red;
+    margin: 5px;
+}
+
+@media screen and (min-width: 500px) {
+    .controller {
+        margin-top: 39px;
+    }
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"reflect"
 
@@ -8,13 +9,14 @@ import (
 )
 
 var types = map[string]string{
-	"UUID":    "string",
-	"Time":    "string",
-	"string":  "string",
-	"Float64": "number",
-	"float64": "number",
-	"Int":     "number",
-	"int":     "number",
+	"UUID":     "string",
+	"Time":     "string",
+	"string":   "string",
+	"Float64":  "number",
+	"float64":  "number",
+	"Int":      "number",
+	"int":      "number",
+	"PageType": fmt.Sprintf(`"%s" | "%s" | "%s"`, models.FrontCover, models.Story, models.Deleted),
 }
 
 func main() {

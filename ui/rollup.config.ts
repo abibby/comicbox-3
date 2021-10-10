@@ -1,6 +1,6 @@
+import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 import { RollupOptions } from 'rollup'
-import nodeResolve from 'rollup-plugin-node-resolve'
 import postcss from 'rollup-plugin-postcss'
 import assetPlugin from './lib/asset-plugin'
 import createHTMLPlugin from './lib/create-html'

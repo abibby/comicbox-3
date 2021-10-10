@@ -56,7 +56,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
             if (open) {
                 return false
             } else {
-                const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]                
+                const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]
                 switch (section) {
                     case 'left':
                         route(`/book/${id}/${page-1}`)

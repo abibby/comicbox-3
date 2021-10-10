@@ -84,6 +84,7 @@ export function prompt<T>(message: string, options: Record<string, T>, timeout: 
         const cb = (e: CloseEvent<T>) => {
             if (e.id === id) {
                 resolve(e.result)
+                alertsTarget.removeEventListener('close', cb as any)
             }
         }
         alertsTarget.addEventListener("close", cb as any)

@@ -11,4 +11,8 @@
     --light-text: #aaa;
 
     --reading-background: #000;
+
+    --alert-background: #333;
+    --alert-text: #eee;
+    --alert-option: #2196f3;
 }

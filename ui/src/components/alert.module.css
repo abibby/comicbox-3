@@ -5,11 +5,26 @@
     transform: translateX(-50%);
     width: 300px;
     max-width: 100%;
+    z-index: 50;
 }
 
 .alert {
-    background-color: red;
+    background-color: var(--alert-background);
     margin: 5px;
+    color: var(--alert-text);
+    padding: 2px;
+}
+
+.options {
+    float: right;
+}
+.option {
+    background: none;
+    border: none; 
+    color: var(--alert-option);
+    padding: 0 0 0 1ch;
+    margin: 0;
+    font-size: inherit;
 }
 
 @media screen and (min-width: 500px) {

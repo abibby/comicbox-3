@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { book } from '../api'
-import { useAsync } from '../hooks/async'
+import { usePaginated } from '../hooks/paginated'
 import { BookCard } from './book'
 import styles from './book-list.module.css'
 
@@ -9,7 +9,8 @@ interface BookListProps {
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    const books = useAsync(() => book.list(), [])
+    const books = usePaginated(book.list, [], [])
+    // const books = useAsync(() => book.list(), [])
     if (books.loading) {
         return <div>loading</div>
     }

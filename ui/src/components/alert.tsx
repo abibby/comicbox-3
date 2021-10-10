@@ -60,9 +60,9 @@ function Alert<T>(props: AlertProps<T>) {
     }, [props.id])
     const buttons = Object
         .entries(props.options)
-        .map(([name, result]) => <button onClick={bind(result, resolve)}>{name}</button>)
+        .map(([name, result]) => <button class={styles.option} onClick={bind(result, resolve)}>{name}</button>)
 
-    useEffect(() => {
+    useEffect(() => {        
         if (props.timeout > 0) {
             setTimeout(() => {
                 resolve(undefined)
@@ -71,7 +71,9 @@ function Alert<T>(props: AlertProps<T>) {
     })
     return <div class={styles.alert}>
         {props.message}
-        {buttons}
+        <div class={styles.options}>
+            {buttons}
+        </div>
     </div>
 }
 
@@ -90,7 +92,3 @@ export function prompt<T>(message: string, options: Record<string, T>, timeout: 
         alertsTarget.addEventListener("close", cb as any)
     })
 }
-
-setTimeout(() => {
-    prompt("test prompt", {"ok": true, "cancel": false}).then(console.log)
-}, 1000);

@@ -19,9 +19,12 @@ const config: RollupOptions = {
             // minimize: true,
             extract: true
         }),
-        assetPlugin(),
-        eslint({useEslintrc: true}),
+        eslint({
+            include: /.*\.tsx?$/,
+            // exclude: [/node_modules/, /rollup\.config\.ts$/]
+        }),
         typescript(),
+        assetPlugin(),
         nodeResolve(),
         createHTMLPlugin({
             templatePath: 'src/index.html',

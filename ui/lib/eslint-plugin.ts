@@ -1,4 +1,4 @@
-import { CLIEngine } from "eslint";
+import { ESLint } from "eslint";
 import path from "path";
 import { Plugin } from "rollup";
 import { createFilter } from "rollup-pluginutils";
@@ -11,74 +11,41 @@ function normalizePath(id: string): string {
 }
 
 interface EslintOptions {
-    useEslintrc?: boolean
-    formatter?: CLIEngine.Formatter
     include?: Array<string | RegExp> | string | RegExp | null
     exclude?: Array<string | RegExp> | string | RegExp | null
-    throwOnWarning?: boolean
-    throwOnError?: boolean
-    fix?: boolean
 }
 
 export function eslint(options: EslintOptions = {}): Plugin {
-  if (typeof options === "string") {
-    const configFile = path.resolve(process.cwd(), options);
-    options = require(configFile);
-    options.useEslintrc = false; // Tell eslint not to look for configuration files.
-  }
 
-  const cli = new CLIEngine(options);
-  let formatter = options.formatter;
+    const cli = new ESLint({
+        
+    });
 
-  if (typeof formatter !== "function") {
-    formatter = cli.getFormatter(formatter || "stylish");
-  }
+    const formatterPromise = cli.loadFormatter();
 
-  const filter = createFilter(
-    options.include,
-    options.exclude || /node_modules/
-  );
+    const filter = createFilter(
+        options.include || /.*\.js/,
+        options.exclude || /node_modules/
+    );
 
-  return {
-    name: "eslint",
+    return {
+        name: "eslint",
 
-    transform(code, id) {
-      const file = normalizePath(id);
-      if (cli.isPathIgnored(file) || !filter(id)) {
-        return null;
-      }
+        async transform(transformedCode, id) {
+            const file = normalizePath(id);
+            if (await cli.isPathIgnored(file) || !filter(id)) {
+                return null;
+            }
 
-      const report = cli.executeOnText(code, file);
-      const hasWarnings = options.throwOnWarning && report.warningCount !== 0;
-      const hasErrors = options.throwOnError && report.errorCount !== 0;
+            const report = await cli.lintFiles(file)
+            
+            const formatter = await formatterPromise
+            const result = formatter.format(report);
 
-      if (options.fix && report) {
-        CLIEngine.outputFixes(report);
-      }
-
-      if (report.warningCount === 0 && report.errorCount === 0) {
-        return null;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const result = formatter!(report.results);
-
-      if (result) {
-        // eslint-disable-next-line no-console
-        console.log(result);
-      }
-
-      if (hasWarnings && hasErrors) {
-        throw Error("Warnings or errors were found");
-      }
-
-      if (hasWarnings) {
-        throw Error("Warnings were found");
-      }
-
-      if (hasErrors) {
-        throw Error("Errors were found");
-      }
-    }
-  };
+            if (result) {
+                // eslint-disable-next-line no-console
+                console.log(result);
+            }
+        }
+    };
 }

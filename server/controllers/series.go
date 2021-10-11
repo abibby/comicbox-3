@@ -13,5 +13,5 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		Select(&models.Series{}).
 		Order(goqu.I("name").Asc())
 
-	index(rw, r, query, &[]models.Series{})
+	index(rw, r, query, &models.SeriesList{})
 }

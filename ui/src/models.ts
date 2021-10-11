@@ -24,4 +24,5 @@ export interface Series {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    cover_url: string
 }

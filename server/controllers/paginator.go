@@ -72,8 +72,8 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		return
 	}
 
-	if v, ok := v.(models.PrepareForDisplayer); ok {
-		err = v.PrepareForDisplay()
+	if v, ok := v.(models.AfterLoader); ok {
+		err = v.AfterLoad()
 		if err != nil {
 			sendError(rw, err)
 			return

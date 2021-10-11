@@ -1,16 +1,11 @@
 package models
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"os"
-	"time"
 
-	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -30,10 +25,8 @@ const (
 )
 
 type Book struct {
+	BaseModel
 	ID         uuid.UUID      `json:"id"         db:"id"`
-	CreatedAt  database.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt  database.Time  `json:"updated_at" db:"updated_at"`
-	DeletedAt  *database.Time `json:"deleted_at" db:"deleted_at"`
 	Title      string         `json:"title"      db:"title"`
 	Chapter    *nulls.Float64 `json:"chapter"    db:"chapter"`
 	Volume     *nulls.Float64 `json:"volume"     db:"volume"`
@@ -47,15 +40,25 @@ type Book struct {
 	CoverURL   string         `json:"cover_url"  db:"-"`
 }
 
-var _ PrepareForDatabaser = &Book{}
-var _ PrepareForDisplayer = &Book{}
+var _ BeforeSaver = &Book{}
+var _ AfterSaver = &Book{}
+var _ AfterLoader = &Book{}
 
 type BookList []*Book
 
-var _ PrepareForDatabaser = BookList{}
-var _ PrepareForDisplayer = BookList{}
+var _ AfterLoader = BookList{}
 
-func (b *Book) PrepareForDatabase() error {
+func (b *Book) Model() *BaseModel {
+	return &b.BaseModel
+}
+func (*Book) Table() string {
+	return "books"
+}
+func (*Book) PrimaryKey() string {
+	return "id"
+}
+
+func (b *Book) BeforeSave(tx *sqlx.Tx) error {
 	if b.Authors == nil {
 		b.Authors = []string{}
 	}
@@ -91,7 +94,15 @@ func (b *Book) PrepareForDatabase() error {
 	return nil
 }
 
-func (b *Book) PrepareForDisplay() error {
+func (b *Book) AfterSave(tx *sqlx.Tx) error {
+	err := Save(&Series{Name: b.Series}, tx, false)
+	if err != nil {
+		return errors.Wrap(err, "failed to create series from book")
+	}
+	return nil
+}
+
+func (b *Book) AfterLoad() error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err
@@ -114,67 +125,12 @@ func (b *Book) PrepareForDisplay() error {
 	return nil
 }
 
-func (bl BookList) PrepareForDatabase() error {
+func (bl BookList) AfterLoad() error {
 	for _, b := range bl {
-		err := b.PrepareForDatabase()
+		err := b.AfterLoad()
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (bl BookList) PrepareForDisplay() error {
-	for _, b := range bl {
-		err := b.PrepareForDisplay()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *Book) Insert(tx *sqlx.Tx) error {
-	err := b.PrepareForDatabase()
-	if err != nil {
-		return errors.Wrap(err, "failed to prepare book for database")
-	}
-
-	b.CreatedAt = database.Time(time.Now())
-	b.UpdatedAt = database.Time(time.Now())
-	insertSQL, args, err := goqu.Insert("books").Rows(b).ToSQL()
-	if err != nil {
-		return errors.Wrap(err, "failed to generate insert sql")
-	}
-
-	s := &Series{}
-	err = tx.Get(s, "select * from series where name = ?", b.Series)
-	if err == sql.ErrNoRows {
-		err = createSeriesFromBook(tx, b)
-		if err != nil {
-			return errors.Wrap(err, "failed to create series from book")
-		}
-	} else if err != nil {
-		return errors.Wrap(err, "failed to select series")
-	}
-	_, err = tx.Query(insertSQL, args...)
-	if err != nil {
-		print(insertSQL)
-		os.Exit(1)
-		return errors.Wrap(err, "failed to insert book")
-	}
-	return nil
-}
-
-func createSeriesFromBook(tx *sqlx.Tx, book *Book) error {
-	insertSQL, args, err := goqu.Insert("series").Rows(&Series{
-		Name:      book.Series,
-		CreatedAt: database.Time(time.Now()),
-		UpdatedAt: database.Time(time.Now()),
-	}).ToSQL()
-	if err != nil {
-		return err
-	}
-	_, err = tx.Query(insertSQL, args...)
-	return err
 }

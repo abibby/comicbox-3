@@ -1,12 +1,68 @@
 package models
 
 import (
-	"github.com/abibby/comicbox-3/database"
+	"database/sql"
+
+	"github.com/abibby/comicbox-3/server/router"
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type Series struct {
-	Name      string         `json:"name"       db:"name"`
-	CreatedAt database.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt database.Time  `json:"updated_at" db:"updated_at"`
-	DeletedAt *database.Time `json:"deleted_at" db:"deleted_at"`
+	BaseModel
+	Name        string     `json:"name"          db:"name"`
+	CoverURL    string     `json:"cover_url"     db:"-"`
+	FirstBookID *uuid.UUID `json:"first_book_id" db:"first_book_id"`
+
+	inDatabase bool
+}
+
+var _ BeforeSaver = &Series{}
+var _ AfterLoader = &Series{}
+var _ Model = &Series{}
+
+type SeriesList []*Series
+
+var _ AfterLoader = SeriesList{}
+
+func (s *Series) Model() *BaseModel {
+	return &s.BaseModel
+}
+func (*Series) Table() string {
+	return "series"
+}
+func (*Series) PrimaryKey() string {
+	return "name"
+}
+
+func (s *Series) BeforeSave(tx *sqlx.Tx) error {
+	b := &Book{}
+	err := tx.Get(b, "select * from books where series = ? order by sort limit 1", s.Name)
+	if err == sql.ErrNoRows {
+		s.FirstBookID = nil
+	} else if err != nil {
+		return err
+	}
+	if b != nil {
+		s.FirstBookID = &b.ID
+	}
+	return nil
+}
+
+func (s *Series) AfterLoad() error {
+	if s.FirstBookID != nil {
+		s.CoverURL = router.MustURL("book.page", "id", s.FirstBookID.String(), "page", "0")
+	}
+	s.inDatabase = true
+	return nil
+}
+
+func (sl SeriesList) AfterLoad() error {
+	for _, s := range sl {
+		err := s.AfterLoad()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

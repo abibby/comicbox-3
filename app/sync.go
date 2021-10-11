@@ -45,11 +45,11 @@ func Sync(ctx context.Context) error {
 		}
 
 		for file := range bookFiles {
-			log.Printf("Adding %s to the library", file)
 			err = addBook(tx, file)
 			if err != nil {
 				return err
 			}
+			log.Printf("Added %s to the library", file)
 		}
 
 		return nil
@@ -84,7 +84,7 @@ func addBook(tx *sqlx.Tx, file string) error {
 	}
 	book.ID = uuid.New()
 
-	return book.Insert(tx)
+	return models.Save(book, tx, false)
 }
 
 func loadBookData(file string) (*models.Book, error) {

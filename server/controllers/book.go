@@ -3,6 +3,7 @@ package controllers
 import (
 	"archive/zip"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/abibby/comicbox-3/app"
@@ -81,6 +82,6 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(rw, f)
 	if err != nil {
-		print(err)
+		log.Print(err)
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 )
 
@@ -31,8 +30,7 @@ var ruleMap = map[string]Handler{
 		return nil
 	}),
 	"uuid": handle(func(value string) error {
-		id, err := uuid.Parse(value)
-		spew.Dump(id, err)
+		_, err := uuid.Parse(value)
 		if err != nil {
 			return err
 		}

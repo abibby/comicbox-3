@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -12,8 +13,9 @@ import (
 )
 
 type PaginatedRequest struct {
-	Page     *nulls.Int `query:"page"        validate:"min:1"`
-	PageSize *nulls.Int `query:"page_size"   validate:"min:1|max:100"`
+	Page         *nulls.Int `query:"page"      validate:"min:1"`
+	PageSize     *nulls.Int `query:"page_size" validate:"min:1|max:100"`
+	UpdatedAfter *time.Time `query:"updated_after"`
 }
 
 type PaginatedResponse struct {
@@ -37,7 +39,10 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		page = uint(p - 1)
 	}
 	if ps, ok := req.PageSize.Ok(); ok {
-		page = uint(ps)
+		pageSize = uint(ps)
+	}
+	if req.UpdatedAfter != nil {
+		query = query.Where(goqu.C("updated_at").Gte(req.UpdatedAfter))
 	}
 
 	dataSQL, dataArgs, err := query.
@@ -76,7 +81,7 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 	}
 
 	sendJSON(rw, &PaginatedResponse{
-		Page:     int(page),
+		Page:     int(page + 1),
 		PageSize: int(pageSize),
 		Total:    total,
 		Data:     v,

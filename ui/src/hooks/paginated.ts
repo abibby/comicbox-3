@@ -1,12 +1,12 @@
 import { Inputs, useEffect, useState } from "preact/hooks";
-import { PaginatedResponse } from "../api/pagination";
+import { PaginatedRequest, PaginatedResponse } from "../api/pagination";
 import { prompt } from "../components/alert";
 import { AsyncResponse } from "./async";
 
-export function usePaginated<T, TArgs extends []>(
-    network: (...args: TArgs) => Promise<PaginatedResponse<T>>,
-    cache: (...args: TArgs) => Promise<PaginatedResponse<T>>,
-    args: TArgs,
+export function usePaginated<T>(
+    network: (r: PaginatedRequest) => Promise<PaginatedResponse<T>>,
+    cache: (r: PaginatedRequest) => Promise<PaginatedResponse<T>>,
+    request: PaginatedRequest,
     inputs: Inputs
 ): AsyncResponse<PaginatedResponse<T>, Error> {
     const [value, setValue] = useState<AsyncResponse<PaginatedResponse<T>, Error>>({
@@ -23,10 +23,10 @@ export function usePaginated<T, TArgs extends []>(
                 error: e,
             })
         }
-        cache(...args).then(r => {
-
+        cache(request).then(r => {
+            
         }).catch(error)
-        network(...args).then(r => {
+        network(request).then(r => {
             prompt("New results", { "reload": true, }, 0)
             setValue({
                 loading: false,
@@ -34,7 +34,7 @@ export function usePaginated<T, TArgs extends []>(
                 error: undefined,
             })
         }).catch(error)
-    }, [setValue, ...args, ...inputs])
+    }, [setValue, request.page, request.page_size, ...inputs])
 
     return value
 }

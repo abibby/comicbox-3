@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
@@ -16,8 +15,7 @@ import (
 )
 
 type BookIndexRequest struct {
-	ID           *nulls.String `query:"id"          validate:"uuid"`
-	UpdatedAfter *time.Time    `query:"updated_after"`
+	ID *nulls.String `query:"id" validate:"uuid"`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -35,9 +33,6 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 	if id, ok := req.ID.Ok(); ok {
 		query = query.Where(goqu.Ex{"id": id})
-	}
-	if req.UpdatedAfter != nil {
-		query = query.Where(goqu.C("updated_at").Gte(req.UpdatedAfter))
 	}
 	index(rw, r, query, &models.BookList{})
 }

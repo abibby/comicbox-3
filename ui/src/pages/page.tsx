@@ -31,7 +31,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
     const page = Number(props.matches?.page || 0)
 
-    const books = useAsync(() => book.list({id: id}), [])
+    const books = useAsync((id: string) => book.list({id: id}), [id])
     if (books.loading) {
         return <div>loading</div>
     }
@@ -55,7 +55,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
         setMenuOpen(open => {
             if (open) {
                 return false
-            } else {
+            } 
                 const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]
                 switch (section) {
                     case 'left':
@@ -68,7 +68,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                         return true
                 }
                 return open
-            }
+            
         })
     }, [setMenuOpen, id, page])
 

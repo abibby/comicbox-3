@@ -20,7 +20,8 @@ class CloseEvent<T = unknown> extends Event<"close"> {
 
 type AlertEvents = {
     open: OpenEvent,
-    close: CloseEvent
+    close: CloseEvent,
+    clear: Event
 }
 
 const alertsTarget = new EventTarget<AlertEvents, "strict">()
@@ -29,20 +30,30 @@ let alertId = 0
 
 export const AlertController: FunctionalComponent = () => {
     const [alerts, setAlerts] = useState<AlertProps[]>([])
+    
     const openAlert = useCallback((e: OpenEvent)=>{
         setAlerts(alerts => alerts.concat([e.props]))
     }, [setAlerts])
+
     const closeAlert = useCallback((e: CloseEvent)=>{
         setAlerts(alerts => alerts.filter(alert=>alert.id !== e.id))
     }, [setAlerts])
+
+    const clearAlert = useCallback(() => {
+        setAlerts([])
+    }, [setAlerts])
+
     useEffect(() => {
         alertsTarget.addEventListener('open', openAlert)
         alertsTarget.addEventListener('close', closeAlert)
+        alertsTarget.addEventListener('clear', clearAlert)
         return () => {
             alertsTarget.removeEventListener('open', openAlert)
             alertsTarget.removeEventListener('close', closeAlert)
+            alertsTarget.removeEventListener('clear', clearAlert)
         }
     }, [setAlerts])
+
     return <div class={styles.controller}>
         {alerts.map(alert => <Alert {...alert} />)}
     </div>
@@ -92,4 +103,8 @@ export function prompt<T>(message: string, options: Record<string, T>, timeout =
         }
         alertsTarget.addEventListener("close", cb)
     })
+}
+
+export function clearAlerts(): void {
+    alertsTarget.dispatchEvent(new Event('clear'))
 }

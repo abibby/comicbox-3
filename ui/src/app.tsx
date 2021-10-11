@@ -1,6 +1,8 @@
+import EventTarget from 'event-target-shim'
 import { Fragment, h, render } from 'preact'
 import Router from 'preact-router'
-import { AlertController } from './components/alert'
+import { useRef } from 'preact/hooks'
+import { AlertController, clearAlerts } from './components/alert'
 import { Shell } from './components/shell'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
@@ -10,10 +12,11 @@ import { SeriesView } from './pages/series-view'
 import { Settings } from './pages/settings'
 
 function Main() {
+    useRef(new EventTarget())
     return <Fragment>
         <AlertController />
-         <Shell>
-            <Router>
+        <Shell>
+            <Router onChange={clearAlerts}>
                 <Home path="/" />
                 <Page path="/book/:id/:page?" />
                 <SeriesIndex path="/series" />

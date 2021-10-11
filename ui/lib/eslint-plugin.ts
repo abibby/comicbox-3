@@ -64,6 +64,7 @@ export function eslint(options: EslintOptions = {}): Plugin {
       const result = formatter!(report.results);
 
       if (result) {
+        // eslint-disable-next-line no-console
         console.log(result);
       }
 

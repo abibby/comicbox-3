@@ -33,19 +33,18 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
 ): Promise<T[]> {
     const items: T[] = []
     let page = 1
-    while (true) {
-        const resp = await callback({
+    let resp: PaginatedResponse<T>
+    do {
+        resp = await callback({
             page_size: 10,
             ...req,
             page: page,
         })
 
         items.push(...resp.data)
-
-        if (resp.page * resp.page_size > resp.total) {
-            return items
-        }
-
+        
         page++
-    }
+    } while (resp.page * resp.page_size > resp.total)
+
+    return items
 }

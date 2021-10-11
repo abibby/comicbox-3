@@ -3,6 +3,7 @@ import { Event, EventTarget } from 'event-target-shim';
 import { FunctionalComponent, h } from "preact";
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import styles from "./alert.module.css";
+
 class OpenEvent<T = unknown> extends Event<"open"> {
     constructor(public props: AlertProps<T>) {
         super('open')
@@ -26,7 +27,7 @@ const alertsTarget = new EventTarget<AlertEvents, "strict">()
 
 let alertId = 0
 
-export const AlertController: FunctionalComponent = props => {
+export const AlertController: FunctionalComponent = () => {
     const [alerts, setAlerts] = useState<AlertProps[]>([])
     const openAlert = useCallback((e: OpenEvent)=>{
         setAlerts(alerts => alerts.concat([e.props]))
@@ -77,18 +78,18 @@ function Alert<T>(props: AlertProps<T>) {
     </div>
 }
 
-export function prompt<T>(message: string, options: Record<string, T>, timeout: number = 5000): Promise<T | undefined> {
+export function prompt<T>(message: string, options: Record<string, T>, timeout = 5000): Promise<T | undefined> {
     return new Promise(resolve => {
         const id = alertId
         alertId++
 
-        alertsTarget.dispatchEvent(new OpenEvent<T>({id, message, options, timeout}))
-        const cb = (e: CloseEvent<T>) => {
+        alertsTarget.dispatchEvent(new OpenEvent<T>({id: id, message: message, options: options, timeout: timeout}))
+        const cb = (e: CloseEvent<unknown>) => {
             if (e.id === id) {
-                resolve(e.result)
-                alertsTarget.removeEventListener('close', cb as any)
+                resolve(e.result as T)
+                alertsTarget.removeEventListener('close', cb)
             }
         }
-        alertsTarget.addEventListener("close", cb as any)
+        alertsTarget.addEventListener("close", cb)
     })
 }

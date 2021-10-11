@@ -38,7 +38,7 @@ export const Shell: FunctionalComponent = props => {
                 />
             </ul>
         </nav>
-        {props.children ?? <div class={styles.empty}></div>}
+        {props.children ?? <div class={styles.empty} />}
     </div>
 }
 

@@ -10,6 +10,7 @@ module.exports = {
 	],
 	rules: {
 		"@typescript-eslint/no-unused-vars": [1, {varsIgnorePattern: '^h$'}],
-		"object-shorthand": [2, "never"]
+		"object-shorthand": [2, "methods"],
+		"camelcase": 0,
 	}
 };

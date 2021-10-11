@@ -9,17 +9,18 @@ import { BookCard } from './book'
 import styles from './book-list.module.css'
 
 interface BookListProps {
-
+    series?: string
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    // const netBooks = useAsync(book.list, [])
-    // const cacheBooks = useAsync(() => DB.books.toArray(), [])
     const [books, setBooks] = useState<Book[]>([])
 
     useEffect(() => {
         (async () => {
             const cacheBooks = await DB.books.toArray()
+            if (props.series) {
+
+            }
             if (cacheBooks.length === 0) {
                 const netBooks = await allPages(book.list, {})
                 setBooks(netBooks)

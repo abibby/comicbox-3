@@ -16,10 +16,8 @@ import (
 )
 
 type BookIndexRequest struct {
-	ID       *nulls.String `query:"id"        validate:"uuid"`
-	Page     *nulls.Int    `query:"page"      validate:"min:1"`
-	PageSize *nulls.Int    `query:"page_size" validate:"min:1|max:100"`
-	Since    *time.Time    `query:"since"     validate:""`
+	ID           *nulls.String `query:"id"          validate:"uuid"`
+	UpdatedAfter *time.Time    `query:"updated_after"`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -37,6 +35,9 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 	if id, ok := req.ID.Ok(); ok {
 		query = query.Where(goqu.Ex{"id": id})
+	}
+	if req.UpdatedAfter != nil {
+		query = query.Where(goqu.C("updated_at").Gte(req.UpdatedAfter))
 	}
 	index(rw, r, query, &models.BookList{})
 }

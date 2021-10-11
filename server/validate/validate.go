@@ -17,23 +17,21 @@ func Run(r *http.Request, requestParams interface{}) error {
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		f := t.Field(i)
-		tag, ok := f.Tag.Lookup("validate")
-		if !ok {
-			continue
-		}
 
 		rules := []*Rule{}
 
-		for _, v := range strings.Split(tag, "|") {
-			parts := strings.SplitN(v, ":", 2)
-			params := []string{}
-			if len(parts) > 1 {
-				params = strings.Split(parts[1], ",")
+		if tag, ok := f.Tag.Lookup("validate"); ok {
+			for _, v := range strings.Split(tag, "|") {
+				parts := strings.SplitN(v, ":", 2)
+				params := []string{}
+				if len(parts) > 1 {
+					params = strings.Split(parts[1], ",")
+				}
+				rules = append(rules, &Rule{
+					Name:   parts[0],
+					Params: params,
+				})
 			}
-			rules = append(rules, &Rule{
-				Name:   parts[0],
-				Params: params,
-			})
 		}
 		value, ok := getValue(r, f)
 		if !ok {
@@ -89,7 +87,9 @@ func getValueQuery(r *http.Request, field reflect.StructField) (string, bool) {
 
 func setValue(f reflect.Value, value string) error {
 	if _, ok := f.Interface().(json.Unmarshaler); ok {
-		f.Set(reflect.New(f.Type().Elem()))
+		if f.IsNil() {
+			f.Set(reflect.New(f.Type().Elem()))
+		}
 		b, err := json.Marshal(value)
 		if err != nil {
 			return err

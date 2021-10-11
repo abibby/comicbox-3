@@ -1,26 +1,26 @@
 import { FunctionalComponent, h } from 'preact'
-import { book } from '../api'
+import { series } from '../api'
 import { DB } from '../database'
 import { useCached } from '../hooks/cached'
-import { BookCard } from './book-card'
 import styles from './book-list.module.css'
+import { SeriesCard } from './series-card'
 
-interface BookListProps {
+interface SeriesListProps {
     listName: string
     series?: string
 }
 
 
-export const BookList: FunctionalComponent<BookListProps> = props => {
-    const books = useCached(props.listName, { series: props.series }, DB.books, book.list, book.cachedList)
+export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
+    const items = useCached(props.listName, {}, DB.series, series.list, series.cachedList)
 
-    if (books === null) {
+    if (items === null) {
         return <div class={styles.bookList}>
             loading
         </div>
     }
 
     return <div class={styles.bookList}>
-        {books.map(b => <BookCard book={b} />)}
+        {items.map(s => <SeriesCard series={s} />)}
     </div>
 }

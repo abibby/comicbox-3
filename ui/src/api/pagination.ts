@@ -1,7 +1,7 @@
 export type PaginatedRequest = {
     page?: number
     page_size?: number
-    updated_after?: Date
+    updated_after?: string
 }
 
 export interface PaginatedResponse<T> {
@@ -11,16 +11,12 @@ export interface PaginatedResponse<T> {
     data: T[]
 }
 
-export function encodeParams(req: Record<string, string|number|Date|undefined>): string {
+export function encodeParams(req: Record<string, string|number|undefined>): string {
     const u = new URLSearchParams()
 
     for (const [key, value] of Object.entries(req)) {
         if (value !== undefined) {
-            if (value instanceof Date) {
-                u.set(key, value.toISOString())
-            } else {
-                u.set(key, String(value))
-            }
+            u.set(key, String(value))
         }
     }
 
@@ -36,7 +32,7 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
     let resp: PaginatedResponse<T>
     do {
         resp = await callback({
-            page_size: 10,
+            page_size: 100,
             ...req,
             page: page,
         })
@@ -44,7 +40,7 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
         items.push(...resp.data)
         
         page++
-    } while (resp.page * resp.page_size > resp.total)
+    } while (resp.page * resp.page_size < resp.total)
 
     return items
 }

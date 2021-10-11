@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact';
 import { Book } from '../models';
-import styles from './book.module.css';
+import { Card } from './card';
 
 interface BookProps {
     book: Book
@@ -23,11 +23,10 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         }
         title += props.book.title
     }
-    return <div class={styles.book}>
-        <a href={`/book/${props.book.id}`} >
-            <img class={styles.cover} src={props.book.cover_url} alt="cover image" loading="lazy" />
-            <div class={styles.title}>{title}</div>
-            <div class={styles.series}>{props.book.series}</div>
-        </a>
-    </div>
+    return <Card
+        image={props.book.cover_url}
+        link={`/book/${props.book.id}`}
+        title={props.book.series}
+        subtitle={title}
+     />
 }

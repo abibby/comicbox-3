@@ -4,7 +4,8 @@ import { route } from 'preact-router';
 import { useCallback, useEffect, useState } from 'preact/hooks';
 import { book } from "../api";
 import classNames from '../classnames';
-import { useAsync } from "../hooks/async";
+import { DB } from '../database';
+import { useCached } from '../hooks/cached';
 import { Error404 } from './404';
 import styles from './page.module.css';
 
@@ -31,14 +32,9 @@ export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
     const page = Number(props.matches?.page || 0)
 
-    const books = useAsync((id: string) => book.list({id: id}), [id])
-    if (books.loading) {
-        return <div>loading</div>
-    }
-    if (books.error) {
-        return <div>Error {books.error.message}</div>
-    }
-    const b = books.result.data[0]
+    const books = useCached(`page:${id}`, { id: id }, DB.books, book.list, book.cachedList)
+
+    const b = books?.[0]
     if (b === undefined) {
         return <Error404 />
     }

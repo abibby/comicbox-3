@@ -1,7 +1,7 @@
 import book from "asset-url:../../res/icons/book.svg";
 import home from "asset-url:../../res/icons/home.svg";
 import list from "asset-url:../../res/icons/list-check.svg";
-import search from "asset-url:../../res/icons/search.svg";
+import settings from "asset-url:../../res/icons/settings.svg";
 import logo from 'asset-url:../../res/images/logo.svg';
 import { FunctionalComponent, h } from "preact";
 import '../variables.css';
@@ -32,9 +32,9 @@ export const Shell: FunctionalComponent = props => {
                     link="/series"
                 />
                 <MenuItem
-                    title="Search"
-                    img={search}
-                    link="/search"
+                    title="Settings"
+                    img={settings}
+                    link="/settings"
                 />
             </ul>
         </nav>

@@ -9,7 +9,7 @@ interface BookListProps {
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    const books = usePaginated(book.list, [], [])
+    const books = usePaginated(book.list, book.list, [], [])
     // const books = useAsync(() => book.list(), [])
     if (books.loading) {
         return <div>loading</div>

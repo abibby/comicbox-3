@@ -4,7 +4,8 @@ import { prompt } from "../components/alert";
 import { AsyncResponse } from "./async";
 
 export function usePaginated<T, TArgs extends []>(
-    callback: (...args: TArgs) => Promise<PaginatedResponse<T>>,
+    network: (...args: TArgs) => Promise<PaginatedResponse<T>>,
+    cache: (...args: TArgs) => Promise<PaginatedResponse<T>>,
     args: TArgs,
     inputs: Inputs
 ): AsyncResponse<PaginatedResponse<T>, Error> {
@@ -15,20 +16,24 @@ export function usePaginated<T, TArgs extends []>(
     })
 
     useEffect(() => {
-        callback(...args).then(r => {
+        function error(e: Error) {
+            setValue({
+                loading: false,
+                result: undefined,
+                error: e,
+            })
+        }
+        cache(...args).then(r => {
+
+        }).catch(error)
+        network(...args).then(r => {
             prompt("New results", { "reload": true, }, 0)
             setValue({
                 loading: false,
                 result: r,
                 error: undefined,
             })
-        }).catch(e => {
-            setValue({
-                loading: false,
-                result: undefined,
-                error: e,
-            })
-        })
+        }).catch(error)
     }, [setValue, ...args, ...inputs])
 
     return value

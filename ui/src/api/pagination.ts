@@ -1,3 +1,9 @@
+export type PaginatedRequest = {
+    page?: number
+    page_size?: number
+    since?: string
+}
+
 export interface PaginatedResponse<T> {
     total: number
     page: number

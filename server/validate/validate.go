@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -10,25 +11,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type ValidationError struct {
-}
-
-func (e *ValidationError) Error() string {
-	return ""
-}
-func (e *ValidationError) Send(rw http.ResponseWriter) error {
-	return nil
-}
-func (e *ValidationError) Status() int {
-	return 422
-}
-
-type Rule struct {
-	Name   string
-	Params []string
-}
-
 func Run(r *http.Request, requestParams interface{}) error {
+	vErr := newValidationError()
 	v := reflect.ValueOf(requestParams).Elem()
 	t := v.Type()
 	for i := 0; i < v.NumField(); i++ {
@@ -42,12 +26,13 @@ func Run(r *http.Request, requestParams interface{}) error {
 
 		for _, v := range strings.Split(tag, "|") {
 			parts := strings.SplitN(v, ":", 2)
-			if len(parts) <= 1 {
-				continue
+			params := []string{}
+			if len(parts) > 1 {
+				params = strings.Split(parts[1], ",")
 			}
 			rules = append(rules, &Rule{
 				Name:   parts[0],
-				Params: strings.Split(parts[1], ","),
+				Params: params,
 			})
 		}
 		value, ok := getValue(r, f)
@@ -55,32 +40,47 @@ func Run(r *http.Request, requestParams interface{}) error {
 			continue
 		}
 
-		valid(value, rules)
+		errs := valid(value, rules)
+		if len(errs) != 0 {
+			vErr.Push(f.Name, errs)
+		}
 		err := setValue(v.Field(i), value)
 		if err != nil {
 			return err
 		}
 	}
+	if vErr.HasErrors() {
+		return vErr
+	}
 	return nil
 }
 
-func valid(value string, rules []*Rule) bool {
-
-	return false
+func getValue(r *http.Request, field reflect.StructField) (string, bool) {
+	if value, ok := getValueURL(r, field); ok {
+		return value, true
+	}
+	if value, ok := getValueQuery(r, field); ok {
+		return value, true
+	}
+	return "", false
 }
 
-func getValue(r *http.Request, field reflect.StructField) (string, bool) {
-	vars := mux.Vars(r)
-
-	name := field.Name
-	if tag, ok := field.Tag.Lookup("json"); ok {
-		name = tag
+func name(field reflect.StructField, tagName string) string {
+	if tag, ok := field.Tag.Lookup(tagName); ok {
+		return tag
 	}
-
+	return field.Name
+}
+func getValueURL(r *http.Request, field reflect.StructField) (string, bool) {
+	vars := mux.Vars(r)
+	name := name(field, "url")
 	if value, ok := vars[name]; ok {
 		return value, true
 	}
-
+	return "", false
+}
+func getValueQuery(r *http.Request, field reflect.StructField) (string, bool) {
+	name := name(field, "query")
 	if r.URL.Query().Has(name) {
 		return r.URL.Query().Get(name), true
 	}
@@ -88,6 +88,15 @@ func getValue(r *http.Request, field reflect.StructField) (string, bool) {
 }
 
 func setValue(f reflect.Value, value string) error {
+	if _, ok := f.Interface().(json.Unmarshaler); ok {
+		f.Set(reflect.New(f.Type().Elem()))
+		b, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+		return f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
+	}
+
 	switch f.Kind() {
 	case reflect.String:
 		f.Set(reflect.ValueOf(value).Convert(f.Type()))

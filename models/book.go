@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/comicbox-3/server/routes"
+	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -103,13 +103,13 @@ func (b *Book) PrepareForDisplay() error {
 	}
 
 	for i, page := range b.Pages {
-		page.URL = routes.MustURL("book.thumbnail", "ID", b.ID.String(), "Page", fmt.Sprint(i))
+		page.URL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
 		if page.Type == FrontCover && b.CoverURL == "" {
-			b.CoverURL = routes.MustURL("book.page", "ID", b.ID.String(), "Page", fmt.Sprint(i))
+			b.CoverURL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
 		}
 	}
 	if b.CoverURL == "" {
-		b.CoverURL = routes.MustURL("book.page", "ID", b.ID.String(), "Page", "0")
+		b.CoverURL = router.MustURL("book.page", "id", b.ID.String(), "page", "0")
 	}
 	return nil
 }

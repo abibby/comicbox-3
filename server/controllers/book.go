@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
@@ -15,9 +16,10 @@ import (
 )
 
 type BookIndexRequest struct {
-	ID       *nulls.String `json:"id"        validate:"uuid"`
-	Page     *nulls.Int    `json:"page"      validate:"min:1"`
-	PageSize *nulls.Int    `json:"page_size" validate:"min:1|max:100"`
+	ID       *nulls.String `query:"id"        validate:"uuid"`
+	Page     *nulls.Int    `query:"page"      validate:"min:1"`
+	PageSize *nulls.Int    `query:"page_size" validate:"min:1|max:100"`
+	Since    *time.Time    `query:"since"     validate:""`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -40,8 +42,8 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 }
 
 type BookPageRequest struct {
-	ID   string `validate:"uuid"`
-	Page int    `validate:"min:0|max:9"`
+	ID   string `url:"id"   validate:"uuid"`
+	Page int    `url:"page" validate:"min:0|max:9"`
 }
 
 func BookPage(rw http.ResponseWriter, r *http.Request) {

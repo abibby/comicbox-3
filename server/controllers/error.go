@@ -46,6 +46,7 @@ func sendError(rw http.ResponseWriter, err error) {
 		if sendErr != nil {
 			log.Print(sendErr)
 		}
+		return
 	}
 	rw.WriteHeader(500)
 	err = json.NewEncoder(rw).Encode(ErrorResponse{Error: err.Error()})

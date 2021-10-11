@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/abibby/comicbox-3/server/routes"
+	"github.com/abibby/comicbox-3/server/router"
 )
 
 type Server struct {
@@ -14,7 +14,7 @@ func New() *Server {
 	return &Server{
 		server: http.Server{
 			Addr:    ":8080",
-			Handler: routes.Router(),
+			Handler: router.Router(),
 		},
 	}
 }

@@ -13,8 +13,6 @@ type Series struct {
 	Name        string     `json:"name"          db:"name"`
 	CoverURL    string     `json:"cover_url"     db:"-"`
 	FirstBookID *uuid.UUID `json:"first_book_id" db:"first_book_id"`
-
-	inDatabase bool
 }
 
 var _ BeforeSaver = &Series{}
@@ -53,7 +51,6 @@ func (s *Series) AfterLoad() error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.page", "id", s.FirstBookID.String(), "page", "0")
 	}
-	s.inDatabase = true
 	return nil
 }
 

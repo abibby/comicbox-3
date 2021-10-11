@@ -10,6 +10,7 @@ import { Page } from './pages/page'
 import { SeriesIndex } from './pages/series-index'
 import { SeriesView } from './pages/series-view'
 import { Settings } from './pages/settings'
+import { UserCreate } from './pages/user-create'
 
 function Main() {
     useRef(new EventTarget())
@@ -22,6 +23,7 @@ function Main() {
                 <SeriesIndex path="/series" />
                 <SeriesView path="/series/:series" />
                 <Settings path="/settings" />
+                <UserCreate path="/users/create" />
                 <Error404 default />
             </Router>
         </Shell>

@@ -84,7 +84,7 @@ func addBook(tx *sqlx.Tx, file string) error {
 	}
 	book.ID = uuid.New()
 
-	return models.Save(book, tx, false)
+	return models.Save(book, tx)
 }
 
 func loadBookData(file string) (*models.Book, error) {

@@ -3,9 +3,6 @@
 
 export interface Book {
     id: string
-    created_at: string
-    updated_at: string
-    deleted_at: string | null
     title: string
     chapter: number | null
     volume: number | null
@@ -21,8 +18,10 @@ export interface Page {
 }
 export interface Series {
     name: string
-    created_at: string
-    updated_at: string
-    deleted_at: string | null
     cover_url: string
+    first_book_id: string | null
+}
+export interface User {
+    id: string
+    username: string
 }

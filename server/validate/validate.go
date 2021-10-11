@@ -15,6 +15,13 @@ func Run(r *http.Request, requestParams interface{}) error {
 	vErr := newValidationError()
 	v := reflect.ValueOf(requestParams).Elem()
 	t := v.Type()
+
+	err := json.NewDecoder(r.Body).Decode(requestParams)
+	if err != nil {
+		return err
+	}
+	r.Body.Close()
+
 	for i := 0; i < v.NumField(); i++ {
 		f := t.Field(i)
 

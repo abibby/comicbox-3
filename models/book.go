@@ -95,7 +95,7 @@ func (b *Book) BeforeSave(tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(tx *sqlx.Tx) error {
-	err := Save(&Series{Name: b.Series}, tx, false)
+	err := Save(&Series{Name: b.Series}, tx)
 	if err != nil {
 		return errors.Wrap(err, "failed to create series from book")
 	}

@@ -42,7 +42,7 @@ func marshal(raw *[]byte, v interface{}) error {
 	return nil
 }
 
-func Save(model Model, tx *sqlx.Tx, ignoreUpdate bool) error {
+func Save(model Model, tx *sqlx.Tx) error {
 	if model, ok := model.(BeforeSaver); ok {
 		err := model.BeforeSave(tx)
 		if err != nil {
@@ -57,11 +57,7 @@ func Save(model Model, tx *sqlx.Tx, ignoreUpdate bool) error {
 	m.UpdatedAt = database.Time(time.Now())
 
 	query := goqu.Insert(model.Table()).Rows(model)
-	if ignoreUpdate {
-		query = query.OnConflict(goqu.DoNothing())
-	} else {
-		query = query.OnConflict(goqu.DoUpdate(model.PrimaryKey(), model))
-	}
+	query = query.OnConflict(goqu.DoUpdate(model.PrimaryKey(), model))
 	sql, args, err := query.ToSQL()
 	if err != nil {
 		return errors.Wrap(err, "failed to generate insert sql")

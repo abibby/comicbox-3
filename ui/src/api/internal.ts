@@ -1,4 +1,6 @@
-import { route } from "preact-router"
+import noImage from 'asset-url:../../res/images/no-cover.svg';
+import { route } from "preact-router";
+import { Book, Series } from "../models";
 
 export type PaginatedRequest = {
     page?: number
@@ -58,14 +60,43 @@ export class FetchError<T> extends Error {
 }
 
 let authToken = localStorage.getItem("auth-token")
+let authImageToken = localStorage.getItem("auth-image-token")
 
-export function setAuthToken(token: string | null): void {
+export function setAuthToken(token: string | null, imageToken: string | null): void {
     authToken = token
     if (token === null) {
         localStorage.removeItem("auth-token")
     } else {
         localStorage.setItem("auth-token", token)
     }
+    authImageToken = imageToken
+    if (authImageToken === null) {
+        localStorage.removeItem("auth-image-token")
+    } else {
+        localStorage.setItem("auth-image-token", authImageToken)
+    }
+}
+
+// export function pageURL(book: Book): string
+// export function pageURL(book: Series): string
+// export function pageURL(book: Book, page: number): string
+export function pageURL(model: Book|Series, page?: number): string {
+    let u: URL
+    if ('pages' in model && page !== undefined) {
+        const p = model.pages[page]
+        if (p === undefined) {
+            return noImage
+        }
+        u = new URL(p.url, location.href)
+    } else {
+        u = new URL(model.cover_url, location.href)
+    }
+
+    if (authImageToken !== null) {
+        u.searchParams.set("_token", authImageToken)
+    }
+    
+    return u.toString()
 }
 
 export async function apiFetch<T>(...args: Parameters<typeof fetch>): Promise<T> {

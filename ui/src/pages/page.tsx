@@ -1,8 +1,7 @@
-import noImage from 'asset-url:../../res/images/no-cover.svg';
 import { FunctionalComponent, h } from "preact";
 import { route } from 'preact-router';
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import { book } from "../api";
+import { book, pageURL } from "../api";
 import classNames from '../classnames';
 import { DB } from '../database';
 import { useCached } from '../hooks/cached';
@@ -40,8 +39,8 @@ export const Page: FunctionalComponent<PageProps> = props => {
     }
     useEffect(() => {
         preloadImages([
-            b.pages[page+1]?.url,
-            b.pages[page-1]?.url,
+            pageURL(b, page+1),
+            pageURL(b, page-1),
         ])
     }, [page])
 
@@ -68,9 +67,8 @@ export const Page: FunctionalComponent<PageProps> = props => {
         })
     }, [setMenuOpen, id, page])
 
-    const image = b.pages[page]?.url ?? noImage
     return <div class={classNames(styles.page, {[styles.menuOpen]: menuOpen})} onClick={click}>
-        <img class={styles.image} src={image} alt="" />
+        <img class={styles.image} src={pageURL(b, page)} />
         <div class={styles.overlay}>
             <div class={styles.slider}>slider</div>
         </div>

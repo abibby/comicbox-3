@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -40,7 +41,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 type BookPageRequest struct {
 	ID   string `url:"id"   validate:"uuid"`
-	Page int    `url:"page" validate:"min:0|max:9"`
+	Page int    `url:"page" validate:"min:0"`
 }
 
 func BookPage(rw http.ResponseWriter, r *http.Request) {
@@ -72,6 +73,10 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Page < 0 || req.Page >= len(imgs) {
+		sendError(rw, NewHttpError(404, fmt.Errorf("not found")))
+		return
+	}
 	f, err := imgs[req.Page].Open()
 	if err != nil {
 		sendError(rw, err)

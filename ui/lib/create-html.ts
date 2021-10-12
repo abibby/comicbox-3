@@ -1,3 +1,4 @@
+import generateFavicons from "favicons";
 import { readFile } from 'fs/promises';
 import { render } from 'mustache';
 import { Plugin, PluginContext } from 'rollup';
@@ -7,17 +8,20 @@ interface Options {
     output: string
     shellJSPath: string
     shellCSSPath: string
+    iconPath: string
 }
 export default function createHTMLPlugin(options: Options): Plugin {
-    const { templatePath, output, shellJSPath, shellCSSPath } = options
+    const { templatePath, output, shellJSPath, shellCSSPath, iconPath } = options
     return {
         name: 'create-html-plugin',
         buildStart() {
             this.addWatchFile(templatePath)
             this.addWatchFile(shellJSPath)
             this.addWatchFile(shellCSSPath)
+            this.addWatchFile(iconPath)
         },
         async generateBundle(options, bundle) {
+            const faviconsPromise = generateFavicons(iconPath, {})
             const template = await readFile(templatePath).then(f =>
                 f.toString(),
             )
@@ -36,12 +40,24 @@ export default function createHTMLPlugin(options: Options): Plugin {
 
             const shell: string = (await import(await resolveFile(this, shellJSPath))).shell
 
+            const r = await faviconsPromise
+            
+            for (const image of [...r.images, ...r.files]) {
+                bundle[image.name] = {
+                    name: undefined,
+                    type: 'asset',
+                    fileName: image.name,
+                    isAsset: true,
+                    source: image.contents,
+                }
+            }
             const variables = { 
                 scripts: scripts,
                 styles: styles+`<style>${shellCSS}</style>`,
+                header: r.html.join(''),
                 shell: shell,
             }
-
+            
             bundle[output] = {
                 name: undefined,
                 type: 'asset',

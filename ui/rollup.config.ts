@@ -31,7 +31,8 @@ const config: RollupOptions = {
             output: 'index.html',
             shellJSPath: 'dist/shell.js',
             shellCSSPath: 'dist/shell.css',
-        }),
+            iconPath: 'res/images/logo.svg',
+        })
     ],
 }
 

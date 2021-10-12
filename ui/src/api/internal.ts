@@ -1,3 +1,5 @@
+import { route } from "preact-router"
+
 export type PaginatedRequest = {
     page?: number
     page_size?: number
@@ -77,6 +79,10 @@ export async function apiFetch<T>(...args: Parameters<typeof fetch>): Promise<T>
     }
     const response = await fetch(...args)
     const body = await response.json()
+    
+    if (response.status === 401) {
+        route('/login')
+    }
     if (!response.ok) {
         let message = response.statusText
         if (body.error) {

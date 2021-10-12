@@ -3,9 +3,12 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -119,9 +122,16 @@ func (b *Book) AfterLoad() error {
 			b.CoverURL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
 		}
 	}
-	if b.CoverURL == "" {
-		b.CoverURL = router.MustURL("book.page", "id", b.ID.String(), "page", "0")
+
+	path := router.MustURL("book.page", "id", b.ID.String(), "page", "0")
+	t, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp":  time.Now().Add(time.Hour * 24).Unix(),
+		"path": path,
+	}).SignedString(config.AppKey)
+	if err != nil {
+		return err
 	}
+	b.CoverURL = path + "?_token=" + t
 	return nil
 }
 

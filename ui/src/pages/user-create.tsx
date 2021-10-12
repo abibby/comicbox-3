@@ -8,12 +8,10 @@ export const UserCreate: FunctionalComponent = () => {
     const [password, setPassword] = useState("")
     const submit = useCallback(async (e: Event) => {
         e.preventDefault()
-        const u = await user.create({
+        await user.create({
             username: username,
             password: password
         })
-
-        console.log(u);
     }, [username, password])
 
     return <div>

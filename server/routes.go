@@ -14,13 +14,13 @@ func init() {
 
 	router.Group("/api/", func(r *mux.Router) {
 
-		// api := r.PathPrefix("/api/").Subrouter()
+		auth := r.NewRoute().Subrouter()
+		auth.Use(controllers.AuthMiddleware)
+		auth.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
 
-		r.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
-
-		r.HandleFunc("/books", controllers.BookIndex).Methods("GET").Name("book.index")
-		r.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
-		r.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.thumbnail")
+		auth.HandleFunc("/books", controllers.BookIndex).Methods("GET").Name("book.index")
+		auth.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
+		auth.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.thumbnail")
 
 		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")
 

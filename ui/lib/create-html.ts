@@ -1,4 +1,3 @@
-import generateFavicons from "favicons";
 import { readFile } from 'fs/promises';
 import { render } from 'mustache';
 import { Plugin, PluginContext } from 'rollup';
@@ -21,7 +20,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
             this.addWatchFile(iconPath)
         },
         async generateBundle(options, bundle) {
-            const faviconsPromise = generateFavicons(iconPath, {})
+            // const faviconsPromise = generateFavicons(iconPath, {})
             const template = await readFile(templatePath).then(f =>
                 f.toString(),
             )
@@ -40,21 +39,22 @@ export default function createHTMLPlugin(options: Options): Plugin {
 
             const shell: string = (await import(await resolveFile(this, shellJSPath))).shell
 
-            const r = await faviconsPromise
+            // const r = await faviconsPromise
             
-            for (const image of [...r.images, ...r.files]) {
-                bundle[image.name] = {
-                    name: undefined,
-                    type: 'asset',
-                    fileName: image.name,
-                    isAsset: true,
-                    source: image.contents,
-                }
-            }
+            // for (const image of [...r.images, ...r.files]) {
+            //     bundle[image.name] = {
+            //         name: undefined,
+            //         type: 'asset',
+            //         fileName: image.name,
+            //         isAsset: true,
+            //         source: image.contents,
+            //     }
+            // }
             const variables = { 
                 scripts: scripts,
                 styles: styles+`<style>${shellCSS}</style>`,
-                header: r.html.join(''),
+                // header: r.html.join(''),
+                header: "",
                 shell: shell,
             }
             

@@ -17,7 +17,8 @@ import (
 )
 
 type BookIndexRequest struct {
-	ID *nulls.String `query:"id" validate:"uuid"`
+	ID     *nulls.String `query:"id" validate:"uuid"`
+	Series *nulls.String `query:"series"`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -35,6 +36,9 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 	if id, ok := req.ID.Ok(); ok {
 		query = query.Where(goqu.Ex{"id": id})
+	}
+	if series, ok := req.Series.Ok(); ok {
+		query = query.Where(goqu.Ex{"series": series})
 	}
 	index(rw, r, query, &models.BookList{})
 }

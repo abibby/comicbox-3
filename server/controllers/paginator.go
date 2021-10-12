@@ -64,7 +64,10 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 	total := 0
 
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		tx.Get(&total, countSQL, countArgs...)
+		err := tx.Get(&total, countSQL, countArgs...)
+		if err != nil {
+			return err
+		}
 		return tx.Select(v, dataSQL, dataArgs...)
 	})
 	if err != nil {

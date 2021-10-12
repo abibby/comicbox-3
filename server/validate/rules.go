@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -36,6 +37,14 @@ var ruleMap = map[string]Handler{
 		}
 		return nil
 	}),
+	"in": func(value string, params []string) error {
+		for _, p := range params {
+			if value == p {
+				return nil
+			}
+		}
+		return fmt.Errorf("must be one of %s", strings.Join(params, ", "))
+	},
 }
 
 func handle(f interface{}) Handler {

@@ -8,6 +8,9 @@ export type BookListRequest =
     & {
         id?: string
         series?: string
+        before_id?: string
+        after_id?: string
+        order?: 'asc' | 'desc'
     }
 
 export async function list(req: BookListRequest = {}): Promise<PaginatedResponse<Book>> {

@@ -17,8 +17,11 @@ import (
 )
 
 type BookIndexRequest struct {
-	ID     *nulls.String `query:"id" validate:"uuid"`
-	Series *nulls.String `query:"series"`
+	ID       *nulls.String `query:"id"        validate:"uuid"`
+	Series   *nulls.String `query:"series"`
+	BeforeID *nulls.String `query:"before_id" validate:"uuid"`
+	AfterID  *nulls.String `query:"after_id"  validate:"uuid"`
+	Order    *nulls.String `query:"order"     validate:"in:asc,desc"`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -31,8 +34,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 	query := goqu.
 		From("books").
-		Select(&models.Book{}).
-		Order(goqu.I("sort").Asc())
+		Select(&models.Book{})
 
 	if id, ok := req.ID.Ok(); ok {
 		query = query.Where(goqu.Ex{"id": id})
@@ -40,8 +42,75 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 	if series, ok := req.Series.Ok(); ok {
 		query = query.Where(goqu.Ex{"series": series})
 	}
+
+	if order, _ := req.Order.Ok(); order == "desc" {
+		query = query.Order(goqu.I("sort").Desc())
+	} else {
+		query = query.Order(goqu.I("sort").Asc())
+	}
+
+	if afterID, ok := req.AfterID.Ok(); ok {
+		query = query.Where(
+			goqu.C("sort").Gt(
+				goqu.From("books").
+					Select("sort").
+					Where(goqu.C("id").Eq(afterID)),
+			),
+		)
+	}
+	if beforeID, ok := req.BeforeID.Ok(); ok {
+		query = query.Where(
+			goqu.C("sort").Lt(
+				goqu.From("books").
+					Select("sort").
+					Where(goqu.C("id").Eq(beforeID)),
+			),
+		)
+	}
+
 	index(rw, r, query, &models.BookList{})
 }
+
+// type BookAroundRequest struct {
+// 	ID string `url:"id"`
+// }
+// type BookAroundResponse struct {
+// 	Previous *models.Book `json:"previous"`
+// 	Next     *models.Book `json:"next"`
+// }
+
+// func BookAround(rw http.ResponseWriter, r *http.Request) {
+// 	req := &BookAroundRequest{}
+// 	err := validate.Run(r, req)
+// 	if err != nil {
+// 		sendError(rw, err)
+// 		return
+// 	}
+// 	response := &BookAroundResponse{}
+
+// 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
+// 		b := &models.Book{}
+// 		err := tx.Get(b, "select * from books where id = ?", b.Series, b.Sort)
+
+// 		err = tx.Get(&response.Previous, "select id from books where series=? and sort<? order by sort limit 1", b.Series, b.Sort)
+// 		if err == sql.ErrNoRows {
+// 		} else if err != nil {
+// 			return err
+// 		}
+
+// 		err = tx.Get(&response.Next, "select id from books where series=? and sort>? order by sort desc limit 1", b.Series, b.Sort)
+// 		if err == sql.ErrNoRows {
+// 		} else if err != nil {
+// 			return err
+// 		}
+// 		return nil
+// 	})
+// 	if err != nil {
+// 		sendError(rw, err)
+// 		return
+// 	}
+// 	sendJSON(rw, response)
+// }
 
 type BookPageRequest struct {
 	ID   string `url:"id"   validate:"uuid"`

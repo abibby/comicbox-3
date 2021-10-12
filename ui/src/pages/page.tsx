@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 import { book, pageURL } from "../api";
 import classNames from '../classnames';
 import { DB } from '../database';
+import { useAsync } from "../hooks/async";
 import { useCached } from '../hooks/cached';
 import { Error404 } from './404';
 import styles from './page.module.css';
@@ -37,35 +38,57 @@ export const Page: FunctionalComponent<PageProps> = props => {
     if (b === undefined) {
         return <Error404 />
     }
+    const nextResponse = useAsync((id: string, series: string) => book.list({ series: series, after_id: id, page_size: 1 }), [id, b.series])
+    const previousResponse = useAsync((id: string, series: string) => book.list({ series: series, before_id: id, page_size: 1, order: "desc" }), [id, b.series])
+    const previous = previousResponse.result?.data?.[0]
+    const next = nextResponse.result?.data?.[0]
+    // console.log(previous, next)
+
     useEffect(() => {
+        // TODO: preload images from next and previous books
         preloadImages([
             pageURL(b, page+1),
             pageURL(b, page-1),
         ])
-    }, [page])
+    }, [page, previous?.id, next?.id])
 
     const [menuOpen, setMenuOpen] = useState(false);
 
     const click = useCallback((event: MouseEvent) => {
-        setMenuOpen(open => {
-            if (open) {
-                return false
-            } 
-                const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]
-                switch (section) {
-                    case 'left':
-                        route(`/book/${id}/${page-1}`)
-                        break
-                    case 'right':
-                        route(`/book/${id}/${page+1}`)
-                        break
-                    case 'center':
-                        return true
-                }
-                return open
-            
-        })
-    }, [setMenuOpen, id, page])
+        if (menuOpen) {
+            setMenuOpen(false)
+            return
+        }
+
+        const section = ['left', 'center', 'right'][Math.floor(event.pageX / window.innerWidth * 3)]
+        let newPage = page
+        switch (section) {
+            case 'left':
+                newPage--
+                break
+            case 'right':
+                newPage++
+                break
+            case 'center':
+                setMenuOpen(true)
+        }
+
+        if (newPage < 0) {                    
+            if (previous !== undefined) {
+                route(`/book/${previous.id}`)
+            } else {
+                route('/')
+            }
+        } else if (newPage >= b.pages.length) {
+            if (next !== undefined) {
+                route(`/book/${next.id}`)
+            } else {
+                route('/')
+            }
+        } else {
+            route(`/book/${id}/${newPage}`)
+        }
+    }, [menuOpen, setMenuOpen, id, page, previous?.id, next?.id])
 
     return <div class={classNames(styles.page, {[styles.menuOpen]: menuOpen})} onClick={click}>
         <img class={styles.image} src={pageURL(b, page)} />

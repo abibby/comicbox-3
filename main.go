@@ -6,20 +6,26 @@ import (
 	"os/signal"
 
 	"github.com/abibby/comicbox-3/app"
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/queue"
 	"github.com/abibby/comicbox-3/server"
 )
 
 func main() {
+	err := config.Init()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
 	log.Print("Running migrations")
-	err := database.Migrate("./db.sqlite")
+	err = database.Migrate(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Print("Finished migrations")
 
-	err = database.Open("./db.sqlite")
+	err = database.Open(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,7 +1,7 @@
 import { Dexie } from 'dexie';
 import { DB } from '../database';
 import { Book } from "../models";
-import { encodeParams, PaginatedRequest, PaginatedResponse } from "./pagination";
+import { apiFetch, encodeParams, PaginatedRequest, PaginatedResponse } from "./internal";
 
 export type BookListRequest = 
     & PaginatedRequest
@@ -11,7 +11,7 @@ export type BookListRequest =
     }
 
 export async function list(req: BookListRequest = {}): Promise<PaginatedResponse<Book>> {
-    return await fetch("/api/books?" + encodeParams(req)).then(r => r.json())
+    return await apiFetch("/api/books?" + encodeParams(req))
 }
 
 export async function cachedList(req: BookListRequest): Promise<Book[]> {

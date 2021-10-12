@@ -1,6 +1,6 @@
 import { DB } from '../database';
 import { Series } from "../models";
-import { encodeParams, PaginatedRequest, PaginatedResponse } from "./pagination";
+import { apiFetch, encodeParams, PaginatedRequest, PaginatedResponse } from "./internal";
 
 export type BookListRequest = 
     & PaginatedRequest
@@ -9,7 +9,7 @@ export type BookListRequest =
     }
 
 export async function list(req: BookListRequest = {}): Promise<PaginatedResponse<Series>> {
-    return await fetch("/api/series?" + encodeParams(req)).then(r => r.json())
+    return await apiFetch("/api/series?" + encodeParams(req))
 }
 
 export async function cachedList(req: BookListRequest): Promise<Series[]> {

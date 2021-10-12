@@ -6,6 +6,7 @@ import { AlertController, clearAlerts } from './components/alert'
 import { Shell } from './components/shell'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
+import { Login } from './pages/login'
 import { Page } from './pages/page'
 import { SeriesIndex } from './pages/series-index'
 import { SeriesView } from './pages/series-view'
@@ -24,6 +25,7 @@ function Main() {
                 <SeriesView path="/series/:series" />
                 <Settings path="/settings" />
                 <UserCreate path="/users/create" />
+                <Login path="/login" />
                 <Error404 default />
             </Router>
         </Shell>

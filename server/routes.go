@@ -24,6 +24,8 @@ func init() {
 
 		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")
 
+		r.HandleFunc("/login", controllers.Login).Methods("POST").Name("login")
+
 		r.NotFoundHandler = http.HandlerFunc(controllers.API404)
 	})
 

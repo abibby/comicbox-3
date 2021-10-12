@@ -2,3 +2,4 @@
 /ui/dist
 /bin
 /db.sqlite
+.env

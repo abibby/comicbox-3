@@ -1,6 +1,6 @@
 import { Table } from "dexie"
 import { useEffect, useState } from "preact/hooks"
-import { allPages, PaginatedRequest, PaginatedResponse } from "../api/pagination"
+import { allPages, PaginatedRequest, PaginatedResponse } from "../api/internal"
 import { prompt } from "../components/alert"
 import { DB } from "../database"
 

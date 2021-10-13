@@ -1,6 +1,6 @@
 import { Table } from "dexie"
 import { useEffect, useState } from "preact/hooks"
-import { allPages, PaginatedRequest, PaginatedResponse } from "../api/internal"
+import { PaginatedRequest } from "../api/internal"
 import { prompt } from "../components/alert"
 import { DB } from "../database"
 
@@ -8,7 +8,7 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     listName: string,
     request: TRequest,
     table: Table<T>,
-    network: (req: TRequest) => Promise<PaginatedResponse<T>>,
+    network: (req: TRequest) => Promise<T[]>,
     cache: (req: TRequest) => Promise<T[]>,
     promptForChanges: "always" | "never" | "auto" = "auto"
 ): T[] | null {
@@ -26,13 +26,13 @@ export function useCached<T, TRequest extends PaginatedRequest>(
                 cache(request),
             ])
             if (lastUpdated === undefined && cacheItems.length === 0) {
-                const netItems = await allPages(network, request)
+                const netItems = await network(request)
                 setItems(netItems)
                 table.bulkPut(netItems)
                 DB.lastUpdated.put({list: listName, updatedAt: new Date().toISOString()})
             } else {
                 setItems(cacheItems)
-                const netItems = await allPages(network, { ...request, updated_after: lastUpdated?.updatedAt })
+                const netItems = await network({ ...request, updated_after: lastUpdated?.updatedAt })
                 if (netItems.length === 0) {
                     return
                 }

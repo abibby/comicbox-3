@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 import { book, pageURL } from "../api";
 import classNames from '../classnames';
 import { DB } from '../database';
-import { useAsync } from "../hooks/async";
 import { useCached } from '../hooks/cached';
 import { Error404 } from './404';
 import styles from './page.module.css';
@@ -38,11 +37,11 @@ export const Page: FunctionalComponent<PageProps> = props => {
     if (b === undefined) {
         return <Error404 />
     }
-    const nextResponse = useAsync((id: string, series: string) => book.list({ series: series, after_id: id, page_size: 1 }), [id, b.series])
-    const previousResponse = useAsync((id: string, series: string) => book.list({ series: series, before_id: id, page_size: 1, order: "desc" }), [id, b.series])
-    const previous = previousResponse.result?.data?.[0]
-    const next = nextResponse.result?.data?.[0]
-    // console.log(previous, next)
+
+    const nextResponse = useCached(`page:${id}:next`, {  series: b.series, after_id: id, limit: 1 }, DB.books, book.list, book.cachedList)
+    const previousResponse = useCached(`page:${id}:previous`, {  series: b.series, before_id: id, limit: 1, order: "desc"  }, DB.books, book.list, book.cachedList)
+    const previous = previousResponse?.[0]
+    const next = nextResponse?.[0]
 
     useEffect(() => {
         // TODO: preload images from next and previous books

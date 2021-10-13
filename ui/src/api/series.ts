@@ -1,18 +1,20 @@
 import { DB } from '../database';
 import { Series } from "../models";
-import { apiFetch, encodeParams, PaginatedRequest, PaginatedResponse } from "./internal";
+import { allPagesFactory, apiFetch, encodeParams, PaginatedRequest, PaginatedResponse } from "./internal";
 
-export type BookListRequest = 
+export type SeriesListRequest = 
     & PaginatedRequest
     & {
         name?: string
     }
 
-export async function list(req: BookListRequest = {}): Promise<PaginatedResponse<Series>> {
+export async function listPaged(req: SeriesListRequest = {}): Promise<PaginatedResponse<Series>> {
     return await apiFetch("/api/series?" + encodeParams(req))
 }
 
-export async function cachedList(req: BookListRequest): Promise<Series[]> {
+export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
+
+export async function cachedList(req: SeriesListRequest): Promise<Series[]> {
     if (req.name !== undefined) {
         return DB.series
             .where('name')

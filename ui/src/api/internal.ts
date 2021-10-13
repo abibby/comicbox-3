@@ -27,16 +27,24 @@ export function encodeParams(req: Record<string, string|number|undefined>): stri
     return u.toString()
 }
 
+export interface AllPagesRequest {
+    limit?: number
+}
+
 export async function allPages<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
-    req: TRequest
+    req: TRequest & AllPagesRequest
 ): Promise<T[]> {
     const items: T[] = []
     let page = 1
     let resp: PaginatedResponse<T>
     do {
+        let pageSize = 100
+        if (req.limit !== undefined && page * pageSize > req.limit) {
+            pageSize = req.limit % pageSize
+        }
         resp = await callback({
-            page_size: 100,
+            page_size: pageSize,
             ...req,
             page: page,
         })
@@ -44,9 +52,15 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
         items.push(...resp.data)
         
         page++
-    } while (resp.page * resp.page_size < resp.total)
+    } while (resp.page * resp.page_size < (req.limit ?? resp.total))
 
     return items
+}
+
+export function allPagesFactory<T, TRequest extends PaginatedRequest>(
+    callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
+): (req: TRequest & AllPagesRequest) => Promise<T[]> {
+    return (req) => allPages(callback, req)
 }
 
 export class FetchError<T> extends Error {

@@ -1,28 +1,25 @@
-import { bindValue } from "@zwzn/spicy";
 import { FunctionalComponent, h } from "preact";
 import { route } from "preact-router";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback } from "preact/hooks";
 import { auth } from "../api";
+import { Form } from "../components/form/form";
 
 export const Login: FunctionalComponent = () => {
-    const [username, setUsername] = useState("")
-    const [password, setPassword] = useState("")
-    const submit = useCallback(async (e: Event) => {
-        e.preventDefault()
+    const submit = useCallback(async (data: Map<string, string>) => {
         await auth.login({
-            username: username,
-            password: password
+            username: data.get('username') ?? "",
+            password: data.get('password') ?? "",
         })
 
         route('/')
-    }, [username, password])
+    }, [])
 
     return <div>
         <h1>Create User</h1>
-        <form onSubmit={submit}>
-            <input type="text" value={username} onInput={bindValue(setUsername)} />
-            <input type="text" value={password} onInput={bindValue(setPassword)} />
+        <Form onSubmit={submit}>
+            <input type="text" name="username"/>
+            <input type="text" name="password"/>
             <button type="submit">Login</button>
-        </form>
+        </Form>
     </div>
 }

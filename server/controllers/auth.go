@@ -47,7 +47,10 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	err = bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(req.Password))
-	if err != nil {
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		sendError(rw, NewHttpError(401, fmt.Errorf("401 unauthorized")))
+		return
+	} else if err != nil {
 		sendError(rw, err)
 		return
 	}

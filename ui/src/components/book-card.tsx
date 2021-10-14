@@ -1,13 +1,23 @@
 import { FunctionalComponent, h } from 'preact';
 import { pageURL } from '../api';
+import { useComputed } from '../hooks/computed';
 import { Book } from '../models';
 import { Card } from './card';
+import { ContextMenuItems } from './context-menu';
 
 interface BookProps {
     book: Book
 }
 
 export const BookCard: FunctionalComponent<BookProps> = props => {
+    const menu = useComputed<ContextMenuItems>(() => {
+        return [
+            ['view', `/book/${props.book.id}`],
+            ['view series', `/series/${props.book.series}`],
+            ['edit', () => alert('edit')],
+        ]
+    }, [props.book.id, props.book.series])
+
     let title = ""
     if (props.book.volume) { 
         title += "V" + props.book.volume
@@ -29,5 +39,6 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         link={`/book/${props.book.id}`}
         title={props.book.series}
         subtitle={title}
+        menu={menu}
      />
 }

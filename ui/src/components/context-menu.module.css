@@ -1,0 +1,14 @@
+.menu {
+    /* position: relative; */
+}
+
+.list {
+    display: none;
+}
+.menu.open .list {
+    display: block;
+    position: absolute;
+    background-color: var(--surface);
+    top: 0;
+    left: 0;
+}

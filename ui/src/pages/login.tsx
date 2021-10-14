@@ -18,7 +18,7 @@ export const Login: FunctionalComponent = () => {
         <h1>Create User</h1>
         <Form onSubmit={submit}>
             <input type="text" name="username"/>
-            <input type="text" name="password"/>
+            <input type="password" name="password"/>
             <button type="submit">Login</button>
         </Form>
     </div>

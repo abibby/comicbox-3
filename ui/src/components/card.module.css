@@ -25,3 +25,7 @@
 .series {
     color: var(--light-text)
 }
+
+.menu {
+    float: right;
+}

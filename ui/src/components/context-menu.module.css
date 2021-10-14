@@ -1,14 +1,26 @@
 .menu {
-    /* position: relative; */
-}
-
-.list {
-    display: none;
-}
-.menu.open .list {
     display: block;
     position: absolute;
     background-color: var(--surface);
+    z-index: 50;
+    cursor: pointer;
+    list-style-type: none;
+    padding: 10px 0;
+    margin: 0;
+    box-shadow: var(--surface-box-shadow);
+}
+.menu li {
+    padding: 10px 20px;
+}
+.menu li:hover {
+    background-color: var(--surface-hover);
+}
+
+.screen {
+    position: fixed;
     top: 0;
+    bottom: 0;
     left: 0;
+    right: 0;
+    z-index: 49;
 }

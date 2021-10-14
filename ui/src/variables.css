@@ -4,6 +4,7 @@
 
 :root {
     --surface: #fff;
+    --surface-hover: #22222230;
     --text-on-surface: #222;
     --surface-box-shadow: 0px 0px 5px #00000050;
 

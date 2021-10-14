@@ -3,6 +3,7 @@ declare const styles: {
   readonly "cover": string;
   readonly "title": string;
   readonly "series": string;
+  readonly "menu": string;
 };
 export = styles;
 

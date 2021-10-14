@@ -1,6 +1,7 @@
 import { FunctionalComponent, h } from 'preact';
+import { useCallback } from 'preact/hooks';
 import styles from './card.module.css';
-import { ContextMenu, ContextMenuItems } from './context-menu';
+import { ContextMenuItems, openContextMenu } from './context-menu';
 
 interface BookProps {
     title: string
@@ -11,10 +12,15 @@ interface BookProps {
 }
 
 export const Card: FunctionalComponent<BookProps> = props => {
-        return <div class={styles.book}>
+    const open = useCallback((e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        openContextMenu(e.target, props.menu)
+    }, [])
+    return <div class={styles.book}>
         <a href={props.link} >
             <img class={styles.cover} src={props.image} alt="cover image" loading="lazy" />
-            <ContextMenu items={props.menu} />
+            <button class={styles.menu} onClick={open}>Menu</button>
             <div class={styles.title}>{props.title}</div>
             <div class={styles.series}>{props.subtitle}</div>
         </a>

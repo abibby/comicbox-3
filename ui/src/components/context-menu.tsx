@@ -1,5 +1,6 @@
-import { FunctionalComponent, h } from "preact";
+import { FunctionalComponent, h, JSX } from "preact";
 import { Link } from "preact-router";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import styles from "./context-menu.module.css";
 import { Factory, SubComponentProps } from "./factory";
 
@@ -7,14 +8,33 @@ export type ContextMenuItems = Array<[string, (() => void) | string]>
 
 export interface MenuProps extends SubComponentProps {
     items: ContextMenuItems
-    top: number
-    left: number
+    target: Element
 }
 
 const Menu: FunctionalComponent<MenuProps> = props => {
+    const [listStyle, setListStyle] = useState<JSX.CSSProperties>({})
+    const menu = useRef<HTMLUListElement>(null)
+    useLayoutEffect(() => {
+        const style: JSX.CSSProperties ={}
+        const box = getPosition(props.target)
+        const menuWidth = menu.current?.clientWidth ?? 0;
+        const menuHeight = menu.current?.clientHeight ?? 0;
+        
+        if (box.left + menuWidth < window.innerWidth) {
+            style.left = box.left
+        } else {
+            style.right = 0
+        }
+        if (box.top + menuHeight < document.body.getBoundingClientRect().height) {
+            style.top = box.top
+        } else {
+            style.top = box.top - menuHeight
+        }
+        setListStyle(style)
+    }, [ setListStyle ])
     return <div onClick={props.close}>
         <div class={styles.screen} />
-        <ul class={styles.menu} style={{ top: props.top, left: props.left }}>
+        <ul class={styles.menu} style={listStyle} ref={menu}>
             {props.items.map(([text, action]) => {
                 if (typeof action === 'string') {
                     if (encodeURI(action) === location.pathname) {
@@ -32,6 +52,14 @@ const contextMenu = new Factory(Menu)
 
 export const ContextMenuController = contextMenu.Controller
 
+export async function openContextMenu(target: EventTarget | null, items: ContextMenuItems): Promise<void> {
+    await contextMenu.open({
+        items: items,
+        target: target as Element,
+    })
+}
+export const clearContextMenus = contextMenu.clear
+
 function getPosition(elem: Element) {
     const box = elem.getBoundingClientRect();
 
@@ -47,15 +75,8 @@ function getPosition(elem: Element) {
     const top  = box.top +  scrollTop - clientTop;
     const left = box.left + scrollLeft - clientLeft;
 
-    return { top: Math.round(top), left: Math.round(left) };
+    return { 
+        top: Math.round(top),
+        left: Math.round(left),
+    };
 }
-
-export async function openContextMenu(target: EventTarget | null, items: ContextMenuItems): Promise<void> {
-    const btn = target as HTMLElement
-
-    await contextMenu.open({
-        items: items,
-        ...getPosition(btn),
-    })
-}
-export const clearContextMenus = contextMenu.clear

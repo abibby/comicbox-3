@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -122,7 +124,17 @@ func AuthMiddleware(acceptQuery bool) func(next http.Handler) http.Handler {
 				return
 			}
 
+			if uid, ok := claims["client_id"]; ok {
+				r = r.WithContext(context.WithValue(r.Context(), "user-id", uid))
+			}
+
 			next.ServeHTTP(rw, r)
 		})
 	}
+}
+
+func userID(r *http.Request) (uuid.UUID, bool) {
+	iUserID := r.Context().Value("user-id")
+	userID, ok := iUserID.(string)
+	return uuid.MustParse(userID), ok
 }

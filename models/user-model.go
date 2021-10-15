@@ -18,10 +18,10 @@ func (ub *UserBook) Model() *BaseModel {
 	return &ub.BaseModel
 }
 func (*UserBook) Table() string {
-	return "books"
+	return "user_books"
 }
 func (*UserBook) PrimaryKey() string {
-	return "(book_id,user_id)"
+	return "book_id,user_id"
 }
 
 func LoadUserModals(tx *sqlx.Tx, books BookList) error {

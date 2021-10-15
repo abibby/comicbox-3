@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/abibby/comicbox-3/database"
@@ -14,7 +15,6 @@ import (
 
 type UpdateUserBookRequest struct {
 	BookID      string `url:"id"       validate:"uuid"`
-	UserID      string `json:"user_id" validate:"uuid"`
 	CurrentPage int    `json:"page"    validate:"min:0"`
 }
 
@@ -26,19 +26,24 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	uid, ok := userID(r)
+	if !ok {
+		sendError(rw, NewHttpError(401, fmt.Errorf("unautherised")))
+		return
+	}
+
 	ub := &models.UserBook{}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		err = tx.Get(ub, "select * from user_books where user_id = ? and book_id = ? limit 1", req.UserID, req.BookID)
+		err = tx.Get(ub, "select * from user_books where user_id = ? and book_id = ? limit 1", uid, req.BookID)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
 			return err
 		}
 		ub.CurrentPage = nulls.NewInt(req.CurrentPage)
-		ub.UserID = uuid.MustParse(req.UserID)
+		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
-		models.Save(ub, tx)
-		return nil
+		return models.Save(ub, tx)
 	})
 	if err != nil {
 		sendError(rw, err)

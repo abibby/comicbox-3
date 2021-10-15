@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from "preact";
-import { route } from "preact-router";
+import { Link, route } from "preact-router";
 import { useCallback } from "preact/hooks";
 import { auth } from "../api";
 import { Form } from "../components/form/form";
@@ -15,11 +15,12 @@ export const Login: FunctionalComponent = () => {
     }, [])
 
     return <div>
-        <h1>Create User</h1>
+        <h1>Login</h1>
         <Form onSubmit={submit}>
             <input type="text" name="username"/>
             <input type="password" name="password"/>
             <button type="submit">Login</button>
         </Form>
+        <Link href="/users/create">Create user</Link>
     </div>
 }

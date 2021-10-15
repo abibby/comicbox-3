@@ -86,7 +86,6 @@ export const Page: FunctionalComponent<PageProps> = props => {
             }
         } else {
             userBook.update(id, {
-                user_id: "test",
                 current_page: newPage
             })
             route(`/book/${id}/${newPage}`)

@@ -4,6 +4,7 @@ import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
 import { AlertController, clearAlerts } from './components/alert'
 import { clearContextMenus, ContextMenuController } from './components/context-menu'
+import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
@@ -17,6 +18,7 @@ import { UserCreate } from './pages/user-create'
 function changePage(): void {
     clearAlerts()
     clearContextMenus()
+    clearModals()
 }
 
 function Main() {
@@ -24,6 +26,7 @@ function Main() {
     return <Fragment>
         <AlertController />
         <ContextMenuController />
+        <ModalController />
         <Shell>
             <Router onChange={changePage}>
                 <Home path="/" />

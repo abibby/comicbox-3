@@ -5,6 +5,7 @@ html {
 
 body {
     margin-bottom: 46px;
+    min-height: calc(100vh - 70px);
 }
 
 .shell {
@@ -68,6 +69,7 @@ body {
     body {
         margin-top: 39px;
         margin-bottom: 0;
+        min-height: calc(100vh - 40px);
     }
 
     .nav {

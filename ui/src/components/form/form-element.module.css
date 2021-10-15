@@ -1,0 +1,13 @@
+.formElement {
+    display: block;
+    margin: 10px 0;
+}
+
+.title {
+    display: block;
+}
+
+.formElement :last-child {
+    display: block;
+    width: 100%;
+}

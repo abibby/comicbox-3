@@ -71,47 +71,6 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 	index(rw, r, query, &models.BookList{})
 }
 
-// type BookAroundRequest struct {
-// 	ID string `url:"id"`
-// }
-// type BookAroundResponse struct {
-// 	Previous *models.Book `json:"previous"`
-// 	Next     *models.Book `json:"next"`
-// }
-
-// func BookAround(rw http.ResponseWriter, r *http.Request) {
-// 	req := &BookAroundRequest{}
-// 	err := validate.Run(r, req)
-// 	if err != nil {
-// 		sendError(rw, err)
-// 		return
-// 	}
-// 	response := &BookAroundResponse{}
-
-// 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-// 		b := &models.Book{}
-// 		err := tx.Get(b, "select * from books where id = ?", b.Series, b.Sort)
-
-// 		err = tx.Get(&response.Previous, "select id from books where series=? and sort<? order by sort limit 1", b.Series, b.Sort)
-// 		if err == sql.ErrNoRows {
-// 		} else if err != nil {
-// 			return err
-// 		}
-
-// 		err = tx.Get(&response.Next, "select id from books where series=? and sort>? order by sort desc limit 1", b.Series, b.Sort)
-// 		if err == sql.ErrNoRows {
-// 		} else if err != nil {
-// 			return err
-// 		}
-// 		return nil
-// 	})
-// 	if err != nil {
-// 		sendError(rw, err)
-// 		return
-// 	}
-// 	sendJSON(rw, response)
-// }
-
 type BookPageRequest struct {
 	ID   string `url:"id"   validate:"uuid"`
 	Page int    `url:"page" validate:"min:0"`

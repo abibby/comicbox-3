@@ -11,6 +11,7 @@ export interface Book {
     pages: Array<Page>
     sort: string
     cover_url: string
+    user_model: UserBook | null
 }
 export interface Page {
     url: string
@@ -24,4 +25,9 @@ export interface Series {
 export interface User {
     id: string
     username: string
+}
+export interface UserBook {
+    book_id: string
+    user_id: string
+    current_page: number | null
 }

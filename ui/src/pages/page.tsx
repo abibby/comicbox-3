@@ -1,7 +1,7 @@
 import { FunctionalComponent, h } from "preact";
 import { route } from 'preact-router';
 import { useCallback, useEffect, useState } from 'preact/hooks';
-import { book, pageURL } from "../api";
+import { book, pageURL, userBook } from "../api";
 import classNames from '../classnames';
 import { DB } from '../database';
 import { useCached } from '../hooks/cached';
@@ -85,6 +85,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 route('/')
             }
         } else {
+            userBook.update(id, {
+                user_id: "test",
+                current_page: newPage
+            })
             route(`/book/${id}/${newPage}`)
         }
     }, [menuOpen, setMenuOpen, id, page, previous?.id, next?.id])

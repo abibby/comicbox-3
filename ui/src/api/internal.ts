@@ -90,6 +90,9 @@ export function setAuthToken(token: string | null, imageToken: string | null): v
         localStorage.setItem("auth-image-token", authImageToken)
     }
 }
+export function getAuthToken(): string | null {
+    return authToken
+}
 
 // export function pageURL(book: Book): string
 // export function pageURL(book: Series): string

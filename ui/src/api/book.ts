@@ -48,7 +48,7 @@ export async function cachedList(req: BookListRequest & AllPagesRequest): Promis
             .where('sort')
             .below(b.sort)
             .reverse()
-    }else if (req.series !== undefined) {
+    } else if (req.series !== undefined) {
         collection = DB.books
             .where(['series', 'sort'])
             .between([req.series, Dexie.minKey], [req.series, Dexie.maxKey])

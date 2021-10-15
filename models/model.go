@@ -30,7 +30,7 @@ type AfterSaver interface {
 }
 
 type AfterLoader interface {
-	AfterLoad() error
+	AfterLoad(tx *sqlx.Tx) error
 }
 
 func marshal(raw *[]byte, v interface{}) error {

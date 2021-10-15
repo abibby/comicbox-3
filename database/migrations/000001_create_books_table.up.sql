@@ -1,9 +1,9 @@
 CREATE TABLE books (
-	id BLOB NOT NULL PRIMARY KEY,
-	created_at TEXT NOT NULL,
-	updated_at TEXT NOT NULL,
+    id BLOB NOT NULL PRIMARY KEY,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
     deleted_at TEXT,
-	title TEXT NOT NULL,
+    title TEXT NOT NULL,
     chapter REAL,
     volume REAL,
     series TEXT,

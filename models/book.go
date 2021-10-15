@@ -38,6 +38,7 @@ type Book struct {
 	Sort       string         `json:"sort"       db:"sort"`
 	File       string         `json:"-"          db:"file"`
 	CoverURL   string         `json:"cover_url"  db:"-"`
+	UserBook   *UserBook      `json:"user_model" db:"-"`
 }
 
 var _ BeforeSaver = &Book{}
@@ -102,7 +103,7 @@ func (b *Book) AfterSave(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (b *Book) AfterLoad() error {
+func (b *Book) AfterLoad(tx *sqlx.Tx) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err
@@ -124,12 +125,12 @@ func (b *Book) AfterLoad() error {
 	return nil
 }
 
-func (bl BookList) AfterLoad() error {
+func (bl BookList) AfterLoad(tx *sqlx.Tx) error {
 	for _, b := range bl {
-		err := b.AfterLoad()
+		err := b.AfterLoad(tx)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+	return LoadUserModals(tx, bl)
 }

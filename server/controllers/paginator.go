@@ -68,19 +68,23 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		if err != nil {
 			return err
 		}
-		return tx.Select(v, dataSQL, dataArgs...)
+
+		err = tx.Select(v, dataSQL, dataArgs...)
+		if err != nil {
+			return err
+		}
+
+		if v, ok := v.(models.AfterLoader); ok {
+			err = v.AfterLoad(tx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	if err != nil {
 		sendError(rw, err)
 		return
-	}
-
-	if v, ok := v.(models.AfterLoader); ok {
-		err = v.AfterLoad()
-		if err != nil {
-			sendError(rw, err)
-			return
-		}
 	}
 
 	sendJSON(rw, &PaginatedResponse{

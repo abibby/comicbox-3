@@ -16,7 +16,7 @@ export const Card: FunctionalComponent<BookProps> = props => {
         e.preventDefault()
         e.stopPropagation()
         openContextMenu(e.target, props.menu)
-    }, [])
+    }, [ props.menu ])
     return <div class={styles.book}>
         <a href={props.link} >
             <img class={styles.cover} src={props.image} alt="cover image" loading="lazy" />

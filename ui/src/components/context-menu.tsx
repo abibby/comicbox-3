@@ -1,6 +1,7 @@
 import { FunctionalComponent, h, JSX } from "preact";
 import { Link } from "preact-router";
-import { useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
+import { useResizeEffect } from "../hooks/resize-effect";
 import styles from "./context-menu.module.css";
 import { Factory, SubComponentProps } from "./factory";
 
@@ -14,7 +15,7 @@ export interface MenuProps extends SubComponentProps {
 const Menu: FunctionalComponent<MenuProps> = props => {
     const [listStyle, setListStyle] = useState<JSX.CSSProperties>({})
     const menu = useRef<HTMLUListElement>(null)
-    useLayoutEffect(() => {
+    useResizeEffect(() => {
         const style: JSX.CSSProperties ={}
         const box = getPosition(props.target)
         const menuWidth = menu.current?.clientWidth ?? 0;
@@ -26,7 +27,7 @@ const Menu: FunctionalComponent<MenuProps> = props => {
             style.right = 0
         }
         if (box.top + menuHeight < document.body.getBoundingClientRect().height) {
-            style.top = box.top
+            style.top = box.top + box.height
         } else {
             style.top = box.top - menuHeight
         }
@@ -78,5 +79,6 @@ function getPosition(elem: Element) {
     return { 
         top: Math.round(top),
         left: Math.round(left),
+        height: box.height,
     };
 }

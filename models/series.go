@@ -47,16 +47,16 @@ func (s *Series) BeforeSave(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (s *Series) AfterLoad() error {
+func (s *Series) AfterLoad(tx *sqlx.Tx) error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.page", "id", s.FirstBookID.String(), "page", "0")
 	}
 	return nil
 }
 
-func (sl SeriesList) AfterLoad() error {
+func (sl SeriesList) AfterLoad(tx *sqlx.Tx) error {
 	for _, s := range sl {
-		err := s.AfterLoad()
+		err := s.AfterLoad(tx)
 		if err != nil {
 			return err
 		}

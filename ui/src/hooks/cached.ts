@@ -10,7 +10,8 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     table: Table<T>,
     network: (req: TRequest) => Promise<T[]>,
     cache: (req: TRequest) => Promise<T[]>,
-    promptForChanges: "always" | "never" | "auto" = "auto"
+    promptForChanges: "always" | "never" | "auto" = "auto",
+    useCache = false,
 ): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
 
@@ -18,6 +19,12 @@ export function useCached<T, TRequest extends PaginatedRequest>(
 
     useEffect(() => {
         (async () => {
+            if (!useCache){
+                const netItems = await network(request)
+                setItems(netItems)
+                return
+            }
+
             const [
                 lastUpdated,
                 cacheItems 

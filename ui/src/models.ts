@@ -11,7 +11,7 @@ export interface Book {
     pages: Array<Page>
     sort: string
     cover_url: string
-    user_model: UserBook | null
+    user_book: UserBook | null
 }
 export interface Page {
     url: string

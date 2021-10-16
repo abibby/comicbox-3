@@ -14,8 +14,8 @@ import (
 )
 
 type UpdateUserBookRequest struct {
-	BookID      string `url:"id"       validate:"uuid"`
-	CurrentPage int    `json:"page"    validate:"min:0"`
+	BookID      string `url:"id"            validate:"uuid"`
+	CurrentPage int    `json:"current_page" validate:"min:0"`
 }
 
 func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {

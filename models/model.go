@@ -63,10 +63,11 @@ func Save(model Model, tx *sqlx.Tx) error {
 		return errors.Wrap(err, "failed to generate insert sql")
 	}
 
-	_, err = tx.Query(sql, args...)
+	rows, err := tx.Query(sql, args...)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert book")
 	}
+	rows.Close()
 
 	if model, ok := model.(AfterSaver); ok {
 		err := model.AfterSave(tx)

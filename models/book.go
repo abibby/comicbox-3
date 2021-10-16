@@ -38,7 +38,7 @@ type Book struct {
 	Sort       string         `json:"sort"       db:"sort"`
 	File       string         `json:"-"          db:"file"`
 	CoverURL   string         `json:"cover_url"  db:"-"`
-	UserBook   *UserBook      `json:"user_model" db:"-"`
+	UserBook   *UserBook      `json:"user_book" db:"-"`
 }
 
 var _ BeforeSaver = &Book{}

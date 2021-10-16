@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks';
 import { book, pageURL, userBook } from "../api";
 import classNames from '../classnames';
 import { DB } from '../database';
+import { useNextBook, usePreviousBook } from "../hooks/book";
 import { useCached } from '../hooks/cached';
 import { Error404 } from './404';
 import styles from './page.module.css';
@@ -29,7 +30,6 @@ function preloadImages(srcs: Array<string|undefined>): HTMLImageElement[] {
 
 export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
-    const page = Number(props.matches?.page || 0)
 
     const books = useCached(`page:${id}`, { id: id }, DB.books, book.list, book.cachedList)
 
@@ -38,10 +38,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
         return <Error404 />
     }
 
-    const nextResponse = useCached(`page:${id}:next`, {  series: b.series, after_id: id, limit: 1 }, DB.books, book.list, book.cachedList)
-    const previousResponse = useCached(`page:${id}:previous`, {  series: b.series, before_id: id, limit: 1, order: "desc"  }, DB.books, book.list, book.cachedList)
-    const previous = previousResponse?.[0]
-    const next = nextResponse?.[0]
+    const page = Number(props.matches?.page || b.user_book?.current_page || 0)
+
+    const previous = usePreviousBook(`page:${id}:next`, b)
+    const next = useNextBook(`page:${id}:next`, b)
 
     useEffect(() => {
         // TODO: preload images from next and previous books
@@ -72,7 +72,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 setMenuOpen(true)
         }
 
-        if (newPage < 0) {                    
+        if (newPage < 0) {
             if (previous !== undefined) {
                 route(`/book/${previous.id}`)
             } else {

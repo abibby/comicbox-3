@@ -38,13 +38,13 @@ export function eslint(options: EslintOptions = {}): Plugin {
             }
 
             const report = await cli.lintFiles(file)
-            
+
             const formatter = await formatterPromise
-            const result = formatter.format(report);
+            const result = formatter.format(report)
 
             if (result) {
                 // eslint-disable-next-line no-console
-                console.log(result);
+                console.log(result)
             }
         }
     };

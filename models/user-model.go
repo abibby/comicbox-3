@@ -1,6 +1,8 @@
 package models
 
 import (
+	"database/sql"
+
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
@@ -26,14 +28,13 @@ func (*UserBook) PrimaryKey() string {
 
 func LoadUserModals(tx *sqlx.Tx, books BookList) error {
 	bookIDs := make([]uuid.UUID, len(books))
-
 	for i, b := range books {
 		bookIDs[i] = b.ID
 	}
 
-	sql, args, err := goqu.From("user_books").
+	ubSQL, args, err := goqu.From("user_books").
 		Select(&UserBook{}).
-		Where(goqu.C("id").In(bookIDs)).
+		Where(goqu.C("book_id").In(bookIDs)).
 		ToSQL()
 	if err != nil {
 		return err
@@ -41,18 +42,28 @@ func LoadUserModals(tx *sqlx.Tx, books BookList) error {
 
 	userBooks := []*UserBook{}
 
-	err = tx.Select(&userBooks, sql, args...)
-	if err != nil {
+	err = tx.Select(&userBooks, ubSQL, args...)
+	if err == sql.ErrNoRows {
+	} else if err != nil {
 		return err
 	}
 
 	for _, b := range books {
 		for _, ub := range userBooks {
-			if b.ID == ub.BookID {
+			if b.ID.String() == ub.BookID.String() {
 				b.UserBook = ub
 			}
 		}
 	}
 
 	return nil
+}
+
+func uuidEqual(a, b uuid.UUID) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

@@ -7,20 +7,20 @@ require (
 	github.com/adhocore/gronx v0.2.5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/doug-martin/goqu/v9 v9.16.0
+	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang-migrate/migrate/v4 v4.15.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jmoiron/sqlx v1.3.4
+	github.com/joho/godotenv v1.4.0
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	modernc.org/sqlite v1.13.1
 )
 
 require (
-	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect

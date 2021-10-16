@@ -1,6 +1,6 @@
-import noImage from 'asset-url:../../res/images/no-cover.svg';
-import { route } from "preact-router";
-import { Book, Series } from "../models";
+import noImage from 'asset-url:../../res/images/no-cover.svg'
+import { route } from 'preact-router'
+import { Book, Series } from '../models'
 
 export type PaginatedRequest = {
     page?: number
@@ -15,7 +15,9 @@ export interface PaginatedResponse<T> {
     data: T[]
 }
 
-export function encodeParams(req: Record<string, string|number|undefined>): string {
+export function encodeParams(
+    req: Record<string, string | number | undefined>,
+): string {
     const u = new URLSearchParams()
 
     for (const [key, value] of Object.entries(req)) {
@@ -33,7 +35,7 @@ export interface AllPagesRequest {
 
 export async function allPages<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
-    req: TRequest & AllPagesRequest
+    req: TRequest & AllPagesRequest,
 ): Promise<T[]> {
     const items: T[] = []
     let page = 1
@@ -50,7 +52,7 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
         })
 
         items.push(...resp.data)
-        
+
         page++
     } while (resp.page * resp.page_size < (req.limit ?? resp.total))
 
@@ -60,34 +62,33 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
 export function allPagesFactory<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
 ): (req: TRequest & AllPagesRequest) => Promise<T[]> {
-    return (req) => allPages(callback, req)
+    return req => allPages(callback, req)
 }
 
 export class FetchError<T> extends Error {
-    constructor(
-        message: string,
-        public status: number,
-        public body: T,
-    ) {
+    constructor(message: string, public status: number, public body: T) {
         super(message)
     }
 }
 
-let authToken = localStorage.getItem("auth-token")
-let authImageToken = localStorage.getItem("auth-image-token")
+let authToken = localStorage.getItem('auth-token')
+let authImageToken = localStorage.getItem('auth-image-token')
 
-export function setAuthToken(token: string | null, imageToken: string | null): void {
+export function setAuthToken(
+    token: string | null,
+    imageToken: string | null,
+): void {
     authToken = token
     if (token === null) {
-        localStorage.removeItem("auth-token")
+        localStorage.removeItem('auth-token')
     } else {
-        localStorage.setItem("auth-token", token)
+        localStorage.setItem('auth-token', token)
     }
     authImageToken = imageToken
     if (authImageToken === null) {
-        localStorage.removeItem("auth-image-token")
+        localStorage.removeItem('auth-image-token')
     } else {
-        localStorage.setItem("auth-image-token", authImageToken)
+        localStorage.setItem('auth-image-token', authImageToken)
     }
 }
 export function getAuthToken(): string | null {
@@ -97,7 +98,7 @@ export function getAuthToken(): string | null {
 // export function pageURL(book: Book): string
 // export function pageURL(book: Series): string
 // export function pageURL(book: Book, page: number): string
-export function pageURL(model: Book|Series, page?: number): string {
+export function pageURL(model: Book | Series, page?: number): string {
     let u: URL
     if ('pages' in model && page !== undefined) {
         const p = model.pages[page]
@@ -110,24 +111,26 @@ export function pageURL(model: Book|Series, page?: number): string {
     }
 
     if (authImageToken !== null) {
-        u.searchParams.set("_token", authImageToken)
+        u.searchParams.set('_token', authImageToken)
     }
-    
+
     return u.toString()
 }
 
-export async function apiFetch<T>(...args: Parameters<typeof fetch>): Promise<T> {
-    if (authToken !== null){
+export async function apiFetch<T>(
+    ...args: Parameters<typeof fetch>
+): Promise<T> {
+    if (authToken !== null) {
         args[1] = {
             ...args[1],
             headers: {
-                'Authorization': 'Bearer ' + authToken
-            }
+                Authorization: 'Bearer ' + authToken,
+            },
         }
     }
     const response = await fetch(...args)
     const body = await response.json()
-    
+
     if (response.status === 401) {
         route('/login')
     }

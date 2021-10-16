@@ -1,4 +1,4 @@
-import { Inputs, useEffect, useState } from "preact/hooks"
+import { Inputs, useEffect, useState } from 'preact/hooks'
 
 export function useComputed<T>(compute: () => T, inputs: Inputs): T {
     const [value, setValue] = useState(compute())

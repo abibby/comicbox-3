@@ -1,6 +1,6 @@
-import { readFile } from 'fs/promises';
-import { render } from 'mustache';
-import { Plugin, PluginContext } from 'rollup';
+import { readFile } from 'fs/promises'
+import { render } from 'mustache'
+import { Plugin, PluginContext } from 'rollup'
 
 interface Options {
     templatePath: string
@@ -10,7 +10,8 @@ interface Options {
     iconPath: string
 }
 export default function createHTMLPlugin(options: Options): Plugin {
-    const { templatePath, output, shellJSPath, shellCSSPath, iconPath } = options
+    const { templatePath, output, shellJSPath, shellCSSPath, iconPath } =
+        options
     return {
         name: 'create-html-plugin',
         buildStart() {
@@ -27,7 +28,9 @@ export default function createHTMLPlugin(options: Options): Plugin {
 
             const scripts = Object.values(bundle)
                 .filter(f => f.type === 'chunk' && f.isEntry)
-                .map(f => `<script src="/${f.fileName}" type="module"></script>`)
+                .map(
+                    f => `<script src="/${f.fileName}" type="module"></script>`,
+                )
                 .join('')
 
             const styles = Object.values(bundle)
@@ -35,12 +38,16 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 .map(f => `<link rel="stylesheet" href="/${f.fileName}">`)
                 .join('')
 
-            const shellCSS = await readFile(await resolveFile(this, shellCSSPath))
+            const shellCSS = await readFile(
+                await resolveFile(this, shellCSSPath),
+            )
 
-            const shell: string = (await import(await resolveFile(this, shellJSPath))).shell
+            const shell: string = (
+                await import(await resolveFile(this, shellJSPath))
+            ).shell
 
             // const r = await faviconsPromise
-            
+
             // for (const image of [...r.images, ...r.files]) {
             //     bundle[image.name] = {
             //         name: undefined,
@@ -50,14 +57,14 @@ export default function createHTMLPlugin(options: Options): Plugin {
             //         source: image.contents,
             //     }
             // }
-            const variables = { 
+            const variables = {
                 scripts: scripts,
-                styles: styles+`<style>${shellCSS}</style>`,
+                styles: styles + `<style>${shellCSS}</style>`,
                 // header: r.html.join(''),
-                header: "",
+                header: '',
                 shell: shell,
             }
-            
+
             bundle[output] = {
                 name: undefined,
                 type: 'asset',
@@ -69,6 +76,6 @@ export default function createHTMLPlugin(options: Options): Plugin {
     }
 }
 
-function resolveFile(plugin: PluginContext, path: string): Promise<string>{
+function resolveFile(plugin: PluginContext, path: string): Promise<string> {
     return plugin.resolve(path).then(f => f?.id ?? '')
 }

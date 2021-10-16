@@ -10,17 +10,24 @@ interface SeriesListProps {
     series?: string
 }
 
-
 export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
-    const items = useCached(props.listName, {}, DB.series, series.list, series.cachedList)
+    const items = useCached(
+        props.listName,
+        {},
+        DB.series,
+        series.list,
+        series.cachedList,
+    )
 
     if (items === null) {
-        return <div class={styles.bookList}>
-            loading
-        </div>
+        return <div class={styles.bookList}>loading</div>
     }
 
-    return <div class={styles.bookList}>
-        {items.map(s => <SeriesCard series={s} />)}
-    </div>
+    return (
+        <div class={styles.bookList}>
+            {items.map(s => (
+                <SeriesCard series={s} />
+            ))}
+        </div>
+    )
 }

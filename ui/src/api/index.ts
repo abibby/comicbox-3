@@ -1,7 +1,6 @@
-export * as auth from "./auth";
-export * as book from "./book";
-export { pageURL } from "./internal";
-export * as series from "./series";
-export * as user from "./user";
-export * as userBook from "./user-book";
-
+export * as auth from './auth'
+export * as book from './book'
+export { pageURL } from './internal'
+export * as series from './series'
+export * as user from './user'
+export * as userBook from './user-book'

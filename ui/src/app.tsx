@@ -3,7 +3,10 @@ import { Fragment, h, render } from 'preact'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
 import { AlertController, clearAlerts } from './components/alert'
-import { clearContextMenus, ContextMenuController } from './components/context-menu'
+import {
+    clearContextMenus,
+    ContextMenuController,
+} from './components/context-menu'
 import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
 import { Error404 } from './pages/404'
@@ -23,24 +26,26 @@ function changePage(): void {
 
 function Main() {
     useRef(new EventTarget())
-    return <Fragment>
-        <AlertController />
-        <ContextMenuController />
-        <ModalController />
-        <Shell>
-            <Router onChange={changePage}>
-                <Home path="/" />
-                <Page path="/book/:id/:page?" />
-                <SeriesIndex path="/series" />
-                <SeriesView path="/series/:series" />
-                <Settings path="/settings" />
-                <UserCreate path="/users/create" />
-                <Login path="/login" />
-                <Error404 default />
-            </Router>
-        </Shell>
-    </Fragment>
-} 
+    return (
+        <Fragment>
+            <AlertController />
+            <ContextMenuController />
+            <ModalController />
+            <Shell>
+                <Router onChange={changePage}>
+                    <Home path='/' />
+                    <Page path='/book/:id/:page?' />
+                    <SeriesIndex path='/series' />
+                    <SeriesView path='/series/:series' />
+                    <Settings path='/settings' />
+                    <UserCreate path='/users/create' />
+                    <Login path='/login' />
+                    <Error404 default />
+                </Router>
+            </Shell>
+        </Fragment>
+    )
+}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<Main />, document.getElementById('app')!)

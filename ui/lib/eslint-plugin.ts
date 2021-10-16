@@ -1,13 +1,10 @@
-import { ESLint } from "eslint";
-import path from "path";
-import { Plugin } from "rollup";
-import { createFilter } from "rollup-pluginutils";
+import { ESLint } from 'eslint'
+import path from 'path'
+import { Plugin } from 'rollup'
+import { createFilter } from 'rollup-pluginutils'
 
 function normalizePath(id: string): string {
-  return path
-    .relative(process.cwd(), id)
-    .split(path.sep)
-    .join("/");
+    return path.relative(process.cwd(), id).split(path.sep).join('/')
 }
 
 interface EslintOptions {
@@ -16,25 +13,22 @@ interface EslintOptions {
 }
 
 export function eslint(options: EslintOptions = {}): Plugin {
+    const cli = new ESLint({})
 
-    const cli = new ESLint({
-        
-    });
-
-    const formatterPromise = cli.loadFormatter();
+    const formatterPromise = cli.loadFormatter()
 
     const filter = createFilter(
         options.include || /.*\.js/,
-        options.exclude || /node_modules/
-    );
+        options.exclude || /node_modules/,
+    )
 
     return {
-        name: "eslint",
+        name: 'eslint',
 
         async transform(transformedCode, id) {
-            const file = normalizePath(id);
-            if (await cli.isPathIgnored(file) || !filter(id)) {
-                return null;
+            const file = normalizePath(id)
+            if ((await cli.isPathIgnored(file)) || !filter(id)) {
+                return null
             }
 
             const report = await cli.lintFiles(file)
@@ -46,6 +40,6 @@ export function eslint(options: EslintOptions = {}): Plugin {
                 // eslint-disable-next-line no-console
                 console.log(result)
             }
-        }
-    };
+        },
+    }
 }

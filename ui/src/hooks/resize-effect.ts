@@ -1,4 +1,4 @@
-import { EffectCallback, Inputs, useLayoutEffect } from "preact/hooks"
+import { EffectCallback, Inputs, useLayoutEffect } from 'preact/hooks'
 
 export function useResizeEffect(effect: EffectCallback, inputs?: Inputs): void {
     useLayoutEffect(() => {

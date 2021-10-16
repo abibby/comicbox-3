@@ -1,5 +1,5 @@
-import { User } from "../models";
-import { apiFetch } from "./internal";
+import { User } from '../models'
+import { apiFetch } from './internal'
 
 export interface CreateRequest {
     username: string
@@ -7,8 +7,8 @@ export interface CreateRequest {
 }
 
 export async function create(req: CreateRequest): Promise<User> {
-    return await apiFetch("/api/users", {
-        method: "POST",
+    return await apiFetch('/api/users', {
+        method: 'POST',
         body: JSON.stringify(req),
     })
 }

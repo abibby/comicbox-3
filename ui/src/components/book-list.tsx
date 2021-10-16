@@ -10,17 +10,24 @@ interface BookListProps {
     series?: string
 }
 
-
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    const books = useCached(props.listName, { series: props.series }, DB.books, book.list, book.cachedList)
+    const books = useCached(
+        props.listName,
+        { series: props.series },
+        DB.books,
+        book.list,
+        book.cachedList,
+    )
 
     if (books === null) {
-        return <div class={styles.bookList}>
-            loading
-        </div>
+        return <div class={styles.bookList}>loading</div>
     }
 
-    return <div class={styles.bookList}>
-        {books.map(b => <BookCard book={b} />)}
-    </div>
+    return (
+        <div class={styles.bookList}>
+            {books.map(b => (
+                <BookCard book={b} />
+            ))}
+        </div>
+    )
 }

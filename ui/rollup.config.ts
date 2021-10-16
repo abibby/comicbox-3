@@ -5,7 +5,7 @@ import postcss from 'rollup-plugin-postcss'
 import assetPlugin from './lib/asset-plugin'
 import createHTMLPlugin from './lib/create-html'
 import cssModuleTypes from './lib/css-module-types'
-import { eslint } from "./lib/eslint-plugin"
+import { eslint } from './lib/eslint-plugin'
 const config: RollupOptions = {
     input: 'src/app.tsx',
     output: {
@@ -17,7 +17,7 @@ const config: RollupOptions = {
         postcss({
             autoModules: true,
             // minimize: true,
-            extract: true
+            extract: true,
         }),
         eslint({
             include: /.*\.tsx?$/,
@@ -32,7 +32,7 @@ const config: RollupOptions = {
             shellJSPath: 'dist/shell.js',
             shellCSSPath: 'dist/shell.css',
             iconPath: 'res/images/logo.svg',
-        })
+        }),
     ],
 }
 
@@ -46,7 +46,4 @@ const shellConfig = {
     plugins: config.plugins?.filter(p => p && p.name !== 'create-html-plugin'),
 }
 
-export default [
-    shellConfig,
-    config,
-]
+export default [shellConfig, config]

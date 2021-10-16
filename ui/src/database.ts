@@ -1,5 +1,5 @@
-import Dexie from 'dexie';
-import { Book, Series } from './models';
+import Dexie from 'dexie'
+import { Book, Series } from './models'
 
 interface LastUpdated {
     list: string
@@ -7,20 +7,20 @@ interface LastUpdated {
 }
 
 class AppDatabase extends Dexie {
-    books: Dexie.Table<Book, number>;
-    series: Dexie.Table<Series, number>;
-    lastUpdated: Dexie.Table<LastUpdated, number>;
+    books: Dexie.Table<Book, number>
+    series: Dexie.Table<Series, number>
+    lastUpdated: Dexie.Table<LastUpdated, number>
 
-    constructor () {
-        super("AppDatabase");
+    constructor() {
+        super('AppDatabase')
         this.version(1).stores({
             books: '&id, [series+sort], sort',
             series: '&name',
-            lastUpdated: "&list"
-        });
-        this.books = this.table("books");
-        this.series = this.table("series");
-        this.lastUpdated = this.table("lastUpdated");
+            lastUpdated: '&list',
+        })
+        this.books = this.table('books')
+        this.series = this.table('series')
+        this.lastUpdated = this.table('lastUpdated')
     }
 }
 

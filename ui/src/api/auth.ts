@@ -1,5 +1,4 @@
-import { apiFetch, setAuthToken } from "./internal";
-
+import { apiFetch, setAuthToken } from './internal'
 
 export interface LoginRequest {
     username: string
@@ -10,8 +9,8 @@ export interface LoginResponse {
     image_token: string
 }
 export async function login(req: LoginRequest): Promise<LoginResponse> {
-    const response = await apiFetch<LoginResponse>("/api/login", {
-        method: "POST",
+    const response = await apiFetch<LoginResponse>('/api/login', {
+        method: 'POST',
         body: JSON.stringify(req),
     })
 

@@ -29,7 +29,7 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		Password: []byte(req.Password),
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		return models.Save(u, tx)
+		return models.Save(r.Context(), u, tx)
 	})
 	if err != nil {
 		sendError(rw, err)

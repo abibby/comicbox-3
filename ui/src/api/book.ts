@@ -58,3 +58,12 @@ export async function cachedList(
 
     return collection.toArray()
 }
+
+export async function readingPaged(
+    req: PaginatedRequest = {},
+): Promise<PaginatedResponse<Book>> {
+    return await apiFetch('/api/books/reading?' + encodeParams(req))
+}
+export const reading = allPagesFactory<Book, BookListRequest>(readingPaged)
+
+reading({})

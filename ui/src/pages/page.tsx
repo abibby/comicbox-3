@@ -76,6 +76,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     break
                 case 'center':
                     setMenuOpen(true)
+                    return
             }
 
             if (newPage < 0) {

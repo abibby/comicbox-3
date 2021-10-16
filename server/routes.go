@@ -19,6 +19,7 @@ func init() {
 		auth.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
 
 		auth.HandleFunc("/books", controllers.BookIndex).Methods("GET").Name("book.index")
+		auth.HandleFunc("/books/reading", controllers.BookReading).Methods("GET").Name("book.reading")
 		auth.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
 
 		pages := r.NewRoute().Subrouter()

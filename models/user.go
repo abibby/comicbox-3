@@ -1,6 +1,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -30,7 +32,7 @@ func (*User) PrimaryKey() string {
 	return "id"
 }
 
-func (u *User) BeforeSave(tx *sqlx.Tx) error {
+func (u *User) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if u.Password != nil {
 		hash, err := bcrypt.GenerateFromPassword(u.Password, bcrypt.DefaultCost)
 		if err != nil {

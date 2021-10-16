@@ -26,7 +26,7 @@ func (*UserBook) PrimaryKey() string {
 	return "book_id,user_id"
 }
 
-func LoadUserModals(tx *sqlx.Tx, books BookList) error {
+func LoadUserModals(tx *sqlx.Tx, books BookList, uid uuid.UUID) error {
 	bookIDs := make([]uuid.UUID, len(books))
 	for i, b := range books {
 		bookIDs[i] = b.ID
@@ -35,6 +35,7 @@ func LoadUserModals(tx *sqlx.Tx, books BookList) error {
 	ubSQL, args, err := goqu.From("user_books").
 		Select(&UserBook{}).
 		Where(goqu.C("book_id").In(bookIDs)).
+		Where(goqu.C("user_id").Eq(uid)).
 		ToSQL()
 	if err != nil {
 		return err

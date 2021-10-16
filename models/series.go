@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/abibby/comicbox-3/server/router"
@@ -33,7 +34,7 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(tx *sqlx.Tx) error {
+func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	b := &Book{}
 	err := tx.Get(b, "select * from books where series = ? order by sort limit 1", s.Name)
 	if err == sql.ErrNoRows {
@@ -47,16 +48,16 @@ func (s *Series) BeforeSave(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (s *Series) AfterLoad(tx *sqlx.Tx) error {
+func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.page", "id", s.FirstBookID.String(), "page", "0")
 	}
 	return nil
 }
 
-func (sl SeriesList) AfterLoad(tx *sqlx.Tx) error {
+func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	for _, s := range sl {
-		err := s.AfterLoad(tx)
+		err := s.AfterLoad(ctx, tx)
 		if err != nil {
 			return err
 		}

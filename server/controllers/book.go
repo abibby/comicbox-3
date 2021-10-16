@@ -122,3 +122,37 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 		log.Print(err)
 	}
 }
+
+func BookReading(rw http.ResponseWriter, r *http.Request) {
+	uid, ok := userID(r)
+	if !ok {
+		sendJSON(rw, &PaginatedResponse{})
+		return
+	}
+
+	seriesQuery := `SELECT (
+		select
+			id
+		from
+			books
+		left join user_books user_books on
+			books.id = user_books.book_id
+			and user_books.user_id = ?
+		WHERE
+			books.series = series.name
+			and (user_books.current_page < (books.page_count - 1)
+				or user_books.current_page is null)
+		order by
+			sort
+		limit 1
+	) FROM "series"`
+
+	// seriesQuery := goqu.From("series").Select(goqu.L(bookQuery, uid))
+
+	query := goqu.
+		From("books").
+		Select(&models.Book{}).
+		Where(goqu.C("id").In(goqu.L(seriesQuery, uid)))
+
+	index(rw, r, query, &models.BookList{})
+}

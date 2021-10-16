@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -35,6 +36,7 @@ type Book struct {
 	RawAuthors []byte         `json:"-"          db:"authors"`
 	Pages      []*Page        `json:"pages"      db:"-"`
 	RawPages   []byte         `json:"-"          db:"pages"`
+	PageCount  int            `json:"page_count" db:"page_count"`
 	Sort       string         `json:"sort"       db:"sort"`
 	File       string         `json:"-"          db:"file"`
 	CoverURL   string         `json:"cover_url"  db:"-"`
@@ -59,7 +61,7 @@ func (*Book) PrimaryKey() string {
 	return "id"
 }
 
-func (b *Book) BeforeSave(tx *sqlx.Tx) error {
+func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if b.Authors == nil {
 		b.Authors = []string{}
 	}
@@ -79,6 +81,8 @@ func (b *Book) BeforeSave(tx *sqlx.Tx) error {
 		return err
 	}
 
+	b.PageCount = len(b.Pages)
+
 	volume := float64(999_999_999.999)
 	if !b.Volume.IsNull() {
 		volume = b.Volume.Float64()
@@ -95,15 +99,15 @@ func (b *Book) BeforeSave(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (b *Book) AfterSave(tx *sqlx.Tx) error {
-	err := Save(&Series{Name: b.Series}, tx)
+func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
+	err := Save(ctx, &Series{Name: b.Series}, tx)
 	if err != nil {
 		return errors.Wrap(err, "failed to create series from book")
 	}
 	return nil
 }
 
-func (b *Book) AfterLoad(tx *sqlx.Tx) error {
+func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err
@@ -124,13 +128,24 @@ func (b *Book) AfterLoad(tx *sqlx.Tx) error {
 	b.CoverURL = router.MustURL("book.page", "id", b.ID.String(), "page", "0")
 	return nil
 }
+func userID(ctx context.Context) (uuid.UUID, bool) {
+	iUserID := ctx.Value("user-id")
+	userID, ok := iUserID.(string)
+	return uuid.MustParse(userID), ok
+}
 
-func (bl BookList) AfterLoad(tx *sqlx.Tx) error {
+func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	for _, b := range bl {
-		err := b.AfterLoad(tx)
+		err := b.AfterLoad(ctx, tx)
 		if err != nil {
 			return err
 		}
 	}
-	return LoadUserModals(tx, bl)
+	if uid, ok := userID(ctx); ok {
+		err := LoadUserModals(tx, bl, uid)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

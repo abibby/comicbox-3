@@ -9,6 +9,7 @@ CREATE TABLE books (
     series TEXT,
     authors TEXT NOT NULL,
     pages TEXT NOT NULL,
+    page_count INT NOT NULL,
     sort TEXT NOT NULL,
     file TEXT NOT NULL
 );

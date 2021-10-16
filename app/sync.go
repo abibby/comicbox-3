@@ -45,7 +45,7 @@ func Sync(ctx context.Context) error {
 		}
 
 		for file := range bookFiles {
-			err = addBook(tx, file)
+			err = addBook(ctx, tx, file)
 			if err != nil {
 				return err
 			}
@@ -77,14 +77,14 @@ func getBookFiles(ctx context.Context) (map[string]struct{}, error) {
 	return bookFiles, nil
 }
 
-func addBook(tx *sqlx.Tx, file string) error {
+func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	book, err := loadBookData(file)
 	if err != nil {
 		return errors.Wrap(err, "failed to load book data from file")
 	}
 	book.ID = uuid.New()
 
-	return models.Save(book, tx)
+	return models.Save(ctx, book, tx)
 }
 
 func loadBookData(file string) (*models.Book, error) {

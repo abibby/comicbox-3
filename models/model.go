@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -23,14 +24,14 @@ type Model interface {
 }
 
 type BeforeSaver interface {
-	BeforeSave(tx *sqlx.Tx) error
+	BeforeSave(ctx context.Context, tx *sqlx.Tx) error
 }
 type AfterSaver interface {
-	AfterSave(tx *sqlx.Tx) error
+	AfterSave(ctx context.Context, tx *sqlx.Tx) error
 }
 
 type AfterLoader interface {
-	AfterLoad(tx *sqlx.Tx) error
+	AfterLoad(ctx context.Context, tx *sqlx.Tx) error
 }
 
 func marshal(raw *[]byte, v interface{}) error {
@@ -42,9 +43,9 @@ func marshal(raw *[]byte, v interface{}) error {
 	return nil
 }
 
-func Save(model Model, tx *sqlx.Tx) error {
+func Save(ctx context.Context, model Model, tx *sqlx.Tx) error {
 	if model, ok := model.(BeforeSaver); ok {
-		err := model.BeforeSave(tx)
+		err := model.BeforeSave(ctx, tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to run before save hook")
 		}
@@ -70,7 +71,7 @@ func Save(model Model, tx *sqlx.Tx) error {
 	rows.Close()
 
 	if model, ok := model.(AfterSaver); ok {
-		err := model.AfterSave(tx)
+		err := model.AfterSave(ctx, tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to run after save hook")
 		}

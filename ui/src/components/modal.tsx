@@ -3,36 +3,45 @@ import { ComponentType, FunctionalComponent, h } from 'preact'
 import { Factory, SubComponentProps } from './factory'
 import styles from './modal.module.css'
 
-export type ModalComponent<T> = ComponentType<{ close(value: T): void }>
+export type ModalComponent<
+    T,
+    TProps extends Record<string, unknown>,
+> = ComponentType<TProps & { close(value: T): void }>
 
-interface ModalProps<T = unknown> extends SubComponentProps {
+interface ModalProps<T, TProps extends Record<string, unknown>>
+    extends SubComponentProps {
     title: string
-    body: ModalComponent<T>
+    body: ModalComponent<T, TProps>
+    props: TProps
 }
 
-function Popup<T>(props: ModalProps<T>) {
+function Popup<T, TProps extends Record<string, unknown>>(
+    props: ModalProps<T, TProps>,
+) {
     const Body = props.body
     return (
         <div>
             <div class={styles.screen} onClick={bind(undefined, props.close)} />
             <div class={styles.popup}>
-                <Body close={props.close} />
+                <Body {...props.props} close={props.close} />
             </div>
         </div>
     )
 }
 
-const modals = new Factory(Popup)
+const modals = new Factory<ModalProps<any, any>>(Popup)
 
 export const ModalController = modals.Controller
 
-export async function openModal<T>(
+export async function openModal<T, TProps extends Record<string, unknown>>(
     title: string,
-    body: ComponentType<{ close(value: T): void }>,
+    body: ModalComponent<T, TProps>,
+    props: TProps,
 ): Promise<T | undefined> {
     return modals.open<T>({
         title: title,
         body: body,
+        props: props,
     })
 }
 

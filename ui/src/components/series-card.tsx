@@ -15,36 +15,16 @@ interface SeriesCardProps {
 
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     const menu = useComputed<ContextMenuItems>(() => {
-        const EditSeries: ModalComponent<undefined> = editProps => {
-            const submit = useCallback(
-                async (data: Map<string, string>) => {
-                    await userSeries.update(props.series.name, {
-                        list: data.get('list') ?? null,
-                    })
-                    editProps.close(undefined)
-                },
-                [editProps.close],
-            )
-            return (
-                <Modal>
-                    <ModalHead>Edit Book</ModalHead>
-                    <ModalBody>
-                        <Form onSubmit={submit}>
-                            <Input
-                                title='List'
-                                name='list'
-                                value={props.series.user_series?.list ?? ''}
-                            />
-
-                            <button type='submit'>Save</button>
-                        </Form>
-                    </ModalBody>
-                </Modal>
-            )
-        }
         return [
             ['view', `/series/${props.series.name}`],
-            ['edit', () => openModal('Edit book', EditSeries)],
+            [
+                'edit',
+                () =>
+                    openModal('Edit book', EditSeries, {
+                        name: props.series.name,
+                        list: props.series.user_series?.list ?? '',
+                    }),
+            ],
         ]
     }, [props.series.name, props.series.user_series?.list])
     return (
@@ -54,5 +34,34 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             title={props.series.name}
             menu={menu}
         />
+    )
+}
+
+type EditSeriesProps = {
+    name: string
+    list: string
+}
+
+const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
+    const submit = useCallback(
+        async (data: Map<string, string>) => {
+            await userSeries.update(props.name, {
+                list: data.get('list') ?? null,
+            })
+            props.close(undefined)
+        },
+        [props.close],
+    )
+    return (
+        <Modal>
+            <ModalHead>Edit Book</ModalHead>
+            <ModalBody>
+                <Form onSubmit={submit}>
+                    <Input title='List' name='list' value={props.list} />
+
+                    <button type='submit'>Save</button>
+                </Form>
+            </ModalBody>
+        </Modal>
     )
 }

@@ -14,7 +14,7 @@ import (
 
 type UpdateUserSeriesRequest struct {
 	SeriesName string        `url:"name"`
-	List       *nulls.String `json:"list"`
+	List       *nulls.String `json:"list" validate:"in:planning,reading,paused,dropped,completed"`
 }
 
 func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {

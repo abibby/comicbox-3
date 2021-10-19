@@ -88,7 +88,6 @@ function primaryKeyValue(item: unknown): unknown {
 
 function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
     if (cacheItems.length < netItems.length) {
-        console.log(cacheItems.length, netItems.length)
         return true
     }
 
@@ -96,7 +95,6 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
     const cacheKeys = netItems.map(primaryKeyValue)
     for (const key of netKeys) {
         if (cacheKeys.indexOf(key) === -1) {
-            console.log(key)
             return true
         }
     }

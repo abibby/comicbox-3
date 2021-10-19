@@ -15,42 +15,19 @@ interface BookProps {
 
 export const BookCard: FunctionalComponent<BookProps> = props => {
     const menu = useComputed<ContextMenuItems>(() => {
-        const EditBook: ModalComponent<undefined> = editProps => {
-            const submit = useCallback(
-                (data: Map<string, string>) => {
-                    editProps.close(undefined)
-                },
-                [editProps.close],
-            )
-            return (
-                <Modal>
-                    <ModalHead>Edit Book</ModalHead>
-                    <ModalBody>
-                        <Form onSubmit={submit}>
-                            <Input
-                                title='Title'
-                                name='title'
-                                value={props.book.title}
-                            />
-                            <Input
-                                title='Series'
-                                name='series'
-                                value={props.book.series}
-                            />
-
-                            <button type='submit'>Save</button>
-                        </Form>
-                    </ModalBody>
-                </Modal>
-            )
-        }
-
         return [
             ['view', `/book/${props.book.id}`],
             ['view series', `/series/${props.book.series}`],
-            ['edit', () => openModal('Edit book', EditBook)],
+            [
+                'edit',
+                () =>
+                    openModal('Edit book', EditBook, {
+                        title: props.book.title,
+                        series: props.book.series,
+                    }),
+            ],
         ]
-    }, [props.book.id, props.book.series])
+    }, [props.book.id, props.book.title, props.book.series])
 
     let title = ''
     if (props.book.volume) {
@@ -76,5 +53,32 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             subtitle={title}
             menu={menu}
         />
+    )
+}
+
+type EditBookProps = {
+    title: string
+    series: string
+}
+
+const EditBook: ModalComponent<undefined, EditBookProps> = props => {
+    const submit = useCallback(
+        (data: Map<string, string>) => {
+            props.close(undefined)
+        },
+        [props.close],
+    )
+    return (
+        <Modal>
+            <ModalHead>Edit Book</ModalHead>
+            <ModalBody>
+                <Form onSubmit={submit}>
+                    <Input title='Title' name='title' value={props.title} />
+                    <Input title='Series' name='series' value={props.series} />
+
+                    <button type='submit'>Save</button>
+                </Form>
+            </ModalBody>
+        </Modal>
     )
 }

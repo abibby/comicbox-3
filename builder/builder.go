@@ -1,8 +1,9 @@
 package builder
 
 type Builder struct {
-	selects []*Expression
-	wheres  []*Expression
+	selects  []*Expression
+	wheres   []*Expression
+	groupBys []*Expression
 }
 
 type Expression struct {
@@ -46,29 +47,24 @@ func (b *Builder) ToSQL() (string, []interface{}, error) {
 	args := []interface{}{}
 
 	if b.selects != nil {
-		s, a := joinExpressions(b.selects)
-		result += "select " + s
-		args = append(args, a...)
+		result += "select " + joinExpressions(b.selects, &args)
 	}
 	if b.wheres != nil {
-		s, a := joinExpressions(b.wheres)
-		result += "where " + s
-		args = append(args, a...)
+		result += "where " + joinExpressions(b.wheres, &args)
 	}
 
 	return result, args, nil
 }
 
-func joinExpressions(exprs []*Expression) (string, []interface{}) {
+func joinExpressions(exprs []*Expression, args *[]interface{}) string {
 	result := ""
-	args := []interface{}{}
 
 	for i, where := range exprs {
 		if i != 0 {
 			result += where.joiner
 		}
 		result += where.sql
-		args = append(args, where.params...)
+		*args = append(*args, where.params...)
 	}
-	return result, args
+	return result
 }

@@ -130,7 +130,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seriesQuery := `SELECT (
+	seriesQuery := `select (
 		select
 			id
 		from
@@ -145,14 +145,19 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 		order by
 			sort
 		limit 1
-	) FROM "series"`
+	)
+	from "series"
+	join user_series
+		on user_series.series_name = series.name
+		and user_series.user_id = ?
+	where user_series.list = 'reading'`
 
 	// seriesQuery := goqu.From("series").Select(goqu.L(bookQuery, uid))
 
 	query := goqu.
 		From("books").
 		Select(&models.Book{}).
-		Where(goqu.C("id").In(goqu.L(seriesQuery, uid)))
+		Where(goqu.C("id").In(goqu.L(seriesQuery, uid, uid)))
 
 	index(rw, r, query, &models.BookList{})
 }

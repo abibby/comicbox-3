@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { series } from '../api'
+import { book, series } from '../api'
 import { BookList } from '../components/book-list'
 import { DB } from '../database'
 import { useCached } from '../hooks/cached'
@@ -28,10 +28,21 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
     if (s === undefined) {
         return <Error404 />
     }
+
+    const books = useCached(
+        listName,
+        { series: s.name },
+        DB.books,
+        book.list,
+        book.cachedList,
+    )
+    if (books === null) {
+        return <div>loading</div>
+    }
     return (
         <div>
             <h1>{s.name}</h1>
-            <BookList listName={listName} series={s.name} />
+            <BookList books={books} />
         </div>
     )
 }

@@ -11,9 +11,10 @@ import (
 
 type Series struct {
 	BaseModel
-	Name        string     `json:"name"          db:"name"`
-	CoverURL    string     `json:"cover_url"     db:"-"`
-	FirstBookID *uuid.UUID `json:"first_book_id" db:"first_book_id"`
+	Name        string      `json:"name"          db:"name"`
+	CoverURL    string      `json:"cover_url"     db:"-"`
+	FirstBookID *uuid.UUID  `json:"first_book_id" db:"first_book_id"`
+	UserSeries  *UserSeries `json:"user_series"   db:"-"`
 }
 
 var _ BeforeSaver = &Series{}

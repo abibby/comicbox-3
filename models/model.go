@@ -7,6 +7,7 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -77,4 +78,13 @@ func Save(ctx context.Context, model Model, tx *sqlx.Tx) error {
 		}
 	}
 	return nil
+}
+
+func uuidEqual(a, b uuid.UUID) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }

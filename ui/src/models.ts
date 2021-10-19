@@ -9,18 +9,20 @@ export interface Book {
     series: string
     authors: Array<string>
     pages: Array<Page>
+    page_count: number
     sort: string
     cover_url: string
     user_book: UserBook | null
 }
 export interface Page {
     url: string
-    type: 'FrontCover' | 'Story' | 'Deleted'
+    type: "FrontCover" | "Story" | "Deleted"
 }
 export interface Series {
     name: string
     cover_url: string
     first_book_id: string | null
+    user_series: UserSeries | null
 }
 export interface User {
     id: string
@@ -30,4 +32,9 @@ export interface UserBook {
     book_id: string
     user_id: string
     current_page: number | null
+}
+export interface UserSeries {
+    series_name: string
+    user_id: string
+    list: string | null
 }

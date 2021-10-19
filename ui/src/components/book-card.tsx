@@ -15,11 +15,9 @@ interface BookProps {
 
 export const BookCard: FunctionalComponent<BookProps> = props => {
     const menu = useComputed<ContextMenuItems>(() => {
-        const EditBook: ModalComponent<unknown> = editProps => {
+        const EditBook: ModalComponent<undefined> = editProps => {
             const submit = useCallback(
                 (data: Map<string, string>) => {
-                    console.log(data)
-
                     editProps.close(undefined)
                 },
                 [editProps.close],
@@ -50,7 +48,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         return [
             ['view', `/book/${props.book.id}`],
             ['view series', `/series/${props.book.series}`],
-            ['edit', () => openModal('Edit book', EditBook).then(console.log)],
+            ['edit', () => openModal('Edit book', EditBook)],
         ]
     }, [props.book.id, props.book.series])
 

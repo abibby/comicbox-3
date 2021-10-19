@@ -26,7 +26,7 @@ func (*UserBook) PrimaryKey() string {
 	return "book_id,user_id"
 }
 
-func LoadUserModals(tx *sqlx.Tx, books BookList, uid uuid.UUID) error {
+func LoadUserBooks(tx *sqlx.Tx, books BookList, uid uuid.UUID) error {
 	bookIDs := make([]uuid.UUID, len(books))
 	for i, b := range books {
 		bookIDs[i] = b.ID
@@ -51,20 +51,11 @@ func LoadUserModals(tx *sqlx.Tx, books BookList, uid uuid.UUID) error {
 
 	for _, b := range books {
 		for _, ub := range userBooks {
-			if b.ID.String() == ub.BookID.String() {
+			if uuidEqual(b.ID, ub.BookID) {
 				b.UserBook = ub
 			}
 		}
 	}
 
 	return nil
-}
-
-func uuidEqual(a, b uuid.UUID) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

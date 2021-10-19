@@ -142,7 +142,7 @@ func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 		}
 	}
 	if uid, ok := userID(ctx); ok {
-		err := LoadUserModals(tx, bl, uid)
+		err := LoadUserBooks(tx, bl, uid)
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -70,7 +69,6 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 			return err
 		}
 
-		fmt.Println(dataSQL)
 		err = tx.Select(v, dataSQL, dataArgs...)
 		if err != nil {
 			return err

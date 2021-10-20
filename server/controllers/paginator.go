@@ -9,6 +9,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -25,7 +26,7 @@ type PaginatedResponse struct {
 	Data     interface{} `json:"data"`
 }
 
-func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}) {
+func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v interface{}, afterExprs ...exp.Comparable) {
 	req := &PaginatedRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -42,7 +43,11 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		pageSize = uint(ps)
 	}
 	if req.UpdatedAfter != nil {
-		query = query.Where(goqu.C("updated_at").Gte(req.UpdatedAfter))
+		exprs := []goqu.Expression{goqu.C("updated_at").Gte(req.UpdatedAfter)}
+		for _, exp := range afterExprs {
+			exprs = append(exprs, exp.Gte(req.UpdatedAfter))
+		}
+		query = query.Where(goqu.Or(exprs...))
 	}
 
 	dataSQL, dataArgs, err := query.

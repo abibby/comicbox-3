@@ -7,6 +7,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type SeriesIndexRequest struct {
@@ -30,5 +31,11 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.Where(goqu.Ex{"name": name})
 	}
 
-	index(rw, r, query, &models.SeriesList{})
+	exprs := []exp.Comparable{}
+	uid, ok := userID(r)
+	if ok {
+		exprs = append(exprs, goqu.L("(select updated_at from user_series where series_name=series.name and user_id=?)", uid))
+	}
+
+	index(rw, r, query, &models.SeriesList{}, exprs...)
 }

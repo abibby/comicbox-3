@@ -13,6 +13,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -68,7 +69,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		)
 	}
 
-	index(rw, r, query, &models.BookList{})
+	index(rw, r, query, &models.BookList{}, afterExprs(r)...)
 }
 
 type BookPageRequest struct {
@@ -159,7 +160,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 		Select(&models.Book{}).
 		Where(goqu.C("id").In(goqu.L(seriesQuery, uid, uid)))
 
-	index(rw, r, query, &models.BookList{})
+	index(rw, r, query, &models.BookList{}, afterExprs(r)...)
 }
 
 type BookUpdateRequest struct {
@@ -201,4 +202,14 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSON(rw, book)
+}
+
+func afterExprs(r *http.Request) []exp.Comparable {
+	uid, ok := userID(r)
+	if ok {
+		return []exp.Comparable{
+			goqu.L("(select updated_at from user_books where book_id=books.id and user_id=?)", uid),
+		}
+	}
+	return []exp.Comparable{}
 }

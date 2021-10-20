@@ -66,4 +66,41 @@ export async function readingPaged(
 }
 export const reading = allPagesFactory<Book, BookListRequest>(readingPaged)
 
-reading({})
+function notNullish<T>(v: T | null | undefined): v is T {
+    return v !== null && v !== undefined
+}
+
+export async function cachedReading(
+    req: PaginatedRequest = {},
+): Promise<Book[]> {
+    const s = await DB.series
+        .where('user_series.list')
+        .equals('reading')
+        .toArray()
+
+    const bookPromises = s.map(s =>
+        DB.books
+            .where(['series', 'completed', 'sort'])
+            .between([s.name, 0, Dexie.minKey], [s.name, 0, Dexie.maxKey])
+            .first(),
+    )
+    const books = await Promise.all(bookPromises)
+    return books.filter(notNullish)
+}
+
+interface BookUpdateRequest {
+    title: string
+    series: string
+    volume: number | null
+    chapter: number | null
+}
+
+export async function update(
+    id: string,
+    req: BookUpdateRequest,
+): Promise<Book> {
+    return await apiFetch(`/api/books/${id}`, {
+        method: 'POST',
+        body: JSON.stringify(req),
+    })
+}

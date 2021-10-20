@@ -63,5 +63,11 @@ func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 			return err
 		}
 	}
+	if uid, ok := userID(ctx); ok {
+		err := LoadUserSeries(tx, sl, uid)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

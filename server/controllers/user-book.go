@@ -8,7 +8,6 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
-	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -40,7 +39,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		} else if err != nil {
 			return err
 		}
-		ub.CurrentPage = nulls.NewInt(req.CurrentPage)
+		ub.CurrentPage = req.CurrentPage
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
 		return models.Save(r.Context(), ub, tx)

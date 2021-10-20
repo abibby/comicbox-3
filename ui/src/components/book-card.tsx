@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { pageURL } from '../api'
+import { book, pageURL } from '../api'
 import { useComputed } from '../hooks/computed'
 import { Book } from '../models'
 import { Card } from './card'
@@ -22,12 +22,11 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
                 'edit',
                 () =>
                     openModal('Edit book', EditBook, {
-                        title: props.book.title,
-                        series: props.book.series,
+                        book: props.book,
                     }),
             ],
         ]
-    }, [props.book.id, props.book.title, props.book.series])
+    }, [props.book.id, props.book.series, props.book])
 
     let title = ''
     if (props.book.volume) {
@@ -57,14 +56,20 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
 }
 
 type EditBookProps = {
-    title: string
-    series: string
+    book: Book
 }
 
-const EditBook: ModalComponent<undefined, EditBookProps> = props => {
+const EditBook: ModalComponent<Book, EditBookProps> = props => {
     const submit = useCallback(
-        (data: Map<string, string>) => {
-            props.close(undefined)
+        async (data: Map<string, string>) => {
+            const b = await book.update(props.book.id, {
+                title: data.get('title') ?? '',
+                series: data.get('series') ?? '',
+                volume: numberOrNull(data.get('volume')),
+                chapter: numberOrNull(data.get('chapter')),
+            })
+
+            props.close(b)
         },
         [props.close],
     )
@@ -73,12 +78,39 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
             <ModalHead>Edit Book</ModalHead>
             <ModalBody>
                 <Form onSubmit={submit}>
-                    <Input title='Title' name='title' value={props.title} />
-                    <Input title='Series' name='series' value={props.series} />
+                    <Input
+                        title='Series'
+                        name='series'
+                        value={props.book.series}
+                    />
+                    <Input
+                        title='Title'
+                        name='title'
+                        value={props.book.title}
+                    />
+                    <Input
+                        title='Volume'
+                        type='number'
+                        name='volume'
+                        value={props.book.volume ?? ''}
+                    />
+                    <Input
+                        title='Chapter'
+                        type='number'
+                        name='chapter'
+                        value={props.book.chapter ?? ''}
+                    />
 
                     <button type='submit'>Save</button>
                 </Form>
             </ModalBody>
         </Modal>
     )
+}
+
+function numberOrNull(value: string | undefined): number | null {
+    if (value === undefined || value === '') {
+        return null
+    }
+    return Number(value)
 }

@@ -33,7 +33,7 @@ func LoadUserSeries(tx *sqlx.Tx, series SeriesList, uid uuid.UUID) error {
 	}
 
 	ubSQL, args, err := goqu.From("user_series").
-		Select(&UserBook{}).
+		Select(&UserSeries{}).
 		Where(goqu.C("series_name").In(seriesNames)).
 		Where(goqu.C("user_id").Eq(uid)).
 		ToSQL()

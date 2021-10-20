@@ -161,3 +161,44 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 
 	index(rw, r, query, &models.BookList{})
 }
+
+type BookUpdateRequest struct {
+	ID      string         `url:"id" validate:"required|uuid"`
+	Title   string         `json:"page"`
+	Series  string         `json:"series"`
+	Volume  *nulls.Float64 `json:"volume"`
+	Chapter *nulls.Float64 `json:"chapter"`
+}
+
+func BookUpdate(rw http.ResponseWriter, r *http.Request) {
+	req := &BookUpdateRequest{}
+	err := validate.Run(r, req)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	book := &models.Book{}
+	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+		err = tx.Get(book, "select * from books where id = ?", req.ID)
+		if err != nil {
+			return err
+		}
+
+		book.AfterLoad(r.Context(), tx)
+
+		book.Title = req.Title
+		book.Series = req.Series
+		book.Volume = req.Volume
+		book.Chapter = req.Chapter
+
+		models.Save(r.Context(), book, tx)
+
+		return nil
+	})
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+	sendJSON(rw, book)
+}

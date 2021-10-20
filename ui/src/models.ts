@@ -31,7 +31,7 @@ export interface User {
 export interface UserBook {
     book_id: string
     user_id: string
-    current_page: number | null
+    current_page: number
 }
 export interface UserSeries {
     series_name: string

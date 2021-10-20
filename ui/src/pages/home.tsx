@@ -10,7 +10,7 @@ export const Home: FunctionalComponent = () => {
         {},
         DB.books,
         book.reading,
-        book.cachedList,
+        book.cachedReading,
     )
 
     if (books === null) {

@@ -3,8 +3,8 @@ import { FormElement, FormElementProps } from './form-element'
 
 export interface InputProps extends FormElementProps {
     name: string
-    type?: string
-    value: string
+    type?: 'number' | 'text'
+    value: string | number
 }
 
 export const Input: FunctionalComponent<InputProps> = props => {

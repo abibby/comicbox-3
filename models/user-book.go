@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 
-	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -11,9 +10,9 @@ import (
 
 type UserBook struct {
 	BaseModel
-	BookID      uuid.UUID  `json:"book_id"      db:"book_id"`
-	UserID      uuid.UUID  `json:"user_id"      db:"user_id"`
-	CurrentPage *nulls.Int `json:"current_page" db:"current_page"`
+	BookID      uuid.UUID `json:"book_id"      db:"book_id"`
+	UserID      uuid.UUID `json:"user_id"      db:"user_id"`
+	CurrentPage int       `json:"current_page" db:"current_page"`
 }
 
 func (ub *UserBook) Model() *BaseModel {

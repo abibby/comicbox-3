@@ -1,11 +1,11 @@
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useEffect, useState } from 'preact/hooks'
-import { book, pageURL, userBook } from '../api'
+import { auth, book, pageURL } from '../api'
+import { useCached } from '../cache'
 import classNames from '../classnames'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
-import { useCached } from '../hooks/cached'
 import { Error404 } from './404'
 import styles from './page.module.css'
 
@@ -92,9 +92,17 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     route('/')
                 }
             } else {
-                userBook.update(id, {
-                    current_page: newPage,
-                })
+                const userID = auth.currentID()
+                if (userID !== null) {
+                    b.user_book = {
+                        ...b.user_book,
+                        book_id: b.id,
+                        user_id: userID,
+                        current_page: newPage,
+                    }
+                }
+                DB.books.put(b)
+                DB.persist()
                 route(`/book/${id}/${newPage}`)
             }
         },

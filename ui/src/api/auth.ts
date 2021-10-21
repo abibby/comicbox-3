@@ -1,4 +1,5 @@
-import { apiFetch, setAuthToken } from './internal'
+import jwt from '../jwt'
+import { apiFetch, getAuthToken, setAuthToken } from './internal'
 
 export interface LoginRequest {
     username: string
@@ -21,4 +22,14 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
 
 export function logout(): void {
     setAuthToken(null, null)
+}
+
+export function currentID(): string | null {
+    const token = getAuthToken()
+    if (token === null) {
+        return null
+    }
+    const a = jwt.parse(token)
+
+    return a.claims.client_id
 }

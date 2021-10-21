@@ -1,8 +1,8 @@
 import { FunctionalComponent, h } from 'preact'
 import { book } from '../api'
+import { useCached } from '../cache'
 import { BookList } from '../components/book-list'
 import { DB } from '../database'
-import { useCached } from '../hooks/cached'
 
 export const Home: FunctionalComponent = () => {
     const books = useCached(

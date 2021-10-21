@@ -1,4 +1,5 @@
 import Dexie from 'dexie'
+import { book, userBook } from './api'
 import { Book, Series } from './models'
 
 interface LastUpdated {
@@ -6,35 +7,59 @@ interface LastUpdated {
     updatedAt: string
 }
 
-type DBBook = Book & { completed: number }
+interface DBModel {
+    clean?: number
+}
+
+interface DBBook extends Book {
+    completed?: number
+    clean?: number
+}
+
+interface DBSeries extends Series {
+    clean?: number
+}
 
 class AppDatabase extends Dexie {
     books: Dexie.Table<DBBook, number>
-    series: Dexie.Table<Series, number>
+    series: Dexie.Table<DBSeries, number>
     lastUpdated: Dexie.Table<LastUpdated, number>
 
     constructor() {
         super('AppDatabase')
         this.version(1).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort',
-            series: '&name, user_series.list',
+            books: '&id, [series+sort], [series+completed+sort], sort, clean',
+            series: '&name, user_series.list, clean',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
 
-        this.books.hook(
-            'creating',
-            (id, b) => (b.completed = this.bookComplete(b)),
-        )
-        this.books.hook('updating', (mod, id, b) => ({
-            ...mod,
-            completed: this.bookComplete(b),
-        }))
+        this.books.hook('creating', (id, b) => {
+            b.completed = this.bookComplete(b)
+            b.clean = 1
+        })
+        this.books.hook('updating', (mod, id, b) => {
+            return {
+                clean: 0,
+                ...mod,
+                completed: this.bookComplete(b),
+            }
+        })
+
+        this.series.hook('creating', (id, s) => {
+            s.clean = 1
+        })
+        this.series.hook('updating', mod => {
+            return {
+                clean: 0,
+                ...mod,
+            }
+        })
     }
 
-    bookComplete(b: DBBook): number {
+    private bookComplete(b: DBBook): number {
         if (
             b.user_book === null ||
             b.user_book.current_page < b.page_count - 1
@@ -42,6 +67,39 @@ class AppDatabase extends Dexie {
             return 0
         }
         return 1
+    }
+
+    public async persist(): Promise<void> {
+        const dirtyBooks = await DB.books.where('clean').equals(0).toArray()
+        for (const b of dirtyBooks) {
+            if (b.user_book !== null) {
+                await userBook.update(b.id, {
+                    current_page: b.user_book.current_page,
+                })
+            }
+            const result = await book.update(b.id, {
+                title: b.title,
+                series: b.series,
+                chapter: b.chapter,
+                volume: b.volume,
+            })
+            DB.books.put({
+                ...result,
+                clean: 1,
+            })
+        }
+    }
+
+    public async fromNetwork<T extends DBModel>(
+        table: Dexie.Table<T>,
+        items: T[],
+    ): Promise<void> {
+        table.bulkPut(
+            items.map(v => ({
+                ...v,
+                clean: 1,
+            })),
+        )
     }
 }
 

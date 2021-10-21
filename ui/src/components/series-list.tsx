@@ -1,7 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { series } from '../api'
+import { useCached } from '../cache'
 import { DB } from '../database'
-import { useCached } from '../hooks/cached'
 import styles from './book-list.module.css'
 import { SeriesCard } from './series-card'
 

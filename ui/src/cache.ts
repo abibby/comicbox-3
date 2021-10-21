@@ -1,8 +1,43 @@
 import { Table } from 'dexie'
 import { useEffect, useState } from 'preact/hooks'
-import { PaginatedRequest } from '../api/internal'
-import { prompt } from '../components/alert'
-import { DB } from '../database'
+import { PaginatedRequest } from './api/internal'
+import { prompt } from './components/alert'
+import { DB } from './database'
+
+export async function updateList<T, TRequest extends PaginatedRequest>(
+    listName: string,
+    request: TRequest,
+    table: Table<T>,
+    network: (req: TRequest) => Promise<T[]>,
+): Promise<void> {
+    listName = `${table.name}:${listName}`
+    const lastUpdated = await DB.lastUpdated
+        .where('list')
+        .equals(listName)
+        .first()
+
+    if (lastUpdated === undefined) {
+        const netItems = await network(request)
+
+        DB.fromNetwork(table, netItems)
+        DB.lastUpdated.put({
+            list: listName,
+            updatedAt: new Date().toISOString(),
+        })
+        return
+    }
+
+    const netItems = await network({
+        ...request,
+        updated_after: lastUpdated?.updatedAt,
+    })
+
+    DB.fromNetwork(table, netItems)
+    DB.lastUpdated.put({
+        list: listName,
+        updatedAt: new Date().toISOString(),
+    })
+}
 
 export function useCached<T, TRequest extends PaginatedRequest>(
     listName: string,
@@ -25,7 +60,7 @@ export function useCached<T, TRequest extends PaginatedRequest>(
             if (lastUpdated === undefined && cacheItems.length === 0) {
                 const netItems = await network(request)
                 setItems(netItems)
-                table.bulkPut(netItems)
+                DB.fromNetwork(table, netItems)
                 DB.lastUpdated.put({
                     list: listName,
                     updatedAt: new Date().toISOString(),
@@ -39,7 +74,7 @@ export function useCached<T, TRequest extends PaginatedRequest>(
                 if (netItems.length === 0) {
                     return
                 }
-                table.bulkPut(netItems)
+                DB.fromNetwork(table, netItems)
                 DB.lastUpdated.put({
                     list: listName,
                     updatedAt: new Date().toISOString(),

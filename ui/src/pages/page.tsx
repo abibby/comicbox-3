@@ -102,7 +102,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     }
                 }
                 DB.books.put(b)
-                DB.persist()
+                DB.persist(true)
                 route(`/book/${id}/${newPage}`)
             }
         },

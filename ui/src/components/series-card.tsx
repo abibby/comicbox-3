@@ -56,7 +56,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
             }
 
             DB.series.put(s)
-            DB.persist()
+            DB.persist(true)
             props.close(undefined)
         },
         [props.close],

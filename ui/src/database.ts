@@ -71,7 +71,7 @@ class AppDatabase extends Dexie {
         return 1
     }
 
-    public async persist(): Promise<void> {
+    public async persist(fromUserInteraction: boolean): Promise<void> {
         const dirtyBooks = await DB.books.where('clean').equals(0).toArray()
         for (const b of dirtyBooks) {
             if (b.user_book !== null) {
@@ -99,7 +99,7 @@ class AppDatabase extends Dexie {
                 DB.series.update(s, { user_series: us, clean: 1 })
             }
         }
-        invalidateCache()
+        invalidateCache(fromUserInteraction)
     }
 
     public async fromNetwork<T extends DBModel>(

@@ -71,7 +71,7 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
             b.chapter = numberOrNull(data.get('chapter'))
 
             DB.books.put(b)
-            DB.persist()
+            DB.persist(true)
             props.close(undefined)
         },
         [props.close],

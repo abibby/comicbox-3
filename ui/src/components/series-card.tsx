@@ -1,6 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { pageURL, userSeries } from '../api'
+import { auth, pageURL } from '../api'
+import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { Series } from '../models'
 import { Card } from './card'
@@ -21,8 +22,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
                 'edit',
                 () =>
                     openModal('Edit book', EditSeries, {
-                        name: props.series.name,
-                        list: props.series.user_series?.list ?? '',
+                        series: props.series,
                     }),
             ],
         ]
@@ -38,16 +38,24 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
 }
 
 type EditSeriesProps = {
-    name: string
-    list: string
+    series: Series
 }
 
 const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
     const submit = useCallback(
         async (data: Map<string, string>) => {
-            await userSeries.update(props.name, {
-                list: data.get('list') ?? null,
-            })
+            const s = props.series
+            const uid = auth.currentID()
+            if (uid) {
+                s.user_series = {
+                    series_name: s.name,
+                    user_id: uid,
+                    list: data.get('list') ?? null,
+                }
+            }
+
+            DB.series.put(s)
+            DB.persist()
             props.close(undefined)
         },
         [props.close],
@@ -57,7 +65,11 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
             <ModalHead>Edit Book</ModalHead>
             <ModalBody>
                 <Form onSubmit={submit}>
-                    <Input title='List' name='list' value={props.list} />
+                    <Input
+                        title='List'
+                        name='list'
+                        value={props.series.user_series?.list ?? ''}
+                    />
 
                     <button type='submit'>Save</button>
                 </Form>

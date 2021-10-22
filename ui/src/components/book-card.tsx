@@ -1,6 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { book, pageURL } from '../api'
+import { pageURL } from '../api'
+import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { Book } from '../models'
 import { Card } from './card'
@@ -62,13 +63,15 @@ type EditBookProps = {
 const EditBook: ModalComponent<Book, EditBookProps> = props => {
     const submit = useCallback(
         async (data: Map<string, string>) => {
-            const b = await book.update(props.book.id, {
-                title: data.get('title') ?? '',
-                series: data.get('series') ?? '',
-                volume: numberOrNull(data.get('volume')),
-                chapter: numberOrNull(data.get('chapter')),
-            })
+            const b = props.book
 
+            b.title = data.get('title') ?? ''
+            b.series = data.get('series') ?? ''
+            b.volume = numberOrNull(data.get('volume'))
+            b.chapter = numberOrNull(data.get('chapter'))
+
+            DB.books.put(b)
+            DB.persist()
             props.close(b)
         },
         [props.close],

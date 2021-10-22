@@ -1,8 +1,16 @@
 import { Table } from 'dexie'
+import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
 import { PaginatedRequest } from './api/internal'
 import { prompt } from './components/alert'
 import { DB } from './database'
+import { useEventListener } from './hooks/event-listener'
+
+type CacheEventMap = {
+    update: Event
+}
+
+const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
 export async function updateList<T, TRequest extends PaginatedRequest>(
     listName: string,
@@ -16,27 +24,19 @@ export async function updateList<T, TRequest extends PaginatedRequest>(
         .equals(listName)
         .first()
 
-    if (lastUpdated === undefined) {
-        const netItems = await network(request)
-
-        DB.fromNetwork(table, netItems)
-        DB.lastUpdated.put({
-            list: listName,
-            updatedAt: new Date().toISOString(),
-        })
-        return
-    }
-
-    const netItems = await network({
+    const items = await network({
         ...request,
         updated_after: lastUpdated?.updatedAt,
     })
 
-    DB.fromNetwork(table, netItems)
-    DB.lastUpdated.put({
-        list: listName,
-        updatedAt: new Date().toISOString(),
-    })
+    await Promise.all([
+        DB.fromNetwork(table, items),
+        DB.lastUpdated.put({
+            list: listName,
+            updatedAt: new Date().toISOString(),
+        }),
+    ])
+    cacheEventTarget.dispatchEvent(new Event('update'))
 }
 
 export function useCached<T, TRequest extends PaginatedRequest>(
@@ -45,58 +45,31 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     table: Table<T>,
     network: (req: TRequest) => Promise<T[]>,
     cache: (req: TRequest) => Promise<T[]>,
-    promptForChanges: 'always' | 'never' | 'auto' = 'auto',
 ): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
 
-    listName = `${table.name}:${listName}`
+    useEventListener(
+        cacheEventTarget,
+        'update',
+        async () => {
+            const newItems = await cache(request)
+            let reload = true
+
+            if (items !== null && shouldPrompt(items, newItems)) {
+                reload =
+                    (await prompt('New ' + table.name, { reload: true }, 0)) ??
+                    false
+            }
+            if (reload) {
+                setItems(newItems)
+            }
+        },
+        [setItems, items, cache],
+    )
 
     useEffect(() => {
-        ;(async () => {
-            const [lastUpdated, cacheItems] = await Promise.all([
-                DB.lastUpdated.where('list').equals(listName).first(),
-                cache(request),
-            ])
-            if (lastUpdated === undefined && cacheItems.length === 0) {
-                const netItems = await network(request)
-                setItems(netItems)
-                DB.fromNetwork(table, netItems)
-                DB.lastUpdated.put({
-                    list: listName,
-                    updatedAt: new Date().toISOString(),
-                })
-            } else {
-                setItems(cacheItems)
-                const netItems = await network({
-                    ...request,
-                    updated_after: lastUpdated?.updatedAt,
-                })
-                if (netItems.length === 0) {
-                    return
-                }
-                DB.fromNetwork(table, netItems)
-                DB.lastUpdated.put({
-                    list: listName,
-                    updatedAt: new Date().toISOString(),
-                })
-
-                let reload = promptForChanges === 'always'
-                if (
-                    promptForChanges === 'auto' &&
-                    shouldPrompt(cacheItems, netItems)
-                ) {
-                    reload =
-                        (await prompt(
-                            'New ' + table.name,
-                            { reload: true },
-                            0,
-                        )) ?? false
-                }
-                if (reload) {
-                    setItems(await cache(request))
-                }
-            }
-        })()
+        cache(request).then(setItems)
+        updateList(listName, request, table, network)
     }, [setItems, ...Object.values(request), listName])
 
     return items
@@ -115,6 +88,9 @@ function primaryKeyValue(item: unknown): unknown {
 }
 
 function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
+    if (cacheItems.length === 0) {
+        return false
+    }
     if (cacheItems.length < netItems.length) {
         return true
     }

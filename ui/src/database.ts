@@ -1,6 +1,7 @@
 import Dexie from 'dexie'
-import { book, userBook } from './api'
+import { book, userBook, userSeries } from './api'
 import { Book, Series } from './models'
+import { onActivate } from './page-lifecycle'
 
 interface LastUpdated {
     list: string
@@ -88,6 +89,15 @@ class AppDatabase extends Dexie {
                 clean: 1,
             })
         }
+        const dirtySeries = await DB.series.where('clean').equals(0).toArray()
+        for (const s of dirtySeries) {
+            if (s.user_series !== null) {
+                const us = await userSeries.update(s.name, {
+                    list: s.user_series.list,
+                })
+                DB.series.update(s, { user_series: us, clean: 1 })
+            }
+        }
     }
 
     public async fromNetwork<T extends DBModel>(
@@ -108,4 +118,5 @@ export let DB = new AppDatabase()
 export function clearDatabase(): void {
     DB.delete()
     DB = new AppDatabase()
+    onActivate(true)
 }

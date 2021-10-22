@@ -12,6 +12,7 @@ import { Shell } from './components/shell'
 import { init } from './page-lifecycle'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
+import { List } from './pages/lists'
 import { Login } from './pages/login'
 import { Page } from './pages/page'
 import { SeriesIndex } from './pages/series-index'
@@ -36,6 +37,7 @@ function Main() {
                 <Router onChange={changePage}>
                     <Home path='/' />
                     <Page path='/book/:id/:page?' />
+                    <List path='/list' />
                     <SeriesIndex path='/series' />
                     <SeriesView path='/series/:series' />
                     <Settings path='/settings' />

@@ -5,8 +5,6 @@ import styles from './book-list.module.css'
 
 interface BookListProps {
     books: Book[]
-    // listName: string
-    // series?: string
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {

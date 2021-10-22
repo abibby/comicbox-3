@@ -1,13 +1,14 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import { auth, pageURL } from '../api'
+import { listNames } from '../api/series'
 import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { Series } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
 import { Form } from './form/form'
-import { Input } from './form/input'
+import { Select } from './form/select'
 import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
 
 interface SeriesCardProps {
@@ -65,10 +66,11 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
             <ModalHead>Edit Book</ModalHead>
             <ModalBody>
                 <Form onSubmit={submit}>
-                    <Input
+                    <Select
                         title='List'
                         name='list'
                         value={props.series.user_series?.list ?? ''}
+                        options={listNames}
                     />
 
                     <button type='submit'>Save</button>

@@ -60,7 +60,7 @@ type EditBookProps = {
     book: Book
 }
 
-const EditBook: ModalComponent<Book, EditBookProps> = props => {
+const EditBook: ModalComponent<undefined, EditBookProps> = props => {
     const submit = useCallback(
         async (data: Map<string, string>) => {
             const b = props.book
@@ -72,7 +72,7 @@ const EditBook: ModalComponent<Book, EditBookProps> = props => {
 
             DB.books.put(b)
             DB.persist()
-            props.close(b)
+            props.close(undefined)
         },
         [props.close],
     )

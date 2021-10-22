@@ -12,6 +12,10 @@ type CacheEventMap = {
 
 const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
+export function invalidateCache(): void {
+    cacheEventTarget.dispatchEvent(new Event('update'))
+}
+
 export async function updateList<T, TRequest extends PaginatedRequest>(
     listName: string,
     request: TRequest,
@@ -36,7 +40,7 @@ export async function updateList<T, TRequest extends PaginatedRequest>(
             updatedAt: new Date().toISOString(),
         }),
     ])
-    cacheEventTarget.dispatchEvent(new Event('update'))
+    invalidateCache()
 }
 
 export function useCached<T, TRequest extends PaginatedRequest>(
@@ -64,13 +68,13 @@ export function useCached<T, TRequest extends PaginatedRequest>(
                 setItems(newItems)
             }
         },
-        [setItems, items, cache],
+        [table.name, setItems, items, cache],
     )
 
     useEffect(() => {
         cache(request).then(setItems)
         updateList(listName, request, table, network)
-    }, [setItems, ...Object.values(request), listName])
+    }, [setItems, listName, ...Object.values(request), table, network])
 
     return items
 }

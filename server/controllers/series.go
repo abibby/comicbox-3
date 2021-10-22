@@ -12,6 +12,7 @@ import (
 
 type SeriesIndexRequest struct {
 	Name *nulls.String `query:"name"`
+	List *nulls.String `query:"list"`
 }
 
 func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
@@ -29,6 +30,14 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where(goqu.Ex{"name": name})
+	}
+
+	if uid, ok := userID(r); ok {
+		if list, ok := req.List.Ok(); ok {
+			query = query.Where(
+				goqu.L("(select list from user_series where series_name=series.name and user_id=?)", uid).Eq(list),
+			)
+		}
 	}
 
 	exprs := []exp.Comparable{}

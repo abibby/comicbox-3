@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import { book, userBook, userSeries } from './api'
+import { invalidateCache } from './cache'
 import { Book, Series } from './models'
 import { onActivate } from './page-lifecycle'
 
@@ -98,6 +99,7 @@ class AppDatabase extends Dexie {
                 DB.series.update(s, { user_series: us, clean: 1 })
             }
         }
+        invalidateCache()
     }
 
     public async fromNetwork<T extends DBModel>(

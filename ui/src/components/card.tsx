@@ -1,14 +1,16 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
+import classNames from '../classnames'
 import styles from './card.module.css'
 import { ContextMenuItems, openContextMenu } from './context-menu'
 
 interface BookProps {
     title: string
     subtitle?: string
-    image: string
-    link: string
-    menu: ContextMenuItems
+    image?: string
+    link?: string
+    menu?: ContextMenuItems
+    placeholder?: boolean
 }
 
 export const Card: FunctionalComponent<BookProps> = props => {
@@ -16,12 +18,18 @@ export const Card: FunctionalComponent<BookProps> = props => {
         (e: Event) => {
             e.preventDefault()
             e.stopPropagation()
-            openContextMenu(e.target, props.menu)
+            if (props.menu !== undefined) {
+                openContextMenu(e.target, props.menu)
+            }
         },
         [props.menu],
     )
     return (
-        <div class={styles.book}>
+        <div
+            class={classNames(styles.book, {
+                [styles.placeholder]: props.placeholder,
+            })}
+        >
             <a href={props.link}>
                 <img
                     class={styles.cover}
@@ -29,11 +37,13 @@ export const Card: FunctionalComponent<BookProps> = props => {
                     alt='cover image'
                     loading='lazy'
                 />
-                <button class={styles.menu} onClick={open}>
-                    Menu
-                </button>
+                {props.menu && (
+                    <button class={styles.menu} onClick={open}>
+                        Menu
+                    </button>
+                )}
                 <div class={styles.title}>{props.title}</div>
-                <div class={styles.series}>{props.subtitle}</div>
+                <div class={styles.subtitle}>{props.subtitle}</div>
             </a>
         </div>
     )

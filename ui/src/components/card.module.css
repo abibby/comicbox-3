@@ -17,15 +17,31 @@
 }
 
 .title,
-.series {
+.subtitle {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
 }
-.series {
-    color: var(--light-text)
+.subtitle {
+    color: var(--light-text);
 }
 
 .menu {
     float: right;
+}
+
+.placeholder * {
+    color: rgba(0, 0, 0, 0);
+}
+
+.placeholder .title,
+.placeholder .subtitle {
+    background-color: lightgrey;
+    margin-top: 3px;
+}
+.placeholder .title {
+    margin-right: 30%;
+}
+.placeholder .subtitle {
+    margin-right: 50%;
 }

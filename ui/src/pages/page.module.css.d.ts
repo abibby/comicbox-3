@@ -4,6 +4,7 @@ declare const styles: {
   readonly "overlay": string;
   readonly "slider": string;
   readonly "image": string;
+  readonly "twoPage": string;
 };
 export = styles;
 

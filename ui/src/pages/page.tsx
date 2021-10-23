@@ -6,6 +6,7 @@ import { useCached } from '../cache'
 import classNames from '../classnames'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
+import { useWindowEvent } from '../hooks/event-listener'
 import { Error404 } from './404'
 import styles from './page.module.css'
 
@@ -46,8 +47,23 @@ export const Page: FunctionalComponent<PageProps> = props => {
 
     const page = Number(props.matches?.page || b.user_book?.current_page || 0)
 
-    const previous = usePreviousBook(`page:${id}:next`, b)
+    const previous = usePreviousBook(`page:${id}:previous`, b)
     const next = useNextBook(`page:${id}:next`, b)
+
+    const [twoPage, setTwoPage] = useState(true)
+    let nextPage = page + 1
+    let previousPage = page - 1
+    const twoPagesVisible = twoPage && b.pages[page]?.type === 'Story'
+    if (twoPagesVisible) {
+        nextPage = page + 2
+        previousPage = page - 2
+        if (previousPage < 0) {
+            previousPage = 0
+        }
+        if (nextPage >= b.pages.length) {
+            nextPage = b.pages.length - 1
+        }
+    }
 
     useEffect(() => {
         // TODO: preload images from next and previous books
@@ -56,29 +72,8 @@ export const Page: FunctionalComponent<PageProps> = props => {
 
     const [menuOpen, setMenuOpen] = useState(false)
 
-    const click = useCallback(
-        (event: MouseEvent) => {
-            if (menuOpen) {
-                setMenuOpen(false)
-                return
-            }
-
-            const section = ['left', 'center', 'right'][
-                Math.floor((event.pageX / window.innerWidth) * 3)
-            ]
-            let newPage = page
-            switch (section) {
-                case 'left':
-                    newPage--
-                    break
-                case 'right':
-                    newPage++
-                    break
-                case 'center':
-                    setMenuOpen(true)
-                    return
-            }
-
+    const changePage = useCallback(
+        (newPage: number) => {
             if (newPage < 0) {
                 if (previous !== undefined) {
                     route(`/book/${previous.id}`)
@@ -106,16 +101,67 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 route(`/book/${id}/${newPage}`)
             }
         },
-        [menuOpen, setMenuOpen, id, page, previous?.id, next?.id],
+        [id, previous?.id, next?.id],
+    )
+    const click = useCallback(
+        (event: MouseEvent) => {
+            if (menuOpen) {
+                setMenuOpen(false)
+                return
+            }
+
+            const section = ['left', 'center', 'right'][
+                Math.floor((event.pageX / window.innerWidth) * 3)
+            ]
+            switch (section) {
+                case 'left':
+                    changePage(previousPage)
+                    break
+                case 'right':
+                    changePage(nextPage)
+                    break
+                case 'center':
+                    setMenuOpen(true)
+                    return
+            }
+        },
+        [page, menuOpen, setMenuOpen, changePage],
+    )
+
+    useWindowEvent(
+        'keydown',
+        (e: KeyboardEvent) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    changePage(previousPage)
+                    break
+                case 'ArrowRight':
+                    changePage(nextPage)
+                    break
+                case 'ArrowUp':
+                    setTwoPage(true)
+                    break
+                case 'ArrowDown':
+                    setTwoPage(false)
+                    break
+            }
+        },
+        [page, changePage, setTwoPage],
     )
 
     return (
         <div
-            class={classNames(styles.page, { [styles.menuOpen]: menuOpen })}
+            class={classNames(styles.page, {
+                [styles.menuOpen]: menuOpen,
+                [styles.twoPage]: twoPagesVisible,
+            })}
             onClick={click}
         >
             <img class={styles.image} src={pageURL(b, page)} />
+            {twoPage && <img class={styles.image} src={pageURL(b, page + 1)} />}
+
             <div class={styles.overlay}>
+                <pre>{JSON.stringify(b.pages[page], undefined, '   ')}</pre>
                 <div class={styles.slider}>slider</div>
             </div>
         </div>

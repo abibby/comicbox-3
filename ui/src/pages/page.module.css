@@ -11,6 +11,7 @@
 .page.menuOpen {
     z-index: 0;
 }
+
 .overlay {
     display: none;
     content: ' ';
@@ -21,7 +22,7 @@
     right: 0;
     z-index: 10;
     color: #fff;
-    background-color: #000000C0;
+    background-color: #000000c0;
     margin-bottom: 46px;
 }
 .page.menuOpen .overlay {
@@ -32,11 +33,20 @@
     position: absolute;
     bottom: 0;
 }
-
 .image {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+.twoPage .image {
+    width: 50%;
+}
+.twoPage .image:nth-child(1) {
+    object-position: 100% 50%;
+}
+.twoPage .image:nth-child(2) {
+    object-position: 0% 50%;
 }
 
 @media screen and (min-width: 500px) {

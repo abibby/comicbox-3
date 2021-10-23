@@ -17,7 +17,7 @@ var types = map[string]string{
 	"Int":      "number",
 	"int":      "number",
 	"String":   "string",
-	"PageType": fmt.Sprintf(`"%s" | "%s" | "%s"`, models.FrontCover, models.Story, models.Deleted),
+	"PageType": fmt.Sprintf(`"%s" | "%s" | "%s" | "%s"`, models.FrontCover, models.Story, models.Spread, models.Deleted),
 }
 
 func main() {

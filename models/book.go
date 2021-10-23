@@ -22,6 +22,7 @@ type PageType string
 const (
 	FrontCover = PageType("FrontCover")
 	Story      = PageType("Story")
+	Spread     = PageType("Spread")
 	Deleted    = PageType("Deleted")
 )
 

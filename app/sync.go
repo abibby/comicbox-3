@@ -176,7 +176,7 @@ func parseFileName(book *models.Book, path string) *models.Book {
 	if err == nil {
 		book.Chapter = nulls.NewFloat64(chapter)
 	}
-	volume, err := strconv.ParseFloat(result["chapter"], 64)
+	volume, err := strconv.ParseFloat(result["volume"], 64)
 	if err == nil {
 		book.Volume = nulls.NewFloat64(volume)
 	}

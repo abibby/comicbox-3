@@ -38,6 +38,8 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     )
 }
 
+const listOptions = [['', 'None'], ...listNames] as const
+
 type EditSeriesProps = {
     series: Series
 }
@@ -51,7 +53,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
                 s.user_series = {
                     series_name: s.name,
                     user_id: uid,
-                    list: data.get('list') ?? null,
+                    list: data.get('list') || null,
                 }
             }
 
@@ -70,7 +72,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
                         title='List'
                         name='list'
                         value={props.series.user_series?.list ?? ''}
-                        options={listNames}
+                        options={listOptions}
                     />
 
                     <button type='submit'>Save</button>

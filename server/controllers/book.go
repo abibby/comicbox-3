@@ -186,7 +186,10 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		book.AfterLoad(r.Context(), tx)
+		err = book.AfterLoad(r.Context(), tx)
+		if err != nil {
+			return err
+		}
 
 		book.Title = req.Title
 		book.Series = req.Series
@@ -194,6 +197,11 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		book.Chapter = req.Chapter
 
 		models.Save(r.Context(), book, tx)
+
+		err = book.AfterLoad(r.Context(), tx)
+		if err != nil {
+			return err
+		}
 
 		return nil
 	})

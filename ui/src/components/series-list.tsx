@@ -5,11 +5,11 @@ import { Card } from './card'
 import { SeriesCard } from './series-card'
 
 interface SeriesListProps {
-    series: Series[]
+    series: Series[] | null
 }
 
 export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
-    if (props.series.length === 0) {
+    if (props.series === null) {
         return (
             <div class={styles.bookList}>
                 <Card title='title' placeholder />

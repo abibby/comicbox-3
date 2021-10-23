@@ -16,7 +16,7 @@ export const SeriesIndex: FunctionalComponent = () => {
     return (
         <div>
             <h1>Series</h1>
-            <SeriesList series={s ?? []} />
+            <SeriesList series={s} />
         </div>
     )
 }

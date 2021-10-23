@@ -13,7 +13,7 @@ export const Home: FunctionalComponent = () => {
         book.cachedReading,
     )
 
-    if (books === null) {
+    if (books?.length === 0) {
         return (
             <div>
                 <h1>Home</h1>

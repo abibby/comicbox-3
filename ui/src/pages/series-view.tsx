@@ -22,7 +22,12 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
         series.cachedList,
     )
     if (seriesList === null) {
-        return <div>loading</div>
+        return (
+            <div>
+                <h1>loading</h1>
+                <BookList books={null} />
+            </div>
+        )
     }
     const s = seriesList[0]
     if (s === undefined) {
@@ -36,9 +41,6 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
         book.list,
         book.cachedList,
     )
-    if (books === null) {
-        return <div>loading</div>
-    }
     return (
         <div>
             <h1>{s.name}</h1>

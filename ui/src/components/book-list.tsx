@@ -5,11 +5,11 @@ import styles from './book-list.module.css'
 import { Card } from './card'
 
 interface BookListProps {
-    books: Book[]
+    books: Book[] | null
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    if (props.books.length === 0) {
+    if (props.books === null) {
         return (
             <div class={styles.bookList}>
                 <Card title='title' subtitle='subtitle' placeholder />

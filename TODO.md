@@ -13,3 +13,4 @@
   - [ ] Maybe server configs like what directory to look at
 - [ ] Style pages
 - [ ] Improve reading experience
+- [ ] Offline Support

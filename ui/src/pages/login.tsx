@@ -2,10 +2,10 @@ import { FunctionalComponent, h } from 'preact'
 import { Link, route } from 'preact-router'
 import { useCallback } from 'preact/hooks'
 import { auth } from '../api'
-import { Form } from '../components/form/form'
+import { Data, Form } from '../components/form/form'
 
 export const Login: FunctionalComponent = () => {
-    const submit = useCallback(async (data: Map<string, string>) => {
+    const submit = useCallback(async (data: Data) => {
         await auth.login({
             username: data.get('username') ?? '',
             password: data.get('password') ?? '',

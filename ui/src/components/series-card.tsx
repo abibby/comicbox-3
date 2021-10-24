@@ -7,7 +7,7 @@ import { useComputed } from '../hooks/computed'
 import { Series } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
-import { Form } from './form/form'
+import { Data, Form } from './form/form'
 import { Select } from './form/select'
 import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
 
@@ -46,7 +46,7 @@ type EditSeriesProps = {
 
 const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
     const submit = useCallback(
-        async (data: Map<string, string>) => {
+        async (data: Data) => {
             const s = props.series
             const uid = auth.currentID()
             if (uid) {

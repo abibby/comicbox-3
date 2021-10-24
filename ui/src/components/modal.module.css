@@ -12,13 +12,13 @@
     width: 400px;
     max-width: 100%;
     padding: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .head {
-    
 }
 .body {
-    
 }
 
 .screen {
@@ -28,5 +28,5 @@
     left: 0;
     right: 0;
     z-index: 70;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
 }

@@ -4,11 +4,12 @@ import { pageURL } from '../api'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useComputed } from '../hooks/computed'
-import { Book } from '../models'
+import { Book, Page } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
-import { Form } from './form/form'
+import { Data, Form } from './form/form'
 import { Input } from './form/input'
+import { Select } from './form/select'
 import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
 
 interface BookProps {
@@ -56,7 +57,13 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         />
     )
 }
-
+const pageTypeOptions: [Page['type'], string][] = [
+    ['FrontCover', 'Cover'],
+    ['Story', 'Story'],
+    ['Spread', 'Spread'],
+    ['SpreadSplit', 'Split Spread'],
+    ['Deleted', 'Deleted'],
+]
 type EditBookProps = {
     book: Book
 }
@@ -68,13 +75,21 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
     )
     const next = useNextBook(`edit:${props.book.id}:next`, props.book)
     const submit = useCallback(
-        async (data: Map<string, string>) => {
+        async (data: Data) => {
             const b = props.book
 
             b.title = data.get('title') ?? ''
             b.series = data.get('series') ?? ''
-            b.volume = numberOrNull(data.get('volume'))
-            b.chapter = numberOrNull(data.get('chapter'))
+            b.volume = data.getNumber('volume')
+            b.chapter = data.getNumber('chapter')
+
+            b.pages =
+                data.getAll('page.type')?.map(type => {
+                    return {
+                        url: '',
+                        type: type,
+                    }
+                }) ?? b.pages
 
             DB.books.put(b)
             DB.persist(true)
@@ -124,6 +139,23 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                         value={props.book.chapter ?? ''}
                     />
 
+                    {props.book.pages.map((p, i) => {
+                        return (
+                            <div>
+                                <img
+                                    src={pageURL(props.book, i)}
+                                    height='200'
+                                />
+                                <Select
+                                    title='Type'
+                                    name='page.type'
+                                    options={pageTypeOptions}
+                                    value={p.type}
+                                />
+                            </div>
+                        )
+                    })}
+
                     <button type='submit'>Save</button>
                     <button
                         type='submit'
@@ -145,11 +177,4 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
             </ModalBody>
         </Modal>
     )
-}
-
-function numberOrNull(value: string | undefined): number | null {
-    if (value === undefined || value === '') {
-        return null
-    }
-    return Number(value)
 }

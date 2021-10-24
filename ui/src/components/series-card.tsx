@@ -22,7 +22,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             [
                 'edit',
                 () =>
-                    openModal('Edit book', EditSeries, {
+                    openModal(EditSeries, {
                         series: props.series,
                     }),
             ],

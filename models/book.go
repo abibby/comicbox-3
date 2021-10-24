@@ -20,10 +20,11 @@ type Page struct {
 type PageType string
 
 const (
-	FrontCover = PageType("FrontCover")
-	Story      = PageType("Story")
-	Spread     = PageType("Spread")
-	Deleted    = PageType("Deleted")
+	FrontCover  = PageType("FrontCover")
+	Story       = PageType("Story")
+	Spread      = PageType("Spread")
+	SpreadSplit = PageType("SpreadSplit")
+	Deleted     = PageType("Deleted")
 )
 
 type Book struct {

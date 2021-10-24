@@ -10,7 +10,6 @@ export type ModalComponent<
 
 interface ModalProps<T, TProps extends Record<string, unknown>>
     extends SubComponentProps {
-    title: string
     body: ModalComponent<T, TProps>
     props: TProps
 }
@@ -34,12 +33,10 @@ const modals = new Factory<ModalProps<any, any>>(Popup)
 export const ModalController = modals.Controller
 
 export async function openModal<T, TProps extends Record<string, unknown>>(
-    title: string,
     body: ModalComponent<T, TProps>,
     props: TProps,
 ): Promise<T | undefined> {
     return modals.open<T>({
-        title: title,
         body: body,
         props: props,
     })

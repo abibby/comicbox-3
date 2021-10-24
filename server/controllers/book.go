@@ -165,7 +165,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 
 type BookUpdateRequest struct {
 	ID      string         `url:"id" validate:"required|uuid"`
-	Title   string         `json:"page"`
+	Title   string         `json:"title"`
 	Series  string         `json:"series"`
 	Volume  *nulls.Float64 `json:"volume"`
 	Chapter *nulls.Float64 `json:"chapter"`

@@ -2,6 +2,7 @@ import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import { pageURL } from '../api'
 import { DB } from '../database'
+import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useComputed } from '../hooks/computed'
 import { Book } from '../models'
 import { Card } from './card'
@@ -22,7 +23,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             [
                 'edit',
                 () =>
-                    openModal('Edit book', EditBook, {
+                    openModal(EditBook, {
                         book: props.book,
                     }),
             ],
@@ -61,6 +62,11 @@ type EditBookProps = {
 }
 
 const EditBook: ModalComponent<undefined, EditBookProps> = props => {
+    const previous = usePreviousBook(
+        `edit:${props.book.id}:previous`,
+        props.book,
+    )
+    const next = useNextBook(`edit:${props.book.id}:next`, props.book)
     const submit = useCallback(
         async (data: Map<string, string>) => {
             const b = props.book
@@ -73,9 +79,23 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
             DB.books.put(b)
             DB.persist(true)
             props.close(undefined)
+
+            switch (data.get('submit')) {
+                case 'next':
+                    if (next) {
+                        openModal(EditBook, { book: next })
+                    }
+                    break
+                case 'previous':
+                    if (previous) {
+                        openModal(EditBook, { book: previous })
+                    }
+                    break
+            }
         },
-        [props.close],
+        [props.close, next, previous],
     )
+
     return (
         <Modal>
             <ModalHead>Edit Book</ModalHead>
@@ -105,6 +125,22 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                     />
 
                     <button type='submit'>Save</button>
+                    <button
+                        type='submit'
+                        name='submit'
+                        value='next'
+                        disabled={previous === undefined}
+                    >
+                        Previous
+                    </button>
+                    <button
+                        type='submit'
+                        name='submit'
+                        value='next'
+                        disabled={next === undefined}
+                    >
+                        Next
+                    </button>
                 </Form>
             </ModalBody>
         </Modal>

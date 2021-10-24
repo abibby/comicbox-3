@@ -16,7 +16,7 @@ export interface Book {
 }
 export interface Page {
     url: string
-    type: "FrontCover" | "Story" | "Spread" | "Deleted"
+    type: "FrontCover" | "Story" | "Spread" | "SpreadSplit" | "Deleted"
 }
 export interface Series {
     name: string

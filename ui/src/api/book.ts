@@ -29,31 +29,47 @@ export const list = allPagesFactory<Book, BookListRequest>(listPaged)
 export async function cachedList(
     req: BookListRequest & AllPagesRequest,
 ): Promise<Book[]> {
-    let collection: Collection<Book, number>
     if (req.id !== undefined) {
-        collection = DB.books.where('id').equals(req.id)
-    } else if (req.after_id !== undefined) {
+        return DB.books.where('id').equals(req.id).toArray()
+    }
+    let collection: Collection<Book, number> | undefined
+    let beforeSort = Dexie.maxKey
+    let afterSort: string | number = Dexie.minKey
+
+    if (req.after_id !== undefined) {
         const b = await DB.books.where('id').equals(req.after_id).first()
         if (b === undefined) {
             return []
         }
-        collection = DB.books.where('sort').above(b.sort)
-    } else if (req.before_id !== undefined) {
+        afterSort = b.sort
+    }
+    if (req.before_id !== undefined) {
         const b = await DB.books.where('id').equals(req.before_id).first()
         if (b === undefined) {
             return []
         }
-        collection = DB.books.where('sort').below(b.sort).reverse()
-    } else if (req.series !== undefined) {
+        beforeSort = b.sort
+    }
+    if (req.series !== undefined) {
         collection = DB.books
             .where(['series', 'sort'])
-            .between([req.series, Dexie.minKey], [req.series, Dexie.maxKey])
-    } else {
-        collection = DB.books.orderBy('sort')
+            .between(
+                [req.series, afterSort],
+                [req.series, beforeSort],
+                false,
+                false,
+            )
+    }
+
+    if (collection === undefined) {
+        collection = DB.books.where('sort').between(afterSort, beforeSort)
     }
 
     if (req.limit !== undefined) {
         collection = collection.limit(req.limit)
+    }
+    if (req.order === 'desc') {
+        collection = collection.reverse()
     }
 
     return collection.toArray()

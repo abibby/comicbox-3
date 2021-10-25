@@ -7,6 +7,7 @@ import classNames from '../classnames'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useWindowEvent } from '../hooks/event-listener'
+import { PageType } from '../models'
 import { Error404 } from './404'
 import styles from './page.module.css'
 
@@ -53,21 +54,41 @@ export const Page: FunctionalComponent<PageProps> = props => {
     const [twoPage, setTwoPage] = useState(true)
     let nextPage = page + 1
     let previousPage = page - 1
-    const twoPagesVisible = twoPage && b.pages[page]?.type === 'Story'
+
+    const twoPagesVisible =
+        (twoPage &&
+            b.pages[page]?.type === PageType.Story &&
+            b.pages[page + 1]?.type === PageType.Story) ||
+        (b.pages[page]?.type === PageType.SpreadSplit &&
+            b.pages[page + 1]?.type === PageType.SpreadSplit)
+
+    if (
+        (twoPage && b.pages[page - 1]?.type === 'Story') ||
+        (b.pages[page - 1]?.type === PageType.SpreadSplit &&
+            b.pages[page - 2]?.type === PageType.SpreadSplit)
+    ) {
+        previousPage = page - 2
+    }
+
     if (twoPagesVisible) {
         nextPage = page + 2
-        previousPage = page - 2
-        if (previousPage < 0) {
-            previousPage = 0
-        }
-        if (nextPage >= b.pages.length) {
-            nextPage = b.pages.length - 1
-        }
+    }
+
+    if (nextPage >= b.pages.length) {
+        nextPage = b.pages.length - 1
+    }
+    if (previousPage < 0) {
+        previousPage = 0
     }
 
     useEffect(() => {
         // TODO: preload images from next and previous books
-        preloadImages([pageURL(b, page + 1), pageURL(b, page - 1)])
+        preloadImages([
+            pageURL(b, page - 2),
+            pageURL(b, page - 1),
+            pageURL(b, page + 1),
+            pageURL(b, page + 2),
+        ])
     }, [page, previous?.id, next?.id])
 
     const [menuOpen, setMenuOpen] = useState(false)
@@ -131,6 +152,9 @@ export const Page: FunctionalComponent<PageProps> = props => {
     useWindowEvent(
         'keydown',
         (e: KeyboardEvent) => {
+            if (menuOpen) {
+                return
+            }
             switch (e.key) {
                 case 'ArrowLeft':
                     changePage(previousPage)
@@ -146,7 +170,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     break
             }
         },
-        [page, changePage, setTwoPage],
+        [menuOpen, page, changePage, setTwoPage],
     )
 
     return (
@@ -154,11 +178,14 @@ export const Page: FunctionalComponent<PageProps> = props => {
             class={classNames(styles.page, {
                 [styles.menuOpen]: menuOpen,
                 [styles.twoPage]: twoPagesVisible,
+                [styles.rtl]: true,
             })}
             onClick={click}
         >
             <img class={styles.image} src={pageURL(b, page)} />
-            {twoPage && <img class={styles.image} src={pageURL(b, page + 1)} />}
+            {twoPagesVisible && (
+                <img class={styles.image} src={pageURL(b, page + 1)} />
+            )}
 
             <div class={styles.overlay}>
                 <pre>{JSON.stringify(b.pages[page], undefined, '   ')}</pre>

@@ -12,6 +12,10 @@
     z-index: 0;
 }
 
+.page.rtl {
+    direction: rtl;
+}
+
 .overlay {
     display: none;
     content: ' ';
@@ -47,6 +51,13 @@
 }
 .twoPage .image:nth-child(2) {
     object-position: 0% 50%;
+}
+
+.twoPage.rtl .image:nth-child(1) {
+    object-position: 0% 50%;
+}
+.twoPage.rtl .image:nth-child(2) {
+    object-position: 100% 50%;
 }
 
 @media screen and (min-width: 500px) {

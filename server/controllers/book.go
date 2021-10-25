@@ -169,6 +169,11 @@ type BookUpdateRequest struct {
 	Series  string         `json:"series"`
 	Volume  *nulls.Float64 `json:"volume"`
 	Chapter *nulls.Float64 `json:"chapter"`
+	Pages   []PageUpdate   `json:"pages"`
+}
+
+type PageUpdate struct {
+	Type string `json:"type"`
 }
 
 func BookUpdate(rw http.ResponseWriter, r *http.Request) {
@@ -195,6 +200,14 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		book.Series = req.Series
 		book.Volume = req.Volume
 		book.Chapter = req.Chapter
+		if len(book.Pages) != len(req.Pages) {
+			return NewHttpError(422, fmt.Errorf("expected %d pages, received %d", len(book.Pages), len(req.Pages)))
+		}
+		for i, page := range req.Pages {
+			if models.IsEnumValid(models.PageType(""), page.Type) {
+				book.Pages[i].Type = models.PageType(page.Type)
+			}
+		}
 
 		models.Save(r.Context(), book, tx)
 

@@ -16,7 +16,7 @@ export interface Book {
 }
 export interface Page {
     url: string
-    type: "FrontCover" | "Story" | "Spread" | "SpreadSplit" | "Deleted"
+    type: PageType
 }
 export interface Series {
     name: string
@@ -37,4 +37,11 @@ export interface UserSeries {
     series_name: string
     user_id: string
     list: string | null
+}
+export enum PageType {
+    FrontCover = "FrontCover",
+    Story = "Story",
+    Spread = "Spread",
+    SpreadSplit = "SpreadSplit",
+    Deleted = "Deleted",
 }

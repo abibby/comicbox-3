@@ -38,7 +38,7 @@ export const AlertController = alerts.Controller
 
 export async function prompt<T>(
     message: string,
-    options: Record<string, T>,
+    options: Record<string, T> = {},
     timeout = 5000,
 ): Promise<T | undefined> {
     return alerts.open<T>({

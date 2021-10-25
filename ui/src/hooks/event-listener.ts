@@ -21,7 +21,7 @@ export function useEventListener<
 
 export function useWindowEvent<K extends keyof WindowEventMap>(
     type: K,
-    listener: (this: Window, ev: WindowEventMap[K]) => any,
+    listener: (this: Window, ev: WindowEventMap[K]) => void,
     inputs: Inputs,
 ): void {
     useEffect(() => {

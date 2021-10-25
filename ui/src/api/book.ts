@@ -1,6 +1,6 @@
 import { Collection, Dexie } from 'dexie'
 import { DB } from '../database'
-import { Book } from '../models'
+import { Book, PageType } from '../models'
 import {
     allPagesFactory,
     AllPagesRequest,
@@ -104,11 +104,16 @@ export async function cachedReading(
     return books.filter(notNullish)
 }
 
-interface BookUpdateRequest {
+export interface BookUpdateRequest {
     title: string
     series: string
     volume: number | null
     chapter: number | null
+    pages: BookPageUpdate[]
+}
+
+export interface BookPageUpdate {
+    type: PageType
 }
 
 export async function update(

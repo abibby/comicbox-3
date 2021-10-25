@@ -28,6 +28,7 @@ function Popup<T, TProps extends Record<string, unknown>>(
     )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const modals = new Factory<ModalProps<any, any>>(Popup)
 
 export const ModalController = modals.Controller

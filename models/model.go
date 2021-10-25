@@ -24,6 +24,19 @@ type Model interface {
 	PrimaryKey() string
 }
 
+type Enum interface {
+	Options() []string
+}
+
+func IsEnumValid(enum Enum, value string) bool {
+	for _, o := range enum.Options() {
+		if string(o) == value {
+			return true
+		}
+	}
+	return false
+}
+
 type BeforeSaver interface {
 	BeforeSave(ctx context.Context, tx *sqlx.Tx) error
 }

@@ -19,6 +19,16 @@ type Page struct {
 
 type PageType string
 
+func (pt PageType) Options() []string {
+	return []string{
+		string(FrontCover),
+		string(Story),
+		string(Spread),
+		string(SpreadSplit),
+		string(Deleted),
+	}
+}
+
 const (
 	FrontCover  = PageType("FrontCover")
 	Story       = PageType("Story")

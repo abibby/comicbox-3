@@ -4,7 +4,8 @@ import { pageURL } from '../api'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useComputed } from '../hooks/computed'
-import { Book, Page } from '../models'
+import { Book, Page, PageType } from '../models'
+import { prompt } from './alert'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
 import { Data, Form } from './form/form'
@@ -57,12 +58,12 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         />
     )
 }
-const pageTypeOptions: [Page['type'], string][] = [
-    ['FrontCover', 'Cover'],
-    ['Story', 'Story'],
-    ['Spread', 'Spread'],
-    ['SpreadSplit', 'Split Spread'],
-    ['Deleted', 'Deleted'],
+const pageTypeOptions: [PageType, string][] = [
+    [PageType.FrontCover, 'Cover'],
+    [PageType.Story, 'Story'],
+    [PageType.Spread, 'Spread'],
+    [PageType.SpreadSplit, 'Split Spread'],
+    [PageType.Deleted, 'Deleted'],
 ]
 type EditBookProps = {
     book: Book
@@ -76,36 +77,45 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
     const next = useNextBook(`edit:${props.book.id}:next`, props.book)
     const submit = useCallback(
         async (data: Data) => {
-            const b = props.book
+            try {
+                const b = props.book
 
-            b.title = data.get('title') ?? ''
-            b.series = data.get('series') ?? ''
-            b.volume = data.getNumber('volume')
-            b.chapter = data.getNumber('chapter')
+                b.title = data.get('title') ?? ''
+                b.series = data.get('series') ?? ''
+                b.volume = data.getNumber('volume')
+                b.chapter = data.getNumber('chapter')
 
-            b.pages =
-                data.getAll('page.type')?.map(type => {
-                    return {
-                        url: '',
-                        type: type,
-                    }
-                }) ?? b.pages
+                b.pages =
+                    data.getAll('page.type')?.map((type): Page => {
+                        if (!isPageType(type)) {
+                            throw new Error(`Invalid page type ${type}`)
+                        }
+                        return {
+                            url: '',
+                            type: type,
+                        }
+                    }) ?? b.pages
 
-            DB.books.put(b)
-            DB.persist(true)
-            props.close(undefined)
+                DB.books.put(b)
+                DB.persist(true)
+                props.close(undefined)
 
-            switch (data.get('submit')) {
-                case 'next':
-                    if (next) {
-                        openModal(EditBook, { book: next })
-                    }
-                    break
-                case 'previous':
-                    if (previous) {
-                        openModal(EditBook, { book: previous })
-                    }
-                    break
+                switch (data.get('submit')) {
+                    case 'next':
+                        if (next) {
+                            openModal(EditBook, { book: next })
+                        }
+                        break
+                    case 'previous':
+                        if (previous) {
+                            openModal(EditBook, { book: previous })
+                        }
+                        break
+                }
+            } catch (e) {
+                if (e instanceof Error) {
+                    prompt(e.message)
+                }
             }
         },
         [props.close, next, previous],
@@ -177,4 +187,8 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
             </ModalBody>
         </Modal>
     )
+}
+
+function isPageType(s: string): s is PageType {
+    return s in PageType
 }

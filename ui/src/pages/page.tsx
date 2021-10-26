@@ -86,6 +86,13 @@ export const Page: FunctionalComponent<PageProps> = props => {
         previousPage = 0
     }
 
+    let leftPage = previousPage
+    let rightPage = nextPage
+    if (b.rtl) {
+        leftPage = nextPage
+        rightPage = previousPage
+    }
+
     useEffect(() => {
         // TODO: preload images from next and previous books
         preloadImages([
@@ -144,10 +151,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
             ]
             switch (section) {
                 case 'left':
-                    changePage(previousPage)
+                    changePage(leftPage)
                     break
                 case 'right':
-                    changePage(nextPage)
+                    changePage(rightPage)
                     break
                 case 'center':
                     setMenuOpen(true)
@@ -171,10 +178,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
             }
             switch (e.key) {
                 case 'ArrowLeft':
-                    changePage(previousPage)
+                    changePage(leftPage)
                     break
                 case 'ArrowRight':
-                    changePage(nextPage)
+                    changePage(rightPage)
                     break
                 case 'ArrowUp':
                     setTwoPage(true)

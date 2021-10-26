@@ -12,5 +12,5 @@
   - [ ] Cache management, what series/books to download
   - [ ] Maybe server configs like what directory to look at
 - [ ] Style pages
-- [ ] Improve reading experience
+- [x] Improve reading experience
 - [ ] Offline Support

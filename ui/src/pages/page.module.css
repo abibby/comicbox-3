@@ -43,6 +43,9 @@
 .slider .range {
     width: 100%;
 }
+.rtl .slider .range {
+    direction: rtl;
+}
 .slider .number {
     width: 100%;
 }

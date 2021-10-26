@@ -1,10 +1,12 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { auth, book, pageURL } from '../api'
 import { useCached } from '../cache'
 import classNames from '../classnames'
+import { EditBook } from '../components/book-edit'
+import { openModal } from '../components/modal'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useWindowEvent } from '../hooks/event-listener'
@@ -127,10 +129,13 @@ export const Page: FunctionalComponent<PageProps> = props => {
         },
         [id, previous?.id, next?.id],
     )
+    const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
         (event: MouseEvent) => {
             if (menuOpen) {
-                setMenuOpen(false)
+                if (event.target === overlay.current) {
+                    setMenuOpen(false)
+                }
                 return
             }
 
@@ -151,6 +156,12 @@ export const Page: FunctionalComponent<PageProps> = props => {
         },
         [page, menuOpen, setMenuOpen, changePage],
     )
+
+    const edit = useCallback(() => {
+        openModal(EditBook, {
+            book: b,
+        })
+    }, [b])
 
     useWindowEvent(
         'keydown',
@@ -190,8 +201,11 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 <img class={styles.image} src={pageURL(b, page + 1)} />
             )}
 
-            <div class={styles.overlay}>
+            <div class={styles.overlay} ref={overlay}>
                 <pre>{JSON.stringify(b.pages[page], undefined, '   ')}</pre>
+                <button type='button' onClick={edit}>
+                    Edit
+                </button>
                 <div class={styles.slider}>
                     <input
                         class={styles.range}
@@ -199,7 +213,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                         value={page}
                         min={0}
                         max={b.pages.length}
-                        onChange={bindValue(changePage)}
+                        onInput={bindValue(changePage)}
                     />
                     <input
                         class={styles.number}
@@ -207,7 +221,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                         value={page}
                         min={0}
                         max={b.pages.length}
-                        onChange={bindValue(changePage)}
+                        onInput={bindValue(changePage)}
                     />
                 </div>
             </div>

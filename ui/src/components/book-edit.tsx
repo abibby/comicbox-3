@@ -5,11 +5,19 @@ import { persist } from '../cache'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { Book, Page, PageType } from '../models'
+import { prompt } from './alert'
 import { Data, Form } from './form/form'
 import { Input } from './form/input'
 import { Select } from './form/select'
 import { Toggle } from './form/toggle'
-import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
+import {
+    Modal,
+    ModalBody,
+    ModalComponent,
+    ModalFoot,
+    ModalHead,
+    openModal,
+} from './modal'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -77,9 +85,9 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
 
     return (
         <Modal>
-            <ModalHead>Edit Book</ModalHead>
-            <ModalBody>
-                <Form onSubmit={submit}>
+            <Form onSubmit={submit}>
+                <ModalHead close={props.close}>Edit Book</ModalHead>
+                <ModalBody>
                     <Input
                         title='Series'
                         name='series'
@@ -124,7 +132,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                             </div>
                         )
                     })}
-
+                </ModalBody>
+                <ModalFoot>
                     <button type='submit'>Save</button>
                     <button
                         type='submit'
@@ -142,8 +151,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                     >
                         Next
                     </button>
-                </Form>
-            </ModalBody>
+                </ModalFoot>
+            </Form>
         </Modal>
     )
 }

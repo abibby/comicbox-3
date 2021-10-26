@@ -51,10 +51,25 @@ export const Modal: FunctionalComponent = props => {
     return <div class={styles.modal}>{props.children}</div>
 }
 
-export const ModalHead: FunctionalComponent = props => {
-    return <h2 class={styles.head}>{props.children}</h2>
-}
+export const ModalHead: FunctionalComponent<{ close: (v: undefined) => void }> =
+    props => {
+        return (
+            <h2 class={styles.head}>
+                {props.children}
+                <button
+                    class={styles.close}
+                    type='button'
+                    onClick={bind(undefined, props.close)}
+                >
+                    close
+                </button>
+            </h2>
+        )
+    }
 
 export const ModalBody: FunctionalComponent = props => {
     return <div class={styles.body}>{props.children}</div>
+}
+export const ModalFoot: FunctionalComponent = props => {
+    return <div class={styles.foot}>{props.children}</div>
 }

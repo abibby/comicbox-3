@@ -1,6 +1,5 @@
 import Dexie from 'dexie'
 import { Book, Series } from './models'
-import { onActivate } from './page-lifecycle'
 
 interface LastUpdated {
     list: string
@@ -87,5 +86,4 @@ export let DB = new AppDatabase()
 export function clearDatabase(): void {
     DB.delete()
     DB = new AppDatabase()
-    onActivate(true)
 }

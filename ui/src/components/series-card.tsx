@@ -66,7 +66,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
     )
     return (
         <Modal>
-            <ModalHead>Edit Book</ModalHead>
+            <ModalHead close={props.close}>Edit Book</ModalHead>
             <ModalBody>
                 <Form onSubmit={submit}>
                     <Select

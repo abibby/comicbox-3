@@ -1,3 +1,4 @@
+import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useEffect, useState } from 'preact/hooks'
@@ -63,7 +64,9 @@ export const Page: FunctionalComponent<PageProps> = props => {
             b.pages[page + 1]?.type === PageType.SpreadSplit)
 
     if (
-        (twoPage && b.pages[page - 1]?.type === 'Story') ||
+        (twoPage &&
+            b.pages[page - 1]?.type === PageType.Story &&
+            b.pages[page - 2]?.type === PageType.Story) ||
         (b.pages[page - 1]?.type === PageType.SpreadSplit &&
             b.pages[page - 2]?.type === PageType.SpreadSplit)
     ) {
@@ -94,7 +97,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
     const [menuOpen, setMenuOpen] = useState(false)
 
     const changePage = useCallback(
-        (newPage: number) => {
+        (newPage: number | string) => {
             if (newPage < 0) {
                 if (previous !== undefined) {
                     route(`/book/${previous.id}`)
@@ -114,12 +117,12 @@ export const Page: FunctionalComponent<PageProps> = props => {
                         ...b.user_book,
                         book_id: b.id,
                         user_id: userID,
-                        current_page: newPage,
+                        current_page: Number(newPage),
                     }
                 }
                 DB.books.put(b)
                 DB.persist(true)
-                route(`/book/${id}/${newPage}`)
+                route(`/book/${id}/${newPage}`, true)
             }
         },
         [id, previous?.id, next?.id],
@@ -178,7 +181,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
             class={classNames(styles.page, {
                 [styles.menuOpen]: menuOpen,
                 [styles.twoPage]: twoPagesVisible,
-                [styles.rtl]: true,
+                [styles.rtl]: b.rtl,
             })}
             onClick={click}
         >
@@ -189,7 +192,24 @@ export const Page: FunctionalComponent<PageProps> = props => {
 
             <div class={styles.overlay}>
                 <pre>{JSON.stringify(b.pages[page], undefined, '   ')}</pre>
-                <div class={styles.slider}>slider</div>
+                <div class={styles.slider}>
+                    <input
+                        class={styles.range}
+                        type='range'
+                        value={page}
+                        min={0}
+                        max={b.pages.length}
+                        onChange={bindValue(changePage)}
+                    />
+                    <input
+                        class={styles.number}
+                        type='number'
+                        value={page}
+                        min={0}
+                        max={b.pages.length}
+                        onChange={bindValue(changePage)}
+                    />
+                </div>
             </div>
         </div>
     )

@@ -109,6 +109,7 @@ export interface BookUpdateRequest {
     series: string
     volume: number | null
     chapter: number | null
+    rtl: boolean
     pages: BookPageUpdate[]
 }
 

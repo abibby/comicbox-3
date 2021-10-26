@@ -84,6 +84,7 @@ class AppDatabase extends Dexie {
                 series: b.series,
                 chapter: b.chapter,
                 volume: b.volume,
+                rtl: b.rtl,
                 pages: b.pages.map(p => ({
                     type: p.type,
                 })),

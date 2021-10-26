@@ -164,12 +164,13 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 }
 
 type BookUpdateRequest struct {
-	ID      string         `url:"id" validate:"required|uuid"`
-	Title   string         `json:"title"`
-	Series  string         `json:"series"`
-	Volume  *nulls.Float64 `json:"volume"`
-	Chapter *nulls.Float64 `json:"chapter"`
-	Pages   []PageUpdate   `json:"pages"`
+	ID          string         `url:"id" validate:"required|uuid"`
+	Title       string         `json:"title"`
+	Series      string         `json:"series"`
+	Volume      *nulls.Float64 `json:"volume"`
+	Chapter     *nulls.Float64 `json:"chapter"`
+	RightToLeft bool           `json:"rtl"`
+	Pages       []PageUpdate   `json:"pages"`
 }
 
 type PageUpdate struct {
@@ -200,6 +201,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		book.Series = req.Series
 		book.Volume = req.Volume
 		book.Chapter = req.Chapter
+		book.RightToLeft = req.RightToLeft
 		if len(book.Pages) != len(req.Pages) {
 			return NewHttpError(422, fmt.Errorf("expected %d pages, received %d", len(book.Pages), len(req.Pages)))
 		}

@@ -17,6 +17,7 @@ var types = map[string]string{
 	"Int":     "number",
 	"int":     "number",
 	"String":  "string",
+	"bool":    "boolean",
 }
 
 func main() {

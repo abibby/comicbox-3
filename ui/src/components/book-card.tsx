@@ -11,6 +11,7 @@ import { ContextMenuItems } from './context-menu'
 import { Data, Form } from './form/form'
 import { Input } from './form/input'
 import { Select } from './form/select'
+import { Toggle } from './form/toggle'
 import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
 
 interface BookProps {
@@ -84,6 +85,7 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                 b.series = data.get('series') ?? ''
                 b.volume = data.getNumber('volume')
                 b.chapter = data.getNumber('chapter')
+                b.rtl = data.getBoolean('rtl')
 
                 b.pages =
                     data.getAll('page.type')?.map((type): Page => {
@@ -147,6 +149,11 @@ const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                         type='number'
                         name='chapter'
                         value={props.book.chapter ?? ''}
+                    />
+                    <Toggle
+                        title='Right to Left'
+                        name='rtl'
+                        value={props.book.rtl}
                     />
 
                     {props.book.pages.map((p, i) => {

@@ -10,6 +10,7 @@ CREATE TABLE books (
     authors TEXT NOT NULL,
     pages TEXT NOT NULL,
     page_count INT NOT NULL,
+    rtl BOOLEAN NOT NULL CHECK (rtl in (0, 1)),
     sort TEXT NOT NULL,
     file TEXT NOT NULL
 );

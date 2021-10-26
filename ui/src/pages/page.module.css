@@ -28,6 +28,7 @@
     color: #fff;
     background-color: #000000c0;
     margin-bottom: 46px;
+    direction: ltr;
 }
 .page.menuOpen .overlay {
     display: block;
@@ -36,6 +37,14 @@
 .slider {
     position: absolute;
     bottom: 0;
+    width: 100%;
+}
+
+.slider .range {
+    width: 100%;
+}
+.slider .number {
+    width: 100%;
 }
 .image {
     width: 100%;

@@ -10,6 +10,7 @@ export interface Book {
     authors: Array<string>
     pages: Array<Page>
     page_count: number
+    rtl: boolean
     sort: string
     cover_url: string
     user_book: UserBook | null

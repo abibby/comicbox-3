@@ -19,6 +19,14 @@ export class Data {
         }
         return Number(result)
     }
+    public getBoolean(name: string): boolean {
+        const result = this.get(name)
+
+        if (result === null) {
+            return false
+        }
+        return true
+    }
     public getFile(name: string): File | null {
         const result = this.data.get(name)
         if (!(result instanceof File)) {

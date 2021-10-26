@@ -39,20 +39,21 @@ const (
 
 type Book struct {
 	BaseModel
-	ID         uuid.UUID      `json:"id"         db:"id"`
-	Title      string         `json:"title"      db:"title"`
-	Chapter    *nulls.Float64 `json:"chapter"    db:"chapter"`
-	Volume     *nulls.Float64 `json:"volume"     db:"volume"`
-	Series     string         `json:"series"     db:"series"`
-	Authors    []string       `json:"authors"    db:"-"`
-	RawAuthors []byte         `json:"-"          db:"authors"`
-	Pages      []*Page        `json:"pages"      db:"-"`
-	RawPages   []byte         `json:"-"          db:"pages"`
-	PageCount  int            `json:"page_count" db:"page_count"`
-	Sort       string         `json:"sort"       db:"sort"`
-	File       string         `json:"-"          db:"file"`
-	CoverURL   string         `json:"cover_url"  db:"-"`
-	UserBook   *UserBook      `json:"user_book" db:"-"`
+	ID          uuid.UUID      `json:"id"         db:"id"`
+	Title       string         `json:"title"      db:"title"`
+	Chapter     *nulls.Float64 `json:"chapter"    db:"chapter"`
+	Volume      *nulls.Float64 `json:"volume"     db:"volume"`
+	Series      string         `json:"series"     db:"series"`
+	Authors     []string       `json:"authors"    db:"-"`
+	RawAuthors  []byte         `json:"-"          db:"authors"`
+	Pages       []*Page        `json:"pages"      db:"-"`
+	RawPages    []byte         `json:"-"          db:"pages"`
+	PageCount   int            `json:"page_count" db:"page_count"`
+	RightToLeft bool           `json:"rtl"        db:"rtl"`
+	Sort        string         `json:"sort"       db:"sort"`
+	File        string         `json:"-"          db:"file"`
+	CoverURL    string         `json:"cover_url"  db:"-"`
+	UserBook    *UserBook      `json:"user_book"  db:"-"`
 }
 
 var _ BeforeSaver = &Book{}

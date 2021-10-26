@@ -13,4 +13,6 @@
   - [ ] Maybe server configs like what directory to look at
 - [ ] Style pages
 - [x] Improve reading experience
+  - [ ] Respect deleted pages
+  - [ ] Editing a book then changing the page resets the edits
 - [ ] Offline Support

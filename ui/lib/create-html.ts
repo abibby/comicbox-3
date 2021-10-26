@@ -59,8 +59,8 @@ export default function createHTMLPlugin(options: Options): Plugin {
             // }
             const variables = {
                 scripts: scripts,
-                styles: styles,
-                // styles: styles + `<style>${shellCSS}</style>`,
+                // styles: styles,
+                styles: styles + `<style>${shellCSS}</style>`,
                 // header: r.html.join(''),
                 header: '',
                 shell: shell,

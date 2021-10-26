@@ -27,7 +27,7 @@
     z-index: 10;
     color: #fff;
     background-color: #000000c0;
-    margin-bottom: 46px;
+    margin-bottom: 55px;
     direction: ltr;
 }
 .page.menuOpen .overlay {
@@ -74,7 +74,7 @@
 
 @media screen and (min-width: 500px) {
     .overlay {
-        margin-top: 39px;
+        margin-top: 48px;
         margin-bottom: 0;
     }
 }

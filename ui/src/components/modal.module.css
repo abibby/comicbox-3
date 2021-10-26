@@ -7,7 +7,7 @@
 }
 
 .modal {
-    background-color: var(--surface);
+    background-color: rgb(var(--surface));
     box-shadow: var(--surface-box-shadow);
     width: 400px;
     max-width: 100%;

@@ -1,11 +1,11 @@
 html {
-    background-color: var(--background);
+    background-color: rgb(var(--background));
+    color: rgb(var(--text-on-background));
     font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-    margin-bottom: 46px;
-    min-height: calc(100vh - 70px);
+    margin-bottom: 55px;
 }
 
 .shell {
@@ -17,10 +17,14 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: var(--surface);
-    color: var(--text-on-surface);
+    background-color: rgba(var(--surface), 0.5);
+    color: rgb(var(--text-on-surface));
     box-shadow: var(--surface-box-shadow);
     z-index: 100;
+    backdrop-filter: blur(10px);
+    margin: 5px;
+    padding: 2px;
+    border-radius: 5px;
 }
 
 .nav ul {
@@ -52,6 +56,9 @@ body {
 .icon {
     height: 2em;
 }
+:global(.dark) .icon {
+    filter: invert(1);
+}
 
 .label {
     font-size: 0.75em;
@@ -62,14 +69,13 @@ body {
     max-width: 90%;
     height: 1.5em;
     border-radius: 1.5em;
-    background-color: var(--light-text);
+    background-color: rgb(var(--light-text));
 }
 
 @media screen and (min-width: 500px) {
     body {
-        margin-top: 39px;
+        margin-top: 48px;
         margin-bottom: 0;
-        min-height: calc(100vh - 40px);
     }
 
     .nav {
@@ -80,14 +86,13 @@ body {
         display: flex;
         justify-content: flex-start;
         gap: 10px;
-    }    
+    }
     .nav li {
         flex-grow: initial;
     }
     .nav a {
         padding: 10px;
     }
-    
 
     .logo {
         display: block;
@@ -105,7 +110,7 @@ body {
     .icon {
         display: none;
     }
-    
+
     .label {
         font-size: 1em;
     }

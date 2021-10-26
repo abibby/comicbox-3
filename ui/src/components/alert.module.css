@@ -9,9 +9,9 @@
 }
 
 .alert {
-    background-color: var(--alert-background);
+    background-color: rgb(var(--alert-background));
     margin: 5px;
-    color: var(--alert-text);
+    color: rgb(var(--alert-text));
     padding: 2px;
 }
 
@@ -20,8 +20,8 @@
 }
 .option {
     background: none;
-    border: none; 
-    color: var(--alert-option);
+    border: none;
+    color: rgb(var(--alert-option));
     padding: 0 0 0 1ch;
     margin: 0;
     font-size: inherit;

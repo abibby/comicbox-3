@@ -26,6 +26,7 @@ export const Shell: FunctionalComponent = props => {
                         link='/settings'
                     />
                 </ul>
+                {/* <div class={styles.background} /> */}
             </nav>
             {props.children ?? <div class={styles.empty} />}
         </div>

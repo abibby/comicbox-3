@@ -23,7 +23,7 @@
     overflow: hidden;
 }
 .subtitle {
-    color: var(--light-text);
+    color: rgb(var(--light-text));
 }
 
 .menu {

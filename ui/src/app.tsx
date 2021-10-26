@@ -2,6 +2,8 @@ import EventTarget from 'event-target-shim'
 import { Fragment, h, render } from 'preact'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
+import { series } from './api'
+import { updateList } from './cache'
 import { AlertController, clearAlerts } from './components/alert'
 import {
     clearContextMenus,
@@ -9,7 +11,8 @@ import {
 } from './components/context-menu'
 import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
-import { init } from './page-lifecycle'
+import { DB } from './database'
+import { addOnActive, init } from './page-lifecycle'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
 import { List } from './pages/lists'
@@ -50,6 +53,7 @@ function Main() {
     )
 }
 
+addOnActive(async () => updateList('series', {}, DB.series, series.list))
 init()
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

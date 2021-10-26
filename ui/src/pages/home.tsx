@@ -5,13 +5,7 @@ import { BookList } from '../components/book-list'
 import { DB } from '../database'
 
 export const Home: FunctionalComponent = () => {
-    const books = useCached(
-        'reading',
-        {},
-        DB.books,
-        book.reading,
-        book.cachedReading,
-    )
+    const books = useCached('reading', {}, DB.books, book.reading)
 
     if (books?.length === 0) {
         return (

@@ -19,7 +19,6 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
         { name: name },
         DB.series,
         series.list,
-        series.cachedList,
     )
     if (seriesList === null) {
         return (
@@ -34,13 +33,7 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
         return <Error404 />
     }
 
-    const books = useCached(
-        listName,
-        { series: s.name },
-        DB.books,
-        book.list,
-        book.cachedList,
-    )
+    const books = useCached(listName, { series: s.name }, DB.books, book.list)
     return (
         <div>
             <h1>{s.name}</h1>

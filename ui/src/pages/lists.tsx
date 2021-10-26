@@ -10,13 +10,7 @@ export const List: FunctionalComponent = () => {
         ([list, listName]) =>
             [
                 listName,
-                useCached(
-                    list,
-                    { list: list },
-                    DB.series,
-                    series.list,
-                    series.cachedList,
-                ),
+                useCached(list, { list: list }, DB.series, series.list),
             ] as const,
     )
 

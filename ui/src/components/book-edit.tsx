@@ -1,6 +1,7 @@
 import { h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import { pageURL } from '../api'
+import { persist } from '../cache'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { Book, Page, PageType } from '../models'
@@ -50,7 +51,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                     }) ?? b.pages
 
                 DB.books.put(b)
-                DB.persist(true)
+                persist(true)
                 props.close(undefined)
 
                 switch (data.get('submit')) {

@@ -3,7 +3,7 @@ import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { auth, book, pageURL } from '../api'
-import { useCached } from '../cache'
+import { persist, useCached } from '../cache'
 import classNames from '../classnames'
 import { EditBook } from '../components/book-edit'
 import { openModal } from '../components/modal'
@@ -36,13 +36,7 @@ function preloadImages(srcs: Array<string | undefined>): HTMLImageElement[] {
 export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
 
-    const books = useCached(
-        `page:${id}`,
-        { id: id },
-        DB.books,
-        book.list,
-        book.cachedList,
-    )
+    const books = useCached(`page:${id}`, { id: id }, DB.books, book.list)
 
     const b = books?.[0]
     if (b === undefined) {
@@ -130,7 +124,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     }
                 }
                 DB.books.put(b)
-                DB.persist(true)
+                persist(true)
                 route(`/book/${id}/${newPage}`, true)
             }
         },

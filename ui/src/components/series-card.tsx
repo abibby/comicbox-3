@@ -2,6 +2,7 @@ import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import { auth, pageURL } from '../api'
 import { listNames } from '../api/series'
+import { persist } from '../cache'
 import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { Series } from '../models'
@@ -58,7 +59,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
             }
 
             DB.series.put(s)
-            DB.persist(true)
+            persist(true)
             props.close(undefined)
         },
         [props.close],

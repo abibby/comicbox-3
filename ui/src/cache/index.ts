@@ -1,10 +1,14 @@
 import { Table } from 'dexie'
 import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
-import { PaginatedRequest } from './api/internal'
-import { prompt } from './components/alert'
-import { DB } from './database'
-import { useEventListener } from './hooks/event-listener'
+import { book, userBook, userSeries } from '../api'
+import { PaginatedRequest } from '../api/internal'
+import { prompt } from '../components/alert'
+import { DB } from '../database'
+import { useEventListener } from '../hooks/event-listener'
+import './book'
+import { getCacheHandler } from './internal'
+import './series'
 
 class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {
@@ -54,11 +58,11 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     request: TRequest,
     table: Table<T>,
     network: (req: TRequest) => Promise<T[]>,
-    cache: (req: TRequest) => Promise<T[]>,
+    // cache: (req: TRequest) => Promise<T[]>,
     promptReload: 'always' | 'never' | 'auto' = 'auto',
 ): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
-
+    const cache = getCacheHandler(network)
     useEventListener(
         cacheEventTarget,
         'update',
@@ -120,4 +124,39 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
         }
     }
     return false
+}
+
+export async function persist(fromUserInteraction: boolean): Promise<void> {
+    const dirtyBooks = await DB.books.where('clean').equals(0).toArray()
+    for (const b of dirtyBooks) {
+        if (b.user_book !== null) {
+            await userBook.update(b.id, {
+                current_page: b.user_book.current_page,
+            })
+        }
+        const result = await book.update(b.id, {
+            title: b.title,
+            series: b.series,
+            chapter: b.chapter,
+            volume: b.volume,
+            rtl: b.rtl,
+            pages: b.pages.map(p => ({
+                type: p.type,
+            })),
+        })
+        DB.books.put({
+            ...result,
+            clean: 1,
+        })
+    }
+    const dirtySeries = await DB.series.where('clean').equals(0).toArray()
+    for (const s of dirtySeries) {
+        if (s.user_series !== null) {
+            const us = await userSeries.update(s.name, {
+                list: s.user_series.list,
+            })
+            DB.series.update(s, { user_series: us, clean: 1 })
+        }
+    }
+    invalidateCache(fromUserInteraction)
 }

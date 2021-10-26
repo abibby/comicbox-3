@@ -5,13 +5,7 @@ import { SeriesList } from '../components/series-list'
 import { DB } from '../database'
 
 export const SeriesIndex: FunctionalComponent = () => {
-    const s = useCached(
-        'series-index',
-        {},
-        DB.series,
-        series.list,
-        series.cachedList,
-    )
+    const s = useCached('series-index', {}, DB.series, series.list)
 
     return (
         <div>

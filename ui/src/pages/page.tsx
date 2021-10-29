@@ -73,13 +73,6 @@ export const Page: FunctionalComponent<PageProps> = props => {
         nextPage = page + 2
     }
 
-    if (nextPage >= b.pages.length) {
-        nextPage = b.pages.length - 1
-    }
-    if (previousPage < 0) {
-        previousPage = 0
-    }
-
     let leftPage = previousPage
     let rightPage = nextPage
     if (b.rtl) {
@@ -125,10 +118,10 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 }
                 DB.books.put(b)
                 persist(true)
-                route(`/book/${id}/${newPage}`, true)
+                route(`/book/${b.id}/${newPage}`, true)
             }
         },
-        [id, previous?.id, next?.id],
+        [b, previous?.id, next?.id],
     )
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
@@ -213,16 +206,16 @@ export const Page: FunctionalComponent<PageProps> = props => {
                         type='range'
                         value={page}
                         min={0}
-                        max={b.pages.length}
-                        onInput={bindValue(changePage)}
+                        max={b.pages.length - 1}
+                        onChange={bindValue(changePage)}
                     />
                     <input
                         class={styles.number}
                         type='number'
                         value={page}
                         min={0}
-                        max={b.pages.length}
-                        onInput={bindValue(changePage)}
+                        max={b.pages.length - 1}
+                        onChange={bindValue(changePage)}
                     />
                 </div>
             </div>

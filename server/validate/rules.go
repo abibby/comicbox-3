@@ -116,7 +116,7 @@ func valid(value string, rules []*Rule) []error {
 	for _, rule := range rules {
 		f, ok := ruleMap[rule.Name]
 		if !ok {
-			log.Printf("no validation handler for %s", rule.Name)
+			log.Printf("no validation handler for rule '%s'", rule.Name)
 			continue
 		}
 

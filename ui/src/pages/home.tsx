@@ -8,7 +8,7 @@ import { DB } from '../database'
 export const Home: FunctionalComponent = () => {
     useEffect(() => {
         updateList('series', {}, DB.series, series.list)
-    })
+    }, [])
     const books = useCached('reading', {}, DB.books, book.reading)
 
     if (books?.length === 0) {

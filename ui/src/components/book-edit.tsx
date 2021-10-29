@@ -30,16 +30,16 @@ type EditBookProps = {
     book: Book
 }
 
-export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
-    const previous = usePreviousBook(
-        `edit:${props.book.id}:previous`,
-        props.book,
-    )
-    const next = useNextBook(`edit:${props.book.id}:next`, props.book)
+export const EditBook: ModalComponent<undefined, EditBookProps> = ({
+    book,
+    close,
+}) => {
+    const previous = usePreviousBook(`edit:${book.id}:previous`, book)
+    const next = useNextBook(`edit:${book.id}:next`, book)
     const submit = useCallback(
         async (data: Data) => {
             try {
-                const b = props.book
+                const b = book
 
                 b.title = data.get('title') ?? ''
                 b.series = data.get('series') ?? ''
@@ -60,7 +60,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
 
                 DB.books.put(b)
                 persist(true)
-                props.close(undefined)
+                close(undefined)
 
                 switch (data.get('submit')) {
                     case 'next':
@@ -80,49 +80,34 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = props => {
                 }
             }
         },
-        [props.close, next, previous],
+        [book, close, next, previous],
     )
 
     return (
         <Modal>
             <Form onSubmit={submit}>
-                <ModalHead close={props.close}>Edit Book</ModalHead>
+                <ModalHead close={close}>Edit Book</ModalHead>
                 <ModalBody>
-                    <Input
-                        title='Series'
-                        name='series'
-                        value={props.book.series}
-                    />
-                    <Input
-                        title='Title'
-                        name='title'
-                        value={props.book.title}
-                    />
+                    <Input title='Series' name='series' value={book.series} />
+                    <Input title='Title' name='title' value={book.title} />
                     <Input
                         title='Volume'
                         type='number'
                         name='volume'
-                        value={props.book.volume ?? ''}
+                        value={book.volume ?? ''}
                     />
                     <Input
                         title='Chapter'
                         type='number'
                         name='chapter'
-                        value={props.book.chapter ?? ''}
+                        value={book.chapter ?? ''}
                     />
-                    <Toggle
-                        title='Right to Left'
-                        name='rtl'
-                        value={props.book.rtl}
-                    />
+                    <Toggle title='Right to Left' name='rtl' value={book.rtl} />
 
-                    {props.book.pages.map((p, i) => {
+                    {book.pages.map((p, i) => {
                         return (
                             <div>
-                                <img
-                                    src={pageURL(props.book, i)}
-                                    height='200'
-                                />
+                                <img src={pageURL(book, i)} height='200' />
                                 <Select
                                     title='Type'
                                     name='page.type'

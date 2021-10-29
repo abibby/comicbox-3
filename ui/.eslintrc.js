@@ -1,7 +1,7 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint', 'prettier'],
+    plugins: ['@typescript-eslint', 'react-hooks', 'prettier'],
     extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
@@ -17,5 +17,7 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': [1, { varsIgnorePattern: '^h$' }],
         'object-shorthand': [2, 'methods'],
         camelcase: 0,
+        'react-hooks/rules-of-hooks': 'error', // Checks rules of Hooks
+        'react-hooks/exhaustive-deps': 'warn', // Checks effect dependencies
     },
 }

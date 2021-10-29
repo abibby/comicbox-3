@@ -10,6 +10,7 @@ export const List: FunctionalComponent = () => {
         ([list, listName]) =>
             [
                 listName,
+                // eslint-disable-next-line react-hooks/rules-of-hooks
                 useCached(list, { list: list }, DB.series, series.list),
             ] as const,
     )

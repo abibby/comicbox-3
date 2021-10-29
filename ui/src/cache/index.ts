@@ -91,7 +91,8 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     useEffect(() => {
         cache(request).then(setItems)
         updateList(listName, request, table, network)
-    }, [setItems, listName, ...Object.values(request), table, network])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [setItems, listName, ...Object.values(request), table, network, cache])
 
     return items
 }

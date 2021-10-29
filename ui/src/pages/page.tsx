@@ -10,7 +10,7 @@ import { openModal } from '../components/modal'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useWindowEvent } from '../hooks/event-listener'
-import { PageType } from '../models'
+import { Book, PageType } from '../models'
 import { Error404 } from './404'
 import styles from './page.module.css'
 
@@ -33,15 +33,27 @@ function preloadImages(srcs: Array<string | undefined>): HTMLImageElement[] {
     })
 }
 
+const zeroBook: Book = {
+    id: '',
+    title: '',
+    chapter: null,
+    volume: null,
+    series: '',
+    authors: [],
+    pages: [],
+    page_count: 0,
+    rtl: false,
+    sort: '',
+    cover_url: '',
+    user_book: null,
+}
+
 export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
 
     const books = useCached(`page:${id}`, { id: id }, DB.books, book.list)
 
-    const b = books?.[0]
-    if (b === undefined) {
-        return <Error404 />
-    }
+    const b = books?.[0] || zeroBook
 
     const page = Number(props.matches?.page || b.user_book?.current_page || 0)
 
@@ -88,7 +100,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
             pageURL(b, page + 1),
             pageURL(b, page + 2),
         ])
-    }, [page, previous?.id, next?.id])
+    }, [b, page])
 
     const [menuOpen, setMenuOpen] = useState(false)
 
@@ -121,7 +133,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                 route(`/book/${b.id}/${newPage}`, true)
             }
         },
-        [b, previous?.id, next?.id],
+        [b, previous, next],
     )
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
@@ -148,7 +160,7 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     return
             }
         },
-        [page, menuOpen, setMenuOpen, changePage],
+        [menuOpen, setMenuOpen, changePage, leftPage, rightPage],
     )
 
     const edit = useCallback(() => {
@@ -180,6 +192,9 @@ export const Page: FunctionalComponent<PageProps> = props => {
         },
         [menuOpen, page, changePage, setTwoPage],
     )
+    if (b === zeroBook) {
+        return <Error404 />
+    }
 
     return (
         <div

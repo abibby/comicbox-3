@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Event, EventTarget } from 'event-target-shim'
 import { ComponentType, FunctionalComponent, h } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
@@ -64,7 +65,7 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
                 this.target.removeEventListener('close', onClose)
                 this.target.removeEventListener('clear', onClear)
             }
-        }, [setAlerts])
+        }, [onClear, onClose, onOpen, setAlerts])
 
         const SubComponents = this.subComponent
         return (

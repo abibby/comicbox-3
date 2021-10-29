@@ -45,10 +45,13 @@ type EditSeriesProps = {
     series: Series
 }
 
-const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
+const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
+    series,
+    close,
+}) => {
     const submit = useCallback(
         async (data: Data) => {
-            const s = props.series
+            const s = series
             const uid = auth.currentID()
             if (uid) {
                 s.user_series = {
@@ -60,19 +63,19 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = props => {
 
             DB.series.put(s)
             persist(true)
-            props.close(undefined)
+            close(undefined)
         },
-        [props.close],
+        [series, close],
     )
     return (
         <Modal>
-            <ModalHead close={props.close}>Edit Book</ModalHead>
+            <ModalHead close={close}>Edit Book</ModalHead>
             <ModalBody>
                 <Form onSubmit={submit}>
                     <Select
                         title='List'
                         name='list'
-                        value={props.series.user_series?.list ?? ''}
+                        value={series.user_series?.list ?? ''}
                         options={listOptions}
                     />
 

@@ -51,9 +51,12 @@ interface FormProps {
     onSubmit(data: Data): void
 }
 
-export const Form: FunctionalComponent<FormProps> = props => {
+export const Form: FunctionalComponent<FormProps> = ({
+    children,
+    onSubmit,
+}) => {
     const form = useRef<HTMLFormElement>(null)
-    const onSubmit = useCallback(
+    const submit = useCallback(
         (e: Event) => {
             e.preventDefault()
             if (!form.current) {
@@ -66,13 +69,13 @@ export const Form: FunctionalComponent<FormProps> = props => {
                 data.set(submitted.name, submitted.value)
             }
 
-            props.onSubmit(new Data(data))
+            onSubmit(new Data(data))
         },
-        [props.onSubmit],
+        [onSubmit],
     )
     return (
-        <form onSubmit={onSubmit} ref={form}>
-            {props.children}
+        <form onSubmit={submit} ref={form}>
+            {children}
         </form>
     )
 }

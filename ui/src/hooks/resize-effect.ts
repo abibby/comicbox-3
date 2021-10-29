@@ -1,6 +1,9 @@
 import { EffectCallback, Inputs, useLayoutEffect } from 'preact/hooks'
 
-export function useResizeEffect(effect: EffectCallback, inputs?: Inputs): void {
+export function useResizeEffect(
+    effect: EffectCallback,
+    inputs: Inputs = [],
+): void {
     useLayoutEffect(() => {
         let close = effect()
         const onResize = () => {
@@ -12,5 +15,6 @@ export function useResizeEffect(effect: EffectCallback, inputs?: Inputs): void {
             window.removeEventListener('resize', onResize)
             close?.()
         }
-    }, inputs)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [effect, ...inputs])
 }

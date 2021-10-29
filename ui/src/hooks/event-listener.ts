@@ -16,7 +16,8 @@ export function useEventListener<
         return () => {
             target.removeEventListener(type, callback)
         }
-    }, inputs)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [callback, target, type, ...inputs])
 }
 
 export function useWindowEvent<K extends keyof WindowEventMap>(
@@ -29,5 +30,6 @@ export function useWindowEvent<K extends keyof WindowEventMap>(
         return () => {
             window.removeEventListener(type, listener)
         }
-    }, inputs)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [listener, type, ...inputs])
 }

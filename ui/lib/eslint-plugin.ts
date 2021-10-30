@@ -22,19 +22,36 @@ export function eslint(options: EslintOptions = {}): Plugin {
         options.exclude || /node_modules/,
     )
 
+    const reports = new Map<string, ESLint.LintResult>()
+
+    async function lint(id: string) {
+        const file = normalizePath(id)
+        if ((await cli.isPathIgnored(file)) || !filter(id)) {
+            return null
+        }
+
+        const report = await cli.lintFiles(file)
+        for (const r of report) {
+            if (r.messages.length === 0) {
+                reports.delete(r.filePath)
+            } else {
+                reports.set(r.filePath, r)
+            }
+        }
+    }
+
     return {
         name: 'eslint',
 
         async transform(transformedCode, id) {
-            const file = normalizePath(id)
-            if ((await cli.isPathIgnored(file)) || !filter(id)) {
-                return null
-            }
-
-            const report = await cli.lintFiles(file)
-
+            return await lint(id)
+        },
+        async watchChange(id, change) {
+            await lint(id)
+        },
+        async buildEnd() {
             const formatter = await formatterPromise
-            const result = formatter.format(report)
+            const result = formatter.format(Array.from(reports.values()))
 
             if (result) {
                 // eslint-disable-next-line no-console

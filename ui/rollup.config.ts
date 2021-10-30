@@ -6,6 +6,7 @@ import assetPlugin from './lib/asset-plugin'
 import createHTMLPlugin from './lib/create-html'
 import cssModuleTypes from './lib/css-module-types'
 import { eslint } from './lib/eslint-plugin'
+
 const config: RollupOptions = {
     input: 'src/app.tsx',
     output: {

@@ -39,15 +39,13 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
     const submit = useCallback(
         async (data: Data) => {
             try {
-                const b = book
+                book.title = data.get('title') ?? ''
+                book.series = data.get('series') ?? ''
+                book.volume = data.getNumber('volume')
+                book.chapter = data.getNumber('chapter')
+                book.rtl = data.getBoolean('rtl')
 
-                b.title = data.get('title') ?? ''
-                b.series = data.get('series') ?? ''
-                b.volume = data.getNumber('volume')
-                b.chapter = data.getNumber('chapter')
-                b.rtl = data.getBoolean('rtl')
-
-                b.pages =
+                book.pages =
                     data.getAll('page.type')?.map((type): Page => {
                         if (!isPageType(type)) {
                             throw new Error(`Invalid page type ${type}`)
@@ -56,9 +54,9 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             url: '',
                             type: type,
                         }
-                    }) ?? b.pages
+                    }) ?? book.pages
 
-                DB.books.put(b)
+                DB.books.put(book)
                 persist(true)
                 close(undefined)
 

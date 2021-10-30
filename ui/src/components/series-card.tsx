@@ -28,7 +28,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
                     }),
             ],
         ]
-    }, [props.series.name, props.series.user_series?.list])
+    }, [props.series])
     return (
         <Card
             image={pageURL(props.series)}

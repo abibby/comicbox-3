@@ -24,7 +24,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
                     }),
             ],
         ]
-    }, [props.book.id, props.book.series, props.book])
+    }, [props.book])
 
     let title = ''
     if (props.book.volume) {

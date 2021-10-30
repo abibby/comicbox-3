@@ -17,13 +17,14 @@ function Alert<T>(props: AlertProps<T>) {
         </button>
     ))
 
+    const { timeout, close } = props
     useEffect(() => {
-        if (props.timeout > 0) {
+        if (timeout > 0) {
             setTimeout(() => {
-                props.close()
-            }, props.timeout)
+                close()
+            }, timeout)
         }
-    })
+    }, [close, timeout])
     return (
         <div class={styles.alert}>
             {props.message}

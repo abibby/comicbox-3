@@ -35,7 +35,7 @@ const Menu: FunctionalComponent<MenuProps> = props => {
             style.top = box.top - menuHeight
         }
         setListStyle(style)
-    }, [setListStyle])
+    }, [props.target, setListStyle])
     return (
         <div onClick={props.close}>
             <div class={styles.screen} />

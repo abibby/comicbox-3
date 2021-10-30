@@ -7,13 +7,17 @@ export function useResizeEffect(
     useLayoutEffect(() => {
         let close = effect()
         const onResize = () => {
-            close?.()
+            if (typeof close === 'function') {
+                close()
+            }
             close = effect()
         }
         window.addEventListener('resize', onResize)
         return () => {
             window.removeEventListener('resize', onResize)
-            close?.()
+            if (typeof close === 'function') {
+                close()
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [effect, ...inputs])

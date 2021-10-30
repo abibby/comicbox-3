@@ -58,7 +58,6 @@ export function useCached<T, TRequest extends PaginatedRequest>(
     request: TRequest,
     table: Table<T>,
     network: (req: TRequest) => Promise<T[]>,
-    // cache: (req: TRequest) => Promise<T[]>,
     promptReload: 'always' | 'never' | 'auto' = 'auto',
 ): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)

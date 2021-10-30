@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 
@@ -16,6 +17,7 @@ var types = map[string]string{
 	"float64": "number",
 	"Int":     "number",
 	"int":     "number",
+	"int64":   "number",
 	"String":  "string",
 	"bool":    "boolean",
 }
@@ -65,6 +67,9 @@ func generateTsType(t reflect.Type, allowNull bool) string {
 	}
 	if t.Kind() == reflect.Slice {
 		return "Array<" + generateTsType(t.Elem(), false) + ">"
+	}
+	if t.Kind() == reflect.Map {
+		return fmt.Sprintf("Record<%s, %s>", generateTsType(t.Key(), false), generateTsType(t.Elem(), false))
 	}
 	if t.Name() == "" {
 		suffix := ""

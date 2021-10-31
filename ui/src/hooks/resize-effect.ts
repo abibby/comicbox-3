@@ -20,5 +20,5 @@ export function useResizeEffect(
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [effect, ...inputs])
+    }, inputs)
 }

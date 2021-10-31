@@ -19,13 +19,13 @@ export class Data {
         }
         return Number(result)
     }
-    public getBoolean(name: string): boolean {
+    public getBoolean(name: string): boolean | null {
         const result = this.get(name)
 
         if (result === null) {
-            return false
+            return null
         }
-        return true
+        return result !== '0'
     }
     public getFile(name: string): File | null {
         const result = this.data.get(name)
@@ -36,6 +36,9 @@ export class Data {
     }
     public getAll(name: string): string[] | null {
         const result = this.data.getAll(name)
+        if (result.length === 0) {
+            return null
+        }
         return result.filter((r): r is string => typeof r === 'string')
     }
 }

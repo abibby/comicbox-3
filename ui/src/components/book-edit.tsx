@@ -18,6 +18,7 @@ import {
     ModalHead,
     openModal,
 } from './modal'
+import { Tab, TabContainer } from './tab'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -39,22 +40,27 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
     const submit = useCallback(
         async (data: Data) => {
             try {
-                book.title = data.get('title') ?? ''
-                book.series = data.get('series') ?? ''
-                book.volume = data.getNumber('volume')
-                book.chapter = data.getNumber('chapter')
-                book.rtl = data.getBoolean('rtl')
-
-                book.pages =
-                    data.getAll('page.type')?.map((type): Page => {
-                        if (!isPageType(type)) {
-                            throw new Error(`Invalid page type ${type}`)
-                        }
-                        return {
-                            url: '',
-                            type: type,
-                        }
-                    }) ?? book.pages
+                switch (data.get('tab')) {
+                    case 'meta':
+                        book.title = data.get('title') ?? ''
+                        book.series = data.get('series') ?? ''
+                        book.volume = data.getNumber('volume')
+                        book.chapter = data.getNumber('chapter')
+                        book.rtl = data.getBoolean('rtl') ?? false
+                        break
+                    case 'pages':
+                        book.pages =
+                            data.getAll('page.type')?.map((type): Page => {
+                                if (!isPageType(type)) {
+                                    throw new Error(`Invalid page type ${type}`)
+                                }
+                                return {
+                                    url: '',
+                                    type: type,
+                                }
+                            }) ?? book.pages
+                        break
+                }
 
                 DB.books.put(book)
                 persist(true)
@@ -86,35 +92,57 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
             <Form onSubmit={submit}>
                 <ModalHead close={close}>Edit Book</ModalHead>
                 <ModalBody>
-                    <Input title='Series' name='series' value={book.series} />
-                    <Input title='Title' name='title' value={book.title} />
-                    <Input
-                        title='Volume'
-                        type='number'
-                        name='volume'
-                        value={book.volume ?? ''}
-                    />
-                    <Input
-                        title='Chapter'
-                        type='number'
-                        name='chapter'
-                        value={book.chapter ?? ''}
-                    />
-                    <Toggle title='Right to Left' name='rtl' value={book.rtl} />
-
-                    {book.pages.map((p, i) => {
-                        return (
-                            <div>
-                                <img src={pageURL(book, i)} height='200' />
-                                <Select
-                                    title='Type'
-                                    name='page.type'
-                                    options={pageTypeOptions}
-                                    value={p.type}
-                                />
-                            </div>
-                        )
-                    })}
+                    <TabContainer>
+                        <Tab title='meta'>
+                            <input type='hidden' name='tab' value='meta' />
+                            <Input
+                                title='Series'
+                                name='series'
+                                value={book.series}
+                            />
+                            <Input
+                                title='Title'
+                                name='title'
+                                value={book.title}
+                            />
+                            <Input
+                                title='Volume'
+                                type='number'
+                                name='volume'
+                                value={book.volume ?? ''}
+                            />
+                            <Input
+                                title='Chapter'
+                                type='number'
+                                name='chapter'
+                                value={book.chapter ?? ''}
+                            />
+                            <Toggle
+                                title='Right to Left'
+                                name='rtl'
+                                value={book.rtl}
+                            />
+                        </Tab>
+                        <Tab title='pages'>
+                            <input type='hidden' name='tab' value='pages' />
+                            {book.pages.map((p, i) => {
+                                return (
+                                    <div>
+                                        <img
+                                            src={pageURL(book, i)}
+                                            height='200'
+                                        />
+                                        <Select
+                                            title='Type'
+                                            name='page.type'
+                                            options={pageTypeOptions}
+                                            value={p.type}
+                                        />
+                                    </div>
+                                )
+                            })}
+                        </Tab>
+                    </TabContainer>
                 </ModalBody>
                 <ModalFoot>
                     <button type='submit'>Save</button>

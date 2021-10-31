@@ -55,6 +55,9 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             const uid = auth.currentID()
             if (uid) {
                 s.user_series = {
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                    deleted_at: null,
                     series_name: s.name,
                     user_id: uid,
                     list: data.get('list') || null,

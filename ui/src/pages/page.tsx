@@ -2,7 +2,7 @@ import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { auth, book, pageURL } from '../api'
+import { book, pageURL } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
 import { EditBook } from '../components/book-edit'
@@ -33,32 +33,31 @@ function preloadImages(srcs: Array<string | undefined>): HTMLImageElement[] {
     })
 }
 
-const zeroBook: Book = {
-    id: '',
-    title: '',
-    chapter: null,
-    volume: null,
-    series: '',
-    authors: [],
-    pages: [],
-    page_count: 0,
-    rtl: false,
-    sort: '',
-    cover_url: '',
-    user_book: null,
-}
-
 export const Page: FunctionalComponent<PageProps> = props => {
     const id = props.matches?.id ?? ''
 
     const books = useCached(`page:${id}`, { id: id }, DB.books, book.list)
+    const b = books?.[0]
 
-    const b = books?.[0] || zeroBook
-
+    if (b === undefined) {
+        return <Error404 />
+    }
     const page = Number(props.matches?.page || b.user_book?.current_page || 0)
 
-    const previous = usePreviousBook(`page:${id}:previous`, b)
-    const next = useNextBook(`page:${id}:next`, b)
+    return <PageContent book={b} page={page} />
+}
+
+export interface PageContentProps {
+    book: Book
+    page: number
+}
+
+export const PageContent: FunctionalComponent<PageContentProps> = props => {
+    const b = props.book
+    const page = props.page
+
+    const previous = usePreviousBook(`page:${b.id}:previous`, b)
+    const next = useNextBook(`page:${b.id}:next`, b)
 
     const [twoPage, setTwoPage] = useState(true)
     let nextPage = page + 1
@@ -119,16 +118,11 @@ export const Page: FunctionalComponent<PageProps> = props => {
                     route('/')
                 }
             } else {
-                const userID = auth.currentID()
-                if (userID !== null) {
-                    b.user_book = {
-                        ...b.user_book,
-                        book_id: b.id,
-                        user_id: userID,
+                DB.saveBook(b, {
+                    user_book: {
                         current_page: Number(newPage),
-                    }
-                }
-                DB.books.put(b)
+                    },
+                })
                 persist(true)
                 route(`/book/${b.id}/${newPage}`, true)
             }
@@ -192,9 +186,6 @@ export const Page: FunctionalComponent<PageProps> = props => {
         },
         [menuOpen, page, changePage, setTwoPage],
     )
-    if (b === zeroBook) {
-        return <Error404 />
-    }
 
     return (
         <div

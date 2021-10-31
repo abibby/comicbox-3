@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { book, userBook, userSeries } from '../api'
 import { PaginatedRequest } from '../api/internal'
 import { prompt } from '../components/alert'
-import { DB } from '../database'
+import { DB, DBModel } from '../database'
 import { useEventListener } from '../hooks/event-listener'
 import './book'
 import { getCacheHandler } from './internal'
@@ -26,7 +26,10 @@ export function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
 }
 
-export async function updateList<T, TRequest extends PaginatedRequest>(
+export async function updateList<
+    T extends DBModel,
+    TRequest extends PaginatedRequest,
+>(
     listName: string,
     request: TRequest,
     table: Table<T>,

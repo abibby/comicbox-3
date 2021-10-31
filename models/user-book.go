@@ -10,8 +10,8 @@ import (
 
 type UserBook struct {
 	BaseModel
-	BookID      uuid.UUID `json:"book_id"      db:"book_id"`
-	UserID      uuid.UUID `json:"user_id"      db:"user_id"`
+	BookID      uuid.UUID `json:"-"            db:"book_id"`
+	UserID      uuid.UUID `json:"-"            db:"user_id"`
 	CurrentPage int       `json:"current_page" db:"current_page"`
 }
 

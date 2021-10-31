@@ -1,13 +1,19 @@
 import { FunctionalComponent, h } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { book, series } from '../api'
+import { SeriesListRequest } from '../api/series'
 import { updateList, useCached } from '../cache'
 import { BookList } from '../components/book-list'
-import { DB } from '../database'
+import { DB, DBSeries } from '../database'
 
 export const Home: FunctionalComponent = () => {
     useEffect(() => {
-        updateList('series', {}, DB.series, series.list)
+        updateList<DBSeries, SeriesListRequest>(
+            'series',
+            {},
+            DB.series,
+            series.list,
+        )
     }, [])
     const books = useCached('reading', {}, DB.books, book.reading)
 

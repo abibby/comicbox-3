@@ -1,24 +1,43 @@
 import Dexie from 'dexie'
-import { Book, Series } from './models'
+import { Book, Series, UserBook, UserSeries } from './models'
+
+type UpdateMap<T> = {
+    [P in keyof T]?: string
+}
+
+type Modification<T> = {
+    [P in keyof T]?: Modification<T[P]>
+}
 
 interface LastUpdated {
     list: string
     updatedAt: string
 }
 
-interface DBModel {
+export interface DBModel {
     clean?: number
+    update_map?: UpdateMap<this>
 }
 
-interface DBBook extends Book {
-    completed?: number
-    clean?: number
-}
+export type DBUserBook = UserBook & DBModel
 
-interface DBSeries extends Series {
-    clean?: number
-}
+export type DBBook = Book &
+    DBModel & {
+        completed?: number
+        user_book: DBUserBook | null
+    }
 
+export type DBUserSeries = UserSeries & DBModel
+
+export type DBSeries = Series &
+    DBModel & {
+        completed?: number
+        user_series: DBUserSeries | null
+    }
+
+function entries<T>(o: T): [keyof T, T[keyof T]][] {
+    return Object.entries(o) as [keyof T, T[keyof T]][]
+}
 class AppDatabase extends Dexie {
     books: Dexie.Table<DBBook, number>
     series: Dexie.Table<DBSeries, number>
@@ -40,6 +59,8 @@ class AppDatabase extends Dexie {
             b.clean = 1
         })
         this.books.hook('updating', (mod, id, b) => {
+            console.log(mod)
+
             return {
                 clean: 0,
                 ...mod,
@@ -56,6 +77,36 @@ class AppDatabase extends Dexie {
                 ...mod,
             }
         })
+    }
+
+    public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
+        const updateMap: UpdateMap<DBBook> = b.update_map ?? {}
+        for (const [key] of entries(mod)) {
+            if (key === 'user_book' && mod.user_book) {
+                if (b.user_book === null) {
+                    b.user_book = {
+                        updated_at: new Date().toISOString(),
+                        created_at: new Date().toISOString(),
+                        deleted_at: null,
+                        current_page: 0,
+                    }
+                }
+
+                const ubUpdateMap: UpdateMap<DBUserBook> =
+                    b.user_book.update_map ?? {}
+
+                for (const [ubKey] of entries(mod.user_book)) {
+                    if (mod.user_book[ubKey] !== b.user_book[ubKey]) {
+                        ubUpdateMap[ubKey] = new Date().toISOString()
+                    }
+                }
+                mod.user_book.update_map = ubUpdateMap
+            } else if (mod[key] !== b[key]) {
+                updateMap[key] = new Date().toISOString()
+            }
+        }
+        mod.update_map = updateMap
+        DB.books.update(b, mod)
     }
 
     private bookComplete(b: DBBook): number {

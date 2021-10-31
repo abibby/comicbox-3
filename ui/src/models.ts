@@ -2,6 +2,9 @@
 /* eslint-disable */
 
 export interface Book {
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
     id: string
     title: string
     chapter: number | null
@@ -20,21 +23,31 @@ export interface Page {
     type: PageType
 }
 export interface Series {
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
     name: string
     cover_url: string
     first_book_id: string | null
     user_series: UserSeries | null
 }
 export interface User {
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
     id: string
     username: string
 }
 export interface UserBook {
-    book_id: string
-    user_id: string
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
     current_page: number
 }
 export interface UserSeries {
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
     series_name: string
     user_id: string
     list: string | null

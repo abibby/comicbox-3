@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/abibby/comicbox-3/models"
+	"github.com/davecgh/go-spew/spew"
 )
 
 var types = map[string]string{
@@ -49,15 +50,25 @@ func generateTsInterface(model interface{}) string {
 	t := reflect.TypeOf(model)
 
 	ts := "export interface " + t.Name() + " {"
+	ts += generateTsInterfaceProps(t)
+	return ts + "\n}\n"
+}
+
+func generateTsInterfaceProps(t reflect.Type) string {
+	ts := ""
 	for i := 0; i < t.NumField(); i++ {
 		v := t.Field(i)
+		if v.Anonymous {
+			ts += generateTsInterfaceProps(v.Type)
+		}
+		spew.Dump(i, v)
 		name, ok := v.Tag.Lookup("json")
 		if !ok || name == "-" {
 			continue
 		}
 		ts += "\n    " + name + ": " + generateTsType(v.Type, true)
 	}
-	return ts + "\n}\n"
+	return ts
 }
 
 func generateTsType(t reflect.Type, allowNull bool) string {

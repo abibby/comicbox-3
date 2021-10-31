@@ -42,27 +42,27 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
             try {
                 switch (data.get('tab')) {
                     case 'meta':
-                        book.title = data.get('title') ?? ''
-                        book.series = data.get('series') ?? ''
-                        book.volume = data.getNumber('volume')
-                        book.chapter = data.getNumber('chapter')
-                        book.rtl = data.getBoolean('rtl') ?? false
+                        DB.saveBook(book, {
+                            title: data.get('title') ?? '',
+                            series: data.get('series') ?? '',
+                            volume: data.getNumber('volume'),
+                            chapter: data.getNumber('chapter'),
+                        })
                         break
                     case 'pages':
-                        book.pages =
-                            data.getAll('page.type')?.map((type): Page => {
-                                if (!isPageType(type)) {
-                                    throw new Error(`Invalid page type ${type}`)
-                                }
-                                return {
+                        DB.saveBook(book, {
+                            pages: data.getAll('page.type')?.map(
+                                (type): Page => ({
                                     url: '',
-                                    type: type,
-                                }
-                            }) ?? book.pages
+                                    type: isPageType(type)
+                                        ? type
+                                        : PageType.Story,
+                                }),
+                            ),
+                        })
                         break
                 }
 
-                DB.books.put(book)
                 persist(true)
                 close(undefined)
 

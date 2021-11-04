@@ -51,7 +51,7 @@ func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 
 func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	if s.FirstBookID != nil {
-		s.CoverURL = router.MustURL("book.page", "id", s.FirstBookID.String(), "page", "0")
+		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", "0")
 	}
 	return nil
 }

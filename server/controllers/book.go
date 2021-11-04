@@ -2,10 +2,18 @@ package controllers
 
 import (
 	"archive/zip"
+	"context"
 	"fmt"
+	"image"
+	_ "image/gif"
+	"image/jpeg"
+	_ "image/png"
 	"io"
 	"log"
 	"net/http"
+
+	"golang.org/x/image/draw"
+	_ "golang.org/x/image/webp"
 
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
@@ -84,37 +92,12 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
-
-	book := &models.Book{}
-	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		return tx.Get(book, "select * from books where id = ?", req.ID)
-	})
+	f, err := bookPageFile(r.Context(), req.ID, req.Page)
 	if err != nil {
 		sendError(rw, err)
 		return
 	}
-
-	reader, err := zip.OpenReader(book.File)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-
-	imgs, err := app.ZippedImages(reader)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-
-	if req.Page < 0 || req.Page >= len(imgs) {
-		sendError(rw, NewHttpError(404, fmt.Errorf("not found")))
-		return
-	}
-	f, err := imgs[req.Page].Open()
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
+	defer f.Close()
 
 	rw.Header().Add("Cache-Control", "max-age=3600")
 
@@ -122,6 +105,72 @@ func BookPage(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 	}
+}
+
+func BookThumbnail(rw http.ResponseWriter, r *http.Request) {
+	req := &BookPageRequest{}
+	err := validate.Run(r, req)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	f, err := bookPageFile(r.Context(), req.ID, req.Page)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+	defer f.Close()
+
+	img, mime, err := image.Decode(f)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	thumbHeight := 500
+	thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
+
+	dst := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
+	draw.BiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+
+	rw.Header().Add("Cache-Control", "max-age=3600")
+	rw.Header().Add("Content-Type", "image/"+mime)
+
+	err = jpeg.Encode(rw, dst, nil)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+}
+
+func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, error) {
+	book := &models.Book{}
+	err := database.ReadTx(ctx, func(tx *sqlx.Tx) error {
+		return tx.Get(book, "select * from books where id = ?", id)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	reader, err := zip.OpenReader(book.File)
+	if err != nil {
+		return nil, err
+	}
+
+	imgs, err := app.ZippedImages(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	if page < 0 || page >= len(imgs) {
+		return nil, NewHttpError(404, fmt.Errorf("not found"))
+	}
+	f, err := imgs[page].Open()
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 
 func BookReading(rw http.ResponseWriter, r *http.Request) {

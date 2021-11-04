@@ -27,6 +27,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/sys v0.0.0-20211003122950-b1ebd4e1001c // indirect
 	golang.org/x/tools v0.1.7 // indirect

@@ -27,7 +27,7 @@ func init() {
 		pages := r.NewRoute().Subrouter()
 		pages.Use(controllers.AuthMiddleware(true))
 		pages.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
-		pages.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.thumbnail")
+		pages.HandleFunc("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Methods("GET").Name("book.thumbnail")
 
 		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")
 

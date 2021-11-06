@@ -9,7 +9,7 @@ type ValidationError struct {
 	errors map[string][]string
 }
 
-func newValidationError() *ValidationError {
+func NewValidationError() *ValidationError {
 	return &ValidationError{
 		errors: map[string][]string{},
 	}
@@ -29,7 +29,7 @@ func (e *ValidationError) Status() int {
 	return 422
 }
 
-func (e *ValidationError) Push(field string, errs []error) {
+func (e *ValidationError) Push(field string, errs []error) *ValidationError {
 	f, ok := e.errors[field]
 	if !ok {
 		f = []string{}
@@ -38,4 +38,5 @@ func (e *ValidationError) Push(field string, errs []error) {
 		f = append(f, err.Error())
 	}
 	e.errors[field] = f
+	return e
 }

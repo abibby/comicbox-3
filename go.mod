@@ -3,7 +3,7 @@ module github.com/abibby/comicbox-3
 go 1.17
 
 require (
-	github.com/abibby/nulls v1.0.2
+	github.com/abibby/nulls v1.1.0
 	github.com/adhocore/gronx v0.2.5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/doug-martin/goqu/v9 v9.16.0

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/abibby/comicbox-3/database"
@@ -11,8 +12,8 @@ import (
 )
 
 type UserCreateRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"require"`
+	Password string `json:"password" validate:"require"`
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
@@ -29,6 +30,15 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		Password: []byte(req.Password),
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+		count := 0
+		err = tx.Get(&count, "select count(*) from users where username = ?", u.Username)
+		if err != nil {
+			return err
+		}
+		if count > 0 {
+			return validate.NewValidationError().
+				Push("username", []error{fmt.Errorf("username is already in use")})
+		}
 		return models.Save(r.Context(), u, tx)
 	})
 	if err != nil {

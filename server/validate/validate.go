@@ -8,11 +8,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 )
 
 func Run(r *http.Request, requestParams interface{}) error {
-	vErr := newValidationError()
+	vErr := NewValidationError()
 	v := reflect.ValueOf(requestParams).Elem()
 	t := v.Type()
 
@@ -42,18 +43,21 @@ func Run(r *http.Request, requestParams interface{}) error {
 				})
 			}
 		}
-		value, ok := getValue(r, f)
+		value, name, ok := getValue(r, v, f)
 		if !ok {
 			continue
 		}
+		spew.Dump(name, value)
 
 		errs := valid(value, rules)
 		if len(errs) != 0 {
-			vErr.Push(f.Name, errs)
+			vErr.Push(name, errs)
 		}
-		err := setValue(v.Field(i), value)
-		if err != nil {
-			return err
+		if _, ok := f.Tag.Lookup("json"); !ok {
+			err := setValue(v.Field(i), value)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	if vErr.HasErrors() {
@@ -62,36 +66,54 @@ func Run(r *http.Request, requestParams interface{}) error {
 	return nil
 }
 
-func getValue(r *http.Request, field reflect.StructField) (string, bool) {
-	if value, ok := getValueURL(r, field); ok {
-		return value, true
+func getValue(r *http.Request, v reflect.Value, field reflect.StructField) (string, string, bool) {
+	if value, name, ok := getValueURL(r, field); ok {
+		return value, name, true
 	}
-	if value, ok := getValueQuery(r, field); ok {
-		return value, true
+	if value, name, ok := getValueQuery(r, field); ok {
+		return value, name, true
 	}
-	return "", false
+	if value, name, ok := getValueBody(v, field); ok {
+		return value, name, true
+	}
+	return "", "", false
 }
 
-func name(field reflect.StructField, tagName string) string {
-	if tag, ok := field.Tag.Lookup(tagName); ok {
-		return tag
-	}
-	return field.Name
-}
-func getValueURL(r *http.Request, field reflect.StructField) (string, bool) {
+func getValueURL(r *http.Request, field reflect.StructField) (string, string, bool) {
 	vars := mux.Vars(r)
-	name := name(field, "url")
+	name, ok := field.Tag.Lookup("url")
+	if !ok {
+		return "", "", false
+	}
 	if value, ok := vars[name]; ok {
-		return value, true
+		return value, name, true
 	}
-	return "", false
+	return "", name, true
 }
-func getValueQuery(r *http.Request, field reflect.StructField) (string, bool) {
-	name := name(field, "query")
-	if r.URL.Query().Has(name) {
-		return r.URL.Query().Get(name), true
+func getValueQuery(r *http.Request, field reflect.StructField) (string, string, bool) {
+	name, ok := field.Tag.Lookup("query")
+	if !ok {
+		return "", "", false
 	}
-	return "", false
+	if r.URL.Query().Has(name) {
+		return r.URL.Query().Get(name), name, true
+	}
+	return "", name, true
+}
+func getValueBody(v reflect.Value, field reflect.StructField) (string, string, bool) {
+	name, ok := field.Tag.Lookup("json")
+	if !ok {
+		return "", "", false
+	}
+
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Type().Field(i)
+		if tag, ok := f.Tag.Lookup("json"); ok && tag == name {
+			return fmt.Sprint(v.Field(i).Interface()), name, true
+		}
+	}
+
+	return "", name, true
 }
 
 func setValue(f reflect.Value, value string) error {
@@ -111,6 +133,12 @@ func setValue(f reflect.Value, value string) error {
 		f.Set(reflect.ValueOf(value).Convert(f.Type()))
 	case reflect.Int:
 		iValue, err := strconv.Atoi(value)
+		if err != nil {
+			return err
+		}
+		f.Set(reflect.ValueOf(iValue).Convert(f.Type()))
+	case reflect.Float64:
+		iValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return err
 		}

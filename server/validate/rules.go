@@ -20,13 +20,13 @@ type Handler func(value string, params []string) error
 var ruleMap = map[string]Handler{
 	"min": handle(func(value, min float64) error {
 		if value < min {
-			return fmt.Errorf("lower the the minimum of %g", min)
+			return fmt.Errorf("lower than the minimum of %g", min)
 		}
 		return nil
 	}),
 	"max": handle(func(value, min float64) error {
 		if value > min {
-			return fmt.Errorf("lower the the maximum of %g", min)
+			return fmt.Errorf("lower than the maximum of %g", min)
 		}
 		return nil
 	}),
@@ -44,6 +44,12 @@ var ruleMap = map[string]Handler{
 			}
 		}
 		return fmt.Errorf("must be one of %s", strings.Join(params, ", "))
+	},
+	"require": func(value string, params []string) error {
+		if value == "" {
+			return fmt.Errorf("required")
+		}
+		return nil
 	},
 }
 

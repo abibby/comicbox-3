@@ -18,6 +18,8 @@
     --alert-background: 51, 51, 51;
     --alert-text: 238, 238, 238;
     --alert-option: var(--primary);
+
+    --error-text: 255, 0, 0;
 }
 
 .dark {

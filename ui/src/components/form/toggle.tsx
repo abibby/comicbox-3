@@ -19,7 +19,11 @@ export const Toggle: FunctionalComponent<ToggleProps> = props => {
         [setValue],
     )
     return (
-        <FormElement title={props.title}>
+        <FormElement
+            title={props.title}
+            name={props.name}
+            errors={props.errors}
+        >
             <input type='hidden' name={props.name} value={value ? 1 : 0} />
             <input type='checkbox' checked={value} onInput={checkUpdate} />
         </FormElement>

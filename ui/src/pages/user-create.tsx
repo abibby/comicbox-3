@@ -1,38 +1,67 @@
-import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
-import { user } from '../api'
+import { FetchError, user } from '../api'
+import { prompt } from '../components/alert'
+import { Data, Form } from '../components/form/form'
+import { Errors } from '../components/form/form-element'
+import { Input } from '../components/form/input'
 
 export const UserCreate: FunctionalComponent = () => {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
+    const [errors, setErrors] = useState<Errors | undefined>(undefined)
     const submit = useCallback(
-        async (e: Event) => {
-            e.preventDefault()
-            await user.create({
-                username: username,
-                password: password,
-            })
+        async (data: Data) => {
+            try {
+                const password = data.get('password') ?? ''
+                const passwordRep = data.get('password_rep') ?? ''
+                if (password !== passwordRep) {
+                    setErrors({
+                        password_rep: ['passwords do not match'],
+                    })
+                    console.log('test')
+
+                    return
+                }
+                await user.create({
+                    username: data.get('username') ?? '',
+                    password: password,
+                })
+            } catch (e) {
+                if (e instanceof FetchError) {
+                    if (e.status === 401) {
+                        await prompt('invalid username or password', {}, 5000)
+                        return
+                    }
+                }
+                await prompt('error logging in')
+            }
         },
-        [username, password],
+        [setErrors],
     )
 
     return (
         <div>
             <h1>Create User</h1>
-            <form onSubmit={submit}>
-                <input
+            <Form onSubmit={submit}>
+                <Input
+                    title='Username'
                     type='text'
-                    value={username}
-                    onInput={bindValue(setUsername)}
+                    name='username'
+                    errors={errors}
                 />
-                <input
+                <Input
+                    title='Password'
                     type='text'
-                    value={password}
-                    onInput={bindValue(setPassword)}
+                    name='password'
+                    errors={errors}
+                />
+                <Input
+                    title='Repeat Password'
+                    type='text'
+                    name='password_rep'
+                    errors={errors}
                 />
                 <button type='submit'>Create</button>
-            </form>
+            </Form>
         </div>
     )
 }

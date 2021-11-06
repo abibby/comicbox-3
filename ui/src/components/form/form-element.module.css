@@ -3,11 +3,20 @@
     margin: 10px 0;
 }
 
+.hasErrors {
+    background-color: rgba(var(--error-text), 0.1);
+}
+
 .title {
     display: block;
 }
 
-.formElement :last-child {
+.formElement > :last-child {
     display: block;
     width: 100%;
+}
+
+.errors {
+    color: rgb(var(--error-text));
+    float: right;
 }

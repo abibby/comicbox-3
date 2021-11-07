@@ -37,6 +37,7 @@ export interface BookUpdateRequest {
     chapter: number | null
     rtl: boolean
     pages: BookPageUpdate[]
+    update_map: Record<string, string>
 }
 
 export interface BookPageUpdate {

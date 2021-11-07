@@ -12,7 +12,8 @@ CREATE TABLE books (
     page_count INT NOT NULL,
     rtl BOOLEAN NOT NULL CHECK (rtl in (0, 1)),
     sort TEXT NOT NULL,
-    file TEXT NOT NULL
+    file TEXT NOT NULL,
+    update_map TEXT NOT NULL
 );
 
 CREATE INDEX books_sort ON books (sort);

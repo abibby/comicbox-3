@@ -57,12 +57,6 @@ func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	for _, s := range sl {
-		err := s.AfterLoad(ctx, tx)
-		if err != nil {
-			return err
-		}
-	}
 	if uid, ok := userID(ctx); ok {
 		err := LoadUserSeries(tx, sl, uid)
 		if err != nil {

@@ -135,6 +135,7 @@ export async function persist(fromUserInteraction: boolean): Promise<void> {
         if (b.user_book !== null) {
             await userBook.update(b.id, {
                 current_page: b.user_book.current_page,
+                update_map: b.user_book.update_map ?? {},
             })
         }
         const result = await book.update(b.id, {
@@ -146,6 +147,7 @@ export async function persist(fromUserInteraction: boolean): Promise<void> {
             pages: b.pages.map(p => ({
                 type: p.type,
             })),
+            update_map: b.update_map ?? {},
         })
         DB.books.put({
             ...result,

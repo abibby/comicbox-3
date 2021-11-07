@@ -3,6 +3,7 @@ import { apiFetch } from './internal'
 
 interface UserBookUpdateRequest {
     current_page: number
+    update_map: Record<string, string>
 }
 
 export async function update(

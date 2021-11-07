@@ -79,11 +79,9 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 			return err
 		}
 
-		if v, ok := v.(models.AfterLoader); ok {
-			err = v.AfterLoad(r.Context(), tx)
-			if err != nil {
-				return err
-			}
+		err = models.AfterLoad(v, r.Context(), tx)
+		if err != nil {
+			return err
 		}
 		return nil
 	})

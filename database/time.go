@@ -2,7 +2,6 @@ package database
 
 import (
 	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"time"
 )
@@ -35,13 +34,18 @@ func (nt *Time) MarshalJSON() ([]byte, error) {
 	return time.Time(*nt).MarshalJSON()
 }
 func (nt *Time) UnmarshalJSON(data []byte) error {
-	t := time.Time{}
 
-	err := json.Unmarshal(data, &t)
+	t := &time.Time{}
+	err := t.UnmarshalJSON(data)
 	if err != nil {
 		return err
 	}
 
-	*nt = Time(t)
+	if t == nil {
+		return nil
+	}
+
+	*nt = Time(*t)
+
 	return nil
 }

@@ -5,5 +5,6 @@ CREATE TABLE user_series (
     updated_at TEXT NOT NULL,
     deleted_at TEXT,
     list TEXT,
+    update_map TEXT NOT NULL,
     PRIMARY KEY (series_name, user_id)
 );

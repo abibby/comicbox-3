@@ -5,5 +5,6 @@ CREATE TABLE user_books (
     updated_at TEXT NOT NULL,
     deleted_at TEXT,
     current_page INT,
+    update_map TEXT NOT NULL,
     PRIMARY KEY (book_id, user_id)
 );

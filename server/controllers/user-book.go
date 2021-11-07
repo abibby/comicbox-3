@@ -8,13 +8,15 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type UpdateUserBookRequest struct {
-	BookID      string `url:"id"            validate:"uuid"`
-	CurrentPage int    `json:"current_page" validate:"min:0"`
+	BookID      string            `url:"id"            validate:"uuid"`
+	CurrentPage int               `json:"current_page" validate:"require|min:0"`
+	UpdateMap   map[string]string `json:"update_map"   validate:"require"`
 }
 
 func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
@@ -39,6 +41,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		} else if err != nil {
 			return err
 		}
+		spew.Dump(req.UpdateMap)
 		ub.CurrentPage = req.CurrentPage
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)

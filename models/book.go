@@ -147,12 +147,6 @@ func userID(ctx context.Context) (uuid.UUID, bool) {
 }
 
 func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	for _, b := range bl {
-		err := b.AfterLoad(ctx, tx)
-		if err != nil {
-			return err
-		}
-	}
 	if uid, ok := userID(ctx); ok {
 		err := LoadUserBooks(tx, bl, uid)
 		if err != nil {

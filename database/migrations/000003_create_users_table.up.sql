@@ -4,5 +4,6 @@ CREATE TABLE users (
     updated_at TEXT NOT NULL,
     deleted_at TEXT,
     username TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    update_map TEXT NOT NULL
 );

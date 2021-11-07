@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 )
 
 func Run(r *http.Request, requestParams interface{}) error {
@@ -54,7 +55,7 @@ func Run(r *http.Request, requestParams interface{}) error {
 		if _, ok := f.Tag.Lookup("json"); !ok {
 			err := setValue(v.Field(i), value)
 			if err != nil {
-				return err
+				return errors.Wrap(err, "failed to set value")
 			}
 		}
 	}
@@ -115,15 +116,19 @@ func getValueBody(v reflect.Value, field reflect.StructField) (string, string, b
 }
 
 func setValue(f reflect.Value, value string) error {
+	if value == "" {
+		return nil
+	}
 	if _, ok := f.Interface().(json.Unmarshaler); ok {
 		if f.IsNil() {
 			f.Set(reflect.New(f.Type().Elem()))
 		}
 		b, err := json.Marshal(value)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to marshal json")
 		}
-		return f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
+		err = f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
+		return errors.Wrap(err, "failed to unmarshal json")
 	}
 
 	switch f.Kind() {
@@ -132,24 +137,24 @@ func setValue(f reflect.Value, value string) error {
 	case reflect.Int:
 		iValue, err := strconv.Atoi(value)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to convert string to int")
 		}
 		f.Set(reflect.ValueOf(iValue).Convert(f.Type()))
 	case reflect.Float64:
 		iValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to convert string to float")
 		}
 		f.Set(reflect.ValueOf(iValue).Convert(f.Type()))
 	case reflect.Ptr:
 		v := reflect.New(f.Type().Elem())
 		err := setValue(v.Elem(), value)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to dereference pointer")
 		}
 		f.Set(v)
 	default:
-		return fmt.Errorf("no handler for type %s", f.Kind())
+		return errors.Errorf("no handler for type %s", f.Kind())
 	}
 	return nil
 }

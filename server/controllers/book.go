@@ -213,13 +213,14 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 }
 
 type BookUpdateRequest struct {
-	ID          string         `url:"id"       validate:"require|uuid"`
-	Title       string         `json:"title"   validate:"require"`
-	Series      string         `json:"series"  validate:"require"`
-	Volume      *nulls.Float64 `json:"volume"  validate:"require"`
-	Chapter     *nulls.Float64 `json:"chapter" validate:"require"`
-	RightToLeft bool           `json:"rtl"     validate:"require"`
-	Pages       []PageUpdate   `json:"pages"   validate:"require"`
+	ID          string            `url:"id"          validate:"require|uuid"`
+	Title       string            `json:"title"      validate:"require"`
+	Series      string            `json:"series"     validate:"require"`
+	Volume      *nulls.Float64    `json:"volume"`
+	Chapter     *nulls.Float64    `json:"chapter"`
+	RightToLeft bool              `json:"rtl"        validate:"require"`
+	Pages       []PageUpdate      `json:"pages"      validate:"require"`
+	UpdateMap   map[string]string `json:"update_map" validate:"require"`
 }
 
 type PageUpdate struct {
@@ -241,7 +242,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		err = book.AfterLoad(r.Context(), tx)
+		err = models.AfterLoad(book, r.Context(), tx)
 		if err != nil {
 			return err
 		}
@@ -262,7 +263,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 
 		models.Save(r.Context(), book, tx)
 
-		err = book.AfterLoad(r.Context(), tx)
+		err = models.AfterLoad(book, r.Context(), tx)
 		if err != nil {
 			return err
 		}

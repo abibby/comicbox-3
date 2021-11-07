@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
         "Favicons"
-    ]
+    ],
+    "typescript.tsdk": "./ui/node_modules/typescript/lib"
 }

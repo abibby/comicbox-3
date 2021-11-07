@@ -59,7 +59,7 @@ class AppDatabase extends Dexie {
             b.clean = 1
         })
         this.books.hook('updating', (mod, id, b) => {
-            console.log(mod)
+            // console.log(mod)
 
             return {
                 clean: 0,
@@ -106,7 +106,7 @@ class AppDatabase extends Dexie {
             }
         }
         mod.update_map = updateMap
-        DB.books.update(b, mod)
+        await DB.books.update(b, mod)
     }
 
     private bookComplete(b: DBBook): number {

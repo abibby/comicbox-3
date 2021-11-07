@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 )
 
@@ -47,7 +46,6 @@ func Run(r *http.Request, requestParams interface{}) error {
 		if !ok {
 			continue
 		}
-		spew.Dump(name, value)
 
 		errs := valid(value, rules)
 		if len(errs) != 0 {

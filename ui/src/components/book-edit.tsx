@@ -47,6 +47,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             series: data.get('series') ?? '',
                             volume: data.getNumber('volume'),
                             chapter: data.getNumber('chapter'),
+                            rtl: data.getBoolean('rtl') ?? false,
                         })
                         break
                     case 'pages':

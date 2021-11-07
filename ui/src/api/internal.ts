@@ -101,6 +101,9 @@ export function getAuthToken(): string | null {
 export function pageURL(model: Book | Series, page?: number): string {
     let u: URL
     if ('pages' in model && page !== undefined) {
+        if (model.id === '') {
+            return noImage
+        }
         const p = model.pages[page]
         if (p === undefined) {
             return noImage

@@ -38,6 +38,9 @@ var ruleMap = map[string]Handler{
 		return nil
 	}),
 	"in": func(value string, params []string) error {
+		if value == "" {
+			return nil
+		}
 		for _, p := range params {
 			if value == p {
 				return nil
@@ -69,6 +72,10 @@ func handle(f interface{}) Handler {
 	return func(value string, params []string) error {
 		if t.NumIn()-1 != len(params) {
 			return fmt.Errorf("expected %d arguments and received %d", t.NumIn(), len(params))
+		}
+
+		if value == "" {
+			return nil
 		}
 
 		arguments := []reflect.Value{}

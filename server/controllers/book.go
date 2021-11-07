@@ -213,13 +213,13 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 }
 
 type BookUpdateRequest struct {
-	ID          string         `url:"id" validate:"uuid"`
-	Title       string         `json:"title" validate:"required"`
-	Series      string         `json:"series"`
-	Volume      *nulls.Float64 `json:"volume"`
-	Chapter     *nulls.Float64 `json:"chapter" validate:"max:0"`
-	RightToLeft bool           `json:"rtl"`
-	Pages       []PageUpdate   `json:"pages"`
+	ID          string         `url:"id"       validate:"require|uuid"`
+	Title       string         `json:"title"   validate:"require"`
+	Series      string         `json:"series"  validate:"require"`
+	Volume      *nulls.Float64 `json:"volume"  validate:"require"`
+	Chapter     *nulls.Float64 `json:"chapter" validate:"require"`
+	RightToLeft bool           `json:"rtl"     validate:"require"`
+	Pages       []PageUpdate   `json:"pages"   validate:"require"`
 }
 
 type PageUpdate struct {

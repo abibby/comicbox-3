@@ -64,6 +64,9 @@ var _ BeforeSaver = &BaseModel{}
 var _ AfterLoader = &BaseModel{}
 
 func (bm *BaseModel) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
+	if bm.UpdateMap == nil {
+		bm.UpdateMap = map[string]string{}
+	}
 	err := marshal(&bm.RawUpdateMap, bm.UpdateMap)
 	if err != nil {
 		return err
@@ -165,7 +168,11 @@ func eachField(v reflect.Value, callback func(model interface{}) error) error {
 		t := v.Type()
 		for i := 0; i < v.NumField(); i++ {
 			if t.Field(i).Anonymous {
-				err := callback(v.Field(i).Interface())
+				f := v.Field(i)
+				if f.Kind() != reflect.Ptr {
+					f = f.Addr()
+				}
+				err := callback(f.Interface())
 				if err != nil {
 					return err
 				}

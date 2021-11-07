@@ -15,7 +15,7 @@ import (
 
 type UpdateUserBookRequest struct {
 	BookID      string            `url:"id"            validate:"uuid"`
-	CurrentPage int               `json:"current_page" validate:"require|min:0"`
+	CurrentPage int               `json:"current_page" validate:"require|min:0" model:"current_page"`
 	UpdateMap   map[string]string `json:"update_map"   validate:"require"`
 }
 
@@ -41,8 +41,16 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		} else if err != nil {
 			return err
 		}
-		spew.Dump(req.UpdateMap)
-		ub.CurrentPage = req.CurrentPage
+		err = models.AfterLoad(ub, r.Context(), tx)
+		if err != nil {
+			return err
+		}
+
+		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
+			spew.Dump("should update")
+			ub.CurrentPage = req.CurrentPage
+		}
+		spew.Dump(ub.UpdateMap)
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
 		return models.Save(r.Context(), ub, tx)
@@ -53,4 +61,24 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSON(rw, ub)
+}
+
+func shouldUpdate(current, updated map[string]string, field string) bool {
+	c, ok := current[field]
+	if !ok {
+		current[field] = updated[field]
+		return true
+	}
+	u, ok := updated[field]
+	if !ok {
+		return false
+	}
+
+	if u <= c {
+		return false
+	}
+
+	current[field] = updated[field]
+
+	return true
 }

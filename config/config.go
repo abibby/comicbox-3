@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -24,6 +26,8 @@ func mustEnv(key string) string {
 
 var AppKey []byte
 var DBPath string
+var Port int
+var Verbose bool
 
 func Init() error {
 	err := godotenv.Load("./.env")
@@ -32,5 +36,11 @@ func Init() error {
 	}
 	AppKey = []byte(mustEnv("APP_KEY"))
 	DBPath = env("DB_PATH", "./db.sqlite")
+	Port, err = strconv.Atoi(env("PORT", "8080"))
+	if err != nil {
+		Port = 8080
+	}
+	strVerbose := strings.ToLower(env("VERBOSE", "false"))
+	Verbose = strVerbose != "false" && strVerbose != "0"
 	return nil
 }

@@ -85,8 +85,8 @@ class AppDatabase extends Dexie {
             if (key === 'user_book' && mod.user_book) {
                 if (b.user_book === null) {
                     b.user_book = {
-                        updated_at: new Date().toISOString(),
-                        created_at: new Date().toISOString(),
+                        updated_at: updatedTimestamp(),
+                        created_at: updatedTimestamp(),
                         deleted_at: null,
                         current_page: 0,
                     }
@@ -97,12 +97,12 @@ class AppDatabase extends Dexie {
 
                 for (const [ubKey] of entries(mod.user_book)) {
                     if (mod.user_book[ubKey] !== b.user_book[ubKey]) {
-                        ubUpdateMap[ubKey] = new Date().toISOString()
+                        ubUpdateMap[ubKey] = updatedTimestamp()
                     }
                 }
                 mod.user_book.update_map = ubUpdateMap
             } else if (mod[key] !== b[key]) {
-                updateMap[key] = new Date().toISOString()
+                updateMap[key] = updatedTimestamp()
             }
         }
         mod.update_map = updateMap
@@ -137,4 +137,24 @@ export let DB = new AppDatabase()
 export function clearDatabase(): void {
     DB.delete()
     DB = new AppDatabase()
+}
+function randomString(length: number): string {
+    // Declare all characters
+    const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    // Pick characers randomly
+    let str = ''
+    for (let i = 0; i < length; i++) {
+        str += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+
+    return str
+}
+let updateIndex = 0
+const clientID = randomString(8)
+
+function updatedTimestamp(): string {
+    updateIndex++
+    return `${Date.now()}-${clientID}-${updateIndex}`
 }

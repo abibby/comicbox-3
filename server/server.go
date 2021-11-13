@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 )
 
@@ -13,7 +15,7 @@ type Server struct {
 func New() *Server {
 	return &Server{
 		server: http.Server{
-			Addr:    ":8080",
+			Addr:    fmt.Sprintf(":%d", config.Port),
 			Handler: router.Router(),
 		},
 	}

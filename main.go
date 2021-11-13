@@ -56,6 +56,6 @@ func main() {
 	// queue.Default.ScheduleJob("0 * * * *", queue.JobFunc(app.Sync))
 	queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
 
-	log.Print("Server started at http://localhost:8080")
+	log.Printf("Server started at http://localhost:%d", config.Port)
 	log.Fatal(s.Run())
 }

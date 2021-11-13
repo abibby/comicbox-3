@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -11,6 +14,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 type UpdateUserBookRequest struct {
@@ -39,11 +43,11 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		err = tx.Get(ub, "select * from user_books where user_id = ? and book_id = ? limit 1", uid, req.BookID)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
-			return err
+			return errors.Wrap(err, "")
 		}
 		err = models.AfterLoad(ub, r.Context(), tx)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "")
 		}
 
 		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
@@ -53,7 +57,8 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		spew.Dump(ub.UpdateMap)
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
-		return models.Save(r.Context(), ub, tx)
+		err = models.Save(r.Context(), ub, tx)
+		return errors.Wrap(err, "")
 	})
 	if err != nil {
 		sendError(rw, err)
@@ -64,13 +69,23 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 }
 
 func shouldUpdate(current, updated map[string]string, field string) bool {
-	c, ok := current[field]
-	if !ok {
+	u, hasUpdate := updated[field]
+	if hasUpdate {
+		timestamp, err := strconv.Atoi(strings.Split(u, "-")[0])
+		if err != nil {
+			return false
+		}
+		if time.Now().Add(time.Minute).Unix() < int64(timestamp/1000) {
+			return false
+		}
+	}
+
+	c, hasCurrent := current[field]
+	if !hasCurrent {
 		current[field] = updated[field]
 		return true
 	}
-	u, ok := updated[field]
-	if !ok {
+	if !hasUpdate {
 		return false
 	}
 

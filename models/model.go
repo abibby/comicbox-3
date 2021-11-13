@@ -75,9 +75,13 @@ func (bm *BaseModel) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (bm *BaseModel) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
-	if err != nil {
-		return err
+	if bm.RawUpdateMap != nil && len(bm.RawUpdateMap) > 0 {
+		err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
+		if err != nil {
+			return err
+		}
+	} else {
+		bm.UpdateMap = map[string]string{}
 	}
 	return nil
 }

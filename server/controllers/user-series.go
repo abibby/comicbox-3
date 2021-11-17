@@ -13,8 +13,9 @@ import (
 )
 
 type UpdateUserSeriesRequest struct {
-	SeriesName string        `url:"name"`
-	List       *nulls.String `json:"list" validate:"in:planning,reading,paused,dropped,completed"`
+	SeriesName string            `url:"name"`
+	List       *nulls.String     `json:"list"       validate:"in:planning,reading,paused,dropped,completed"`
+	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
 
 func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
@@ -31,23 +32,28 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ub := &models.UserSeries{}
+	us := &models.UserSeries{}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		err = tx.Get(ub, "select * from user_series where user_id = ? and series_name = ? limit 1", uid, req.SeriesName)
+		err = tx.Get(us, "select * from user_series where user_id = ? and series_name = ? limit 1", uid, req.SeriesName)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
 			return err
 		}
-		ub.List = req.List
-		ub.UserID = uid
-		ub.SeriesName = req.SeriesName
-		return models.Save(r.Context(), ub, tx)
+
+		us.UserID = uid
+		us.SeriesName = req.SeriesName
+
+		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {
+			us.List = req.List
+		}
+
+		return models.Save(r.Context(), us, tx)
 	})
 	if err != nil {
 		sendError(rw, err)
 		return
 	}
 
-	sendJSON(rw, ub)
+	sendJSON(rw, us)
 }

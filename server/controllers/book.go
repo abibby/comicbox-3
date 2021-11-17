@@ -247,17 +247,30 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		book.Title = req.Title
-		book.Series = req.Series
-		book.Volume = req.Volume
-		book.Chapter = req.Chapter
-		book.RightToLeft = req.RightToLeft
-		if len(book.Pages) != len(req.Pages) {
-			return NewHttpError(422, fmt.Errorf("expected %d pages, received %d", len(book.Pages), len(req.Pages)))
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "title") {
+			book.Title = req.Title
 		}
-		for i, page := range req.Pages {
-			if models.IsEnumValid(models.PageType(""), page.Type) {
-				book.Pages[i].Type = models.PageType(page.Type)
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "series") {
+			book.Series = req.Series
+		}
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "volume") {
+			book.Volume = req.Volume
+		}
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "chapter") {
+			book.Chapter = req.Chapter
+		}
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "ltr") {
+			book.RightToLeft = req.RightToLeft
+		}
+
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "pages") {
+			if len(book.Pages) != len(req.Pages) {
+				return NewHttpError(422, fmt.Errorf("expected %d pages, received %d", len(book.Pages), len(req.Pages)))
+			}
+			for i, page := range req.Pages {
+				if models.IsEnumValid(models.PageType(""), page.Type) {
+					book.Pages[i].Type = models.PageType(page.Type)
+				}
 			}
 		}
 

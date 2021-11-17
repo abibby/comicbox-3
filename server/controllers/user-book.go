@@ -4,14 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -51,10 +47,9 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		}
 
 		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
-			spew.Dump("should update")
 			ub.CurrentPage = req.CurrentPage
 		}
-		spew.Dump(ub.UpdateMap)
+
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
 		err = models.Save(r.Context(), ub, tx)
@@ -66,34 +61,4 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSON(rw, ub)
-}
-
-func shouldUpdate(current, updated map[string]string, field string) bool {
-	u, hasUpdate := updated[field]
-	if hasUpdate {
-		timestamp, err := strconv.Atoi(strings.Split(u, "-")[0])
-		if err != nil {
-			return false
-		}
-		if time.Now().Add(time.Minute).Unix() < int64(timestamp/1000) {
-			return false
-		}
-	}
-
-	c, hasCurrent := current[field]
-	if !hasCurrent {
-		current[field] = updated[field]
-		return true
-	}
-	if !hasUpdate {
-		return false
-	}
-
-	if u <= c {
-		return false
-	}
-
-	current[field] = updated[field]
-
-	return true
 }

@@ -7,11 +7,11 @@
 
 # Client
 
-- [ ] Finish book/series editing
+- [x] Finish book/series editing
 - [ ] Add settings page
   - [ ] Cache management, what series/books to download
   - [ ] Maybe server configs like what directory to look at
 - [ ] Style pages
 - [x] Improve reading experience
-  - [ ] Respect deleted pages
+  - [x] Respect deleted pages
 - [ ] Offline Support

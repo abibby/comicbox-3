@@ -214,7 +214,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 
 type BookUpdateRequest struct {
 	ID          string            `url:"id"          validate:"require|uuid"`
-	Title       string            `json:"title"      validate:"require"`
+	Title       string            `json:"title"`
 	Series      string            `json:"series"     validate:"require"`
 	Volume      *nulls.Float64    `json:"volume"`
 	Chapter     *nulls.Float64    `json:"chapter"`
@@ -259,7 +259,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		if shouldUpdate(book.UpdateMap, req.UpdateMap, "chapter") {
 			book.Chapter = req.Chapter
 		}
-		if shouldUpdate(book.UpdateMap, req.UpdateMap, "ltr") {
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "rtl") {
 			book.RightToLeft = req.RightToLeft
 		}
 

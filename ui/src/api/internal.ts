@@ -1,6 +1,6 @@
 import noImage from 'asset-url:../../res/images/no-cover.svg'
 import { route } from 'preact-router'
-import { Book, Series } from '../models'
+import { Book, Page, Series } from '../models'
 
 export type PaginatedRequest = {
     page?: number
@@ -98,9 +98,11 @@ export function getAuthToken(): string | null {
 // export function pageURL(book: Book): string
 // export function pageURL(book: Series): string
 // export function pageURL(book: Book, page: number): string
-export function pageURL(model: Book | Series, page?: number): string {
+export function pageURL(model: Book | Series | Page, page?: number): string {
     let u: URL
-    if ('pages' in model && page !== undefined) {
+    if ('url' in model) {
+        u = new URL(model.url, location.href)
+    } else if ('pages' in model && page !== undefined) {
         if (model.id === '') {
             return noImage
         }

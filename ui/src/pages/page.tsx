@@ -42,7 +42,13 @@ export const Page: FunctionalComponent<PageProps> = props => {
     if (b === undefined) {
         return <Error404 />
     }
-    const page = Number(props.matches?.page || b.user_book?.current_page || 0)
+    let page = 0
+
+    if (props.matches?.page) {
+        page = Number(props.matches.page)
+    } else if (b.user_book?.current_page) {
+        page = pageUnindex(b, b.user_book?.current_page)
+    }
 
     return <PageContent book={b} page={page} />
 }
@@ -63,20 +69,12 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
     let nextPage = page + 1
     let previousPage = page - 1
 
-    const twoPagesVisible =
-        (twoPage &&
-            b.pages[page]?.type === PageType.Story &&
-            b.pages[page + 1]?.type === PageType.Story) ||
-        (b.pages[page]?.type === PageType.SpreadSplit &&
-            b.pages[page + 1]?.type === PageType.SpreadSplit)
+    const pageCount =
+        b.pages.filter(p => p.type !== PageType.Deleted).length - 1
 
-    if (
-        (twoPage &&
-            b.pages[page - 1]?.type === PageType.Story &&
-            b.pages[page - 2]?.type === PageType.Story) ||
-        (b.pages[page - 1]?.type === PageType.SpreadSplit &&
-            b.pages[page - 2]?.type === PageType.SpreadSplit)
-    ) {
+    const twoPagesVisible = twoPage && canShowTwoPages(b, page, pageCount)
+
+    if (twoPage && canShowTwoPages(b, page - 2, pageCount)) {
         previousPage = page - 2
     }
 
@@ -103,31 +101,33 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
 
     const [menuOpen, setMenuOpen] = useState(false)
 
+    const previousID = previous?.id
+    const nextID = next?.id
     const changePage = useCallback(
         (newPage: number | string) => {
             if (newPage < 0) {
-                if (previous !== undefined) {
-                    route(`/book/${previous.id}`)
+                if (previousID !== undefined) {
+                    route(`/book/${previousID}`)
                 } else {
                     route('/')
                 }
-            } else if (newPage >= b.pages.length) {
-                if (next !== undefined) {
-                    route(`/book/${next.id}`)
+            } else if (newPage > pageCount) {
+                if (nextID !== undefined) {
+                    route(`/book/${nextID}`)
                 } else {
                     route('/')
                 }
             } else {
                 DB.saveBook(b, {
                     user_book: {
-                        current_page: Number(newPage),
+                        current_page: pageIndex(b, Number(newPage)),
                     },
                 })
                 persist(true)
                 route(`/book/${b.id}/${newPage}`, true)
             }
         },
-        [b, previous, next],
+        [b, previousID, nextID, pageCount],
     )
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
@@ -196,13 +196,24 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
             })}
             onClick={click}
         >
-            <img class={styles.image} src={pageURL(b, page)} />
+            <img class={styles.image} src={pageURL(b, pageIndex(b, page))} />
             {twoPagesVisible && (
-                <img class={styles.image} src={pageURL(b, page + 1)} />
+                <img
+                    class={styles.image}
+                    src={pageURL(b, pageIndex(b, page + 1))}
+                />
             )}
 
             <div class={styles.overlay} ref={overlay}>
-                <pre>{JSON.stringify(b.pages[page], undefined, '   ')}</pre>
+                <pre>
+                    {JSON.stringify(
+                        {
+                            page: page,
+                        },
+                        undefined,
+                        '   ',
+                    )}
+                </pre>
                 <button type='button' onClick={edit}>
                     Edit
                 </button>
@@ -212,7 +223,7 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
                         type='range'
                         value={page}
                         min={0}
-                        max={b.pages.length - 1}
+                        max={pageCount}
                         onChange={bindValue(changePage)}
                     />
                     <input
@@ -220,11 +231,49 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
                         type='number'
                         value={page}
                         min={0}
-                        max={b.pages.length - 1}
+                        max={pageCount}
                         onChange={bindValue(changePage)}
                     />
                 </div>
             </div>
         </div>
     )
+}
+
+function pageIndex(book: Book, page: number): number {
+    let currentPage = -1
+    for (const [i, p] of book.pages.entries()) {
+        if (p.type !== PageType.Deleted) {
+            currentPage++
+        }
+
+        if (currentPage === page) {
+            return i
+        }
+    }
+    return page
+}
+
+function pageUnindex(book: Book, page: number): number {
+    return book.pages.slice(0, page).filter(p => p.type !== PageType.Deleted)
+        .length
+}
+
+function canShowTwoPages(b: Book, page: number, pageCount: number): boolean {
+    if (page + 1 > pageCount) {
+        return false
+    }
+    if (
+        b.pages[pageIndex(b, page)]?.type === PageType.Story &&
+        b.pages[pageIndex(b, page + 1)]?.type === PageType.Story
+    ) {
+        return true
+    }
+    if (
+        b.pages[pageIndex(b, page)]?.type === PageType.SpreadSplit &&
+        b.pages[pageIndex(b, page + 1)]?.type === PageType.SpreadSplit
+    ) {
+        return true
+    }
+    return false
 }

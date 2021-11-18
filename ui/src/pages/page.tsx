@@ -205,15 +205,6 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
             )}
 
             <div class={styles.overlay} ref={overlay}>
-                <pre>
-                    {JSON.stringify(
-                        {
-                            page: page,
-                        },
-                        undefined,
-                        '   ',
-                    )}
-                </pre>
                 <button type='button' onClick={edit}>
                     Edit
                 </button>

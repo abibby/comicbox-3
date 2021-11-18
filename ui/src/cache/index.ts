@@ -130,37 +130,40 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
 }
 
 export async function persist(fromUserInteraction: boolean): Promise<void> {
-    const dirtyBooks = await DB.books.where('clean').equals(0).toArray()
+    const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
     for (const b of dirtyBooks) {
-        if (b.user_book !== null) {
-            await userBook.update(b.id, {
+        let result = b
+        if (b.user_book !== null && b.user_book.dirty) {
+            b.user_book = await userBook.update(b.id, {
                 current_page: b.user_book.current_page,
                 update_map: b.user_book.update_map ?? {},
             })
         }
-        const result = await book.update(b.id, {
-            title: b.title,
-            series: b.series,
-            chapter: b.chapter,
-            volume: b.volume,
-            rtl: b.rtl,
-            pages: b.pages.map(p => ({
-                type: p.type,
-            })),
-            update_map: b.update_map ?? {},
-        })
+        if (b.dirty === 1) {
+            result = await book.update(b.id, {
+                title: b.title,
+                series: b.series,
+                chapter: b.chapter,
+                volume: b.volume,
+                rtl: b.rtl,
+                pages: b.pages.map(p => ({
+                    type: p.type,
+                })),
+                update_map: b.update_map ?? {},
+            })
+        }
         DB.books.put({
             ...result,
-            clean: 1,
+            dirty: 0,
         })
     }
-    const dirtySeries = await DB.series.where('clean').equals(0).toArray()
+    const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
     for (const s of dirtySeries) {
         if (s.user_series !== null) {
             const us = await userSeries.update(s.name, {
                 list: s.user_series.list,
             })
-            DB.series.update(s, { user_series: us, clean: 1 })
+            DB.series.update(s, { user_series: us, dirty: 0 })
         }
     }
     invalidateCache(fromUserInteraction)

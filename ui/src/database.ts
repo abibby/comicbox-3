@@ -6,7 +6,7 @@ type UpdateMap<T> = {
 }
 
 type Modification<T> = {
-    [P in keyof T]?: Modification<T[P]>
+    [P in keyof T]?: T extends DBModel ? Modification<T[P]> : T[P]
 }
 
 interface LastUpdated {
@@ -15,7 +15,7 @@ interface LastUpdated {
 }
 
 export interface DBModel {
-    clean?: number
+    dirty?: number
     update_map?: UpdateMap<this>
 }
 
@@ -46,8 +46,8 @@ class AppDatabase extends Dexie {
     constructor() {
         super('AppDatabase')
         this.version(1).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, clean',
-            series: '&name, user_series.list, clean',
+            books: '&id, [series+sort], [series+completed+sort], sort, dirty',
+            series: '&name, user_series.list, dirty',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
@@ -56,24 +56,21 @@ class AppDatabase extends Dexie {
 
         this.books.hook('creating', (id, b) => {
             b.completed = this.bookComplete(b)
-            b.clean = 1
+            b.dirty = 0
         })
         this.books.hook('updating', (mod, id, b) => {
-            // console.log(mod)
-
             return {
-                clean: 0,
                 ...mod,
                 completed: this.bookComplete(b),
             }
         })
 
         this.series.hook('creating', (id, s) => {
-            s.clean = 1
+            s.dirty = 0
         })
         this.series.hook('updating', mod => {
             return {
-                clean: 0,
+                dirty: 1,
                 ...mod,
             }
         })
@@ -81,12 +78,15 @@ class AppDatabase extends Dexie {
 
     public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
         const updateMap: UpdateMap<DBBook> = b.update_map ?? {}
+        let bookHasChanges = false
+        let userBookHasChanges = false
+        const timestamp = updatedTimestamp()
         for (const [key] of entries(mod)) {
             if (key === 'user_book' && mod.user_book) {
                 if (b.user_book === null) {
                     b.user_book = {
-                        updated_at: updatedTimestamp(),
-                        created_at: updatedTimestamp(),
+                        updated_at: timestamp,
+                        created_at: timestamp,
                         deleted_at: null,
                         current_page: 0,
                     }
@@ -97,15 +97,26 @@ class AppDatabase extends Dexie {
 
                 for (const [ubKey] of entries(mod.user_book)) {
                     if (mod.user_book[ubKey] !== b.user_book[ubKey]) {
-                        ubUpdateMap[ubKey] = updatedTimestamp()
+                        ubUpdateMap[ubKey] = timestamp
+                        userBookHasChanges = true
                     }
                 }
                 mod.user_book.update_map = ubUpdateMap
+                if (userBookHasChanges) {
+                    mod.user_book.dirty = 1
+                }
             } else if (mod[key] !== b[key]) {
-                updateMap[key] = updatedTimestamp()
+                updateMap[key] = timestamp
+                bookHasChanges = true
             }
         }
         mod.update_map = updateMap
+        if (bookHasChanges) {
+            mod.dirty = 1
+        } else if (userBookHasChanges) {
+            mod.dirty = 2
+        }
+
         await DB.books.update(b, mod)
     }
 
@@ -126,7 +137,7 @@ class AppDatabase extends Dexie {
         table.bulkPut(
             items.map(v => ({
                 ...v,
-                clean: 1,
+                dirty: 0,
             })),
         )
     }

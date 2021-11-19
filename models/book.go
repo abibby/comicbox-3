@@ -131,14 +131,23 @@ func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 		return err
 	}
 
-	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", "0")
 	for i, page := range b.Pages {
 		page.URL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
-		if page.Type == FrontCover && b.CoverURL == "" {
-			b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
+	}
+	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
+	return nil
+}
+func (b *Book) CoverPage() int {
+	fallback := 0
+	for i, page := range b.Pages {
+		if page.Type == FrontCover {
+			return i
+		}
+		if page.Type != Deleted && fallback == 0 {
+			fallback = i
 		}
 	}
-	return nil
+	return fallback
 }
 func userID(ctx context.Context) (uuid.UUID, bool) {
 	iUserID := ctx.Value("user-id")

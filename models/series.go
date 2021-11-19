@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/google/uuid"
@@ -11,10 +12,11 @@ import (
 
 type Series struct {
 	BaseModel
-	Name        string      `json:"name"          db:"name"`
-	CoverURL    string      `json:"cover_url"     db:"-"`
-	FirstBookID *uuid.UUID  `json:"first_book_id" db:"first_book_id"`
-	UserSeries  *UserSeries `json:"user_series"   db:"-"`
+	Name               string      `json:"name"          db:"name"`
+	CoverURL           string      `json:"cover_url"     db:"-"`
+	FirstBookID        *uuid.UUID  `json:"first_book_id" db:"first_book_id"`
+	FirstBookCoverPage int         `json:"-"             db:"first_book_cover_page"`
+	UserSeries         *UserSeries `json:"user_series"   db:"-"`
 }
 
 var _ BeforeSaver = &Series{}
@@ -43,15 +45,22 @@ func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	} else if err != nil {
 		return err
 	}
+
+	err = AfterLoad(b, ctx, tx)
+	if err != nil {
+		return err
+	}
+
 	if b != nil {
 		s.FirstBookID = &b.ID
+		s.FirstBookCoverPage = b.CoverPage()
 	}
 	return nil
 }
 
 func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	if s.FirstBookID != nil {
-		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", "0")
+		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
 	}
 	return nil
 }

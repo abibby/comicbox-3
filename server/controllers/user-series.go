@@ -10,6 +10,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 type UpdateUserSeriesRequest struct {
@@ -38,7 +39,11 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		err = tx.Get(us, "select * from user_series where user_id = ? and series_name = ? limit 1", uid, req.SeriesName)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
-			return err
+			return errors.Wrap(err, "failed to retrieve user series from the database")
+		}
+		err = models.AfterLoad(us, r.Context(), tx)
+		if err != nil {
+			return errors.Wrap(err, "failed to run after load hooks")
 		}
 
 		us.UserID = uid

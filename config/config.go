@@ -24,8 +24,25 @@ func mustEnv(key string) string {
 	return v
 }
 
+func envBool(key string, def bool) bool {
+	strDef := "false"
+	if def {
+		strDef = "true"
+	}
+	str := strings.ToLower(env(key, strDef))
+	return str != "false" && str != "0"
+}
+func envInt(key string, def int) int {
+	value, err := strconv.Atoi(env("PORT", fmt.Sprint(def)))
+	if err != nil {
+		return def
+	}
+	return value
+}
+
 var AppKey []byte
 var DBPath string
+var CachePath string
 var Port int
 var Verbose bool
 
@@ -36,11 +53,9 @@ func Init() error {
 	}
 	AppKey = []byte(mustEnv("APP_KEY"))
 	DBPath = env("DB_PATH", "./db.sqlite")
-	Port, err = strconv.Atoi(env("PORT", "8080"))
-	if err != nil {
-		Port = 8080
-	}
-	strVerbose := strings.ToLower(env("VERBOSE", "false"))
-	Verbose = strVerbose != "false" && strVerbose != "0"
+	CachePath = env("CACHE_PATH", "./cache")
+	Port = envInt("PORT", 8080)
+
+	Verbose = envBool("VERBOSE", false)
 	return nil
 }

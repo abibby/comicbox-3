@@ -8,6 +8,8 @@ declare const styles: {
   readonly "number": string;
   readonly "image": string;
   readonly "twoPage": string;
+  readonly "direction": string;
+  readonly "fadeOut": string;
 };
 export = styles;
 

@@ -21,17 +21,12 @@ export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
         series.list,
     )
 
-    const books = useCached(
-        listName,
-        { series: seriesList?.[0]?.name },
-        DB.books,
-        book.list,
-    )
+    const books = useCached(listName, { series: name }, DB.books, book.list)
 
     if (seriesList === null) {
         return (
             <div>
-                <h1>loading</h1>
+                <h1>{name}</h1>
                 <BookList books={null} />
             </div>
         )

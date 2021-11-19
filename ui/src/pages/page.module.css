@@ -72,6 +72,36 @@
     object-position: 100% 50%;
 }
 
+.direction {
+    position: fixed;
+    left: 50%;
+    top: 10%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+
+    opacity: 0%;
+
+    animation-name: fade-out;
+    animation-duration: 4s;
+}
+@keyframes fade-out {
+    0% {
+        opacity: 100%;
+    }
+    85% {
+        opacity: 100%;
+    }
+    100% {
+        opacity: 0%;
+    }
+}
+.direction path {
+    fill: rgb(var(--primary));
+}
+.rtl .direction {
+    transform: translate(-50%, -50%) rotate(180deg);
+}
+
 @media screen and (min-width: 500px) {
     .overlay {
         margin-top: 48px;

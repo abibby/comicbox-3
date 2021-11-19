@@ -196,11 +196,6 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
             })}
             onClick={click}
         >
-            <div class={styles.direction}>
-                <svg viewBox='0 0 200 100'>
-                    <path d='M0,20 H150 V0 L200,50 L150,100 V80 H0 z' />
-                </svg>
-            </div>
             <img class={styles.image} src={pageURL(b, pageIndex(b, page))} />
             {twoPagesVisible && (
                 <img
@@ -209,6 +204,11 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
                 />
             )}
 
+            <div class={styles.direction}>
+                <svg viewBox='0 0 200 100'>
+                    <path d='M0,20 H150 V0 L200,50 L150,100 V80 H0 z' />
+                </svg>
+            </div>
             <div class={styles.overlay} ref={overlay}>
                 <button type='button' onClick={edit}>
                     Edit

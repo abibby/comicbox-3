@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { book, userBook, userSeries } from '../api'
 import { PaginatedRequest } from '../api/internal'
 import { prompt } from '../components/alert'
-import { DB, DBModel } from '../database'
+import { DB, DBBook, DBSeries } from '../database'
 import { useEventListener } from '../hooks/event-listener'
 import './book'
 import { getCacheHandler } from './internal'
@@ -27,7 +27,7 @@ export function invalidateCache(fromUserInteraction: boolean): void {
 }
 
 export async function updateList<
-    T extends DBModel,
+    T extends DBSeries | DBBook,
     TRequest extends PaginatedRequest,
 >(
     listName: string,
@@ -44,6 +44,7 @@ export async function updateList<
     const items = await network({
         ...request,
         updated_after: lastUpdated?.updatedAt,
+        with_deleted: true,
     })
 
     await Promise.all([
@@ -56,7 +57,10 @@ export async function updateList<
     invalidateCache(false)
 }
 
-export function useCached<T, TRequest extends PaginatedRequest>(
+export function useCached<
+    T extends DBSeries | DBBook,
+    TRequest extends PaginatedRequest,
+>(
     listName: string,
     request: TRequest,
     table: Table<T>,

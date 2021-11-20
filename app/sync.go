@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -40,7 +41,11 @@ func Sync(ctx context.Context) error {
 			if _, ok := bookFiles[file]; ok {
 				delete(bookFiles, file)
 			} else {
-				log.Printf("Removing %s from the library", file)
+				err = removeBook(ctx, tx, file)
+				if err != nil {
+					return err
+				}
+				log.Printf("Removed %s from the library", file)
 			}
 		}
 
@@ -228,4 +233,13 @@ func fileBytes(f *zip.File) ([]byte, error) {
 		return nil, err
 	}
 	return b, nil
+}
+
+func removeBook(ctx context.Context, tx *sqlx.Tx, file string) error {
+	now := database.Time(time.Now())
+	_, err := tx.Query("update books set deleted_at = ?, updated_at = ? where file = ?", now, now, file)
+	if err != nil {
+		return errors.Wrapf(err, "failed to remove book with file %s", file)
+	}
+	return nil
 }

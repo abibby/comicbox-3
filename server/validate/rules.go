@@ -54,6 +54,15 @@ var ruleMap = map[string]Handler{
 		}
 		return nil
 	},
+	"boolean": func(value string, params []string) error {
+		if value == "" {
+			return nil
+		}
+		if value != "true" && value != "false" {
+			return fmt.Errorf("must be 'true' or 'false'")
+		}
+		return nil
+	},
 }
 
 func handle(f interface{}) Handler {

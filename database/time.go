@@ -16,9 +16,9 @@ func (nt *Time) Scan(value interface{}) error {
 		if err != nil {
 			return err
 		}
-		*nt = Time(t)
+		*nt = Time(t.UTC())
 	case time.Time:
-		*nt = Time(value)
+		*nt = Time(value.UTC())
 	default:
 		return errors.New("invalid date type")
 	}
@@ -27,11 +27,11 @@ func (nt *Time) Scan(value interface{}) error {
 
 // Value implements the driver Valuer interface.
 func (nt Time) Value() (driver.Value, error) {
-	return time.Time(nt), nil
+	return time.Time(nt).UTC().Format(time.RFC3339Nano), nil
 }
 
 func (nt *Time) MarshalJSON() ([]byte, error) {
-	return time.Time(*nt).MarshalJSON()
+	return time.Time(*nt).UTC().MarshalJSON()
 }
 func (nt *Time) UnmarshalJSON(data []byte) error {
 
@@ -45,7 +45,7 @@ func (nt *Time) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	*nt = Time(*t)
+	*nt = Time((*t).UTC())
 
 	return nil
 }

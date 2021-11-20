@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -14,8 +15,9 @@ import (
 )
 
 type PaginatedRequest struct {
-	Page         *nulls.Int `query:"page"      validate:"min:1"`
-	PageSize     *nulls.Int `query:"page_size" validate:"min:1|max:100"`
+	Page         *nulls.Int `query:"page"         validate:"min:1"`
+	PageSize     *nulls.Int `query:"page_size"    validate:"min:1|max:100"`
+	WithDeleted  bool       `query:"with_deleted" validate:"boolean"`
 	UpdatedAfter *time.Time `query:"updated_after"`
 }
 
@@ -50,6 +52,10 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		query = query.Where(goqu.Or(exprs...))
 	}
 
+	if !req.WithDeleted {
+		query = query.Where(goqu.C("deleted_at").IsNull())
+	}
+
 	dataSQL, dataArgs, err := query.
 		Limit(pageSize).
 		Offset(page * pageSize).
@@ -58,6 +64,7 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		sendError(rw, err)
 		return
 	}
+	log.Print(dataSQL)
 	countSQL, countArgs, err := query.
 		Select(goqu.COUNT('*')).
 		ToSQL()

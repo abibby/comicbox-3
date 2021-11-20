@@ -130,15 +130,27 @@ class AppDatabase extends Dexie {
         return 1
     }
 
-    public async fromNetwork<T extends DBModel>(
+    public async fromNetwork<T extends DBSeries | DBBook>(
         table: Dexie.Table<T>,
         items: T[],
     ): Promise<void> {
-        table.bulkPut(
-            items.map(v => ({
-                ...v,
-                dirty: 0,
-            })),
+        await table.bulkDelete(
+            items
+                .filter(i => i.deleted_at !== null)
+                .map(v => {
+                    if ('id' in v) {
+                        return v.id
+                    }
+                    return v.name
+                }),
+        )
+        await table.bulkPut(
+            items
+                .filter(i => i.deleted_at === null)
+                .map(v => ({
+                    ...v,
+                    dirty: 0,
+                })),
         )
     }
 }

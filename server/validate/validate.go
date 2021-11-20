@@ -141,11 +141,14 @@ func setValue(f reflect.Value, value string) error {
 		}
 		f.Set(reflect.ValueOf(iValue).Convert(f.Type()))
 	case reflect.Float64:
-		iValue, err := strconv.ParseFloat(value, 64)
+		fValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return errors.Wrap(err, "failed to convert string to float")
 		}
-		f.Set(reflect.ValueOf(iValue).Convert(f.Type()))
+		f.Set(reflect.ValueOf(fValue).Convert(f.Type()))
+	case reflect.Bool:
+		bValue := value != "false"
+		f.Set(reflect.ValueOf(bValue).Convert(f.Type()))
 	case reflect.Ptr:
 		v := reflect.New(f.Type().Elem())
 		err := setValue(v.Elem(), value)

@@ -5,6 +5,7 @@ import { Book, Page, Series } from '../models'
 export type PaginatedRequest = {
     page?: number
     page_size?: number
+    with_deleted?: boolean
     updated_after?: string
 }
 
@@ -16,7 +17,7 @@ export interface PaginatedResponse<T> {
 }
 
 export function encodeParams(
-    req: Record<string, string | number | undefined>,
+    req: Record<string, string | number | boolean | undefined>,
 ): string {
     const u = new URLSearchParams()
 

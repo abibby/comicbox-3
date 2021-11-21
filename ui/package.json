@@ -16,6 +16,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
+    "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.2.5",
     "@types/eslint": "^7.28.1",
     "@types/favicons": "^6.2.2",
@@ -36,6 +37,7 @@
     "preact-render-to-string": "^5.1.19",
     "prettier": "^2.4.1",
     "rollup": "^2.58.0",
+    "rollup-plugin-cleaner": "^1.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-postcss": "^4.0.1",
     "typed-css-modules": "^0.7.0",
@@ -47,6 +49,11 @@
     "dexie": "^3.0.3",
     "event-target-shim": "^6.0.2",
     "preact": "^10.5.14",
-    "preact-router": "^3.2.1"
+    "preact-router": "^3.2.1",
+    "workbox-cacheable-response": "^6.4.1",
+    "workbox-expiration": "^6.4.1",
+    "workbox-precaching": "^6.4.1",
+    "workbox-routing": "^6.4.1",
+    "workbox-strategies": "^6.4.1"
   }
 }

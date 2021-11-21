@@ -38,13 +38,13 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 .map(f => `<link rel="stylesheet" href="/${f.fileName}">`)
                 .join('')
 
-            const shellCSS = await readFile(
-                await resolveFile(this, shellCSSPath),
-            )
+            // const shellCSS = await readFile(
+            //     await resolveFile(this, shellCSSPath),
+            // )
 
-            const shell: string = (
-                await import(await resolveFile(this, shellJSPath))
-            ).shell
+            // const shell: string = (
+            //     await import(await resolveFile(this, shellJSPath))
+            // ).shell
 
             // const r = await faviconsPromise
 
@@ -57,13 +57,21 @@ export default function createHTMLPlugin(options: Options): Plugin {
             //         source: image.contents,
             //     }
             // }
+
+            // let shellCSS = ''
+            // const css = bundle[shellCSSPath]
+            // if (css?.type === 'asset') {
+            //     writeFile('./test.css', css.source.toString())
+            //     shellCSS = css.source.toString()
+            // }
+
             const variables = {
                 scripts: scripts,
-                // styles: styles,
-                styles: styles + `<style>${shellCSS}</style>`,
+                styles: styles,
+                // styles: styles + `<style>${shellCSS}</style>`,
                 // header: r.html.join(''),
                 header: '',
-                shell: shell,
+                // shell: shell,
             }
 
             bundle[output] = {

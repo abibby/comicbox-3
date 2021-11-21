@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"time"
 
@@ -64,7 +63,6 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 		sendError(rw, err)
 		return
 	}
-	log.Print(dataSQL)
 	countSQL, countArgs, err := query.
 		Select(goqu.COUNT('*')).
 		ToSQL()

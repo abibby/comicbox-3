@@ -1,3 +1,4 @@
+import assets from 'build:assets'
 import EventTarget from 'event-target-shim'
 import { Fragment, h, render } from 'preact'
 import Router from 'preact-router'
@@ -52,9 +53,10 @@ function Main() {
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<Main />, document.getElementById('app')!)
 
-if ('serviceWorker' in navigator) {
+const swPath = assets.filter(a => a.name === 'service-worker')[0]?.fileName
+if ('serviceWorker' in navigator && swPath) {
     navigator.serviceWorker
-        .register('/service-worker.js', { scope: '/' })
+        .register(swPath, { scope: '/', type: 'module' })
         .then(reg => {
             // registration worked
             console.log('Registration succeeded. Scope is ' + reg.scope)

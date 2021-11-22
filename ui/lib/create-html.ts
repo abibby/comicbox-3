@@ -27,7 +27,9 @@ export default function createHTMLPlugin(options: Options): Plugin {
             )
 
             const scripts = Object.values(bundle)
-                .filter(f => f.type === 'chunk' && f.isEntry)
+                .filter(
+                    f => f.type === 'chunk' && f.isEntry && f.name === 'app',
+                )
                 .map(
                     f => `<script src="/${f.fileName}" type="module"></script>`,
                 )

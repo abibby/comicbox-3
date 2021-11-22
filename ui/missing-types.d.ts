@@ -4,11 +4,21 @@ declare module '*.svg' {
 }
 
 declare module 'build:assets' {
-    const assets: Array<import('workbox-precaching').PrecacheEntry | string>
+    export interface BuildAsset {
+        fileName: string
+        name?: string
+    }
+    const assets: BuildAsset[]
     export default assets
 }
 
 declare module 'rollup-plugin-cleaner' {
-    const assets: () => import('rollup').Plugin
+    export interface Options {
+        targets?: string[]
+        silent?: boolean
+    }
+    const assets: (opt: Options) => import('rollup').Plugin
     export default assets
 }
+
+declare const __ENV: 'production' | 'development'

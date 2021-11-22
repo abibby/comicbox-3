@@ -1,5 +1,5 @@
+import { BuildAsset } from 'build:assets'
 import { Plugin } from 'rollup'
-
 const random = JSON.stringify(
     `4A4rwiR8VuNWLmjcaFQgP5ZqsP6nswBjUcs5fKtySldpYcfkoNOpafMSJ7p5VDp09iRcU2cRZ`,
 )
@@ -19,23 +19,21 @@ export default function buildAssetPlugin(): Plugin {
                 return
             }
 
-            // console.log(this.getModuleIds())
             return `export default ${random}`
         },
 
         async generateBundle(options, bundle) {
-            for (const [file, b] of Object.entries(bundle)) {
-                if (file !== 'service-worker.js') {
-                    continue
-                }
+            const assets: BuildAsset[] = Array.from(Object.values(bundle)).map(
+                (b): BuildAsset => ({
+                    fileName: b.fileName,
+                    name: b.name,
+                }),
+            )
+            for (const b of Object.values(bundle)) {
                 if (b.type === 'chunk' && path in b.modules) {
-                    b.code = b.code.replace(
-                        random,
-                        JSON.stringify(Object.keys(bundle)),
-                    )
+                    b.code = b.code.replace(random, JSON.stringify(assets))
                 }
             }
-            // console.log(options, Object.keys(bundle))
         },
     }
 }

@@ -18,7 +18,9 @@ const config: RollupOptions = {
         entryFileNames: '[name].[hash].js',
     },
     plugins: [
-        cleaner(),
+        cleaner({
+            targets: ['./dist'],
+        }),
         cssModuleTypes('src'),
         postcss({
             autoModules: true,
@@ -30,7 +32,7 @@ const config: RollupOptions = {
             // exclude: [/node_modules/, /rollup\.config\.ts$/]
         }),
         replace({
-            'process.env.NODE_ENV': JSON.stringify('development'),
+            __ENV: JSON.stringify('development'),
         }),
         typescript(),
         assetPlugin(),

@@ -21,6 +21,7 @@ export default function assetPlugin(): Plugin {
             this.emitFile({
                 type: 'asset',
                 fileName: fileName,
+                name: fileName,
                 source: await readFile(id.slice(prefix.length)),
             })
 

@@ -1,38 +1,71 @@
 import assets from 'build:assets'
-// import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
-// import { registerRoute } from 'workbox-routing'
-// import { CacheFirst } from 'workbox-strategies'
 
-// precacheAndRoute(assets)
-// cleanupOutdatedCaches()
+const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
 
-self.addEventListener('install', () => {
-    console.log('install', assets)
+function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+function globToRegex(glob: string): RegExp {
+    const re = escapeRegExp(glob)
+        .replace(/\\\*\\\*/g, '😎')
+        .replace(/\\\*/g, '[^/]*')
+        .replace(/😎/g, '.*')
+
+    return new RegExp(`^${re}$`)
+}
+const CACHE_NAME = 'my-site-cache-v1'
+
+const cachedAssets = new Set(
+    assets.filter(a => a.name !== 'service-worker').map(a => `/${a.fileName}`),
+)
+console.log(cachedAssets)
+
+sw.addEventListener('install', event => {
+    if (__ENV !== 'production') {
+        console.log('WORKER: installing')
+    }
+    // Perform install steps
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(Array.from(cachedAssets))
+        }),
+    )
+})
+sw.addEventListener('activate', event => {
+    console.log('WORKER: activate')
+
+    event.waitUntil(
+        caches
+            .keys()
+            .then(keys =>
+                Promise.all(
+                    keys
+                        .filter(key => key !== CACHE_NAME)
+                        .map(key => caches.delete(key)),
+                ),
+            ),
+    )
 })
 
-// const staticMatcher = new RegExp('.*.(css|js|svg)$')
-// // registerRoute(
-// //     staticMatcher,
-// //     new StaleWhileRevalidate({
-// //         cacheName: 'static',
-// //         plugins: [
-// //             // Ensure that only requests that result in a 200 status are cached
-// //             new CacheableResponsePlugin({
-// //                 statuses: [200],
-// //             }),
-// //         ],
-// //     }),
-// // )
+sw.addEventListener('fetch', function (event) {
+    const request = event.request
+    const url = new URL(request.url)
 
-// registerRoute(
-//     new RegExp('/api/books/([^/]+)/page/([^/]+)/thumbnail'),
-//     new CacheFirst({ cacheName: 'thumbnails' }),
-// )
+    if (cachedAssets.has(url.pathname)) {
+        event.respondWith(cacheFirst(request, url.pathname))
+        return
+    }
 
-// registerRoute(
-//     ({ url }) =>
-//         !url.pathname.startsWith('/api/') && !url.pathname.match(staticMatcher),
-//     async () => {
-//         return new Response('test')
-//     },
-// )
+    if (!url.pathname.startsWith('/api/')) {
+        event.respondWith(cacheFirst(request, '/index.html'))
+        return
+    }
+})
+
+async function cacheFirst(request: Request, path: string): Promise<Response> {
+    const r = await caches.match(path)
+    if (r !== undefined) {
+        return r
+    }
+    return await fetch(request)
+}

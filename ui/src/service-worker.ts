@@ -1,4 +1,6 @@
 import assets from 'build:assets'
+import { book } from './api'
+import { Message } from './message'
 
 const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
 
@@ -13,11 +15,10 @@ function globToRegex(glob: string): RegExp {
 
     return new RegExp(`^${re}$`)
 }
-const CACHE_NAME = 'my-site-cache-v1'
+const STATIC_CACHE_NAME = 'static-cache-v1'
+const CACHE_NAME = 'image-cache-v1'
 
-const cachedAssets = new Set(
-    assets.filter(a => a.name !== 'service-worker').map(a => `/${a.fileName}`),
-)
+const cachedAssets = new Set(assets.map(a => `/${a.fileName}`))
 console.log(cachedAssets)
 
 sw.addEventListener('install', event => {
@@ -26,7 +27,7 @@ sw.addEventListener('install', event => {
     }
     // Perform install steps
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
+        caches.open(STATIC_CACHE_NAME).then(cache => {
             return cache.addAll(Array.from(cachedAssets))
         }),
     )
@@ -40,12 +41,36 @@ sw.addEventListener('activate', event => {
             .then(keys =>
                 Promise.all(
                     keys
-                        .filter(key => key !== CACHE_NAME)
+                        .filter(key => key !== STATIC_CACHE_NAME)
                         .map(key => caches.delete(key)),
                 ),
             ),
     )
 })
+
+async function cacheFirst(request: Request, path: string): Promise<Response> {
+    const r = await caches.match(path)
+    if (r !== undefined) {
+        return r
+    }
+    return await fetch(request)
+}
+
+async function staleWhileRevalidate(
+    request: Request,
+    path: string,
+): Promise<Response> {
+    const cacheP = caches.match(path)
+    const netP = fetch(request)
+
+    let r = await cacheP
+
+    if (r === undefined) {
+        r = await netP
+    }
+    caches.open(CACHE_NAME).then(cache => cache.add(request))
+    return r
+}
 
 sw.addEventListener('fetch', function (event) {
     const request = event.request
@@ -60,12 +85,18 @@ sw.addEventListener('fetch', function (event) {
         event.respondWith(cacheFirst(request, '/index.html'))
         return
     }
+
+    if (globToRegex('/api/books/*/page/*/thumbnail').test(url.pathname)) {
+        event.respondWith(staleWhileRevalidate(request, url.pathname))
+        return
+    }
 })
 
-async function cacheFirst(request: Request, path: string): Promise<Response> {
-    const r = await caches.match(path)
-    if (r !== undefined) {
-        return r
+sw.addEventListener('message', function (event) {
+    console.log('WORKER: message', event.data)
+    const message: Message = event.data
+
+    if (message.type === 'download') {
+        book.list({ id: message.bookID })
     }
-    return await fetch(request)
-}
+})

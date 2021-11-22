@@ -1,6 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
-import { pageURL } from '../api'
 import { useComputed } from '../hooks/computed'
+import { usePageURL } from '../hooks/page'
+import { post } from '../message'
 import { Book } from '../models'
 import { EditBook } from './book-edit'
 import { Card } from './card'
@@ -23,6 +24,14 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
                         book: props.book,
                     }),
             ],
+            [
+                'download',
+                () =>
+                    post({
+                        type: 'download',
+                        bookID: props.book.id,
+                    }),
+            ],
         ]
     }, [props.book])
 
@@ -42,9 +51,10 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         }
         title += props.book.title
     }
+    const coverURL = usePageURL(props.book)
     return (
         <Card
-            image={pageURL(props.book)}
+            image={coverURL}
             link={`/book/${props.book.id}`}
             title={props.book.series}
             subtitle={title}

@@ -10,6 +10,7 @@ import {
 } from './components/context-menu'
 import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
+import { setSW } from './message'
 import { Error404 } from './pages/404'
 import { Home } from './pages/home'
 import { List } from './pages/lists'
@@ -56,13 +57,8 @@ render(<Main />, document.getElementById('app')!)
 const swPath = assets.filter(a => a.name === 'service-worker')[0]?.fileName
 if ('serviceWorker' in navigator && swPath) {
     navigator.serviceWorker
-        .register(swPath, { scope: '/', type: 'module' })
+        .register(`/${swPath}`, { scope: '/', type: 'module' })
         .then(reg => {
-            // registration worked
-            console.log('Registration succeeded. Scope is ' + reg.scope)
-        })
-        .catch(error => {
-            // registration failed
-            console.log('Registration failed with ' + error)
+            setSW(reg.active)
         })
 }

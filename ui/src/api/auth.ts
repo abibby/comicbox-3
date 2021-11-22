@@ -24,8 +24,8 @@ export function logout(): void {
     setAuthToken(null, null)
 }
 
-export function currentID(): string | null {
-    const token = getAuthToken()
+export async function currentID(): Promise<string | null> {
+    const token = await getAuthToken()
     if (token === null) {
         return null
     }

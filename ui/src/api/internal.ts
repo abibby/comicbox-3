@@ -1,4 +1,5 @@
 import noImage from 'asset-url:../../res/images/no-cover.svg'
+import { get, set } from 'idb-keyval'
 import { route } from 'preact-router'
 import { Book, Page, Series } from '../models'
 
@@ -72,34 +73,44 @@ export class FetchError<T> extends Error {
     }
 }
 
-let authToken = localStorage.getItem('auth-token')
-let authImageToken = localStorage.getItem('auth-image-token')
+let authToken: string | null | undefined
+let authImageToken: string | null | undefined
 
-export function setAuthToken(
+export async function setAuthToken(
     token: string | null,
     imageToken: string | null,
-): void {
+): Promise<void> {
     authToken = token
-    if (token === null) {
-        localStorage.removeItem('auth-token')
-    } else {
-        localStorage.setItem('auth-token', token)
-    }
     authImageToken = imageToken
-    if (authImageToken === null) {
-        localStorage.removeItem('auth-image-token')
-    } else {
-        localStorage.setItem('auth-image-token', authImageToken)
-    }
+    await Promise.all([
+        set('auth-token', token),
+        set('auth-image-token', imageToken),
+    ])
 }
-export function getAuthToken(): string | null {
+export async function getAuthToken(): Promise<string | null> {
+    if (authToken !== undefined) {
+        return authToken
+    }
+    const token = await get<string | null>('auth-token')
+    authToken = token ?? null
     return authToken
+}
+export async function getAuthImageToken(): Promise<string | null> {
+    if (authImageToken !== undefined) {
+        return authImageToken
+    }
+    const token = await get<string | null>('auth-image-token')
+    authImageToken = token ?? null
+    return authImageToken
 }
 
 // export function pageURL(book: Book): string
 // export function pageURL(book: Series): string
 // export function pageURL(book: Book, page: number): string
-export function pageURL(model: Book | Series | Page, page?: number): string {
+export async function pageURL(
+    model: Book | Series | Page,
+    page?: number,
+): Promise<string> {
     let u: URL
     if ('url' in model) {
         u = new URL(model.url, location.href)
@@ -115,9 +126,9 @@ export function pageURL(model: Book | Series | Page, page?: number): string {
     } else {
         u = new URL(model.cover_url, location.href)
     }
-
-    if (authImageToken !== null) {
-        u.searchParams.set('_token', authImageToken)
+    const token = await getAuthImageToken()
+    if (token !== null) {
+        u.searchParams.set('_token', token)
     }
 
     return u.toString()
@@ -126,11 +137,12 @@ export function pageURL(model: Book | Series | Page, page?: number): string {
 export async function apiFetch<T>(
     ...args: Parameters<typeof fetch>
 ): Promise<T> {
-    if (authToken !== null) {
+    const token = await getAuthToken()
+    if (token !== null) {
         args[1] = {
             ...args[1],
             headers: {
-                Authorization: 'Bearer ' + authToken,
+                Authorization: 'Bearer ' + token,
             },
         }
     }

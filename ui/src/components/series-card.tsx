@@ -1,10 +1,11 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { auth, pageURL } from '../api'
+import { auth } from '../api'
 import { listNames } from '../api/series'
 import { persist } from '../cache'
 import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
+import { usePageURL } from '../hooks/page'
 import { Series } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
@@ -29,9 +30,12 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             ],
         ]
     }, [props.series])
+
+    const coverURL = usePageURL(props.series)
+
     return (
         <Card
-            image={pageURL(props.series)}
+            image={coverURL}
             link={`/series/${props.series.name}`}
             title={props.series.name}
             menu={menu}
@@ -52,7 +56,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
     const submit = useCallback(
         async (data: Data) => {
             const s = series
-            const uid = auth.currentID()
+            const uid = await auth.currentID()
             if (uid) {
                 s.user_series = {
                     created_at: new Date().toISOString(),

@@ -1,9 +1,9 @@
-import { h } from 'preact'
+import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { pageURL } from '../api'
 import { persist } from '../cache'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
+import { usePageURL } from '../hooks/page'
 import { Book, Page, PageType } from '../models'
 import { prompt } from './alert'
 import { Data, Form } from './form/form'
@@ -126,22 +126,9 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         </Tab>
                         <Tab title='pages'>
                             <input type='hidden' name='tab' value='pages' />
-                            {book.pages.map((p, i) => {
-                                return (
-                                    <div>
-                                        <img
-                                            src={pageURL(book, i)}
-                                            height='200'
-                                        />
-                                        <Select
-                                            title='Type'
-                                            name='page.type'
-                                            options={pageTypeOptions}
-                                            value={p.type}
-                                        />
-                                    </div>
-                                )
-                            })}
+                            {book.pages.map(p => (
+                                <PageThumb page={p} />
+                            ))}
                         </Tab>
                     </TabContainer>
                 </ModalBody>
@@ -171,4 +158,23 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
 
 function isPageType(s: string): s is PageType {
     return s in PageType
+}
+
+interface PageThumbProps {
+    page: Page
+}
+const PageThumb: FunctionalComponent<PageThumbProps> = props => {
+    const url = usePageURL(props.page)
+
+    return (
+        <div>
+            <img src={url} height='200' />
+            <Select
+                title='Type'
+                name='page.type'
+                options={pageTypeOptions}
+                value={props.page.type}
+            />
+        </div>
+    )
 }

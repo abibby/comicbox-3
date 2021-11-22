@@ -10,6 +10,7 @@ import { openModal } from '../components/modal'
 import { DB } from '../database'
 import { useNextBook, usePreviousBook } from '../hooks/book'
 import { useWindowEvent } from '../hooks/event-listener'
+import { usePageURL } from '../hooks/page'
 import { Book, PageType } from '../models'
 import { Error404 } from './404'
 import styles from './page.module.css'
@@ -21,15 +22,13 @@ interface PageProps {
     }
 }
 
-function notNullish<T>(v: T | null | undefined): v is T {
-    return v !== undefined && v !== null
-}
-
-function preloadImages(srcs: Array<string | undefined>): HTMLImageElement[] {
-    return srcs.filter(notNullish).map(src => {
-        const img = new Image()
-        img.src = src
-        return img
+function preloadImages(srcs: Array<Promise<string>>) {
+    return Promise.all(srcs).then(srcs => {
+        srcs.map(src => {
+            const img = new Image()
+            img.src = src
+            return img
+        })
     })
 }
 
@@ -187,6 +186,8 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
         [menuOpen, page, changePage, setTwoPage],
     )
 
+    const currentPageURL = usePageURL(b, pageIndex(b, page))
+    const nextPageURL = usePageURL(b, pageIndex(b, page + 1))
     return (
         <div
             class={classNames(styles.page, {
@@ -196,13 +197,8 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
             })}
             onClick={click}
         >
-            <img class={styles.image} src={pageURL(b, pageIndex(b, page))} />
-            {twoPagesVisible && (
-                <img
-                    class={styles.image}
-                    src={pageURL(b, pageIndex(b, page + 1))}
-                />
-            )}
+            <img class={styles.image} src={currentPageURL} />
+            {twoPagesVisible && <img class={styles.image} src={nextPageURL} />}
 
             <div class={styles.direction}>
                 <svg viewBox='0 0 200 100'>

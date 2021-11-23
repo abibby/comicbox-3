@@ -28,7 +28,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
                 'download',
                 () =>
                     post({
-                        type: 'download',
+                        type: 'download-book',
                         bookID: props.book.id,
                     }),
             ],

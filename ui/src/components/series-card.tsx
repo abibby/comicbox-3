@@ -6,6 +6,7 @@ import { persist } from '../cache'
 import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { usePageURL } from '../hooks/page'
+import { post } from '../message'
 import { Series } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
@@ -26,6 +27,14 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
                 () =>
                     openModal(EditSeries, {
                         series: props.series,
+                    }),
+            ],
+            [
+                'download',
+                () =>
+                    post({
+                        type: 'download-series',
+                        seriesName: props.series.name,
                     }),
             ],
         ]

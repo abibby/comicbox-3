@@ -33,6 +33,7 @@ const config: RollupOptions = {
         }),
         replace({
             __ENV: JSON.stringify('development'),
+            preventAssignment: true,
         }),
         typescript(),
         assetPlugin(),

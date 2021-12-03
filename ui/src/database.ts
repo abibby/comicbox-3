@@ -89,6 +89,7 @@ class AppDatabase extends Dexie {
                         created_at: timestamp,
                         deleted_at: null,
                         current_page: 0,
+                        update_map: {},
                     }
                 }
 

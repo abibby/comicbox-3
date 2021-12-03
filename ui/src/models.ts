@@ -5,6 +5,7 @@ export interface Book {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    update_map: Record<string, string>
     id: string
     title: string
     chapter: number | null
@@ -26,6 +27,7 @@ export interface Series {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    update_map: Record<string, string>
     name: string
     cover_url: string
     first_book_id: string | null
@@ -35,6 +37,7 @@ export interface User {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    update_map: Record<string, string>
     id: string
     username: string
 }
@@ -42,12 +45,14 @@ export interface UserBook {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    update_map: Record<string, string>
     current_page: number
 }
 export interface UserSeries {
     created_at: string
     updated_at: string
     deleted_at: string | null
+    update_map: Record<string, string>
     series_name: string
     user_id: string
     list: string | null

@@ -74,6 +74,7 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                     series_name: s.name,
                     user_id: uid,
                     list: data.get('list') || null,
+                    update_map: {},
                 }
             }
 

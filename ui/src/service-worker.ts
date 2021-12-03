@@ -20,22 +20,27 @@ const STATIC_CACHE_NAME = 'static-cache-v1'
 const IMAGE_CACHE_NAME = 'image-cache-v1'
 
 const cachedAssets = new Set(assets.map(a => `/${a.fileName}`))
-console.log(cachedAssets)
 
 sw.addEventListener('install', event => {
-    if (__ENV !== 'production') {
-        console.log('WORKER: installing')
-    }
     // Perform install steps
     event.waitUntil(
-        caches.open(STATIC_CACHE_NAME).then(cache => {
-            return cache.addAll(Array.from(cachedAssets))
-        }),
+        Promise.all([
+            caches.open(STATIC_CACHE_NAME).then(cache => {
+                return cache.addAll(Array.from(cachedAssets))
+            }),
+
+            caches.open(STATIC_CACHE_NAME).then(async cache => {
+                for (const key of await cache.keys()) {
+                    const url = new URL(key.url)
+                    if (!cachedAssets.has(url.pathname)) {
+                        cache.delete(key)
+                    }
+                }
+            }),
+        ]),
     )
 })
 sw.addEventListener('activate', event => {
-    console.log('WORKER: activate')
-
     event.waitUntil(
         caches
             .keys()
@@ -51,7 +56,7 @@ sw.addEventListener('activate', event => {
 
 async function cacheFirst(request: Request, path: string): Promise<Response> {
     const r = await caches.match(path, {
-        cacheName: IMAGE_CACHE_NAME,
+        cacheName: STATIC_CACHE_NAME,
     })
     if (r !== undefined) {
         return r
@@ -70,11 +75,11 @@ async function cacheThumbnail(
     if (r !== undefined) {
         return r
     }
-    const responsePromise = fetch(request)
-
     caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(request))
 
-    return await responsePromise
+    const pageURL = request.url.replace('/thumbnail', '')
+
+    return await cachePage(request, pageURL)
 }
 
 async function cachePage(request: Request, path: string): Promise<Response> {
@@ -118,10 +123,8 @@ async function cacheBook(b: Book): Promise<void> {
         pageURL(b),
         ...b.pages.map(p => pageURL(p)),
     ])
-    console.log(pageUrls)
 
     const cache = await caches.open(IMAGE_CACHE_NAME)
-    console.log(cache)
 
     await cache.addAll(pageUrls)
 }
@@ -134,10 +137,12 @@ sw.addEventListener('message', async function (event) {
     }
     if (message.type === 'download-series') {
         const books = await book.list({ series: message.seriesName })
-        console.log(books)
 
         for (const b of books) {
             await cacheBook(b)
         }
     }
 })
+
+// eslint-disable-next-line no-console
+console.log('v10')

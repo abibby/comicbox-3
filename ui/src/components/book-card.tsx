@@ -1,15 +1,15 @@
 import { FunctionalComponent, h } from 'preact'
+import { DBBook } from '../database'
 import { useComputed } from '../hooks/computed'
 import { usePageURL } from '../hooks/page'
 import { post } from '../message'
-import { Book } from '../models'
 import { EditBook } from './book-edit'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
 import { openModal } from './modal'
 
 interface BookProps {
-    book: Book
+    book: DBBook
 }
 
 export const BookCard: FunctionalComponent<BookProps> = props => {
@@ -59,6 +59,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             title={props.book.series}
             subtitle={title}
             menu={menu}
+            disabled={!props.book.downloaded}
         />
     )
 }

@@ -1,5 +1,6 @@
 import assets from 'build:assets'
 import { book, pageURL } from './api'
+import { DB, DBBook } from './database'
 import { Message } from './message'
 import { Book } from './models'
 
@@ -129,20 +130,33 @@ async function cacheBook(b: Book): Promise<void> {
     await cache.addAll(pageUrls)
 }
 
-sw.addEventListener('message', async function (event) {
-    const message: Message = event.data
+sw.addEventListener('message', function (event) {
+    event.waitUntil(
+        (async () => {
+            const message: Message = event.data
+            console.log(message)
 
-    if (message.type === 'download-book') {
-        book.list({ id: message.bookID })
-    }
-    if (message.type === 'download-series') {
-        const books = await book.list({ series: message.seriesName })
+            let books: DBBook[] | undefined
+            if (message.type === 'download-book') {
+                books = await book.list({ id: message.bookID })
+            }
+            if (message.type === 'download-series') {
+                books = await book.list({ series: message.seriesName })
+            }
+            console.log(books)
 
-        for (const b of books) {
-            await cacheBook(b)
-        }
-    }
+            if (books !== undefined) {
+                for (const b of books) {
+                    await cacheBook(b)
+                    b.downloaded = true
+                    b.dirty = 1
+                }
+                await DB.books.bulkPut(books)
+                event.source?.postMessage('book updated')
+            }
+        })(),
+    )
 })
 
 // eslint-disable-next-line no-console
-console.log('v10')
+console.log('v13')

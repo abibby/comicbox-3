@@ -6,6 +6,7 @@ import { PaginatedRequest } from '../api/internal'
 import { prompt } from '../components/alert'
 import { DB, DBBook, DBSeries } from '../database'
 import { useEventListener } from '../hooks/event-listener'
+import { onReceive } from '../message'
 import './book'
 import { getCacheHandler } from './internal'
 import './series'
@@ -25,6 +26,8 @@ const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 export function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
 }
+
+onReceive(() => invalidateCache(false))
 
 export async function updateList<
     T extends DBSeries | DBBook,
@@ -87,6 +90,7 @@ export function useCached<
                     (await prompt('New ' + table.name, { reload: true }, 0)) ??
                     false
             }
+
             if (reload) {
                 setItems(newItems)
             }

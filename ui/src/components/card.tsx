@@ -11,6 +11,7 @@ interface BookProps {
     link?: string
     menu?: ContextMenuItems
     placeholder?: boolean
+    disabled?: boolean
 }
 
 export const Card: FunctionalComponent<BookProps> = props => {
@@ -28,6 +29,7 @@ export const Card: FunctionalComponent<BookProps> = props => {
         <div
             class={classNames(styles.book, {
                 [styles.placeholder]: props.placeholder,
+                [styles.disabled]: props.disabled,
             })}
         >
             <a href={props.link}>

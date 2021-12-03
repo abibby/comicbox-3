@@ -1,3 +1,4 @@
+import { DBBook } from '../database'
 import { Book, PageType } from '../models'
 import {
     allPagesFactory,
@@ -17,11 +18,11 @@ export type BookListRequest = PaginatedRequest & {
 
 export async function listPaged(
     req: BookListRequest = {},
-): Promise<PaginatedResponse<Book>> {
+): Promise<PaginatedResponse<DBBook>> {
     return await apiFetch('/api/books?' + encodeParams(req))
 }
 
-export const list = allPagesFactory<Book, BookListRequest>(listPaged)
+export const list = allPagesFactory<DBBook, BookListRequest>(listPaged)
 
 export async function readingPaged(
     req: PaginatedRequest = {},

@@ -5,6 +5,7 @@ declare const styles: {
   readonly "subtitle": string;
   readonly "menu": string;
   readonly "placeholder": string;
+  readonly "disabled": string;
 };
 export = styles;
 

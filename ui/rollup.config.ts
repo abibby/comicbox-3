@@ -15,7 +15,7 @@ const config: RollupOptions = {
     output: {
         format: 'es',
         dir: 'dist',
-        entryFileNames: '[name].[hash].js',
+        entryFileNames: '[name].js',
     },
     plugins: [
         cleaner({
@@ -48,15 +48,5 @@ const config: RollupOptions = {
         buildAssets(),
     ],
 }
-
-// const shellConfig = {
-//     ...config,
-//     input: 'src/shell.tsx',
-//     output: {
-//         format: 'cjs',
-//         dir: 'dist',
-//     },
-//     plugins: config.plugins?.filter(p => p && p.name !== 'create-html-plugin'),
-// }
 
 export default config

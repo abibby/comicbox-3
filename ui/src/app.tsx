@@ -59,6 +59,10 @@ if ('serviceWorker' in navigator && swPath) {
     navigator.serviceWorker
         .register(`/${swPath}`, { scope: '/', type: 'module' })
         .then(reg => {
-            setSW(reg.active)
+            console.warn(reg)
+            setSW(reg)
+        })
+        .catch(err => {
+            console.error(err)
         })
 }

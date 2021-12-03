@@ -24,6 +24,7 @@ export type DBUserBook = UserBook & DBModel
 export type DBBook = Book &
     DBModel & {
         completed?: number
+        downloaded?: boolean
         user_book: DBUserBook | null
     }
 

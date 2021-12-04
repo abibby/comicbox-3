@@ -52,6 +52,7 @@ export const UserCreate: FunctionalComponent = () => {
                     type='text'
                     name='username'
                     errors={errors}
+                    focused
                 />
                 <Input
                     title='Password'

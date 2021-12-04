@@ -30,7 +30,7 @@ export const Login: FunctionalComponent = () => {
         <div>
             <h1>Login</h1>
             <Form onSubmit={submit}>
-                <Input title='Username' name='username' />
+                <Input title='Username' name='username' focused />
                 <Input title='Password' type='password' name='password' />
                 <button type='submit'>Login</button>
             </Form>

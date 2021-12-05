@@ -170,6 +170,7 @@ export async function persist(fromUserInteraction: boolean): Promise<void> {
         if (s.user_series !== null) {
             const us = await userSeries.update(s.name, {
                 list: s.user_series.list,
+                update_map: s.user_series.update_map,
             })
             DB.series.update(s, { user_series: us, dirty: 0 })
         }

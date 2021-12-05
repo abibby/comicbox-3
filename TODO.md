@@ -5,6 +5,7 @@
   - This could be done by checking the db with every request or using a shorter
     timeout and adding a refresh token
 - [ ] Add option to only allow existing users to add new users
+- [ ] automatically set spread pages
 
 # Client
 
@@ -16,3 +17,5 @@
 - [x] Improve reading experience
   - [x] Respect deleted pages
 - [ ] Offline Support
+- [ ] Add option to change from one page to two page view
+  - Start as auto, based on portrait/landscape, and add forced options

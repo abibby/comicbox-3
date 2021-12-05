@@ -6,6 +6,7 @@ import { useNextBook, usePreviousBook } from '../hooks/book'
 import { usePageURL } from '../hooks/page'
 import { Book, Page, PageType } from '../models'
 import { prompt } from './alert'
+import styles from './book-edit.module.css'
 import { Data, Form } from './form/form'
 import { Input } from './form/input'
 import { Select } from './form/select'
@@ -126,9 +127,11 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         </Tab>
                         <Tab title='pages'>
                             <input type='hidden' name='tab' value='pages' />
-                            {book.pages.map(p => (
-                                <PageThumb page={p} />
-                            ))}
+                            <div class={styles.pageList}>
+                                {book.pages.map(p => (
+                                    <PageThumb page={p} />
+                                ))}
+                            </div>
                         </Tab>
                     </TabContainer>
                 </ModalBody>
@@ -167,7 +170,7 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     const url = usePageURL(props.page)
 
     return (
-        <div>
+        <div class={styles.page}>
             <img src={url} height='200' />
             <Select
                 title='Type'

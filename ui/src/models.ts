@@ -53,8 +53,6 @@ export interface UserSeries {
     updated_at: string
     deleted_at: string | null
     update_map: Record<string, string>
-    series_name: string
-    user_id: string
     list: string | null
 }
 export enum PageType {

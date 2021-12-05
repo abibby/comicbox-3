@@ -1,6 +1,7 @@
+import moreVertical from 'asset-url:res/icons/more-vertical.svg'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import classNames from '../classnames'
+import classNames from 'src/classnames'
 import styles from './card.module.css'
 import { ContextMenuItems, openContextMenu } from './context-menu'
 
@@ -41,7 +42,7 @@ export const Card: FunctionalComponent<BookProps> = props => {
                 />
                 {props.menu && (
                     <button class={styles.menu} onClick={open}>
-                        Menu
+                        <img src={moreVertical} alt='menu' />
                     </button>
                 )}
                 <div class={styles.title}>{props.title}</div>

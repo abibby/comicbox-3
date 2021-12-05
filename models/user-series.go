@@ -11,9 +11,9 @@ import (
 
 type UserSeries struct {
 	BaseModel
-	SeriesName string        `json:"series_name" db:"series_name"`
-	UserID     uuid.UUID     `json:"user_id"     db:"user_id"`
-	List       *nulls.String `json:"list"        db:"list"`
+	SeriesName string        `json:"-"    db:"series_name"`
+	UserID     uuid.UUID     `json:"-"    db:"user_id"`
+	List       *nulls.String `json:"list" db:"list"`
 }
 
 func (ub *UserSeries) Model() *BaseModel {

@@ -11,6 +11,7 @@ export default function assetPlugin(): Plugin {
                 return
             }
             const asset = await this.resolve(id.slice(prefix.length), importer)
+
             return prefix + (asset?.id ?? '')
         },
         async load(id) {

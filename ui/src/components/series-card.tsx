@@ -1,6 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { auth } from '../api'
 import { listNames } from '../api/series'
 import { persist } from '../cache'
 import { DB } from '../database'
@@ -64,21 +63,11 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
 }) => {
     const submit = useCallback(
         async (data: Data) => {
-            const s = series
-            const uid = await auth.currentID()
-            if (uid) {
-                s.user_series = {
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    deleted_at: null,
-                    series_name: s.name,
-                    user_id: uid,
+            DB.saveSeries(series, {
+                user_series: {
                     list: data.get('list') || null,
-                    update_map: {},
-                }
-            }
-
-            DB.series.put(s)
+                },
+            })
             persist(true)
             close(undefined)
         },

@@ -4,6 +4,7 @@ import typescript from '@rollup/plugin-typescript'
 import omt from '@surma/rollup-plugin-off-main-thread'
 import { RollupOptions } from 'rollup'
 import cleaner from 'rollup-plugin-cleaner'
+import includePaths from 'rollup-plugin-includepaths'
 import postcss from 'rollup-plugin-postcss'
 import assetPlugin from './lib/asset-plugin'
 import buildAssets from './lib/build-assets-plugin'
@@ -46,8 +47,9 @@ const config: RollupOptions = {
                 __ENV: JSON.stringify('development'),
             },
         }),
-        typescript(),
         assetPlugin(),
+        includePaths(),
+        typescript(),
         nodeResolve(),
         omt(),
         createHTMLPlugin({

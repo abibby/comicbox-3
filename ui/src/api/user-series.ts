@@ -3,6 +3,7 @@ import { apiFetch } from './internal'
 
 interface UserSeriesUpdateRequest {
     list: string | null
+    update_map: Record<string, string>
 }
 
 export async function update(

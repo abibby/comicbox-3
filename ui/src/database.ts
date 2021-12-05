@@ -122,6 +122,54 @@ class AppDatabase extends Dexie {
         await DB.books.update(b, mod)
     }
 
+    public async saveSeries(
+        s: DBSeries,
+        mod: Modification<DBSeries>,
+    ): Promise<void> {
+        const updateMap: UpdateMap<DBSeries> = s.update_map ?? {}
+        let bookHasChanges = false
+        let userBookHasChanges = false
+        const timestamp = updatedTimestamp()
+        for (const [key] of entries(mod)) {
+            if (key === 'user_series' && mod.user_series) {
+                if (s.user_series === null) {
+                    s.user_series = {
+                        updated_at: timestamp,
+                        created_at: timestamp,
+                        deleted_at: null,
+                        list: null,
+                        update_map: {},
+                    }
+                }
+
+                const ubUpdateMap: UpdateMap<DBUserSeries> =
+                    s.user_series.update_map ?? {}
+
+                for (const [ubKey] of entries(mod.user_series)) {
+                    if (mod.user_series[ubKey] !== s.user_series[ubKey]) {
+                        ubUpdateMap[ubKey] = timestamp
+                        userBookHasChanges = true
+                    }
+                }
+                mod.user_series.update_map = ubUpdateMap
+                if (userBookHasChanges) {
+                    mod.user_series.dirty = 1
+                }
+            } else if (mod[key] !== s[key]) {
+                updateMap[key] = timestamp
+                bookHasChanges = true
+            }
+        }
+        mod.update_map = updateMap
+        if (bookHasChanges) {
+            mod.dirty = 1
+        } else if (userBookHasChanges) {
+            mod.dirty = 2
+        }
+
+        await DB.series.update(s, mod)
+    }
+
     private bookComplete(b: DBBook): number {
         if (
             b.user_book === null ||

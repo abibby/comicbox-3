@@ -6,7 +6,7 @@ import { PaginatedRequest } from '../api/internal'
 import { prompt } from '../components/alert'
 import { DB, DBBook, DBSeries } from '../database'
 import { useEventListener } from '../hooks/event-listener'
-import { onReceive } from '../message'
+import { addRespondListener } from '../message'
 import './book'
 import { getCacheHandler } from './internal'
 import './series'
@@ -27,7 +27,7 @@ export function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
 }
 
-onReceive(() => invalidateCache(false))
+addRespondListener('book-update', () => invalidateCache(false))
 
 export async function updateList<
     T extends DBSeries | DBBook,
@@ -175,4 +175,21 @@ export async function persist(fromUserInteraction: boolean): Promise<void> {
         }
     }
     invalidateCache(fromUserInteraction)
+}
+
+export function useOnline(): boolean {
+    const [online, setOnline] = useState(navigator.onLine)
+    useEffect(() => {
+        const setOnlineTrue = () => setOnline(true)
+        const setOnlineFalse = () => setOnline(false)
+
+        window.addEventListener('online', setOnlineTrue)
+        window.addEventListener('offline', setOnlineFalse)
+        return () => {
+            window.removeEventListener('online', setOnlineTrue)
+            window.removeEventListener('offline', setOnlineFalse)
+        }
+    }, [setOnline])
+
+    return online
 }

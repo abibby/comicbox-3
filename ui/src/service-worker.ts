@@ -1,10 +1,37 @@
 import assets from 'build:assets'
 import { book, pageURL } from './api'
 import { DB, DBBook } from './database'
-import { Message } from './message'
+import { Message, respond } from './message'
 import { Book } from './models'
 
 const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
+
+type AsyncEvents =
+    | 'activate'
+    | 'fetch'
+    | 'install'
+    | 'message'
+    // | 'messageerror'
+    | 'notificationclick'
+    | 'notificationclose'
+    | 'push'
+
+function addAsyncEventListener<K extends AsyncEvents>(
+    type: K,
+    listener: (
+        this: ServiceWorkerGlobalScope,
+        ev: ServiceWorkerGlobalScopeEventMap[K],
+    ) => Promise<void>,
+    options?: boolean | AddEventListenerOptions,
+): void {
+    sw.addEventListener(
+        type,
+        function (event) {
+            event.waitUntil(listener.call(this, event))
+        },
+        options,
+    )
+}
 
 function escapeRegExp(string: string): string {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -130,33 +157,28 @@ async function cacheBook(b: Book): Promise<void> {
     await cache.addAll(pageUrls)
 }
 
-sw.addEventListener('message', function (event) {
-    event.waitUntil(
-        (async () => {
-            const message: Message = event.data
-            // console.log(message)
+addAsyncEventListener('message', async function (event) {
+    const message: Message = event.data
 
-            let books: DBBook[] | undefined
-            if (message.type === 'download-book') {
-                books = await book.list({ id: message.bookID })
-            }
-            if (message.type === 'download-series') {
-                books = await book.list({ series: message.seriesName })
-            }
-            // console.log(books)
+    let books: DBBook[] | undefined
+    if (message.type === 'download-book') {
+        books = await book.list({ id: message.bookID })
+    }
+    if (message.type === 'download-series') {
+        books = await book.list({ series: message.seriesName })
+    }
+    // console.log(books)
 
-            if (books !== undefined) {
-                for (const b of books) {
-                    await cacheBook(b)
-                    b.downloaded = true
-                    b.dirty = 1
-                }
-                await DB.books.bulkPut(books)
-                event.source?.postMessage('book updated')
-            }
-        })(),
-    )
+    if (books !== undefined) {
+        for (const b of books) {
+            await cacheBook(b)
+            b.downloaded = true
+            b.dirty = 1
+        }
+        await DB.books.bulkPut(books)
+        respond(event, { type: 'book-update' })
+    }
 })
 
 // eslint-disable-next-line no-console
-console.log('v16')
+console.log('v21')

@@ -16,6 +16,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
             </div>
         )
     }
+
     return (
         <div class={styles.bookList}>
             {props.books.map(b => (

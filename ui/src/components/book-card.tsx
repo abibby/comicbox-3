@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { useOnline } from '../cache'
 import { DBBook } from '../database'
 import { useComputed } from '../hooks/computed'
 import { usePageURL } from '../hooks/page'
@@ -34,6 +35,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             ],
         ]
     }, [props.book])
+    const online = useOnline()
 
     let title = ''
     if (props.book.volume) {
@@ -59,7 +61,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             title={props.book.series}
             subtitle={title}
             menu={menu}
-            disabled={!props.book.downloaded}
+            disabled={!online && !props.book.downloaded}
         />
     )
 }

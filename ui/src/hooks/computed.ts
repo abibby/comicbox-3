@@ -6,7 +6,7 @@ export function useComputed<T>(compute: () => T, inputs: Inputs): T {
     useEffect(() => {
         setValue(compute)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [setValue, compute, ...inputs])
+    }, [setValue, ...inputs])
 
     return value
 }

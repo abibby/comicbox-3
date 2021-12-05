@@ -4,6 +4,7 @@
 - [ ] Make sure deleted users can't use their token to change things
   - This could be done by checking the db with every request or using a shorter
     timeout and adding a refresh token
+- [ ] Add option to only allow existing users to add new users
 
 # Client
 

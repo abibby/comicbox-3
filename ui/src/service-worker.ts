@@ -134,7 +134,7 @@ sw.addEventListener('message', function (event) {
     event.waitUntil(
         (async () => {
             const message: Message = event.data
-            console.log(message)
+            // console.log(message)
 
             let books: DBBook[] | undefined
             if (message.type === 'download-book') {
@@ -143,7 +143,7 @@ sw.addEventListener('message', function (event) {
             if (message.type === 'download-series') {
                 books = await book.list({ series: message.seriesName })
             }
-            console.log(books)
+            // console.log(books)
 
             if (books !== undefined) {
                 for (const b of books) {
@@ -159,4 +159,4 @@ sw.addEventListener('message', function (event) {
 })
 
 // eslint-disable-next-line no-console
-console.log('v13')
+console.log('v16')

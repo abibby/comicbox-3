@@ -1,6 +1,7 @@
 import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import typescript from '@rollup/plugin-typescript'
+import OMT from '@surma/rollup-plugin-off-main-thread'
 import { RollupOptions } from 'rollup'
 import cleaner from 'rollup-plugin-cleaner'
 import postcss from 'rollup-plugin-postcss'
@@ -9,13 +10,16 @@ import buildAssets from './lib/build-assets-plugin'
 import createHTMLPlugin from './lib/create-html'
 import cssModuleTypes from './lib/css-module-types'
 import { eslint } from './lib/eslint-plugin'
+// import serviceWorkerPlugin from './lib/service-worker-plugin'
 
 const config: RollupOptions = {
-    input: ['src/app.tsx', 'src/service-worker.ts'],
+    input: ['src/app.tsx'],
     output: {
-        format: 'es',
+        format: 'amd',
         dir: 'dist',
-        entryFileNames: '[name].js',
+        entryFileNames: '[name]-[hash].js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: '[name]-[hash].js',
     },
     plugins: [
         cleaner({
@@ -36,8 +40,10 @@ const config: RollupOptions = {
             preventAssignment: true,
         }),
         typescript(),
+        // serviceWorkerPlugin(),
         assetPlugin(),
         nodeResolve(),
+        OMT(),
         createHTMLPlugin({
             templatePath: 'src/index.html',
             output: 'index.html',

@@ -30,9 +30,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 .filter(
                     f => f.type === 'chunk' && f.isEntry && f.name === 'app',
                 )
-                .map(
-                    f => `<script src="/${f.fileName}" type="module"></script>`,
-                )
+                .map(f => `<script src="/${f.fileName}"></script>`)
                 .join('')
 
             const styles = Object.values(bundle)

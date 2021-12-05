@@ -1,5 +1,5 @@
-import assets from 'build:assets'
 import EventTarget from 'event-target-shim'
+import serviceWorkerURL from 'omt:./service-worker.ts'
 import { Fragment, h, render } from 'preact'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
@@ -54,10 +54,9 @@ function Main() {
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<Main />, document.getElementById('app')!)
 
-const swPath = assets.filter(a => a.name === 'service-worker')[0]?.fileName
-if ('serviceWorker' in navigator && swPath) {
+if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-        .register(`/${swPath}`, { scope: '/', type: 'module' })
+        .register(serviceWorkerURL, { scope: '/', type: 'module' })
         .then(reg => {
             console.warn(reg)
             setSW(reg)

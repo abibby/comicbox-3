@@ -14,7 +14,7 @@ module.exports = {
             version: '17.0',
         },
     },
-    ignorePatterns: ['*.css.d.ts'],
+    ignorePatterns: ['*.css.d.ts', 'dist/*'],
     rules: {
         '@typescript-eslint/no-unused-vars': [1, { varsIgnorePattern: '^h$' }],
         'object-shorthand': [2, 'methods'],

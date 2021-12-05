@@ -4,7 +4,10 @@ import { Plugin } from 'rollup'
 import { createFilter } from 'rollup-pluginutils'
 
 function normalizePath(id: string): string {
-    return path.relative(process.cwd(), id).split(path.sep).join('/')
+    return path
+        .relative(process.cwd(), id.replace(/^.*:/, ''))
+        .split(path.sep)
+        .join('/')
 }
 
 interface EslintOptions {

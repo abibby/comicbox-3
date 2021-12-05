@@ -5,7 +5,11 @@ html {
 }
 
 body {
+    margin: 10px;
     margin-bottom: 55px;
+    min-height: calc(100vh - 65px);
+    display: flex;
+    flex-direction: column;
 }
 
 .shell {
@@ -76,6 +80,7 @@ body {
     body {
         margin-top: 48px;
         margin-bottom: 0;
+        min-height: calc(100vh - 58px);
     }
 
     .nav {

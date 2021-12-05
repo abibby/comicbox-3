@@ -1,8 +1,8 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { book, pageURL } from '../api'
+import { useCallback, useRef, useState } from 'preact/hooks'
+import { book } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
 import { EditBook } from '../components/book-edit'
@@ -20,16 +20,6 @@ interface PageProps {
         id: string
         page: string
     }
-}
-
-function preloadImages(srcs: Array<Promise<string>>) {
-    return Promise.all(srcs).then(srcs => {
-        srcs.map(src => {
-            const img = new Image()
-            img.src = src
-            return img
-        })
-    })
 }
 
 export const Page: FunctionalComponent<PageProps> = props => {
@@ -64,16 +54,16 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
     const previous = usePreviousBook(`page:${b.id}:previous`, b)
     const next = useNextBook(`page:${b.id}:next`, b)
 
-    const [twoPage, setTwoPage] = useState(true)
+    const [twoPage, setTwoPage] = useState(false)
     let nextPage = page + 1
     let previousPage = page - 1
 
     const pageCount =
         b.pages.filter(p => p.type !== PageType.Deleted).length - 1
 
-    const twoPagesVisible = twoPage && canShowTwoPages(b, page, pageCount)
+    const twoPagesVisible = showTwoPages(twoPage, b, page, pageCount)
 
-    if (twoPage && canShowTwoPages(b, page - 2, pageCount)) {
+    if (showTwoPages(twoPage, b, page - 2, pageCount)) {
         previousPage = page - 2
     }
 
@@ -87,16 +77,6 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
         leftPage = nextPage
         rightPage = previousPage
     }
-
-    useEffect(() => {
-        // TODO: preload images from next and previous books
-        preloadImages([
-            pageURL(b, page - 2),
-            pageURL(b, page - 1),
-            pageURL(b, page + 1),
-            pageURL(b, page + 2),
-        ])
-    }, [b, page])
 
     const [menuOpen, setMenuOpen] = useState(false)
 
@@ -201,8 +181,8 @@ export const PageContent: FunctionalComponent<PageContentProps> = props => {
             {twoPagesVisible && <img class={styles.image} src={nextPageURL} />}
 
             <div class={styles.direction}>
-                <svg viewBox='0 0 200 100'>
-                    <path d='M0,20 H150 V0 L200,50 L150,100 V80 H0 z' />
+                <svg viewBox='0 0 30 15'>
+                    <path d='M0,4 H22.5 V0 L30,7.5 L22.5,15 V11 H0 z' />
                 </svg>
             </div>
             <div class={styles.overlay} ref={overlay}>
@@ -251,19 +231,25 @@ function pageUnindex(book: Book, page: number): number {
         .length
 }
 
-function canShowTwoPages(b: Book, page: number, pageCount: number): boolean {
+function showTwoPages(
+    towPage: boolean,
+    b: Book,
+    page: number,
+    pageCount: number,
+): boolean {
     if (page + 1 > pageCount) {
         return false
     }
     if (
-        b.pages[pageIndex(b, page)]?.type === PageType.Story &&
-        b.pages[pageIndex(b, page + 1)]?.type === PageType.Story
+        b.pages[pageIndex(b, page)]?.type === PageType.SpreadSplit &&
+        b.pages[pageIndex(b, page + 1)]?.type === PageType.SpreadSplit
     ) {
         return true
     }
     if (
-        b.pages[pageIndex(b, page)]?.type === PageType.SpreadSplit &&
-        b.pages[pageIndex(b, page + 1)]?.type === PageType.SpreadSplit
+        towPage &&
+        b.pages[pageIndex(b, page)]?.type === PageType.Story &&
+        b.pages[pageIndex(b, page + 1)]?.type === PageType.Story
     ) {
         return true
     }

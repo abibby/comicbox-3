@@ -61,8 +61,6 @@ setCacheHandler(book.reading, async (): Promise<Book[]> => {
         .equals('reading')
         .toArray()
 
-    console.log(s)
-
     const bookPromises = s.map(s =>
         DB.books
             .where(['series', 'completed', 'sort'])

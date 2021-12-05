@@ -1,0 +1,23 @@
+.tabContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.tabButtonList {
+    display: flex;
+}
+.tabButton {
+    border: none;
+    z-index: 2;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin: 4px;
+    background: none;
+}
+.active {
+    background-color: lightgray;
+    position: relative;
+}
+
+.activeTab {
+}

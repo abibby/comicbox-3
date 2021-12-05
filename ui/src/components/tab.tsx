@@ -1,6 +1,8 @@
 import { bind } from '@zwzn/spicy'
 import { FunctionalComponent, h, VNode } from 'preact'
 import { useState } from 'preact/hooks'
+import classNames from '../classnames'
+import styles from './tab.module.css'
 
 export interface TabContainerProps {
     children: VNode<TabProps>[]
@@ -10,15 +12,21 @@ export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
     const [activeTab, setActiveTab] = useState(0)
     const tabs = props.children
     return (
-        <div>
-            <div>
+        <div class={styles.tabContainer}>
+            <div class={styles.tabButtonList}>
                 {tabs.map((t, i) => (
-                    <button type='button' onClick={bind(i, setActiveTab)}>
+                    <button
+                        class={classNames(styles.tabButton, {
+                            [styles.active]: i === activeTab,
+                        })}
+                        type='button'
+                        onClick={bind(i, setActiveTab)}
+                    >
                         {t.props.title}
                     </button>
                 ))}
             </div>
-            {tabs[activeTab]}
+            <div class={styles.activeTab}>{tabs[activeTab]}</div>
         </div>
     )
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"image"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -105,12 +106,24 @@ func loadBookData(file string) (*models.Book, error) {
 		return nil, errors.Wrap(err, "could not list page images from zip file")
 	}
 
-	numPages := len(imgs)
-	tmpPages := make([]*models.Page, numPages)
-	for i := 0; i < numPages; i++ {
+	tmpPages := make([]*models.Page, len(imgs))
+	for i, img := range imgs {
 		typ := models.Story
 		if i == 0 {
 			typ = models.FrontCover
+		} else {
+			f, err := img.Open()
+			if err != nil {
+				return nil, err
+			}
+			cfg, _, err := image.DecodeConfig(f)
+			if err != nil {
+				return nil, err
+			}
+			if cfg.Height < cfg.Width {
+				typ = models.Spread
+			}
+			f.Close()
 		}
 		tmpPages[i] = &models.Page{
 			Type: typ,

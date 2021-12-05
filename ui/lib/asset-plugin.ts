@@ -18,14 +18,15 @@ export default function assetPlugin(): Plugin {
                 return
             }
             const fileName = basename(id)
-            this.emitFile({
+            const f = this.emitFile({
                 type: 'asset',
-                fileName: fileName,
                 name: fileName,
                 source: await readFile(id.slice(prefix.length)),
             })
 
-            return `export default ${JSON.stringify('/' + fileName)}`
+            // console.log(f)
+
+            return `export default "/" + import.meta.ROLLUP_FILE_URL_${f}`
         },
     }
 }

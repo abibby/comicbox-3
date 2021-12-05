@@ -56,9 +56,8 @@ render(<Main />, document.getElementById('app')!)
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
-        .register(serviceWorkerURL, { scope: '/', type: 'module' })
+        .register(serviceWorkerURL, { scope: '/' })
         .then(reg => {
-            console.warn(reg)
             setSW(reg)
         })
         .catch(err => {

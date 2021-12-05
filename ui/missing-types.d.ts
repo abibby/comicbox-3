@@ -32,7 +32,7 @@ declare module '@surma/rollup-plugin-off-main-thread' {
         // Function name to use instead of AMD’s define.
         amdFunctionName?: string
         // A function that determines whether the loader code should be prepended to a certain chunk. Should return true if the load is suppsoed to be prepended.
-        prependLoader?: () => void
+        prependLoader?: () => boolean
         // Scheme to use when importing workers as URLs. If undefined, OMT will use "omt".
         urlLoaderScheme?: string
     }

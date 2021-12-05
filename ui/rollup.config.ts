@@ -10,6 +10,8 @@ import buildAssets from './lib/build-assets-plugin'
 import createHTMLPlugin from './lib/create-html'
 import cssModuleTypes from './lib/css-module-types'
 import { eslint } from './lib/eslint-plugin'
+import resolveFilePlugin from './lib/resolve-file-plugin'
+import staticFileNamePlugin from './lib/static-file-name-plugin'
 
 const config: RollupOptions = {
     input: ['src/app.tsx'],
@@ -24,6 +26,10 @@ const config: RollupOptions = {
         cleaner({
             targets: ['./dist'],
         }),
+        staticFileNamePlugin({
+            files: ['service-worker'],
+        }),
+        resolveFilePlugin(),
         cssModuleTypes('src'),
         postcss({
             autoModules: true,
@@ -32,11 +38,12 @@ const config: RollupOptions = {
         }),
         eslint({
             include: /.*\.tsx?$/,
-            // exclude: [/node_modules/, /rollup\.config\.ts$/]
         }),
         replace({
-            __ENV: JSON.stringify('development'),
             preventAssignment: true,
+            values: {
+                __ENV: JSON.stringify('development'),
+            },
         }),
         typescript(),
         assetPlugin(),

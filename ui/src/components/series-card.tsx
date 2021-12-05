@@ -11,7 +11,14 @@ import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
 import { Data, Form } from './form/form'
 import { Select } from './form/select'
-import { Modal, ModalBody, ModalComponent, ModalHead, openModal } from './modal'
+import {
+    Modal,
+    ModalBody,
+    ModalComponent,
+    ModalFoot,
+    ModalHead,
+    openModal,
+} from './modal'
 
 interface SeriesCardProps {
     series: Series
@@ -76,18 +83,19 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
     return (
         <Modal>
             <ModalHead close={close}>Edit Book</ModalHead>
-            <ModalBody>
-                <Form onSubmit={submit}>
+            <Form onSubmit={submit}>
+                <ModalBody>
                     <Select
                         title='List'
                         name='list'
                         value={series.user_series?.list ?? ''}
                         options={listOptions}
                     />
-
+                </ModalBody>
+                <ModalFoot>
                     <button type='submit'>Save</button>
-                </Form>
-            </ModalBody>
+                </ModalFoot>
+            </Form>
         </Modal>
     )
 }

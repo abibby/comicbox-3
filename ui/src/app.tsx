@@ -12,10 +12,10 @@ import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
 import { setSW } from './message'
 import { Error404 } from './pages/404'
+import { BookView } from './pages/book-view'
 import { Home } from './pages/home'
 import { List } from './pages/lists'
 import { Login } from './pages/login'
-import { Page } from './pages/page'
 import { SeriesIndex } from './pages/series-index'
 import { SeriesView } from './pages/series-view'
 import { Settings } from './pages/settings'
@@ -37,7 +37,8 @@ function Main() {
             <Shell>
                 <Router onChange={changePage}>
                     <Home path='/' />
-                    <Page path='/book/:id/:page?' />
+                    {/* <Page path='/book/:id/:page?' /> */}
+                    <BookView path='/book/:id/:page?' />
                     <List path='/list' />
                     <SeriesIndex path='/series' />
                     <SeriesView path='/series/:series' />

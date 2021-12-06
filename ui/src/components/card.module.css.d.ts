@@ -6,6 +6,7 @@ declare const styles: {
   readonly "menu": string;
   readonly "placeholder": string;
   readonly "disabled": string;
+  readonly "progress": string;
 };
 export = styles;
 

@@ -54,6 +54,11 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
         title += props.book.title
     }
     const coverURL = usePageURL(props.book)
+
+    const currentPage = props.book.user_book?.current_page ?? 0
+    const progress =
+        currentPage !== 0 ? currentPage / (props.book.page_count - 1) : 0
+
     return (
         <Card
             image={coverURL}
@@ -62,6 +67,7 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
             subtitle={title}
             menu={menu}
             disabled={!online && !props.book.downloaded}
+            progress={progress}
         />
     )
 }

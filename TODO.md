@@ -19,3 +19,6 @@
 - [ ] Offline Support
 - [ ] Add option to change from one page to two page view
   - Start as auto, based on portrait/landscape, and add forced options
+- [ ] look into update process. It looks like it responds to js requests with
+      index.html after an update
+- [ ] add support for one page books

@@ -53,3 +53,13 @@
 .disabled {
     opacity: 0.5;
 }
+
+.progress {
+    position: absolute;
+    top: 243px;
+    left: 0px;
+    right: 0px;
+    height: 7px;
+    background-color: rgb(var(--primary));
+    transform: translate(calc(-100% + var(--progress) * 100%));
+}

@@ -19,3 +19,6 @@
 - [ ] Offline Support
 - [ ] Add option to change from one page to two page view
   - Start as auto, based on portrait/landscape, and add forced options
+- [ ] navigate to next/previous book when moving to next/previous on first/last
+      page
+- [ ] add keyboard nav to reader

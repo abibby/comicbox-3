@@ -13,6 +13,7 @@ interface BookProps {
     menu?: ContextMenuItems
     placeholder?: boolean
     disabled?: boolean
+    progress?: number
 }
 
 export const Card: FunctionalComponent<BookProps> = props => {
@@ -34,6 +35,7 @@ export const Card: FunctionalComponent<BookProps> = props => {
             })}
         >
             <a href={props.link}>
+                <Progress progress={props.progress ?? 0} />
                 <img
                     class={styles.cover}
                     src={props.image}
@@ -50,4 +52,12 @@ export const Card: FunctionalComponent<BookProps> = props => {
             </a>
         </div>
     )
+}
+
+interface ProgressProps {
+    progress: number
+}
+
+const Progress: FunctionalComponent<ProgressProps> = ({ progress }) => {
+    return <div class={styles.progress} style={{ '--progress': progress }} />
 }

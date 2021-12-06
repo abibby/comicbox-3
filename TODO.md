@@ -22,3 +22,6 @@
 - [ ] navigate to next/previous book when moving to next/previous on first/last
       page
 - [ ] add keyboard nav to reader
+- [ ] look into update process. It looks like it responds to js requests with
+      index.html after an update
+- [ ] add support for one page books

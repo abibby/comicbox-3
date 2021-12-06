@@ -1,9 +1,12 @@
-import { FunctionalComponent, h } from 'preact'
+import { bindValue } from '@zwzn/spicy'
+import { FunctionalComponent, h, RefObject } from 'preact'
 import { route } from 'preact-router'
-import { useCallback, useEffect, useRef } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { book } from '../api'
-import { useCached } from '../cache'
+import { persist, useCached } from '../cache'
 import classNames from '../classnames'
+import { EditBook } from '../components/book-edit'
+import { openModal } from '../components/modal'
 import { DB } from '../database'
 import { usePageURL } from '../hooks/page'
 import { Book, Page, PageType } from '../models'
@@ -45,7 +48,6 @@ interface ReaderProps {
 const Reader: FunctionalComponent<ReaderProps> = props => {
     const b = props.book
     const page = props.page
-    const bookID = b.id
     const rtl = b.rtl
 
     const pages = splitPages(b, false)
@@ -53,39 +55,171 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const pageList = useRef<HTMLDivElement>(null)
     const lastPage = useRef(-1)
-    const scroll = useCallback(() => {
+    const getCurrentIndex = useCallback(() => {
         const currentScroll = Math.abs(pageList.current?.scrollLeft ?? 0)
         const maxScroll = pageList.current?.scrollWidth ?? 0
-        const currentPage = Math.round((currentScroll / maxScroll) * pageCount)
-        if (lastPage.current !== currentPage) {
-            route(`/book/${bookID}/${currentPage}`, true)
-            lastPage.current = currentPage
+        return Math.round((currentScroll / maxScroll) * pageCount)
+    }, [pageCount])
+    const getCurrentPage = useCallback(() => {
+        const currentIndex = getCurrentIndex()
+
+        let currentPage = 0
+        for (const page of pages.slice(0, currentIndex)) {
+            currentPage += page.length
         }
-    }, [bookID, pageCount])
+        return currentPage
+    }, [getCurrentIndex, pages])
+
+    const setCurrentIndex = useCallback(
+        (newIndex: number | string) => {
+            const maxScroll = pageList.current?.scrollWidth ?? 0
+
+            const invert = rtl ? -1 : 1
+            pageList.current?.scroll({
+                left: (maxScroll / pageCount) * Number(newIndex) * invert,
+            })
+        },
+        [pageCount, rtl],
+    )
+    const setCurrentPage = useCallback(
+        (newPage: number) => {
+            let currentPage = 0
+            for (const [i, page] of pages.entries()) {
+                currentPage += page.length
+                if (currentPage > newPage) {
+                    setCurrentIndex(i)
+                    return
+                }
+            }
+        },
+        [pages, setCurrentIndex],
+    )
+
+    const scroll = useCallback(() => {
+        const currentPage = getCurrentPage()
+        if (lastPage.current !== currentPage) {
+            route(`/book/${b.id}/${currentPage}`, true)
+            lastPage.current = currentPage
+
+            DB.saveBook(b, {
+                user_book: {
+                    current_page: pageIndex(b, currentPage),
+                },
+            })
+            persist(true)
+        }
+    }, [b, getCurrentPage])
 
     useEffect(() => {
-        const currentScroll = Math.abs(pageList.current?.scrollLeft ?? 0)
-        const maxScroll = pageList.current?.scrollWidth ?? 0
-        const currentPage = Math.round((currentScroll / maxScroll) * pageCount)
+        const currentPage = getCurrentPage()
         if (page !== currentPage) {
-            const invert = rtl ? -1 : 1
-            pageList.current?.scroll((maxScroll / pageCount) * page * invert, 0)
+            setCurrentPage(page)
         }
-    }, [bookID, page, pageCount, rtl])
+    }, [getCurrentPage, page, setCurrentPage])
+
+    const [menuOpen, setMenuOpen] = useState(false)
+    const overlay = useRef<HTMLDivElement>(null)
+    const click = useCallback(
+        (event: MouseEvent) => {
+            if (menuOpen) {
+                if (event.target === overlay.current) {
+                    setMenuOpen(false)
+                }
+                return
+            }
+
+            const currentPage = getCurrentIndex()
+
+            const section = ['left', 'center', 'right'][
+                Math.floor((event.pageX / window.innerWidth) * 3)
+            ]
+            let leftPage = currentPage - 1
+            let rightPage = currentPage + 1
+
+            if (rtl) {
+                ;[leftPage, rightPage] = [rightPage, leftPage]
+            }
+
+            switch (section) {
+                case 'left':
+                    setCurrentIndex(leftPage)
+                    break
+                case 'right':
+                    setCurrentIndex(rightPage)
+                    break
+                case 'center':
+                    setMenuOpen(true)
+                    return
+            }
+        },
+        [getCurrentIndex, menuOpen, rtl, setCurrentIndex],
+    )
 
     return (
-        <div class={styles.reader}>
-            <div
-                class={classNames(styles.pageList, {
-                    // [styles.menuOpen]: menuOpen,
-                    [styles.rtl]: b.rtl,
-                })}
-                ref={pageList}
-                onScroll={scroll}
-            >
+        <div
+            class={classNames(styles.reader, {
+                [styles.menuOpen]: menuOpen,
+                [styles.rtl]: b.rtl,
+            })}
+            onClick={click}
+        >
+            <div class={styles.direction}>
+                <svg viewBox='0 0 30 15'>
+                    <path d='M0,4 H22.5 V0 L30,7.5 L22.5,15 V11 H0 z' />
+                </svg>
+            </div>
+            <Overlay
+                book={b}
+                page={lastPage.current}
+                pageCount={pages.length}
+                baseRef={overlay}
+                changePage={setCurrentIndex}
+            />
+            <div class={styles.pageList} ref={pageList} onScroll={scroll}>
                 {pages.map(p => (
                     <PageView pages={p} />
                 ))}
+            </div>
+        </div>
+    )
+}
+
+interface OverlayProps {
+    book: Book
+    page: number
+    pageCount: number
+    baseRef: RefObject<HTMLDivElement>
+    changePage: (page: number | string) => void
+}
+
+const Overlay: FunctionalComponent<OverlayProps> = props => {
+    const b = props.book
+    const edit = useCallback(() => {
+        openModal(EditBook, { book: b })
+    }, [b])
+
+    return (
+        <div class={styles.overlay} ref={props.baseRef}>
+            <button type='button' onClick={edit}>
+                Edit
+            </button>
+            <div class={styles.slider}>
+                <input
+                    class={styles.range}
+                    type='range'
+                    value={props.page}
+                    min={0}
+                    max={props.pageCount}
+                    onChange={bindValue(props.changePage)}
+                />
+                <input
+                    class={styles.number}
+                    type='number'
+                    value={props.page}
+                    min={0}
+                    max={props.pageCount}
+                    onChange={bindValue(props.changePage)}
+                />
             </div>
         </div>
     )
@@ -154,6 +288,20 @@ function getPage(book: Book, page: number): Page | undefined {
         }
     }
     return undefined
+}
+
+function pageIndex(book: Book, page: number): number {
+    let currentPage = -1
+    for (const [i, p] of book.pages.entries()) {
+        if (p.type !== PageType.Deleted) {
+            currentPage++
+        }
+
+        if (currentPage === page) {
+            return i
+        }
+    }
+    return page
 }
 
 function pageUnindex(book: Book, page: number): number {

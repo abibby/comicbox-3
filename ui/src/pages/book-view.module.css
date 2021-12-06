@@ -7,6 +7,9 @@
     z-index: 200;
     background-color: black;
 }
+.reader.menuOpen {
+    z-index: 0;
+}
 
 .pageList {
     overflow-x: auto;
@@ -18,7 +21,7 @@
     bottom: 0;
 }
 
-.pageList.rtl {
+.rtl .pageList {
     direction: rtl;
 }
 .page {
@@ -49,4 +52,58 @@
 }
 .rtl .twoPage img:nth-child(2) {
     object-position: 100% 50%;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    color: #fff;
+    padding-bottom: 55px;
+    direction: ltr;
+    background-color: #000000c0;
+}
+.menuOpen .overlay {
+    display: block;
+}
+.slider {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.slider .range {
+    width: 100%;
+}
+.rtl .slider .range {
+    direction: rtl;
+}
+.slider .number {
+    width: 100%;
+}
+
+.direction {
+    position: fixed;
+    right: 2px;
+    bottom: 2px;
+    width: 30px;
+}
+.direction path {
+    fill: black;
+    stroke: white;
+    stroke-width: 1px;
+}
+.rtl .direction {
+    transform: translate(-50%, -50%) rotate(180deg);
+}
+
+@media screen and (min-width: 500px) {
+    .overlay {
+        padding-top: 48px;
+        padding-bottom: 0;
+    }
 }

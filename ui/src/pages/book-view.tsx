@@ -2,6 +2,9 @@ import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import { useNextBook, usePreviousBook } from 'src/hooks/book'
+import { useWindowEvent } from 'src/hooks/event-listener'
+import { useResizeEffect } from 'src/hooks/resize-effect'
 import { book } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
@@ -50,11 +53,17 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const page = props.page
     const rtl = b.rtl
 
-    const pages = splitPages(b, false)
+    const [landscape, setLandscape] = useState(
+        window.innerWidth > window.innerHeight,
+    )
+    useResizeEffect(() => {
+        setLandscape(window.innerWidth > window.innerHeight)
+    }, [])
+
+    const pages = splitPages(b, landscape)
     const pageCount = pages.length
 
     const pageList = useRef<HTMLDivElement>(null)
-    const lastPage = useRef(-1)
     const getCurrentIndex = useCallback(() => {
         const currentScroll = Math.abs(pageList.current?.scrollLeft ?? 0)
         const maxScroll = pageList.current?.scrollWidth ?? 0
@@ -70,8 +79,34 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         return currentPage
     }, [getCurrentIndex, pages])
 
+    const nextBook = useNextBook(`read:${b.id}:next`, b)
+    const previousBook = usePreviousBook(`read:${b.id}:previous`, b)
+
     const setCurrentIndex = useCallback(
-        (newIndex: number | string) => {
+        async (newIndex: number | string) => {
+            if (newIndex >= pageCount) {
+                if (nextBook) {
+                    route(
+                        `/book/${nextBook.id}/${
+                            nextBook.user_book?.current_page ?? 0
+                        }`,
+                    )
+                } else {
+                    route(`/`)
+                }
+            }
+            if (newIndex < 0) {
+                if (previousBook) {
+                    route(
+                        `/book/${previousBook.id}/${
+                            previousBook.user_book?.current_page ?? 0
+                        }`,
+                    )
+                } else {
+                    route(`/`)
+                }
+            }
+
             const maxScroll = pageList.current?.scrollWidth ?? 0
 
             const invert = rtl ? -1 : 1
@@ -79,7 +114,13 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 left: (maxScroll / pageCount) * Number(newIndex) * invert,
             })
         },
-        [pageCount, rtl],
+        [nextBook, pageCount, previousBook, rtl],
+    )
+    const updateCurrentIndex = useCallback(
+        (offset: number) => {
+            setCurrentIndex(getCurrentIndex() + offset)
+        },
+        [getCurrentIndex, setCurrentIndex],
     )
     const setCurrentPage = useCallback(
         (newPage: number) => {
@@ -95,6 +136,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         [pages, setCurrentIndex],
     )
 
+    const lastPage = useRef(-1)
     const scroll = useCallback(() => {
         const currentPage = getCurrentPage()
         if (lastPage.current !== currentPage) {
@@ -117,6 +159,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         }
     }, [getCurrentPage, page, setCurrentPage])
 
+    let leftOffset = -1
+    let rightOffset = +1
+
+    if (rtl) {
+        ;[leftOffset, rightOffset] = [rightOffset, leftOffset]
+    }
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
@@ -128,31 +176,38 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
 
-            const currentPage = getCurrentIndex()
-
             const section = ['left', 'center', 'right'][
                 Math.floor((event.pageX / window.innerWidth) * 3)
             ]
-            let leftPage = currentPage - 1
-            let rightPage = currentPage + 1
-
-            if (rtl) {
-                ;[leftPage, rightPage] = [rightPage, leftPage]
-            }
 
             switch (section) {
                 case 'left':
-                    setCurrentIndex(leftPage)
+                    updateCurrentIndex(leftOffset)
                     break
                 case 'right':
-                    setCurrentIndex(rightPage)
+                    updateCurrentIndex(rightOffset)
                     break
                 case 'center':
                     setMenuOpen(true)
                     return
             }
         },
-        [getCurrentIndex, menuOpen, rtl, setCurrentIndex],
+        [leftOffset, menuOpen, rightOffset, updateCurrentIndex],
+    )
+
+    useWindowEvent(
+        'keydown',
+        e => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    updateCurrentIndex(leftOffset)
+                    break
+                case 'ArrowRight':
+                    updateCurrentIndex(rightOffset)
+                    break
+            }
+        },
+        [],
     )
 
     return (
@@ -170,7 +225,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             </div>
             <Overlay
                 book={b}
-                page={lastPage.current}
+                page={page}
                 pageCount={pages.length}
                 baseRef={overlay}
                 changePage={setCurrentIndex}

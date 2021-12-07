@@ -1,4 +1,6 @@
 .book {
+    position: relative;
+    overflow: hidden;
     contain: strict;
     width: 100%;
     height: 300px;

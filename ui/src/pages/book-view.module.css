@@ -91,6 +91,7 @@
     right: 2px;
     bottom: 2px;
     width: 30px;
+    color: white;
 }
 .direction path {
     fill: black;

@@ -27,7 +27,6 @@ interface SeriesCardProps {
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     const menu = useComputed<ContextMenuItems>(() => {
         return [
-            ['view', `/series/${props.series.name}`],
             [
                 'edit',
                 () =>

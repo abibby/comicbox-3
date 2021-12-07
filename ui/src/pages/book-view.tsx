@@ -73,7 +73,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         const currentIndex = getCurrentIndex()
 
         let currentPage = 0
-        for (const page of pages.slice(0, currentIndex)) {
+        for (const page of pages.slice(0, currentIndex + 1)) {
             currentPage += page.length
         }
         return currentPage
@@ -353,6 +353,8 @@ function pageIndex(book: Book, page: number): number {
         }
 
         if (currentPage === page) {
+            console.log(page, i)
+
             return i
         }
     }

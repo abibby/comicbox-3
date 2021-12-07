@@ -59,5 +59,20 @@ interface ProgressProps {
 }
 
 const Progress: FunctionalComponent<ProgressProps> = ({ progress }) => {
-    return <div class={styles.progress} style={{ '--progress': progress }} />
+    return (
+        <div
+            class={styles.progress}
+            style={{ '--progress': clamp(progress, 0, 1) }}
+        />
+    )
+}
+
+function clamp(value: number, min: number, max: number): number {
+    if (value > max) {
+        return max
+    }
+    if (value < min) {
+        return min
+    }
+    return value
 }

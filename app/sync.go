@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
@@ -27,7 +28,7 @@ import (
 func Sync(ctx context.Context) error {
 	log.Print("Starting sync")
 
-	bookFiles, err := getBookFiles(ctx)
+	bookFiles, err := getBookFiles(ctx, config.LibraryPath)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch book files from disk")
 	}
@@ -63,10 +64,10 @@ func Sync(ctx context.Context) error {
 
 }
 
-func getBookFiles(ctx context.Context) (map[string]struct{}, error) {
+func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error) {
 	bookFiles := map[string]struct{}{}
 
-	err := filepath.Walk("/home/adam/manga", func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -85,7 +86,9 @@ func getBookFiles(ctx context.Context) (map[string]struct{}, error) {
 
 func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	book, err := loadBookData(file)
-	if err != nil {
+	if errors.Is(err, zip.ErrFormat) {
+		return nil
+	} else if err != nil {
 		return errors.Wrap(err, "failed to load book data from file")
 	}
 	book.ID = uuid.New()

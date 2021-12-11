@@ -27,8 +27,8 @@ func main() {
 	db, err := sqlx.Open("sqlite", "./prod-db.sqlite")
 	check(err)
 
-	// migrateBooks(ctx, db)
-	// migrateUsers(ctx, db)
-	// migrateUserSeries(ctx, db)
+	migrateBooks(ctx, db)
+	migrateUsers(ctx, db)
+	migrateUserSeries(ctx, db)
 	migrateUserBook(ctx, db)
 }

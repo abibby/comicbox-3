@@ -6,7 +6,8 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-	_ "modernc.org/sqlite"
+	// _ "modernc.org/sqlite"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var database *sqlx.DB

@@ -1,10 +1,11 @@
 Dockerfile
+.dockerignore
 .git
 .gitattributes
 .gitignore
 
 *.sqlite
-.cache/*
+cache/*
 bin/*
 .env
 

@@ -19,7 +19,7 @@ COPY --from=ui /dist ui/dist
 RUN GOOS=linux GOARCH=amd64 go install
 
 # Now copy it into our base image.
-FROM alpine:3.15
+FROM ubuntu
 
 # RUN apt-get update && apt-get install -y ca-certificates
 # RUN update-ca-certificates

@@ -198,6 +198,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     useWindowEvent(
         'keydown',
         e => {
+            e.preventDefault()
             switch (e.key) {
                 case 'ArrowLeft':
                     updateCurrentIndex(leftOffset)

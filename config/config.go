@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 	"strings"
@@ -49,7 +51,8 @@ var Verbose bool
 
 func Init() error {
 	err := godotenv.Load("./.env")
-	if err != nil {
+	if errors.Is(err, fs.ErrNotExist) {
+	} else if err != nil {
 		return err
 	}
 	AppKey = []byte(mustEnv("APP_KEY"))

@@ -1,0 +1,13 @@
+Dockerfile
+.git
+.gitattributes
+.gitignore
+
+*.sqlite
+.cache/*
+bin/*
+.env
+
+ui/dist/*
+
+**/node_modules/*

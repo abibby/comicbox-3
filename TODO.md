@@ -25,3 +25,4 @@
 - [ ] look into update process. It looks like it responds to js requests with
       index.html after an update
 - [ ] add support for one page books
+- [ ] Look into thumbnail cache issue with non 200 responses

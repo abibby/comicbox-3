@@ -16,7 +16,7 @@ COPY . .
 
 COPY --from=ui /dist ui/dist
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/comicbox
+RUN GOOS=linux GOARCH=amd64 go build -o bin/comicbox
 
 # Now copy it into our base image.
 FROM alpine:3.15

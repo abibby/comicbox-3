@@ -16,7 +16,7 @@ COPY . .
 
 COPY --from=ui /dist ui/dist
 
-RUN GOOS=linux GOARCH=amd64 go build -o bin/comicbox
+RUN GOOS=linux GOARCH=amd64 go install
 
 # Now copy it into our base image.
 FROM alpine:3.15
@@ -24,7 +24,7 @@ FROM alpine:3.15
 # RUN apt-get update && apt-get install -y ca-certificates
 # RUN update-ca-certificates
 
-COPY --from=go-build /go/src/github.com/abibby/comicbox-3/bin/comicbox /usr/bin/comicbox
+COPY --from=go-build /go/bin/comicbox-3 /comicbox
 
 ENV DB_PATH=/db.sqlite
 ENV LIBRARY_PATH=/comics
@@ -32,4 +32,4 @@ ENV CACHE_PATH=/cache
 
 VOLUME ["/db.sqlite", "/comics", "/cache"]
 
-CMD ["/usr/bin/comicbox"]
+CMD ["/comicbox"]

@@ -10,10 +10,10 @@ FROM golang:1.17 as go-build
 
 WORKDIR /go/src/github.com/abibby/comicbox-3
 
-# Download go dependencies and compile
-# TODO: Figure out a way to cache the go dependencies like we do the JS ones to speed up build
-COPY . .
+COPY go.mod go.sum ./
+RUN go mod download
 
+COPY . .
 COPY --from=ui /dist ui/dist
 
 RUN GOOS=linux GOARCH=amd64 go install

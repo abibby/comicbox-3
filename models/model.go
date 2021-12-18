@@ -3,10 +3,13 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -29,6 +32,24 @@ type Model interface {
 
 type Enum interface {
 	Options() []string
+}
+
+func init() {
+	validate.AddValidatorFunc(
+		func(i interface{}, value string) error {
+			enum, ok := i.(Enum)
+			if !ok {
+				return nil
+			}
+			options := enum.Options()
+			for _, o := range options {
+				if value == o {
+					return nil
+				}
+			}
+			return fmt.Errorf("must be one of %s", strings.Join(options, ", "))
+		},
+	)
 }
 
 func IsEnumValid(enum Enum, value string) bool {

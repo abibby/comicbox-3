@@ -12,10 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type SetValuer interface {
-	SetValue(value string) error
-}
-
 func Run(r *http.Request, requestParams interface{}) error {
 	vErr := NewValidationError()
 	v := reflect.ValueOf(requestParams).Elem()
@@ -34,7 +30,7 @@ func Run(r *http.Request, requestParams interface{}) error {
 
 		rules := []*Rule{}
 
-		if tag, ok := f.Tag.Lookup("validate"); ok {
+		if tag, ok := f.Tag.Lookup("validate"); ok && tag != "" {
 			for _, v := range strings.Split(tag, "|") {
 				parts := strings.SplitN(v, ":", 2)
 				params := []string{}
@@ -52,12 +48,14 @@ func Run(r *http.Request, requestParams interface{}) error {
 			continue
 		}
 
-		errs := valid(value, rules)
+		fieldValue := v.Field(i)
+
+		errs := valid(fieldValue.Interface(), value, rules)
 		if len(errs) != 0 {
 			vErr.Push(name, errs)
 		}
 		if _, ok := f.Tag.Lookup("json"); !ok {
-			err := setValue(v.Field(i), value)
+			err := setValue(fieldValue, value)
 			if err != nil {
 				return errors.Wrap(err, "failed to set value")
 			}
@@ -123,7 +121,7 @@ func setValue(f reflect.Value, value string) error {
 	if value == "" {
 		return nil
 	}
-	if _, ok := f.Interface().(json.Unmarshaler); ok {
+	if u, ok := f.Interface().(json.Unmarshaler); ok {
 		if f.IsNil() {
 			f.Set(reflect.New(f.Type().Elem()))
 		}
@@ -131,14 +129,7 @@ func setValue(f reflect.Value, value string) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal json")
 		}
-		err = f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
-		return errors.Wrap(err, "failed to unmarshal json")
-	}
-	if sv, ok := f.Interface().(SetValuer); ok {
-		if f.IsNil() {
-			f.Set(reflect.New(f.Type().Elem()))
-		}
-		err := sv.SetValue(value)
+		err = u.UnmarshalJSON(b)
 		return errors.Wrap(err, "failed to unmarshal json")
 	}
 

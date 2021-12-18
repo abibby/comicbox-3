@@ -111,9 +111,9 @@ func loadBookData(file string) (*models.Book, error) {
 
 	tmpPages := make([]*models.Page, len(imgs))
 	for i, img := range imgs {
-		typ := models.Story
+		typ := models.PageTypeStory
 		if i == 0 {
-			typ = models.FrontCover
+			typ = models.PageTypeFrontCover
 		} else {
 			f, err := img.Open()
 			if err != nil {
@@ -124,7 +124,7 @@ func loadBookData(file string) (*models.Book, error) {
 				return nil, err
 			}
 			if cfg.Height < cfg.Width {
-				typ = models.Spread
+				typ = models.PageTypeSpread
 			}
 			f.Close()
 		}

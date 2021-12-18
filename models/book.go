@@ -21,20 +21,20 @@ type PageType string
 
 func (pt PageType) Options() []string {
 	return []string{
-		string(FrontCover),
-		string(Story),
-		string(Spread),
-		string(SpreadSplit),
-		string(Deleted),
+		string(PageTypeFrontCover),
+		string(PageTypeStory),
+		string(PageTypeSpread),
+		string(PageTypeSpreadSplit),
+		string(PageTypeDeleted),
 	}
 }
 
 const (
-	FrontCover  = PageType("FrontCover")
-	Story       = PageType("Story")
-	Spread      = PageType("Spread")
-	SpreadSplit = PageType("SpreadSplit")
-	Deleted     = PageType("Deleted")
+	PageTypeFrontCover  = PageType("FrontCover")
+	PageTypeStory       = PageType("Story")
+	PageTypeSpread      = PageType("Spread")
+	PageTypeSpreadSplit = PageType("SpreadSplit")
+	PageTypeDeleted     = PageType("Deleted")
 )
 
 type Book struct {
@@ -140,10 +140,10 @@ func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 func (b *Book) CoverPage() int {
 	fallback := 0
 	for i, page := range b.Pages {
-		if page.Type == FrontCover {
+		if page.Type == PageTypeFrontCover {
 			return i
 		}
-		if page.Type != Deleted && fallback == 0 {
+		if page.Type != PageTypeDeleted && fallback == 0 {
 			fallback = i
 		}
 	}

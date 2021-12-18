@@ -3,7 +3,6 @@ package models
 import (
 	"database/sql"
 
-	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -11,10 +10,34 @@ import (
 
 type UserSeries struct {
 	BaseModel
-	SeriesName string        `json:"-"    db:"series_name"`
-	UserID     uuid.UUID     `json:"-"    db:"user_id"`
-	List       *nulls.String `json:"list" db:"list"`
+	SeriesName string    `json:"-"    db:"series_name"`
+	UserID     uuid.UUID `json:"-"    db:"user_id"`
+	List       *List     `json:"list" db:"list"`
 }
+
+type List string
+
+func (l List) Options() []string {
+	return []string{
+		string(ListReading),
+		string(ListDropped),
+		string(ListCompleted),
+		string(ListPaused),
+		string(ListPlanning),
+	}
+}
+
+var (
+	ListNone = (*List)(nil)
+)
+
+const (
+	ListReading   = List("reading")
+	ListDropped   = List("dropped")
+	ListCompleted = List("completed")
+	ListPaused    = List("paused")
+	ListPlanning  = List("planning")
+)
 
 func (ub *UserSeries) Model() *BaseModel {
 	return &ub.BaseModel

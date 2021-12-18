@@ -53,7 +53,7 @@ export interface UserSeries {
     updated_at: string
     deleted_at: string | null
     update_map: Record<string, string>
-    list: string | null
+    list: List | null
 }
 export enum PageType {
     FrontCover = "FrontCover",
@@ -61,4 +61,11 @@ export enum PageType {
     Spread = "Spread",
     SpreadSplit = "SpreadSplit",
     Deleted = "Deleted",
+}
+export enum List {
+    reading = "reading",
+    dropped = "dropped",
+    completed = "completed",
+    paused = "paused",
+    planning = "planning",
 }

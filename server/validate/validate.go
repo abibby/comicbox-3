@@ -12,6 +12,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type SetValuer interface {
+	SetValue(value string) error
+}
+
 func Run(r *http.Request, requestParams interface{}) error {
 	vErr := NewValidationError()
 	v := reflect.ValueOf(requestParams).Elem()
@@ -128,6 +132,13 @@ func setValue(f reflect.Value, value string) error {
 			return errors.Wrap(err, "failed to marshal json")
 		}
 		err = f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
+		return errors.Wrap(err, "failed to unmarshal json")
+	}
+	if sv, ok := f.Interface().(SetValuer); ok {
+		if f.IsNil() {
+			f.Set(reflect.New(f.Type().Elem()))
+		}
+		err := sv.SetValue(value)
 		return errors.Wrap(err, "failed to unmarshal json")
 	}
 

@@ -6,7 +6,7 @@ import { DB } from '../database'
 import { useComputed } from '../hooks/computed'
 import { usePageURL } from '../hooks/page'
 import { post } from '../message'
-import { Series } from '../models'
+import { List, Series } from '../models'
 import { Card } from './card'
 import { ContextMenuItems } from './context-menu'
 import { Data, Form } from './form/form'
@@ -69,9 +69,14 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
 }) => {
     const submit = useCallback(
         async (data: Data) => {
+            let list: List | null = null
+            const rawList = data.get('list')
+            if (inEnum(List, rawList)) {
+                list = rawList
+            }
             DB.saveSeries(series, {
                 user_series: {
-                    list: data.get('list') || null,
+                    list: list,
                 },
             })
             persist(true)
@@ -97,4 +102,11 @@ const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             </Form>
         </Modal>
     )
+}
+
+function inEnum(e: typeof List, v: unknown): v is List {
+    if (typeof v !== 'string' && typeof v !== 'number') {
+        return false
+    }
+    return v in e
 }

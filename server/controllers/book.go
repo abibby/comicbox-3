@@ -77,7 +77,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		)
 	}
 
-	index(rw, r, query, &models.BookList{}, afterExprs(r)...)
+	index(rw, r, query, &models.BookList{}, afterExprs(r, false)...)
 }
 
 type BookPageRequest struct {
@@ -209,7 +209,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 		Select(&models.Book{}).
 		Where(goqu.C("id").In(goqu.L(seriesQuery, uid, uid)))
 
-	index(rw, r, query, &models.BookList{}, afterExprs(r)...)
+	index(rw, r, query, &models.BookList{}, afterExprs(r, true)...)
 }
 
 type BookUpdateRequest struct {
@@ -290,12 +290,19 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, book)
 }
 
-func afterExprs(r *http.Request) []exp.Comparable {
-	uid, ok := userID(r)
-	if ok {
-		return []exp.Comparable{
+func afterExprs(r *http.Request, withSeries bool) []exp.Comparable {
+	exprs := []exp.Comparable{}
+
+	if uid, ok := userID(r); ok {
+		exprs = append(exprs,
 			goqu.L("(select updated_at from user_books where book_id=books.id and user_id=?)", uid),
+		)
+		if withSeries {
+			exprs = append(exprs,
+				goqu.L("(select updated_at from user_series where series_name=books.series and user_id=?)", uid),
+			)
 		}
 	}
-	return []exp.Comparable{}
+
+	return exprs
 }

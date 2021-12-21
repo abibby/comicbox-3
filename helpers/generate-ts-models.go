@@ -7,7 +7,6 @@ import (
 	"reflect"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var types = map[string]string{
@@ -62,7 +61,6 @@ func generateTsInterfaceProps(t reflect.Type) string {
 		if v.Anonymous {
 			ts += generateTsInterfaceProps(v.Type)
 		}
-		spew.Dump(i, v)
 		name, ok := v.Tag.Lookup("json")
 		if !ok || name == "-" {
 			continue

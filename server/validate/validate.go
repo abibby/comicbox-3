@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
@@ -56,7 +55,6 @@ func Run(r *http.Request, requestParams interface{}) error {
 			vErr.Push(name, errs)
 		}
 		if _, ok := f.Tag.Lookup("json"); !ok {
-			spew.Dump(f.Name)
 			err := setValue(fieldValue, value)
 			if err != nil {
 				return errors.Wrap(err, "failed to set value")

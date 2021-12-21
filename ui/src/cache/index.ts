@@ -87,8 +87,12 @@ export function useCached<
                     shouldPrompt(items, newItems))
             ) {
                 reload =
-                    (await prompt('New ' + table.name, { reload: true }, 0)) ??
-                    false
+                    (await prompt(
+                        'New ' + table.name,
+                        { reload: true },
+                        0,
+                        'reload-prompt',
+                    )) ?? false
             }
 
             if (reload) {

@@ -41,12 +41,16 @@ export async function prompt<T>(
     message: string,
     options: Record<string, T> = {},
     timeout = 5000,
+    key?: string,
 ): Promise<T | undefined> {
-    return alerts.open<T>({
-        message: message,
-        options: options,
-        timeout: timeout,
-    })
+    return alerts.open<T>(
+        {
+            message: message,
+            options: options,
+            timeout: timeout,
+        },
+        key,
+    )
 }
 
 export function clearAlerts(): void {

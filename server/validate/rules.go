@@ -136,10 +136,12 @@ func paramCount(params []string, count int) error {
 func valid(i interface{}, value string, rules []*Rule) []error {
 	errs := []error{}
 
-	for _, v := range typeValidators {
-		err := v.Validate(i, value)
-		if err != nil {
-			errs = append(errs, err)
+	if value != "" {
+		for _, v := range typeValidators {
+			err := v.Validate(i, value)
+			if err != nil {
+				errs = append(errs, err)
+			}
 		}
 	}
 

@@ -4,7 +4,7 @@ import { ComponentType, FunctionalComponent, h } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
 export interface SubComponentProps {
-    id: number
+    id: number | string
     close(result?: unknown): void
 }
 
@@ -14,7 +14,7 @@ class OpenEvent<TProps extends SubComponentProps> extends Event<'open'> {
     }
 }
 class CloseEvent<T = unknown> extends Event<'close'> {
-    constructor(public id: number, public result: T | undefined) {
+    constructor(public id: number | string, public result: T | undefined) {
         super('close')
     }
 }
@@ -36,24 +36,32 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
     ) {}
 
     public Controller: FunctionalComponent = () => {
-        const [alerts, setAlerts] = useState<TProps[]>([])
+        const [alerts, setAlerts] = useState(new Map<string | number, TProps>())
 
         const onOpen = useCallback(
             (e: OpenEvent<TProps>) => {
-                setAlerts(alerts => alerts.concat([e.props]))
+                setAlerts(alerts => {
+                    const n = new Map(alerts)
+                    n.set(e.props.id, e.props)
+                    return n
+                })
             },
             [setAlerts],
         )
 
         const onClose = useCallback(
             (e: CloseEvent) => {
-                setAlerts(alerts => alerts.filter(alert => alert.id !== e.id))
+                setAlerts(alerts => {
+                    const n = new Map(alerts)
+                    n.delete(e.id)
+                    return n
+                })
             },
             [setAlerts],
         )
 
         const onClear = useCallback(() => {
-            setAlerts([])
+            setAlerts(new Map())
         }, [setAlerts])
 
         useEffect(() => {
@@ -70,7 +78,7 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
         const SubComponents = this.subComponent
         return (
             <div class={this.className}>
-                {alerts.map(alert => (
+                {Array.from(alerts).map(([, alert]) => (
                     <SubComponents {...alert} />
                 ))}
             </div>
@@ -79,17 +87,20 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
 
     public open = <T,>(
         props: Omit<TProps, keyof SubComponentProps>,
+        id?: string,
     ): Promise<T | undefined> => {
         return new Promise(resolve => {
-            const id = this.id
-            this.id++
+            const id2 = id ?? this.id
+            if (id === undefined) {
+                this.id++
+            }
 
             this.target.dispatchEvent(
                 new OpenEvent<TProps>({
                     ...props,
-                    id: id,
+                    id: id2,
                     close: (result: unknown) =>
-                        this.target.dispatchEvent(new CloseEvent(id, result)),
+                        this.target.dispatchEvent(new CloseEvent(id2, result)),
                 } as unknown as TProps),
             )
             const cb = (e: CloseEvent<unknown>) => {

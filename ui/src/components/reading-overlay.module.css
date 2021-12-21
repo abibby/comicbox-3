@@ -1,0 +1,51 @@
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    color: #fff;
+    margin-bottom: 55px;
+    direction: ltr;
+    background-color: #000000c0;
+    padding: 5px;
+
+    grid-template-areas:
+        'buttons'
+        'slider';
+}
+
+.overlay.open {
+    display: grid;
+}
+
+.buttons {
+    grid-area: buttons;
+}
+
+.slider {
+    grid-area: slider;
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.slider .range {
+    width: 100%;
+}
+.rtl .slider .range {
+    direction: rtl;
+}
+.slider .number {
+    width: 75px;
+}
+
+@media screen and (min-width: 500px) {
+    .overlay {
+        margin-top: 48px;
+        margin-bottom: 0;
+    }
+}

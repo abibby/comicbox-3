@@ -1,0 +1,13 @@
+.button {
+    background-color: rgb(var(--primary));
+    color: rgba(var(--text-on-primary), 0);
+    font-size: inherit;
+    padding: 5px 10px;
+    border: none;
+    font: inherit;
+    text-decoration: none;
+}
+
+.button:hover {
+    color: rgba(var(--text-on-primary), 1);
+}

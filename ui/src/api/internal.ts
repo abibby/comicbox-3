@@ -104,9 +104,6 @@ export async function getAuthImageToken(): Promise<string | null> {
     return authImageToken
 }
 
-// export function pageURL(book: Book): string
-// export function pageURL(book: Series): string
-// export function pageURL(book: Book, page: number): string
 export async function pageURL(
     model: Book | Series | Page,
     page?: number,

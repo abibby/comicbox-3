@@ -27,6 +27,12 @@ export const Card: FunctionalComponent<BookProps> = props => {
         },
         [props.menu],
     )
+
+    let alt = props.title
+    if (props.subtitle !== undefined) {
+        alt += ' ' + props.subtitle
+    }
+
     return (
         <div
             class={classNames(styles.book, {
@@ -39,7 +45,7 @@ export const Card: FunctionalComponent<BookProps> = props => {
                 <img
                     class={styles.cover}
                     src={props.image}
-                    alt='cover image'
+                    alt={alt}
                     loading='lazy'
                 />
                 {props.menu && (

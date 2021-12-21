@@ -24,6 +24,7 @@
 
 .dark {
     --primary: 33, 150, 243;
+    --text-on-primary: 255, 255, 255;
 
     --surface: 0, 0, 0;
     --surface-hover: 200, 200, 200, 0.3;

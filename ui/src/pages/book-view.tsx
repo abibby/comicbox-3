@@ -1,16 +1,14 @@
-import { bindValue } from '@zwzn/spicy'
 import noCover from 'asset-url:res/images/no-cover.svg'
-import { FunctionalComponent, h, RefObject } from 'preact'
-import { Link, route } from 'preact-router'
+import { FunctionalComponent, h } from 'preact'
+import { route } from 'preact-router'
 import { useCallback, useRef, useState } from 'preact/hooks'
+import { Overlay } from 'src/components/reading-overlay'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { useResizeEffect } from 'src/hooks/resize-effect'
 import { book } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
-import { EditBook } from '../components/book-edit'
-import { openModal } from '../components/modal'
 import { DB } from '../database'
 import { usePageURL } from '../hooks/page'
 import { Book, Page, PageType } from '../models'
@@ -188,51 +186,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 pageCount={pages.length}
                 baseRef={overlay}
                 changePage={setCurrentPage}
+                open={menuOpen}
             />
             <div class={styles.pageList}>
                 <PageView pages={pages[pagesIndex]} />
-            </div>
-        </div>
-    )
-}
-
-interface OverlayProps {
-    book: Book
-    page: number
-    pageCount: number
-    baseRef: RefObject<HTMLDivElement>
-    changePage: (page: number | string) => void
-}
-
-const Overlay: FunctionalComponent<OverlayProps> = props => {
-    const b = props.book
-    const edit = useCallback(() => {
-        openModal(EditBook, { book: b })
-    }, [b])
-
-    return (
-        <div class={styles.overlay} ref={props.baseRef}>
-            <button type='button' onClick={edit}>
-                Edit
-            </button>
-            <Link href={`/series/${b.series}`}>series</Link>
-            <div class={styles.slider}>
-                <input
-                    class={styles.range}
-                    type='range'
-                    value={props.page}
-                    min={0}
-                    max={props.pageCount - 1}
-                    onChange={bindValue(props.changePage)}
-                />
-                <input
-                    class={styles.number}
-                    type='number'
-                    value={props.page}
-                    min={0}
-                    max={props.pageCount - 1}
-                    onChange={bindValue(props.changePage)}
-                />
             </div>
         </div>
     )

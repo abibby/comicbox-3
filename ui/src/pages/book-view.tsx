@@ -1,7 +1,7 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
 import { route } from 'preact-router'
-import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
+import { useCallback, useRef, useState } from 'preact/hooks'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { useResizeEffect } from 'src/hooks/resize-effect'
@@ -62,102 +62,59 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const pages = splitPages(b, landscape)
     const pageCount = pages.length
-
-    const pageList = useRef<HTMLDivElement>(null)
-    const getCurrentIndex = useCallback(() => {
-        const currentScroll = Math.abs(pageList.current?.scrollLeft ?? 0)
-        const maxScroll = pageList.current?.scrollWidth ?? 0
-        return Math.round((currentScroll / maxScroll) * pageCount)
-    }, [pageCount])
-    const getCurrentPage = useCallback(() => {
-        const currentIndex = getCurrentIndex()
-
-        let currentPage = 0
-        for (const page of pages.slice(0, currentIndex + 1)) {
-            currentPage += page.length
-        }
-        return currentPage
-    }, [getCurrentIndex, pages])
+    const pagesIndex = getPagesIndex(pages, page)
 
     const nextBook = useNextBook(`read:${b.id}:next`, b)
     const previousBook = usePreviousBook(`read:${b.id}:previous`, b)
 
+    const nextBookID = nextBook?.id
+    const previousBookID = previousBook?.id
+
     const setCurrentIndex = useCallback(
         async (newIndex: number | string) => {
             if (newIndex >= pageCount) {
-                if (nextBook) {
-                    route(
-                        `/book/${nextBook.id}/${
-                            nextBook.user_book?.current_page ?? 0
-                        }`,
-                    )
+                if (nextBookID) {
+                    route(`/book/${nextBookID}`)
                 } else {
                     route(`/`)
                 }
+                return
             }
             if (newIndex < 0) {
-                if (previousBook) {
-                    route(
-                        `/book/${previousBook.id}/${
-                            previousBook.user_book?.current_page ?? 0
-                        }`,
-                    )
+                if (previousBookID) {
+                    route(`/book/${previousBookID}`)
                 } else {
                     route(`/`)
                 }
+                return
             }
 
-            const maxScroll = pageList.current?.scrollWidth ?? 0
-
-            const invert = rtl ? -1 : 1
-            pageList.current?.scroll({
-                left: (maxScroll / pageCount) * Number(newIndex) * invert,
-            })
-        },
-        [nextBook, pageCount, previousBook, rtl],
-    )
-    const updateCurrentIndex = useCallback(
-        (offset: number) => {
-            setCurrentIndex(getCurrentIndex() + offset)
-        },
-        [getCurrentIndex, setCurrentIndex],
-    )
-    const setCurrentPage = useCallback(
-        (newPage: number) => {
-            let currentPage = 0
-            for (const [i, page] of pages.entries()) {
-                currentPage += page.length
-                if (currentPage > newPage) {
-                    setCurrentIndex(i)
-                    return
-                }
-            }
-        },
-        [pages, setCurrentIndex],
-    )
-
-    const lastPage = useRef(-1)
-    const scroll = useCallback(() => {
-        const currentPage = getCurrentPage()
-        if (lastPage.current !== currentPage) {
-            route(`/book/${b.id}/${currentPage}`, true)
-            lastPage.current = currentPage
-
+            const newPage = pageIndex(
+                b,
+                pages.slice(0, Number(newIndex)).flat().length,
+            )
             DB.saveBook(b, {
                 user_book: {
-                    current_page: pageIndex(b, currentPage),
+                    current_page: newPage,
                 },
             })
             persist(true)
-        }
-    }, [b, getCurrentPage])
 
-    useEffect(() => {
-        const currentPage = getCurrentPage()
-        if (page !== currentPage) {
-            setCurrentPage(page)
-        }
-    }, [getCurrentPage, page, setCurrentPage])
+            route(`/book/${b.id}/${newPage}`)
+        },
+        [b, nextBookID, pageCount, pages, previousBookID],
+    )
+
+    const setCurrentPage = useCallback(
+        (newPage: number | string) => {
+            const newIndex = getPagesIndex(pages, Number(newPage))
+            if (newIndex === -1) {
+                return
+            }
+            setCurrentIndex(newIndex)
+        },
+        [pages, setCurrentIndex],
+    )
 
     let leftOffset = -1
     let rightOffset = +1
@@ -182,33 +139,34 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             switch (section) {
                 case 'left':
-                    updateCurrentIndex(leftOffset)
+                    setCurrentIndex(pagesIndex + leftOffset)
                     break
                 case 'right':
-                    updateCurrentIndex(rightOffset)
+                    setCurrentIndex(pagesIndex + rightOffset)
                     break
                 case 'center':
                     setMenuOpen(true)
                     return
             }
         },
-        [leftOffset, menuOpen, rightOffset, updateCurrentIndex],
+        [leftOffset, rightOffset, menuOpen, pagesIndex, setCurrentIndex],
     )
 
     useWindowEvent(
         'keydown',
         e => {
-            e.preventDefault()
             switch (e.key) {
                 case 'ArrowLeft':
-                    updateCurrentIndex(leftOffset)
+                    e.preventDefault()
+                    setCurrentIndex(pagesIndex + leftOffset)
                     break
                 case 'ArrowRight':
-                    updateCurrentIndex(rightOffset)
+                    e.preventDefault()
+                    setCurrentIndex(pagesIndex + rightOffset)
                     break
             }
         },
-        [],
+        [leftOffset, rightOffset, pagesIndex, setCurrentIndex],
     )
 
     return (
@@ -229,12 +187,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 page={page}
                 pageCount={pages.length}
                 baseRef={overlay}
-                changePage={setCurrentIndex}
+                changePage={setCurrentPage}
             />
-            <div class={styles.pageList} ref={pageList} onScroll={scroll}>
-                {pages.map(p => (
-                    <PageView pages={p} />
-                ))}
+            <div class={styles.pageList}>
+                <PageView pages={pages[pagesIndex]} />
             </div>
         </div>
     )
@@ -282,11 +238,15 @@ const Overlay: FunctionalComponent<OverlayProps> = props => {
 }
 
 interface PageProps {
-    pages: [Page] | [Page, Page]
+    pages: [Page] | [Page, Page] | undefined
 }
 
 const PageView: FunctionalComponent<PageProps> = props => {
     const pages = props.pages
+
+    if (pages === undefined) {
+        return <div class={styles.page} />
+    }
 
     return (
         <div
@@ -354,8 +314,6 @@ function pageIndex(book: Book, page: number): number {
         }
 
         if (currentPage === page) {
-            console.log(page, i)
-
             return i
         }
     }
@@ -386,4 +344,18 @@ function showTwoPages(
         return true
     }
     return false
+}
+
+function getPagesIndex(
+    pages: Array<[Page] | [Page, Page]>,
+    page: number,
+): number {
+    let current = 0
+    for (const [i, p] of pages.entries()) {
+        current += p.length
+        if (current > page) {
+            return i
+        }
+    }
+    return -1
 }

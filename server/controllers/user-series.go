@@ -14,7 +14,7 @@ import (
 
 type UpdateUserSeriesRequest struct {
 	SeriesName string            `url:"name"`
-	List       *models.List      `json:"list"`
+	List       models.List       `json:"list"`
 	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
 

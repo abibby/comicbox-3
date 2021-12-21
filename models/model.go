@@ -41,13 +41,10 @@ func init() {
 			if !ok {
 				return nil
 			}
-			options := enum.Options()
-			for _, o := range options {
-				if value == o {
-					return nil
-				}
+			if IsEnumValid(enum, value) {
+				return nil
 			}
-			return fmt.Errorf("must be one of %s", strings.Join(options, ", "))
+			return fmt.Errorf("must be one of %s", strings.Join(enum.Options(), ", "))
 		},
 	)
 }

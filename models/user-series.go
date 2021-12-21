@@ -12,7 +12,7 @@ type UserSeries struct {
 	BaseModel
 	SeriesName string    `json:"-"    db:"series_name"`
 	UserID     uuid.UUID `json:"-"    db:"user_id"`
-	List       *List     `json:"list" db:"list"`
+	List       List      `json:"list" db:"list"`
 }
 
 type List string
@@ -27,11 +27,8 @@ func (l List) Options() []string {
 	}
 }
 
-var (
-	ListNone = (*List)(nil)
-)
-
 const (
+	ListNone      = List("")
 	ListReading   = List("reading")
 	ListDropped   = List("dropped")
 	ListCompleted = List("completed")

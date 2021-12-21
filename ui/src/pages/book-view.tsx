@@ -54,8 +54,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const page = props.page
     const rtl = b.rtl
 
-    console.log(page)
-
     const [landscape, setLandscape] = useState(
         window.innerWidth > window.innerHeight,
     )
@@ -93,7 +91,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             const newPage = pageIndex(
                 b,
-                pages.slice(0, Number(newIndex)).flat().length,
+                pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
             DB.saveBook(b, {
                 user_book: {
@@ -170,7 +168,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         },
         [leftOffset, rightOffset, pagesIndex, setCurrentIndex],
     )
-    console.log('pi', pagesIndex)
 
     return (
         <div
@@ -371,8 +368,6 @@ function getPagesIndex(
 ): number {
     let current = 0
     for (const [i, p] of pages.entries()) {
-        console.log(current, '>', page, '=', i)
-
         current += p.length
         if (current > page) {
             return i

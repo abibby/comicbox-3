@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 )
@@ -55,6 +56,7 @@ func Run(r *http.Request, requestParams interface{}) error {
 			vErr.Push(name, errs)
 		}
 		if _, ok := f.Tag.Lookup("json"); !ok {
+			spew.Dump(f.Name)
 			err := setValue(fieldValue, value)
 			if err != nil {
 				return errors.Wrap(err, "failed to set value")
@@ -121,7 +123,7 @@ func setValue(f reflect.Value, value string) error {
 	if value == "" {
 		return nil
 	}
-	if u, ok := f.Interface().(json.Unmarshaler); ok {
+	if _, ok := f.Interface().(json.Unmarshaler); ok {
 		if f.IsNil() {
 			f.Set(reflect.New(f.Type().Elem()))
 		}
@@ -129,7 +131,9 @@ func setValue(f reflect.Value, value string) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal json")
 		}
-		err = u.UnmarshalJSON(b)
+		// I didn't use the value from when I cast it before because it will
+		// change if its null
+		err = f.Interface().(json.Unmarshaler).UnmarshalJSON(b)
 		return errors.Wrap(err, "failed to unmarshal json")
 	}
 

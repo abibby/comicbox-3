@@ -1,6 +1,7 @@
 import { bindValue } from '@zwzn/spicy'
+import noCover from 'asset-url:res/images/no-cover.svg'
 import { FunctionalComponent, h, RefObject } from 'preact'
-import { route } from 'preact-router'
+import { Link, route } from 'preact-router'
 import { useCallback, useRef, useState } from 'preact/hooks'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
@@ -37,10 +38,10 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
     if (props.matches?.page) {
         page = Number(props.matches.page)
     } else if (b.user_book?.current_page) {
-        page = pageUnindex(b, b.user_book?.current_page)
+        page = b.user_book?.current_page
     }
 
-    return <Reader book={b} page={page} />
+    return <Reader book={b} page={pageUnindex(b, page)} />
 }
 
 interface ReaderProps {
@@ -53,6 +54,8 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const page = props.page
     const rtl = b.rtl
 
+    console.log(page)
+
     const [landscape, setLandscape] = useState(
         window.innerWidth > window.innerHeight,
     )
@@ -61,7 +64,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     }, [])
 
     const pages = splitPages(b, landscape)
-    const pageCount = pages.length
     const pagesIndex = getPagesIndex(pages, page)
 
     const nextBook = useNextBook(`read:${b.id}:next`, b)
@@ -72,7 +74,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setCurrentIndex = useCallback(
         async (newIndex: number | string) => {
-            if (newIndex >= pageCount) {
+            if (newIndex >= pages.length) {
                 if (nextBookID) {
                     route(`/book/${nextBookID}`)
                 } else {
@@ -102,7 +104,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             route(`/book/${b.id}/${newPage}`)
         },
-        [b, nextBookID, pageCount, pages, previousBookID],
+        [b, nextBookID, pages, previousBookID],
     )
 
     const setCurrentPage = useCallback(
@@ -168,6 +170,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         },
         [leftOffset, rightOffset, pagesIndex, setCurrentIndex],
     )
+    console.log('pi', pagesIndex)
 
     return (
         <div
@@ -215,13 +218,14 @@ const Overlay: FunctionalComponent<OverlayProps> = props => {
             <button type='button' onClick={edit}>
                 Edit
             </button>
+            <Link href={`/series/${b.series}`}>series</Link>
             <div class={styles.slider}>
                 <input
                     class={styles.range}
                     type='range'
                     value={props.page}
                     min={0}
-                    max={props.pageCount}
+                    max={props.pageCount - 1}
                     onChange={bindValue(props.changePage)}
                 />
                 <input
@@ -229,7 +233,7 @@ const Overlay: FunctionalComponent<OverlayProps> = props => {
                     type='number'
                     value={props.page}
                     min={0}
-                    max={props.pageCount}
+                    max={props.pageCount - 1}
                     onChange={bindValue(props.changePage)}
                 />
             </div>
@@ -245,7 +249,11 @@ const PageView: FunctionalComponent<PageProps> = props => {
     const pages = props.pages
 
     if (pages === undefined) {
-        return <div class={styles.page} />
+        return (
+            <div class={styles.page}>
+                <img src={noCover} alt='page' />
+            </div>
+        )
     }
 
     return (
@@ -307,22 +315,33 @@ function getPage(book: Book, page: number): Page | undefined {
 }
 
 function pageIndex(book: Book, page: number): number {
-    let currentPage = -1
-    for (const [i, p] of book.pages.entries()) {
-        if (p.type !== PageType.Deleted) {
-            currentPage++
-        }
-
-        if (currentPage === page) {
-            return i
+    const p = book.pages.filter(p => p.type !== 'Deleted')[page]
+    if (p === undefined) {
+        return -1
+    }
+    let currentPage = book.pages.indexOf(p)
+    for (
+        let i = Math.min(currentPage + 1, book.pages.length);
+        i < book.pages.length;
+        i++
+    ) {
+        if (book.pages[i]?.type === 'Deleted') {
+            currentPage = i
+        } else {
+            break
         }
     }
-    return page
+    return currentPage
 }
 
 function pageUnindex(book: Book, page: number): number {
-    return book.pages.slice(0, page).filter(p => p.type !== PageType.Deleted)
-        .length
+    let out = -1
+    for (let i = 0; i < page + 1; i++) {
+        if (book.pages[i]?.type !== 'Deleted') {
+            out++
+        }
+    }
+    return out
 }
 
 function showTwoPages(
@@ -352,6 +371,8 @@ function getPagesIndex(
 ): number {
     let current = 0
     for (const [i, p] of pages.entries()) {
+        console.log(current, '>', page, '=', i)
+
         current += p.length
         if (current > page) {
             return i

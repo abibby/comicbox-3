@@ -38,7 +38,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 
 	u := &models.User{}
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		return tx.Get(u, "select * from users where username = ? limit 1", req.Username)
+		return tx.Get(u, "select * from users where lower(username) = ? limit 1", strings.ToLower(req.Username))
 	})
 	if err == sql.ErrNoRows {
 		sendError(rw, NewHttpError(401, fmt.Errorf("401 unauthorized")))

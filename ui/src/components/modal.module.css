@@ -3,7 +3,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 71;
+    z-index: 171;
     margin-bottom: 65px;
 }
 
@@ -43,7 +43,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 70;
+    z-index: 170;
     background-color: rgba(0, 0, 0, 0.5);
 }
 

@@ -1,10 +1,10 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
+import { Link } from 'preact-router'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { Book } from 'src/models'
 import { EditBook } from './book-edit'
-import { Button, ButtonGroup } from './button'
 import { openModal } from './modal'
 import styles from './reading-overlay.module.css'
 
@@ -31,29 +31,35 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
             })}
             ref={props.baseRef}
         >
-            <div class={styles.buttons}>
-                <ButtonGroup>
-                    <Button onClick={edit}>Edit</Button>
-                    <Button href={`/series/${b.series}`}>series</Button>
-                </ButtonGroup>
-            </div>
-            <div class={styles.slider}>
-                <input
-                    class={styles.range}
-                    type='range'
-                    value={props.page}
-                    min={0}
-                    max={props.pageCount - 1}
-                    onChange={bindValue(props.changePage)}
-                />
-                <input
-                    class={styles.number}
-                    type='number'
-                    value={props.page}
-                    min={0}
-                    max={props.pageCount - 1}
-                    onChange={bindValue(props.changePage)}
-                />
+            <div class={styles.content}>
+                <div class={styles.sidebar}>
+                    <ul>
+                        <li>
+                            <a onClick={edit}>Edit</a>
+                        </li>
+                        <li>
+                            <Link href={`/series/${b.series}`}>{b.series}</Link>
+                        </li>
+                    </ul>
+                </div>
+                <div class={styles.slider}>
+                    <input
+                        class={styles.range}
+                        type='range'
+                        value={props.page}
+                        min={0}
+                        max={props.pageCount - 1}
+                        onChange={bindValue(props.changePage)}
+                    />
+                    <input
+                        class={styles.number}
+                        type='number'
+                        value={props.page}
+                        min={0}
+                        max={props.pageCount - 1}
+                        onChange={bindValue(props.changePage)}
+                    />
+                </div>
             </div>
         </div>
     )

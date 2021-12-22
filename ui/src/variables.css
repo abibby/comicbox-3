@@ -4,6 +4,7 @@
 
 :root {
     --primary: 33, 150, 243;
+    --text-on-primary: 255, 255, 255;
 
     --surface: 255, 255, 255;
     --surface-hover: 34, 34, 34, 0.3;

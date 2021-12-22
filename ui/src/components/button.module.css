@@ -1,13 +1,23 @@
+.buttonGroup>.button:not(:first-child) {
+    margin-left: 5px;
+}
+
 .button {
     background-color: rgb(var(--primary));
-    color: rgba(var(--text-on-primary), 0);
+    color: rgba(var(--text-on-primary), 0.85);
     font-size: inherit;
     padding: 5px 10px;
     border: none;
     font: inherit;
     text-decoration: none;
+    cursor: pointer;
 }
 
-.button:hover {
+.button:hover:not(.disabled) {
     color: rgba(var(--text-on-primary), 1);
+}
+
+.disabled {
+    filter: contrast(50%);
+    cursor: not-allowed;
 }

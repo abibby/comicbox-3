@@ -21,6 +21,14 @@
     display: grid;
 }
 
+.overlay>* {
+    pointer-events: none;
+}
+
+.overlay>*>* {
+    pointer-events: initial;
+}
+
 .buttons {
     grid-area: buttons;
 }
@@ -36,9 +44,11 @@
 .slider .range {
     width: 100%;
 }
+
 .rtl .slider .range {
     direction: rtl;
 }
+
 .slider .number {
     width: 75px;
 }

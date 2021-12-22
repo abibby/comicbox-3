@@ -1,5 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
+import { Button, ButtonGroup } from 'src/components/button'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
 import { post } from 'src/message'
@@ -67,10 +68,10 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     return (
         <div>
             <h1>{name}</h1>
-            <div>
-                <button onClick={downloadSeries}>download</button>
-                <button onClick={editSeries}>edit</button>
-            </div>
+            <ButtonGroup>
+                <Button onClick={downloadSeries}>download</Button>
+                <Button onClick={editSeries}>edit</Button>
+            </ButtonGroup>
             <BookList books={books} />
         </div>
     )

@@ -7,6 +7,7 @@ import { usePageURL } from '../hooks/page'
 import { Book, Page, PageType } from '../models'
 import { prompt } from './alert'
 import styles from './book-edit.module.css'
+import { Button, ButtonGroup } from './button'
 import { Data, Form } from './form/form'
 import { Input } from './form/input'
 import { Select } from './form/select'
@@ -136,23 +137,25 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                     </TabContainer>
                 </ModalBody>
                 <ModalFoot>
-                    <button type='submit'>Save</button>
-                    <button
-                        type='submit'
-                        name='submit'
-                        value='next'
-                        disabled={previous === undefined}
-                    >
-                        Previous
-                    </button>
-                    <button
-                        type='submit'
-                        name='submit'
-                        value='next'
-                        disabled={next === undefined}
-                    >
-                        Next
-                    </button>
+                    <ButtonGroup>
+                        <Button type='submit'>Save</Button>
+                        <Button
+                            type='submit'
+                            name='submit'
+                            value='next'
+                            disabled={previous === undefined}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            type='submit'
+                            name='submit'
+                            value='next'
+                            disabled={next === undefined}
+                        >
+                            Next
+                        </Button>
+                    </ButtonGroup>
                 </ModalFoot>
             </Form>
         </Modal>

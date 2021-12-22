@@ -4,6 +4,7 @@ import { listNames } from '../api/series'
 import { persist } from '../cache'
 import { DB } from '../database'
 import { List, Series } from '../models'
+import { Button, ButtonGroup } from './button'
 import { Data, Form } from './form/form'
 import { Select } from './form/select'
 import { Modal, ModalBody, ModalComponent, ModalFoot, ModalHead } from './modal'
@@ -48,7 +49,9 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                     />
                 </ModalBody>
                 <ModalFoot>
-                    <button type='submit'>Save</button>
+                    <ButtonGroup>
+                        <Button type='submit'>Save</Button>
+                    </ButtonGroup>
                 </ModalFoot>
             </Form>
         </Modal>

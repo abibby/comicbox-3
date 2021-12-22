@@ -4,7 +4,7 @@ import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { Book } from 'src/models'
 import { EditBook } from './book-edit'
-import { Button } from './button'
+import { Button, ButtonGroup } from './button'
 import { openModal } from './modal'
 import styles from './reading-overlay.module.css'
 
@@ -32,8 +32,10 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
             ref={props.baseRef}
         >
             <div class={styles.buttons}>
-                <Button onClick={edit}>Edit</Button>
-                <Button href={`/series/${b.series}`}>series</Button>
+                <ButtonGroup>
+                    <Button onClick={edit}>Edit</Button>
+                    <Button href={`/series/${b.series}`}>series</Button>
+                </ButtonGroup>
             </div>
             <div class={styles.slider}>
                 <input

@@ -13,7 +13,17 @@
 }
 
 .content {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
     margin-bottom: 55px;
+    pointer-events: none;
+}
+
+.content > * {
+    pointer-events: initial;
 }
 
 .overlay.open {

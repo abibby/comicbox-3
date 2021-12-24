@@ -1,23 +1,36 @@
+.buttonGroup{
+    margin: 5px 0;
+}
 .buttonGroup>.button:not(:first-child) {
     margin-left: 5px;
 }
 
 .button {
-    background-color: rgb(var(--primary));
-    color: rgba(var(--text-on-primary), 0.85);
+    background-color: rgb(var(--default-button));
+    color: rgba(var(--default-button-text), 0.85);
     font-size: inherit;
     padding: 5px 10px;
     border: none;
     font: inherit;
     text-decoration: none;
     cursor: pointer;
+    border-radius: 4px;
 }
 
 .button:hover:not(.disabled) {
-    color: rgba(var(--text-on-primary), 1);
+    color: rgba(var(--default-button-text), 1);
 }
 
 .disabled {
     filter: contrast(50%);
     cursor: not-allowed;
+}
+
+.button.primary {
+    background-color: rgb(var(--primary-button));
+    color: rgba(var(--primary-button-text), 0.85);
+}
+
+.button.primary:hover:not(.disabled) {
+    color: rgba(var(--primary-button-text), 1);
 }

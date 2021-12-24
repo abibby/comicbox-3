@@ -21,6 +21,12 @@
     --alert-option: var(--primary);
 
     --error-text: 255, 0, 0;
+
+    /* Buttons */
+    --default-button: 200, 200, 200;
+    --default-button-text: 0, 0, 0;
+    --primary-button: var(--primary);
+    --primary-button-text: var(--text-on-primary);
 }
 
 .dark {

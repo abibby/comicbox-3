@@ -138,7 +138,9 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                 </ModalBody>
                 <ModalFoot>
                     <ButtonGroup>
-                        <Button type='submit'>Save</Button>
+                        <Button type='submit' color='primary'>
+                            Save
+                        </Button>
                         <Button
                             type='submit'
                             name='submit'

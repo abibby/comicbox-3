@@ -5,6 +5,7 @@ import styles from './button.module.css'
 
 type ButtonProps = {
     disabled?: boolean
+    color?: 'primary'
 } & (
     | {
           href: string
@@ -18,10 +19,14 @@ type ButtonProps = {
 )
 
 export const Button: FunctionalComponent<ButtonProps> = props => {
+    let colorClass: string | undefined
+    if (props.color !== undefined) {
+        colorClass = styles[props.color]
+    }
     if ('href' in props) {
         return (
             <Link
-                class={classNames(styles.button, {
+                class={classNames(styles.button, colorClass, {
                     [styles.disabled]: props.disabled,
                 })}
                 href={props.href}
@@ -33,7 +38,7 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
     return (
         <button
             type={props.type ?? 'button'}
-            class={classNames(styles.button, {
+            class={classNames(styles.button, colorClass, {
                 [styles.disabled]: props.disabled,
             })}
             onClick={props.onClick}

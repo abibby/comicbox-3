@@ -50,7 +50,9 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                 </ModalBody>
                 <ModalFoot>
                     <ButtonGroup>
-                        <Button type='submit'>Save</Button>
+                        <Button type='submit' color='primary'>
+                            Save
+                        </Button>
                     </ButtonGroup>
                 </ModalFoot>
             </Form>

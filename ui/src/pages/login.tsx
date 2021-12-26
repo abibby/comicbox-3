@@ -1,10 +1,12 @@
 import { FunctionalComponent, h } from 'preact'
-import { Link, route } from 'preact-router'
+import { route } from 'preact-router'
 import { useCallback } from 'preact/hooks'
+import { Button, ButtonGroup } from 'src/components/button'
 import { auth, FetchError } from '../api'
 import { prompt } from '../components/alert'
 import { Data, Form } from '../components/form/form'
 import { Input } from '../components/form/input'
+import styles from './login.module.css'
 
 export const Login: FunctionalComponent = () => {
     const submit = useCallback(async (data: Data) => {
@@ -27,14 +29,20 @@ export const Login: FunctionalComponent = () => {
     }, [])
 
     return (
-        <div>
-            <h1>Login</h1>
-            <Form onSubmit={submit}>
-                <Input title='Username' name='username' focused />
-                <Input title='Password' type='password' name='password' />
-                <button type='submit'>Login</button>
-            </Form>
-            <Link href='/users/create'>Create user</Link>
+        <div class={styles.login}>
+            <div class={styles.form}>
+                <h1>ComicBox</h1>
+                <Form onSubmit={submit}>
+                    <Input title='Username' name='username' focused />
+                    <Input title='Password' type='password' name='password' />
+                    <ButtonGroup>
+                        <Button type='submit' color='primary'>
+                            Login
+                        </Button>
+                        <Button href='/users/create'>Create user</Button>
+                    </ButtonGroup>
+                </Form>
+            </div>
         </div>
     )
 }

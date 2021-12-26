@@ -20,8 +20,8 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
     return response
 }
 
-export function logout(): void {
-    setAuthToken(null, null)
+export async function logout(): Promise<void> {
+    await setAuthToken(null, null)
 }
 
 export async function currentID(): Promise<string | null> {

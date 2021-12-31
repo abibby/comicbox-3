@@ -24,6 +24,8 @@ func init() {
 		auth.HandleFunc("/books/reading", controllers.BookReading).Methods("GET").Name("book.reading")
 		auth.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
 
+		auth.HandleFunc("/users/create-token", controllers.UserCreateToken).Methods("GET").Name("user-create-token")
+
 		pages := r.NewRoute().Subrouter()
 		pages.Use(controllers.AuthMiddleware(true))
 		pages.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")

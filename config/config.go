@@ -48,6 +48,7 @@ var CachePath string
 var LibraryPath string
 var Port int
 var Verbose bool
+var PublicUserCreate bool
 
 func Init() error {
 	err := godotenv.Load("./.env")
@@ -60,7 +61,9 @@ func Init() error {
 	CachePath = env("CACHE_PATH", "./cache")
 	LibraryPath = mustEnv("LIBRARY_PATH")
 	Port = envInt("PORT", 8080)
+	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)
 
 	Verbose = envBool("VERBOSE", false)
+
 	return nil
 }

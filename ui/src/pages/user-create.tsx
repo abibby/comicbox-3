@@ -29,7 +29,7 @@ export const UserCreate: FunctionalComponent = () => {
             } catch (e) {
                 if (e instanceof FetchError) {
                     if (e.status === 401) {
-                        await prompt('invalid username or password', {}, 5000)
+                        await prompt('invalid username or password', {})
                         return
                     } else if (e.status === 422) {
                         setErrors(e.body)
@@ -37,6 +37,7 @@ export const UserCreate: FunctionalComponent = () => {
                     }
                 }
                 await prompt('error logging in')
+                return
             }
             route('/login')
         },

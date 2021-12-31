@@ -33,3 +33,15 @@ export async function currentID(): Promise<string | null> {
 
     return a.claims.client_id
 }
+
+interface UserCreateTokenResponse {
+    token: string
+}
+
+export async function userCreateToken(): Promise<string> {
+    const response = await apiFetch<UserCreateTokenResponse>(
+        '/api/users/create-token',
+    )
+
+    return response.token
+}

@@ -28,6 +28,10 @@ type LoginResponse struct {
 	ImageToken string `json:"image_token"`
 }
 
+var (
+	ErrUnauthorized = NewHttpError(401, fmt.Errorf("unauthorized"))
+)
+
 func Login(rw http.ResponseWriter, r *http.Request) {
 	req := &LoginRequest{}
 	err := validate.Run(r, req)
@@ -41,7 +45,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		return tx.Get(u, "select * from users where lower(username) = ? limit 1", strings.ToLower(req.Username))
 	})
 	if err == sql.ErrNoRows {
-		sendError(rw, NewHttpError(401, fmt.Errorf("401 unauthorized")))
+		sendError(rw, ErrUnauthorized)
 		return
 	} else if err != nil {
 		sendError(rw, err)
@@ -50,27 +54,20 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 
 	err = bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(req.Password))
 	if err == bcrypt.ErrMismatchedHashAndPassword {
-		sendError(rw, NewHttpError(401, fmt.Errorf("401 unauthorized")))
+		sendError(rw, ErrUnauthorized)
 		return
 	} else if err != nil {
 		sendError(rw, err)
 		return
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp":       time.Now().Add(time.Hour * 24).Unix(),
-		"client_id": u.ID,
-	}).SignedString(config.AppKey)
+	token, err := generateToken(u)
 	if err != nil {
 		sendError(rw, err)
 		return
 	}
 
-	imageToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp":       time.Now().Add(time.Hour * 24).Unix(),
-		"client_id": u.ID,
-		"query":     true,
-	}).SignedString(config.AppKey)
+	imageToken, err := generateToken(u, allowQueryToken)
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -82,50 +79,29 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func AuthMiddleware(acceptQuery bool) func(next http.Handler) http.Handler {
+type UserCreateTokenResponse struct {
+	Token string `json:"token"`
+}
+
+func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
+	token, err := generateToken(nil, allowQueryToken, createsUser(uuid.New()))
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	sendJSON(rw, &UserCreateTokenResponse{
+		Token: token,
+	})
+}
+
+func AuthMiddleware(acceptQuery bool, scopes ...string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			tokenStr := ""
-			authHeader := r.Header.Get("Authorization")
-			if strings.HasPrefix(authHeader, "Bearer ") {
-				tokenStr = authHeader[7:]
-			}
-
-			usingQuery := acceptQuery && r.URL.Query().Has("_token")
-			if usingQuery {
-				tokenStr = r.URL.Query().Get("_token")
-			}
-
-			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-				// Don't forget to validate the alg is what you expect:
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-				}
-
-				return config.AppKey, nil
-			})
-
-			if err != nil {
-				sendError(rw, NewHttpError(401, fmt.Errorf("unauthorized")))
+			ok, _ := authenticate(acceptQuery, r)
+			if !ok {
+				sendError(rw, ErrUnauthorized)
 				return
-			}
-
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || !token.Valid {
-				sendError(rw, NewHttpError(401, fmt.Errorf("unauthorized")))
-				return
-			}
-
-			iQuery, _ := claims["query"]
-			shouldUseQuery, _ := iQuery.(bool)
-
-			if usingQuery != shouldUseQuery {
-				sendError(rw, NewHttpError(401, fmt.Errorf("unauthorized")))
-				return
-			}
-
-			if uid, ok := claims["client_id"]; ok {
-				r = r.WithContext(context.WithValue(r.Context(), "user-id", uid))
 			}
 
 			next.ServeHTTP(rw, r)
@@ -133,8 +109,79 @@ func AuthMiddleware(acceptQuery bool) func(next http.Handler) http.Handler {
 	}
 }
 
+func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
+	tokenStr := ""
+	authHeader := r.Header.Get("Authorization")
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		tokenStr = authHeader[7:]
+	}
+
+	usingQuery := acceptQuery && r.URL.Query().Has("_token")
+	if usingQuery {
+		tokenStr = r.URL.Query().Get("_token")
+	}
+
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return config.AppKey, nil
+	})
+
+	if err != nil {
+		return false, nil
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return false, nil
+	}
+
+	iQuery, _ := claims["query"]
+	shouldUseQuery, _ := iQuery.(bool)
+
+	if usingQuery != shouldUseQuery {
+		return false, nil
+	}
+
+	if uid, ok := claims["client_id"]; ok {
+		r = r.WithContext(context.WithValue(r.Context(), "user-id", uid))
+	}
+	return true, claims
+}
+
 func userID(r *http.Request) (uuid.UUID, bool) {
 	iUserID := r.Context().Value("user-id")
 	userID, ok := iUserID.(string)
-	return uuid.MustParse(userID), ok
+	if !ok {
+		return uuid.UUID{}, false
+	}
+	return uuid.MustParse(userID), true
+}
+
+func generateToken(u *models.User, modifyClaims ...func(jwt.MapClaims) jwt.MapClaims) (string, error) {
+	claims := jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	}
+	if u != nil {
+		claims["client_id"] = u.ID
+	}
+	for _, m := range modifyClaims {
+		claims = m(claims)
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(config.AppKey)
+}
+
+func allowQueryToken(claims jwt.MapClaims) jwt.MapClaims {
+	claims["query"] = true
+	return claims
+}
+
+func createsUser(id uuid.UUID) func(claims jwt.MapClaims) jwt.MapClaims {
+	return func(claims jwt.MapClaims) jwt.MapClaims {
+		claims["new_client_id"] = id
+		return claims
+	}
 }

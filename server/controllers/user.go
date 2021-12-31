@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -17,6 +19,13 @@ type UserCreateRequest struct {
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
+	ok, claims := authenticate(true, r)
+	if !ok && !config.PublicUserCreate {
+		sendError(rw, ErrUnauthorized)
+		return
+	}
+	spew.Dump(ok, claims)
+
 	req := &UserCreateRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -24,14 +33,28 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id := uuid.New()
+	iID, ok := claims["new_client_id"]
+	if !ok && claims != nil {
+		sendError(rw, ErrUnauthorized)
+		return
+	} else if ok {
+		strID, _ := iID.(string)
+		id, err = uuid.Parse(strID)
+		if err != nil {
+			sendError(rw, err)
+			return
+		}
+	}
+
 	u := &models.User{
-		ID:       uuid.New(),
+		ID:       id,
 		Username: req.Username,
 		Password: []byte(req.Password),
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		count := 0
-		err = tx.Get(&count, "select count(*) from users where username = ?", u.Username)
+		err = tx.Get(&count, "select count(*) from users where username = ? or id = ?", u.Username, u.ID)
 		if err != nil {
 			return err
 		}

@@ -45,7 +45,7 @@ export const Reading: FunctionalComponent = () => {
 }
 
 export const Latest: FunctionalComponent = () => {
-    const books = useCached('latest', {}, DB.books, book.list)
+    const books = useCached('latest', { limit: 15 }, DB.books, book.list)
 
     return (
         <div>

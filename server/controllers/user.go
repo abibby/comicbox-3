@@ -8,7 +8,6 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -19,12 +18,11 @@ type UserCreateRequest struct {
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
-	ok, claims := authenticate(true, r)
+	ok, claims := authenticate(false, r)
 	if !ok && !config.PublicUserCreate {
 		sendError(rw, ErrUnauthorized)
 		return
 	}
-	spew.Dump(ok, claims)
 
 	req := &UserCreateRequest{}
 	err := validate.Run(r, req)

@@ -6,9 +6,25 @@ export interface CreateRequest {
     password: string
 }
 
-export async function create(req: CreateRequest): Promise<User> {
-    return await apiFetch('/api/users', {
-        method: 'POST',
-        body: JSON.stringify(req),
-    })
+export async function create(
+    req: CreateRequest,
+    token: string | null,
+): Promise<User> {
+    let headers: HeadersInit | undefined
+
+    if (token !== null) {
+        headers = {
+            Authorization: 'Bearer ' + token,
+        }
+    }
+
+    return await apiFetch(
+        '/api/users',
+        {
+            method: 'POST',
+            body: JSON.stringify(req),
+            headers: headers,
+        },
+        false,
+    )
 }

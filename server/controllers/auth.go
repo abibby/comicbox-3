@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -84,7 +85,7 @@ type UserCreateTokenResponse struct {
 }
 
 func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
-	token, err := generateToken(nil, allowQueryToken, createsUser(uuid.New()))
+	token, err := generateToken(nil, createsUser(uuid.New()))
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -129,8 +130,8 @@ func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
 
 		return config.AppKey, nil
 	})
-
 	if err != nil {
+		log.Printf("failed to parse JWT: %v", err)
 		return false, nil
 	}
 
@@ -149,6 +150,7 @@ func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
 	if uid, ok := claims["client_id"]; ok {
 		userID, err := uuid.Parse(uid.(string))
 		if err != nil {
+			log.Printf("failed to parse UID: %v", err)
 			return false, nil
 		}
 		auth.SetUserID(r, userID)

@@ -132,21 +132,23 @@ export async function pageURL(
 }
 
 export async function apiFetch<T>(
-    ...args: Parameters<typeof fetch>
+    input: RequestInfo,
+    init?: RequestInit,
+    redirectOn401 = true,
 ): Promise<T> {
     const token = await getAuthToken()
     if (token !== null) {
-        args[1] = {
-            ...args[1],
+        init = {
+            ...init,
             headers: {
                 Authorization: 'Bearer ' + token,
             },
         }
     }
-    const response = await fetch(...args)
+    const response = await fetch(input, init)
     const body = await response.json()
 
-    if (response.status === 401) {
+    if (redirectOn401 && response.status === 401) {
         route('/login')
     }
     if (!response.ok) {

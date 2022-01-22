@@ -21,15 +21,22 @@ export const UserCreate: FunctionalComponent = () => {
                 return
             }
 
+            const token = new URLSearchParams(window.location.search).get(
+                '_token',
+            )
+
             try {
-                await user.create({
-                    username: data.get('username') ?? '',
-                    password: password,
-                })
+                await user.create(
+                    {
+                        username: data.get('username') ?? '',
+                        password: password,
+                    },
+                    token,
+                )
             } catch (e) {
                 if (e instanceof FetchError) {
                     if (e.status === 401) {
-                        await prompt('invalid username or password', {})
+                        await prompt('invalid username or password')
                         return
                     } else if (e.status === 422) {
                         setErrors(e.body)

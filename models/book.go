@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
@@ -149,14 +150,9 @@ func (b *Book) CoverPage() int {
 	}
 	return fallback
 }
-func userID(ctx context.Context) (uuid.UUID, bool) {
-	iUserID := ctx.Value("user-id")
-	userID, ok := iUserID.(string)
-	return uuid.MustParse(userID), ok
-}
 
 func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if uid, ok := userID(ctx); ok {
+	if uid, ok := auth.UserID(ctx); ok {
 		err := LoadUserBooks(tx, bl, uid)
 		if err != nil {
 			return err

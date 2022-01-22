@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
@@ -32,7 +33,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.Where(goqu.Ex{"name": name})
 	}
 
-	if uid, ok := userID(r); ok {
+	if uid, ok := auth.UserID(r.Context()); ok {
 		if list, ok := req.List.Ok(); ok {
 			query = query.Where(
 				goqu.L("(select list from user_series where series_name=series.name and user_id=?)", uid).Eq(list),
@@ -41,7 +42,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	exprs := []exp.Comparable{}
-	uid, ok := userID(r)
+	uid, ok := auth.UserID(r.Context())
 	if ok {
 		exprs = append(exprs, goqu.L("(select updated_at from user_series where series_name=series.name and user_id=?)", uid))
 	}

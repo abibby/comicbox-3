@@ -54,9 +54,15 @@ func migrateUserSeries(ctx context.Context, db *sqlx.DB) {
 }
 
 func createUserSeries(oldUserSeries *OldUserSeries) *models.UserSeries {
-	var list *nulls.String
+	var listStr *nulls.String
 	if oldList, ok := oldUserSeries.List.Ok(); ok {
-		list = nulls.NewString(strings.ToLower(oldList))
+		listStr = nulls.NewString(strings.ToLower(oldList))
+	}
+
+	list := models.ListNone
+
+	if !listStr.IsNull() {
+		list = models.List(listStr.String())
 	}
 
 	return &models.UserSeries{

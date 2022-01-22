@@ -31,7 +31,7 @@ func init() {
 		pages.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
 
 		thumb := pages.NewRoute().Subrouter()
-		thumb.Use(router.CacheMiddleware)
+		// thumb.Use(router.CacheMiddleware)
 		thumb.HandleFunc("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Methods("GET").Name("book.thumbnail")
 
 		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")

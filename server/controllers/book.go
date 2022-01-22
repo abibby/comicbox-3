@@ -18,6 +18,7 @@ import (
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/doug-martin/goqu/v9"
@@ -174,7 +175,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 }
 
 func BookReading(rw http.ResponseWriter, r *http.Request) {
-	uid, ok := userID(r)
+	uid, ok := auth.UserID(r.Context())
 	if !ok {
 		sendJSON(rw, &PaginatedResponse{})
 		return
@@ -293,7 +294,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 func afterExprs(r *http.Request, withSeries bool) []exp.Comparable {
 	exprs := []exp.Comparable{}
 
-	if uid, ok := userID(r); ok {
+	if uid, ok := auth.UserID(r.Context()); ok {
 		exprs = append(exprs,
 			goqu.L("(select updated_at from user_books where book_id=books.id and user_id=?)", uid),
 		)

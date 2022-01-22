@@ -7,6 +7,7 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -26,7 +27,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, ok := userID(r)
+	uid, ok := auth.UserID(r.Context())
 	if !ok {
 		sendError(rw, NewHttpError(401, fmt.Errorf("unautherised")))
 		return

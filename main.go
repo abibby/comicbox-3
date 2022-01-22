@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/queue"
@@ -54,7 +53,7 @@ func main() {
 	}()
 	queue.Default.Start()
 	// queue.Default.ScheduleJob("0 * * * *", queue.JobFunc(app.Sync))
-	queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
+	// queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
 
 	log.Printf("Server started at http://localhost:%d", config.Port)
 	log.Fatal(s.Run())

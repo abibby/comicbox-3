@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -66,7 +67,7 @@ func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if uid, ok := userID(ctx); ok {
+	if uid, ok := auth.UserID(ctx); ok {
 		err := LoadUserSeries(tx, sl, uid)
 		if err != nil {
 			return err

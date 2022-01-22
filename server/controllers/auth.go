@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -147,18 +147,13 @@ func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
 	}
 
 	if uid, ok := claims["client_id"]; ok {
-		r = r.WithContext(context.WithValue(r.Context(), "user-id", uid))
+		userID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			return false, nil
+		}
+		auth.SetUserID(r, userID)
 	}
 	return true, claims
-}
-
-func userID(r *http.Request) (uuid.UUID, bool) {
-	iUserID := r.Context().Value("user-id")
-	userID, ok := iUserID.(string)
-	if !ok {
-		return uuid.UUID{}, false
-	}
-	return uuid.MustParse(userID), true
 }
 
 func generateToken(u *models.User, modifyClaims ...func(jwt.MapClaims) jwt.MapClaims) (string, error) {

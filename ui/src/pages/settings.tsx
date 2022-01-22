@@ -1,13 +1,23 @@
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
+import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
 import { logout, userCreateToken } from '../api/auth'
 import { clearDatabase } from '../database'
 
 async function logoutAndRoute() {
-    await logout()
-    route('/login')
+    const accepted = await prompt(
+        'Logging out will remove all local storage. Are you sure?',
+        {
+            yes: true,
+            no: false,
+        },
+    )
+    if (accepted) {
+        await logout()
+        route('/login')
+    }
 }
 
 export const Settings: FunctionalComponent = () => {

@@ -1,3 +1,4 @@
+import { clearDatabase } from 'src/database'
 import jwt from '../jwt'
 import { apiFetch, getAuthToken, setAuthToken } from './internal'
 
@@ -21,6 +22,7 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<void> {
+    clearDatabase()
     await setAuthToken(null, null)
 }
 

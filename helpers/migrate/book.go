@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"strings"
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
@@ -115,7 +114,8 @@ func createBook(oldBook *OldBook) *models.Book {
 		Authors:     authors,
 		Pages:       pages,
 		RightToLeft: true,
-		File:        strings.ReplaceAll(oldBook.File, "/comics/", "/mnt/volume1/Public/Comics/"),
+		File:        oldBook.File,
+		// File:        strings.ReplaceAll(oldBook.File, "/comics/", "/mnt/volume1/Public/Comics/"),
 	}
 
 	return book

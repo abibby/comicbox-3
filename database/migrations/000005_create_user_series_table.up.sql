@@ -4,7 +4,7 @@ CREATE TABLE user_series (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     deleted_at TEXT,
-    list TEXT,
+    list TEXT NOT NULL,
     update_map TEXT NOT NULL,
     PRIMARY KEY (series_name, user_id)
 );

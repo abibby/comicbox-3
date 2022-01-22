@@ -58,6 +58,7 @@ const config: RollupOptions = {
             shellJSPath: 'src/shell.js',
             shellCSSPath: 'src/shell.css',
             iconPath: 'res/images/logo.svg',
+            manifestPath: 'src/manifest.json',
         }),
         buildAssets(),
     ],

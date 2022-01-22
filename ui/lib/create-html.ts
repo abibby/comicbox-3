@@ -1,3 +1,4 @@
+import generateFavicons from 'favicons'
 import { readFile } from 'fs/promises'
 import { render } from 'mustache'
 import { Plugin, PluginContext } from 'rollup'
@@ -8,10 +9,17 @@ interface Options {
     shellJSPath: string
     shellCSSPath: string
     iconPath: string
+    manifestPath: string
 }
 export default function createHTMLPlugin(options: Options): Plugin {
-    const { templatePath, output, shellJSPath, shellCSSPath, iconPath } =
-        options
+    const {
+        templatePath,
+        output,
+        shellJSPath,
+        shellCSSPath,
+        iconPath,
+        manifestPath,
+    } = options
     return {
         name: 'create-html-plugin',
         buildStart() {
@@ -19,12 +27,25 @@ export default function createHTMLPlugin(options: Options): Plugin {
             this.addWatchFile(shellJSPath)
             this.addWatchFile(shellCSSPath)
             this.addWatchFile(iconPath)
+            this.addWatchFile(manifestPath)
         },
         async generateBundle(options, bundle) {
-            // const faviconsPromise = generateFavicons(iconPath, {})
-            const template = await readFile(templatePath).then(f =>
-                f.toString(),
-            )
+            const [template, manifest] = await Promise.all([
+                readFile(templatePath).then(f => f.toString()),
+                readFile(manifestPath).then(f => JSON.parse(f.toString())),
+            ])
+            const faviconsPromise = generateFavicons(iconPath, {
+                background: manifest.background_color,
+                appDescription: manifest.description,
+                dir: manifest.dir,
+                display: manifest.display,
+                lang: manifest.lang,
+                appName: manifest.name,
+                scope: manifest.scope,
+                appShortName: manifest.short_name,
+                start_url: manifest.start_url,
+                theme_color: manifest.theme_color,
+            })
 
             const scripts = Object.values(bundle)
                 .filter(
@@ -46,17 +67,17 @@ export default function createHTMLPlugin(options: Options): Plugin {
             //     await import(await resolveFile(this, shellJSPath))
             // ).shell
 
-            // const r = await faviconsPromise
+            const r = await faviconsPromise
 
-            // for (const image of [...r.images, ...r.files]) {
-            //     bundle[image.name] = {
-            //         name: undefined,
-            //         type: 'asset',
-            //         fileName: image.name,
-            //         isAsset: true,
-            //         source: image.contents,
-            //     }
-            // }
+            for (const image of [...r.images, ...r.files]) {
+                bundle[image.name] = {
+                    name: undefined,
+                    type: 'asset',
+                    fileName: image.name,
+                    isAsset: true,
+                    source: image.contents,
+                }
+            }
 
             // let shellCSS = ''
             // const css = bundle[shellCSSPath]
@@ -69,8 +90,8 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 scripts: scripts,
                 styles: styles,
                 // styles: styles + `<style>${shellCSS}</style>`,
-                // header: r.html.join(''),
-                header: '',
+                header: r.html.join(''),
+                // header: '',
                 // shell: shell,
             }
 

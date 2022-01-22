@@ -10,7 +10,6 @@ import styles from './book-edit.module.css'
 import { Button, ButtonGroup } from './button'
 import { Data, Form } from './form/form'
 import { Input } from './form/input'
-import { Select } from './form/select'
 import { Toggle } from './form/toggle'
 import {
     Modal,
@@ -176,13 +175,18 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
 
     return (
         <div class={styles.page}>
-            <img src={url} height='200' />
-            <Select
-                title='Type'
-                name='page.type'
-                options={pageTypeOptions}
-                value={props.page.type}
-            />
+            <label>
+                <img src={url} height='200' />
+                <select
+                    class={styles.pageTypeSelect}
+                    name='page.type'
+                    value={props.page.type}
+                >
+                    {pageTypeOptions.map(([value, title]) => (
+                        <option value={value}>{title}</option>
+                    ))}
+                </select>
+            </label>
         </div>
     )
 }

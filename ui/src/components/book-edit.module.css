@@ -9,3 +9,7 @@
     height: 250px;
     object-fit: contain;
 }
+
+.pageTypeSelect{
+    width: 100%;
+}

@@ -52,7 +52,7 @@ type OldPage struct {
 
 func migrateBooks(ctx context.Context, db *sqlx.DB) {
 	total := 0
-	limit := 100
+	limit := 1000
 
 	err := db.Get(&total, "select count(*) from book")
 	check(err)
@@ -61,7 +61,7 @@ func migrateBooks(ctx context.Context, db *sqlx.DB) {
 
 	for offset := 0; offset < total; offset += limit {
 		books := []*OldBook{}
-		err = db.Select(&books, "select * from book limit ? offset ?", limit, offset)
+		err = db.Select(&books, "select * from book group by file limit ? offset ?", limit, offset)
 		if err == sql.ErrNoRows {
 			return
 		}
@@ -76,9 +76,9 @@ func migrateBooks(ctx context.Context, db *sqlx.DB) {
 		})
 		check(err)
 
-		bar.SetCurrent(int64(offset))
 	}
 
+	bar.SetCurrent(int64(total))
 	bar.Finish()
 }
 

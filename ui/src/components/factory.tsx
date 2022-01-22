@@ -90,10 +90,10 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
         id?: string,
     ): Promise<T | undefined> => {
         return new Promise(resolve => {
-            const id2 = id ?? this.id
             if (id === undefined) {
                 this.id++
             }
+            const id2 = id ?? this.id
 
             this.target.dispatchEvent(
                 new OpenEvent<TProps>({
@@ -104,7 +104,7 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
                 } as unknown as TProps),
             )
             const cb = (e: CloseEvent<unknown>) => {
-                if (e.id === id) {
+                if (e.id === id2) {
                     resolve(e.result as T)
                     this.target.removeEventListener('close', cb)
                 }

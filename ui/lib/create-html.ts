@@ -1,4 +1,4 @@
-import generateFavicons from 'favicons'
+import generateFavicons, { FaviconOptions } from 'favicons'
 import { readFile } from 'fs/promises'
 import { render } from 'mustache'
 import { Plugin, PluginContext } from 'rollup'
@@ -9,6 +9,7 @@ interface Options {
     shellJSPath: string
     shellCSSPath: string
     iconPath: string
+    appleIconPath: string
     manifestPath: string
 }
 export default function createHTMLPlugin(options: Options): Plugin {
@@ -18,6 +19,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
         shellJSPath,
         shellCSSPath,
         iconPath,
+        appleIconPath,
         manifestPath,
     } = options
     return {
@@ -34,7 +36,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 readFile(templatePath).then(f => f.toString()),
                 readFile(manifestPath).then(f => JSON.parse(f.toString())),
             ])
-            const faviconsPromise = generateFavicons(iconPath, {
+            const faviconOptions: Partial<FaviconOptions> = {
                 background: manifest.background_color,
                 appDescription: manifest.description,
                 dir: manifest.dir,
@@ -45,6 +47,32 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 appShortName: manifest.short_name,
                 start_url: manifest.start_url,
                 theme_color: manifest.theme_color,
+            }
+            const faviconsPromise = generateFavicons(iconPath, {
+                ...faviconOptions,
+                icons: {
+                    android: true,
+                    appleIcon: false,
+                    appleStartup: false,
+                    coast: false,
+                    favicons: false,
+                    firefox: false,
+                    windows: false,
+                    yandex: false,
+                },
+            })
+            const appleFaviconsPromise = generateFavicons(appleIconPath, {
+                ...faviconOptions,
+                icons: {
+                    android: false,
+                    appleIcon: true,
+                    appleStartup: false,
+                    coast: false,
+                    favicons: false,
+                    firefox: false,
+                    windows: false,
+                    yandex: false,
+                },
             })
 
             const scripts = Object.values(bundle)
@@ -68,8 +96,14 @@ export default function createHTMLPlugin(options: Options): Plugin {
             // ).shell
 
             const r = await faviconsPromise
+            const ar = await appleFaviconsPromise
 
-            for (const image of [...r.images, ...r.files]) {
+            for (const image of [
+                ...r.images,
+                ...r.files,
+                ...ar.files,
+                ...ar.images,
+            ]) {
                 bundle[image.name] = {
                     name: undefined,
                     type: 'asset',
@@ -90,7 +124,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 scripts: scripts,
                 styles: styles,
                 // styles: styles + `<style>${shellCSS}</style>`,
-                header: r.html.join(''),
+                header: [...r.html, ...ar.html].join(''),
                 // header: '',
                 // shell: shell,
             }

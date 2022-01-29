@@ -61,7 +61,7 @@ func createUserSeries(oldUserSeries *OldUserSeries) *models.UserSeries {
 
 	list := models.ListNone
 
-	if !listStr.IsNull() {
+	if !listStr.IsNull() && listStr.String() != "none" {
 		list = models.List(listStr.String())
 	}
 

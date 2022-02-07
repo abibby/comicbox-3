@@ -10,7 +10,7 @@ import { addRespondListener } from '../message'
 import './book'
 import { getCacheHandler } from './internal'
 import './series'
-import debounce from 'debounce'
+import { debounce } from '../debounce'
 
 class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {

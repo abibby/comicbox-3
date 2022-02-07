@@ -19,7 +19,7 @@ export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
     return (
         <div class={styles.bookList}>
             {props.series.map(s => (
-                <SeriesCard series={s} />
+                <SeriesCard key={s.name} series={s} />
             ))}
         </div>
     )

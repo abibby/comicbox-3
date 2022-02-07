@@ -12,7 +12,11 @@ interface AlertProps<T = unknown> extends SubComponentProps {
 
 function Alert<T>(props: AlertProps<T>) {
     const buttons = Object.entries(props.options).map(([name, result]) => (
-        <button class={styles.option} onClick={bind(result, props.close)}>
+        <button
+            key={name}
+            class={styles.option}
+            onClick={bind(result, props.close)}
+        >
             {name}
         </button>
     ))

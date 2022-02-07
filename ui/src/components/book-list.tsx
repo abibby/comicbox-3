@@ -20,7 +20,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
     return (
         <div class={styles.bookList}>
             {props.books.map(b => (
-                <BookCard book={b} />
+                <BookCard key={b.id} book={b} />
             ))}
         </div>
     )

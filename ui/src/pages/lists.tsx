@@ -18,7 +18,7 @@ export const List: FunctionalComponent = () => {
     return (
         <div>
             {lists.map(([list, items]) => (
-                <div>
+                <div key={list}>
                     <h1>{list}</h1>
                     <SeriesList series={items ?? []} />
                 </div>

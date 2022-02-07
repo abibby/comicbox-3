@@ -129,7 +129,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             <input type='hidden' name='tab' value='pages' />
                             <div class={styles.pageList}>
                                 {book.pages.map(p => (
-                                    <PageThumb page={p} />
+                                    <PageThumb key={p.url} page={p} />
                                 ))}
                             </div>
                         </Tab>
@@ -183,7 +183,9 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
                     value={props.page.type}
                 >
                     {pageTypeOptions.map(([value, title]) => (
-                        <option value={value}>{title}</option>
+                        <option key={value} value={value}>
+                            {title}
+                        </option>
                     ))}
                 </select>
             </label>

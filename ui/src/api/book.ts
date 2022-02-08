@@ -49,7 +49,7 @@ export async function update(
     id: string,
     req: BookUpdateRequest,
 ): Promise<Book> {
-    return await apiFetch(`/api/books/${id}`, {
+    return await apiFetch(`/api/books/${encodeURIComponent(id)}`, {
         method: 'POST',
         body: JSON.stringify(req),
     })

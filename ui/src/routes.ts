@@ -1,11 +1,3 @@
-// import { Home } from './pages/home'
-// import { List } from './pages/lists'
-// import { Login } from './pages/login'
-// import { SeriesIndex } from './pages/series-index'
-// import { SeriesView } from './pages/series-view'
-// import { Settings } from './pages/settings'
-// import { UserCreate } from './pages/user-create'
-
 export const routes = {
     home: {
         path: '/',

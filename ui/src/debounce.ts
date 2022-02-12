@@ -37,6 +37,7 @@ export function debounce<TArgs extends unknown[], TReturn, TThis>(
         } else {
             timeout = null
             if (!immediate) {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 result = func.apply(context!, args!)
                 context = args = null
             }
@@ -67,6 +68,7 @@ export function debounce<TArgs extends unknown[], TReturn, TThis>(
 
     debounced.flush = function () {
         if (timeout) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             result = func.apply(context!, args!)
             context = args = null
 

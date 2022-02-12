@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { route } from 'src/routes'
 import { useOnline } from '../cache'
 import { DBBook } from '../database'
 import { useComputed } from '../hooks/computed'
@@ -61,7 +62,8 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
     return (
         <Card
             image={coverURL}
-            link={`/book/${props.book.id}`}
+            link={route('book.view', { id: props.book.id })}
+            // link={`/book/${encodeURIComponent(props.book.id)}`}
             title={props.book.series}
             subtitle={title}
             menu={menu}

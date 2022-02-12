@@ -4,6 +4,7 @@ import { Link } from 'preact-router'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { Book } from 'src/models'
+import { route } from 'src/routes'
 import { EditBook } from './book-edit'
 import { openModal } from './modal'
 import styles from './reading-overlay.module.css'
@@ -38,7 +39,14 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                             <a onClick={edit}>Edit</a>
                         </li>
                         <li>
-                            <Link href={`/series/${b.series}`}>{b.series}</Link>
+                            <Link
+                                href={route('series.view', {
+                                    series: b.series,
+                                })}
+                                // href={`/series/${encodeURIComponent(b.series)}`}
+                            >
+                                {b.series}
+                            </Link>
                         </li>
                     </ul>
                 </div>

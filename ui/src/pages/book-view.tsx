@@ -1,11 +1,12 @@
 import noCover from 'asset-url:res/images/no-cover.svg'
 import { FunctionalComponent, h } from 'preact'
-import { route } from 'preact-router'
+import { route as changeRoute } from 'preact-router'
 import { useCallback, useRef, useState } from 'preact/hooks'
 import { Overlay } from 'src/components/reading-overlay'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { useResizeEffect } from 'src/hooks/resize-effect'
+import { route } from 'src/routes'
 import { book } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
@@ -72,17 +73,17 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         async (newIndex: number | string) => {
             if (newIndex >= pages.length) {
                 if (nextBookID) {
-                    route(`/book/${nextBookID}`)
+                    changeRoute(route('book.view', { id: nextBookID }))
                 } else {
-                    route(`/`)
+                    changeRoute(route('home', {}))
                 }
                 return
             }
             if (newIndex < 0) {
                 if (previousBookID) {
-                    route(`/book/${previousBookID}`)
+                    changeRoute(route('book.view', { id: previousBookID }))
                 } else {
-                    route(`/`)
+                    changeRoute(route('home', {}))
                 }
                 return
             }
@@ -98,7 +99,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             })
             persist(true)
 
-            route(`/book/${b.id}/${newPage}`)
+            changeRoute(route('book.view', { id: b.id, page: newPage }))
         },
         [b, nextBookID, pages, previousBookID],
     )

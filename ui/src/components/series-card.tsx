@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { route } from 'src/routes'
 import { useComputed } from '../hooks/computed'
 import { usePageURL } from '../hooks/page'
 import { post } from '../message'
@@ -38,7 +39,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     return (
         <Card
             image={coverURL}
-            link={`/series/${props.series.name}`}
+            link={route('series.view', { series: props.series.name })}
             title={props.series.name}
             menu={menu}
         />

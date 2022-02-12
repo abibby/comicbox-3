@@ -5,7 +5,7 @@ import classNames from 'src/classnames'
 import styles from './card.module.css'
 import { ContextMenuItems, openContextMenu } from './context-menu'
 
-interface BookProps {
+interface CardProps {
     title: string
     subtitle?: string
     image?: string
@@ -16,7 +16,7 @@ interface BookProps {
     progress?: number
 }
 
-export const Card: FunctionalComponent<BookProps> = props => {
+export const Card: FunctionalComponent<CardProps> = props => {
     const open = useCallback(
         (e: Event) => {
             e.preventDefault()

@@ -1,6 +1,7 @@
 import EventTarget from 'event-target-shim'
 import serviceWorkerURL from 'omt:./service-worker.ts'
 import { Fragment, h, render } from 'preact'
+import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
 import { AlertController, clearAlerts } from './components/alert'
@@ -12,14 +13,7 @@ import { clearModals, ModalController } from './components/modal'
 import { Shell } from './components/shell'
 import { setSW } from './message'
 import { Error404 } from './pages/404'
-import { BookView } from './pages/book-view'
-import { Home } from './pages/home'
-import { List } from './pages/lists'
-import { Login } from './pages/login'
-import { SeriesIndex } from './pages/series-index'
-import { SeriesView } from './pages/series-view'
-import { Settings } from './pages/settings'
-import { UserCreate } from './pages/user-create'
+import { routes } from './routes'
 
 function changePage(): void {
     clearAlerts()
@@ -36,15 +30,15 @@ function Main() {
             <ModalController />
             <Shell>
                 <Router onChange={changePage}>
-                    <Home path='/' />
-                    {/* <Page path='/book/:id/:page?' /> */}
-                    <BookView path='/book/:id/:page?' />
-                    <List path='/list' />
-                    <SeriesIndex path='/series' />
-                    <SeriesView path='/series/:series' />
-                    <Settings path='/settings' />
-                    <UserCreate path='/users/create' />
-                    <Login path='/login' />
+                    {Object.values(routes).map(r => {
+                        return (
+                            <AsyncRoute
+                                key={r.path}
+                                path={r.path}
+                                getComponent={r.component}
+                            />
+                        )
+                    })}
                     <Error404 default />
                 </Router>
             </Shell>

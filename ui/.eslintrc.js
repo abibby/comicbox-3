@@ -16,7 +16,10 @@ module.exports = {
     },
     ignorePatterns: ['*.css.d.ts', 'dist/*'],
     rules: {
-        '@typescript-eslint/no-unused-vars': [1, { varsIgnorePattern: '^h$' }],
+        '@typescript-eslint/no-unused-vars': [
+            1,
+            { varsIgnorePattern: '^(h|_.*)$' },
+        ],
         'object-shorthand': [2, 'methods'],
         camelcase: 0,
         'react-hooks/rules-of-hooks': 'error',
@@ -27,5 +30,6 @@ module.exports = {
             },
         ],
         'no-undef': 0,
+        'no-unused-vars': 0,
     },
 }

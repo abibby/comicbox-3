@@ -37,6 +37,7 @@ const config: RollupOptions = {
             autoModules: true,
             // minimize: true,
             extract: true,
+            plugins: [require('autoprefixer')],
         }),
         eslint({
             include: /.*\.tsx?$/,

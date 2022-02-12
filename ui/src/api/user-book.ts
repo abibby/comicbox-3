@@ -10,8 +10,11 @@ export async function update(
     bookID: string,
     req: UserBookUpdateRequest,
 ): Promise<UserBook> {
-    return await apiFetch(`/api/books/${bookID}/user-book`, {
-        method: 'POST',
-        body: JSON.stringify(req),
-    })
+    return await apiFetch(
+        `/api/books/${encodeURIComponent(bookID)}/user-book`,
+        {
+            method: 'POST',
+            body: JSON.stringify(req),
+        },
+    )
 }

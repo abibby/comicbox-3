@@ -16,7 +16,9 @@ export const Select: FunctionalComponent<SelectProps> = props => {
         >
             <select name={props.name} value={props.value}>
                 {props.options.map(([value, title]) => (
-                    <option value={value}>{title}</option>
+                    <option key={value} value={value}>
+                        {title}
+                    </option>
                 ))}
             </select>
         </FormElement>

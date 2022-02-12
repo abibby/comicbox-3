@@ -10,8 +10,11 @@ export async function update(
     name: string,
     req: UserSeriesUpdateRequest,
 ): Promise<UserSeries> {
-    return await apiFetch(`/api/series/${name}/user-series`, {
-        method: 'POST',
-        body: JSON.stringify(req),
-    })
+    return await apiFetch(
+        `/api/series/${encodeURIComponent(name)}/user-series`,
+        {
+            method: 'POST',
+            body: JSON.stringify(req),
+        },
+    )
 }

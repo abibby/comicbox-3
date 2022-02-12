@@ -43,15 +43,21 @@ const Menu: FunctionalComponent<MenuProps> = props => {
                 {props.items.map(([text, action]) => {
                     if (typeof action === 'string') {
                         if (encodeURI(action) === location.pathname) {
-                            return <li>{text}</li>
+                            return <li key={text}>{text}</li>
                         }
                         return (
                             <li>
-                                <Link href={action}>{text}</Link>
+                                <Link key={text} href={action}>
+                                    {text}
+                                </Link>
                             </li>
                         )
                     }
-                    return <li onClick={action}>{text}</li>
+                    return (
+                        <li key={text} onClick={action}>
+                            {text}
+                        </li>
+                    )
                 })}
             </ul>
         </div>

@@ -10,6 +10,7 @@ import { addRespondListener } from '../message'
 import './book'
 import { getCacheHandler } from './internal'
 import './series'
+import { debounce } from '../debounce'
 
 class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {
@@ -141,7 +142,9 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
     return false
 }
 
-export async function persist(fromUserInteraction: boolean): Promise<void> {
+export const persist = debounce(async function (
+    fromUserInteraction: boolean,
+): Promise<void> {
     const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
     for (const b of dirtyBooks) {
         let result = b
@@ -180,7 +183,8 @@ export async function persist(fromUserInteraction: boolean): Promise<void> {
         }
     }
     invalidateCache(fromUserInteraction)
-}
+},
+500)
 
 export function useOnline(): boolean {
     const [online, setOnline] = useState(navigator.onLine)

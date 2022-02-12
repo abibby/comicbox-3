@@ -217,7 +217,7 @@ const PageView: FunctionalComponent<PageProps> = props => {
             })}
         >
             {pages.map(p => (
-                <PageImage page={p} />
+                <PageImage key={p.url} page={p} />
             ))}
         </div>
     )

@@ -78,8 +78,8 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
         const SubComponents = this.subComponent
         return (
             <div class={this.className}>
-                {Array.from(alerts).map(([, alert]) => (
-                    <SubComponents {...alert} />
+                {Array.from(alerts).map(([key, alert]) => (
+                    <SubComponents key={key} {...alert} />
                 ))}
             </div>
         )

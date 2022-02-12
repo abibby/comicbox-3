@@ -16,6 +16,7 @@ export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
             <div class={styles.tabButtonList}>
                 {tabs.map((t, i) => (
                     <button
+                        key={i}
                         class={classNames(styles.tabButton, {
                             [styles.active]: i === activeTab,
                         })}

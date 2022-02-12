@@ -26,7 +26,9 @@ setCacheHandler(book.list, async (req): Promise<Book[]> => {
         }
         beforeSort = b.sort
     }
-    if (req.series !== undefined) {
+    if (req.order_by === 'created_at') {
+        collection = DB.books.orderBy('created_at')
+    } else if (req.series !== undefined) {
         collection = DB.books
             .where(['series', 'sort'])
             .between(

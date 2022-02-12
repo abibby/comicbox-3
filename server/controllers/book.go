@@ -32,6 +32,7 @@ type BookIndexRequest struct {
 	BeforeID *nulls.String `query:"before_id" validate:"uuid"`
 	AfterID  *nulls.String `query:"after_id"  validate:"uuid"`
 	Order    *nulls.String `query:"order"     validate:"in:asc,desc"`
+	OrderBy  *nulls.String `query:"order_by"  validate:"in:default,created_at"`
 }
 
 func BookIndex(rw http.ResponseWriter, r *http.Request) {
@@ -53,10 +54,16 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.Where(goqu.Ex{"series": series})
 	}
 
+	orderColumn := "sort"
+	switch req.OrderBy.String() {
+	case "created_at":
+		orderColumn = "created_at"
+	}
+
 	if order, _ := req.Order.Ok(); order == "desc" {
-		query = query.Order(goqu.I("sort").Desc())
+		query = query.Order(goqu.I(orderColumn).Desc())
 	} else {
-		query = query.Order(goqu.I("sort").Asc())
+		query = query.Order(goqu.I(orderColumn).Asc())
 	}
 
 	if afterID, ok := req.AfterID.Ok(); ok {

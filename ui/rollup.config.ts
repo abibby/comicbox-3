@@ -16,6 +16,7 @@ import resolveFilePlugin from './lib/resolve-file-plugin'
 import staticFileNamePlugin from './lib/static-file-name-plugin'
 
 const config: RollupOptions = {
+    preserveEntrySignatures: false,
     input: ['src/app.tsx'],
     output: {
         format: 'amd',

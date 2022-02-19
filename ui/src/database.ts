@@ -61,13 +61,16 @@ class AppDatabase extends Dexie {
         this.lastUpdated = this.table('lastUpdated')
 
         this.books.hook('creating', (id, b) => {
+            console.log('create', id, b)
             b.completed = this.bookComplete(b)
             b.dirty = 0
         })
         this.books.hook('updating', (mod, id, b) => {
+            console.log('update', id, mod, b)
+
             return {
                 ...mod,
-                completed: this.bookComplete(b),
+                completed: this.bookComplete(b, mod),
             }
         })
 
@@ -175,11 +178,13 @@ class AppDatabase extends Dexie {
         await DB.series.update(s, mod)
     }
 
-    private bookComplete(b: DBBook): number {
-        if (
-            b.user_book === null ||
-            b.user_book.current_page < b.page_count - 1
-        ) {
+    private bookComplete(b: DBBook, mod: Partial<DBBook> = {}): number {
+        const currentPage =
+            mod.user_book?.current_page ?? b.user_book?.current_page ?? 0
+        const pageCount =
+            mod.page_count ?? b.page_count ?? Number.MAX_SAFE_INTEGER
+
+        if (currentPage < pageCount - 1) {
             return 0
         }
         return 1

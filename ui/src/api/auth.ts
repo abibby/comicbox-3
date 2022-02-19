@@ -9,6 +9,7 @@ export interface LoginRequest {
 export interface LoginResponse {
     token: string
     image_token: string
+    refresh_token: string
 }
 export async function login(req: LoginRequest): Promise<LoginResponse> {
     const response = await apiFetch<LoginResponse>('/api/login', {
@@ -16,14 +17,14 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
         body: JSON.stringify(req),
     })
 
-    setAuthToken(response.token, response.image_token)
+    setAuthToken(response)
 
     return response
 }
 
 export async function logout(): Promise<void> {
     clearDatabase()
-    await setAuthToken(null, null)
+    await setAuthToken(null)
 }
 
 export async function currentID(): Promise<string | null> {

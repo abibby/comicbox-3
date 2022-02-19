@@ -20,6 +20,7 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
+	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -67,7 +68,7 @@ func Sync(ctx context.Context) error {
 func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error) {
 	bookFiles := map[string]struct{}{}
 
-	err := filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+	err := symwalk.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

@@ -22,6 +22,7 @@ require (
 require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8 // indirect
+	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222 // indirect
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect

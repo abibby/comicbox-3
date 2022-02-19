@@ -15,7 +15,7 @@ func init() {
 	router.Group("/api/", func(r *mux.Router) {
 
 		auth := r.NewRoute().Subrouter()
-		auth.Use(controllers.AuthMiddleware(false))
+		auth.Use(controllers.AuthMiddleware(false, controllers.TokenAuthenticated))
 		auth.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
 		auth.HandleFunc("/series/{name}/user-series", controllers.UserSeriesUpdate).Methods("POST").Name("user-series.update")
 
@@ -27,7 +27,7 @@ func init() {
 		auth.HandleFunc("/users/create-token", controllers.UserCreateToken).Methods("GET").Name("user-create-token")
 
 		pages := r.NewRoute().Subrouter()
-		pages.Use(controllers.AuthMiddleware(true))
+		pages.Use(controllers.AuthMiddleware(true, controllers.TokenImage))
 		pages.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
 
 		thumb := pages.NewRoute().Subrouter()
@@ -37,6 +37,10 @@ func init() {
 		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")
 
 		r.HandleFunc("/login", controllers.Login).Methods("POST").Name("login")
+
+		refresh := r.NewRoute().Subrouter()
+		refresh.Use(controllers.AuthMiddleware(false, controllers.TokenRefresh))
+		refresh.HandleFunc("/login/refresh", controllers.Refresh).Methods("POST").Name("refresh")
 
 		r.NotFoundHandler = http.HandlerFunc(controllers.API404)
 	})

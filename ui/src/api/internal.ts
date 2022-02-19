@@ -1,7 +1,10 @@
 import noImage from 'asset-url:../../res/images/no-cover.svg'
-import { get, set } from 'idb-keyval'
+import { Mutex } from 'async-mutex'
+import { del, get, set } from 'idb-keyval'
 import { route } from 'preact-router'
+import jwt, { JWT } from 'src/jwt'
 import { Book, Page, Series } from '../models'
+import { LoginResponse } from './auth'
 
 export type PaginatedRequest = {
     page?: number
@@ -73,35 +76,58 @@ export class FetchError<T> extends Error {
     }
 }
 
-let authToken: string | null | undefined
-let authImageToken: string | null | undefined
+let tokens: LoginResponse | undefined
 
-export async function setAuthToken(
-    token: string | null,
-    imageToken: string | null,
-): Promise<void> {
-    authToken = token
-    authImageToken = imageToken
-    await Promise.all([
-        set('auth-token', token),
-        set('auth-image-token', imageToken),
-    ])
-}
-export async function getAuthToken(): Promise<string | null> {
-    if (authToken !== undefined) {
-        return authToken
+export async function setAuthToken(resp: LoginResponse | null): Promise<void> {
+    if (resp === null) {
+        await del('tokens')
+    } else {
+        await set('tokens', resp)
     }
-    const token = await get<string | null>('auth-token')
-    authToken = token ?? null
-    return authToken
+}
+
+const refreshTokenMutex = new Mutex()
+
+async function getTokens(): Promise<LoginResponse | undefined> {
+    if (tokens === undefined) {
+        tokens = await get<LoginResponse>('tokens')
+    }
+    if (tokens) {
+        if (
+            isExpired(jwt.parse(tokens.token)) &&
+            !isExpired(jwt.parse(tokens.refresh_token))
+        ) {
+            await refreshTokenMutex.runExclusive(async () => {
+                if (tokens && isExpired(jwt.parse(tokens.token))) {
+                    const resp = await fetch('/api/login/refresh', {
+                        method: 'POST',
+                        headers: {
+                            Authorization: 'Bearer ' + tokens.refresh_token,
+                        },
+                    })
+
+                    if (resp.ok) {
+                        tokens = await resp.json()
+                    }
+                }
+            })
+        }
+    }
+
+    return tokens
+}
+
+function isExpired(token: JWT): boolean {
+    return Date.now() / 1000 - Number(token.claims.exp) > -60
+}
+
+export async function getAuthToken(): Promise<string | null> {
+    const t = await getTokens()
+    return t?.token ?? null
 }
 export async function getAuthImageToken(): Promise<string | null> {
-    if (authImageToken !== undefined) {
-        return authImageToken
-    }
-    const token = await get<string | null>('auth-image-token')
-    authImageToken = token ?? null
-    return authImageToken
+    const t = await getTokens()
+    return t?.image_token ?? null
 }
 
 export async function pageURL(

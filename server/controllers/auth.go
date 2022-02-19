@@ -25,9 +25,18 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token      string `json:"token"`
-	ImageToken string `json:"image_token"`
+	Token        string `json:"token"`
+	ImageToken   string `json:"image_token"`
+	RefreshToken string `json:"refresh_token"`
 }
+
+type TokenPurpose string
+
+const (
+	TokenAuthenticated = TokenPurpose("authenticated")
+	TokenRefresh       = TokenPurpose("refresh")
+	TokenImage         = TokenPurpose("image")
+)
 
 var (
 	ErrUnauthorized = NewHttpError(401, fmt.Errorf("unauthorized"))
@@ -62,22 +71,62 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := generateToken(u)
+	resp, err := generateLoginRespose(u)
 	if err != nil {
 		sendError(rw, err)
 		return
 	}
 
-	imageToken, err := generateToken(u, allowQueryToken)
-	if err != nil {
-		sendError(rw, err)
+	sendJSON(rw, resp)
+}
+
+func Refresh(rw http.ResponseWriter, r *http.Request) {
+	uid, ok := auth.UserID(r.Context())
+	if !ok {
+		sendError(rw, ErrUnauthorized)
 		return
 	}
 
-	sendJSON(rw, &LoginResponse{
-		Token:      token,
-		ImageToken: imageToken,
+	u := &models.User{}
+	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
+		return tx.Get(u, "select * from users where id = ? limit 1", uid)
 	})
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	resp, err := generateLoginRespose(u)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	sendJSON(rw, resp)
+}
+
+func generateLoginRespose(u *models.User) (*LoginResponse, error) {
+
+	token, err := generateToken(u, withPurpose(TokenAuthenticated))
+	if err != nil {
+		return nil, err
+	}
+
+	imageToken, err := generateToken(u, withPurpose(TokenImage), allowQueryToken)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := generateToken(u, withPurpose(TokenRefresh), withLifetime(time.Hour*24*30))
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginResponse{
+		Token:        token,
+		ImageToken:   imageToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 type UserCreateTokenResponse struct {
@@ -96,18 +145,40 @@ func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func AuthMiddleware(acceptQuery bool, scopes ...string) func(next http.Handler) http.Handler {
+func AuthMiddleware(acceptQuery bool, purposes ...TokenPurpose) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			ok, _ := authenticate(acceptQuery, r)
+			ok, claims := authenticate(acceptQuery, r)
 			if !ok {
 				sendError(rw, ErrUnauthorized)
 				return
 			}
 
+			if len(purposes) > 0 {
+				iPurpose, ok := claims["purpose"]
+				if !ok {
+					sendError(rw, ErrUnauthorized)
+					return
+				}
+				purpose, ok := iPurpose.(string)
+				if !ok || !hasPurpose(purposes, TokenPurpose(purpose)) {
+					sendError(rw, ErrUnauthorized)
+					return
+				}
+			}
+
 			next.ServeHTTP(rw, r)
 		})
 	}
+}
+
+func hasPurpose(haystack []TokenPurpose, needle TokenPurpose) bool {
+	for _, p := range haystack {
+		if needle == p {
+			return true
+		}
+	}
+	return false
 }
 
 func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
@@ -179,6 +250,18 @@ func allowQueryToken(claims jwt.MapClaims) jwt.MapClaims {
 func createsUser(id uuid.UUID) func(claims jwt.MapClaims) jwt.MapClaims {
 	return func(claims jwt.MapClaims) jwt.MapClaims {
 		claims["new_client_id"] = id
+		return claims
+	}
+}
+func withPurpose(purpose TokenPurpose) func(claims jwt.MapClaims) jwt.MapClaims {
+	return func(claims jwt.MapClaims) jwt.MapClaims {
+		claims["purpose"] = purpose
+		return claims
+	}
+}
+func withLifetime(duration time.Duration) func(claims jwt.MapClaims) jwt.MapClaims {
+	return func(claims jwt.MapClaims) jwt.MapClaims {
+		claims["exp"] = time.Now().Add(duration).Unix()
 		return claims
 	}
 }

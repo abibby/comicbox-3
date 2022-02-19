@@ -41,6 +41,11 @@ func init() {
 			if !ok {
 				return nil
 			}
+			v := reflect.ValueOf(enum)
+			if v.Kind() == reflect.Ptr && v.IsNil() {
+				return nil
+			}
+
 			if IsEnumValid(enum, value) {
 				return nil
 			}

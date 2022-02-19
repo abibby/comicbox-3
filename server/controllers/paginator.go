@@ -8,6 +8,7 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -72,6 +73,8 @@ func index(rw http.ResponseWriter, r *http.Request, query *goqu.SelectDataset, v
 	}
 
 	total := 0
+
+	spew.Dump(countSQL, dataSQL)
 
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		err := tx.Get(&total, countSQL, countArgs...)

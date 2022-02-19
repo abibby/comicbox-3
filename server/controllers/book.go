@@ -21,6 +21,7 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -29,6 +30,7 @@ import (
 type BookIndexRequest struct {
 	ID       *nulls.String `query:"id"        validate:"uuid"`
 	Series   *nulls.String `query:"series"`
+	List     *models.List  `query:"list"`
 	BeforeID *nulls.String `query:"before_id" validate:"uuid"`
 	AfterID  *nulls.String `query:"after_id"  validate:"uuid"`
 	Order    *nulls.String `query:"order"     validate:"in:asc,desc"`
@@ -83,6 +85,37 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 					Where(goqu.C("id").Eq(beforeID)),
 			),
 		)
+	}
+
+	if req.List != nil {
+		spew.Dump(req.List)
+		uid, ok := auth.UserID(r.Context())
+		if !ok {
+			sendError(rw, ErrUnauthorized)
+			return
+		}
+		query = query.Where(
+			goqu.L(
+				"exists ?",
+				goqu.From("user_series").Where(
+					goqu.Ex{
+						"user_series.series_name": goqu.I("books.series"),
+						"user_series.user_id":     uid.String(),
+						"user_series.list":        req.List,
+					},
+				),
+			),
+		)
+		// Join(
+		// 	goqu.T("user_series"),
+		// 	goqu.On(goqu.Ex{
+		// 		"user_series.series_name": goqu.I("books.series"),
+		// 		"user_series.user_id":     uid.String(),
+		// 	}),
+		// ).
+		// Where(
+		// 	goqu.C("user_series.list").Eq(req.List),
+		// )
 	}
 
 	index(rw, r, query, &models.BookList{}, afterExprs(r, false)...)
@@ -182,6 +215,45 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 }
 
 func BookReading(rw http.ResponseWriter, r *http.Request) {
+	uid, ok := auth.UserID(r.Context())
+	if !ok {
+		sendJSON(rw, &PaginatedResponse{})
+		return
+	}
+
+	seriesQuery := `select (
+		select
+			id
+		from
+			books
+		left join user_books user_books on
+			books.id = user_books.book_id
+			and user_books.user_id = ?
+		WHERE
+			books.series = series.name
+			and (user_books.current_page < (books.page_count - 1)
+				or user_books.current_page is null)
+		order by
+			sort
+		limit 1
+	)
+	from "series"
+	join user_series
+		on user_series.series_name = series.name
+		and user_series.user_id = ?
+	where user_series.list = 'reading'`
+
+	// seriesQuery := goqu.From("series").Select(goqu.L(bookQuery, uid))
+
+	query := goqu.
+		From("books").
+		Select(&models.Book{}).
+		Where(goqu.C("id").In(goqu.L(seriesQuery, uid, uid)))
+
+	index(rw, r, query, &models.BookList{}, afterExprs(r, true)...)
+}
+
+func BookList(rw http.ResponseWriter, r *http.Request) {
 	uid, ok := auth.UserID(r.Context())
 	if !ok {
 		sendJSON(rw, &PaginatedResponse{})

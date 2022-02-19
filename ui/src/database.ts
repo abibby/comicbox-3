@@ -61,13 +61,10 @@ class AppDatabase extends Dexie {
         this.lastUpdated = this.table('lastUpdated')
 
         this.books.hook('creating', (id, b) => {
-            console.log('create', id, b)
             b.completed = this.bookComplete(b)
             b.dirty = 0
         })
         this.books.hook('updating', (mod, id, b) => {
-            console.log('update', id, mod, b)
-
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),

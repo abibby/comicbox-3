@@ -1,5 +1,5 @@
 import { DBBook } from '../database'
-import { Book, PageType } from '../models'
+import { Book, List, PageType } from '../models'
 import {
     allPagesFactory,
     apiFetch,
@@ -11,6 +11,7 @@ import {
 export type BookListRequest = PaginatedRequest & {
     id?: string
     series?: string
+    list?: List
     before_id?: string
     after_id?: string
     order_by?: 'default' | 'created_at'

@@ -6,6 +6,7 @@ export interface InputProps extends FormElementProps {
     type?: 'number' | 'text' | 'password'
     value?: string | number
     focused?: boolean
+    step?: 'any' | number
 }
 
 export const Input: FunctionalComponent<InputProps> = props => {
@@ -26,6 +27,7 @@ export const Input: FunctionalComponent<InputProps> = props => {
                 type={props.type}
                 name={props.name}
                 value={props.value}
+                step={props.step}
                 ref={input}
             />
         </FormElement>

@@ -66,16 +66,18 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                 }
 
                 persist(true)
-                close(undefined)
+                prompt('Chapter updated', {})
 
                 switch (data.get('submit')) {
                     case 'next':
                         if (next) {
+                            close(undefined)
                             openModal(EditBook, { book: next })
                         }
                         break
                     case 'previous':
                         if (previous) {
+                            close(undefined)
                             openModal(EditBook, { book: previous })
                         }
                         break
@@ -118,6 +120,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                 type='number'
                                 name='chapter'
                                 value={book.chapter ?? ''}
+                                step='any'
                             />
                             <Toggle
                                 title='Right to Left'

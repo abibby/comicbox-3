@@ -145,6 +145,7 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
 export const persist = debounce(async function (
     fromUserInteraction: boolean,
 ): Promise<void> {
+    invalidateCache(fromUserInteraction)
     const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
     for (const b of dirtyBooks) {
         let result = b

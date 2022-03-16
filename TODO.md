@@ -26,3 +26,4 @@
 - [ ] add keyboard nav to reader
 - [ ] add support for one page books
 - [ ] Look into thumbnail cache issue with non 200 responses
+- [ ] 

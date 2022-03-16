@@ -46,18 +46,20 @@ func Sync(ctx context.Context) error {
 			} else {
 				err = removeBook(ctx, tx, file)
 				if err != nil {
-					return err
+					log.Printf("Failed to remove %s from the library: %v", file, err)
+				} else {
+					log.Printf("Removed %s from the library", file)
 				}
-				log.Printf("Removed %s from the library", file)
 			}
 		}
 
 		for file := range bookFiles {
 			err = addBook(ctx, tx, file)
 			if err != nil {
-				return err
+				log.Printf("failed to add %s to the library: %v", file, err)
+			} else {
+				log.Printf("Added %s to the library", file)
 			}
-			log.Printf("Added %s to the library", file)
 		}
 
 		return nil

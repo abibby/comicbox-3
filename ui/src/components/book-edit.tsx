@@ -54,8 +54,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                     case 'pages':
                         DB.saveBook(book, {
                             pages: data.getAll('page.type')?.map(
-                                (type): Page => ({
-                                    url: '',
+                                (type, i): Page => ({
+                                    url: book.pages[i]?.url ?? '',
                                     type: isPageType(type)
                                         ? type
                                         : PageType.Story,

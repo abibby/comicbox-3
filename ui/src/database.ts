@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { Book, Series, UserBook, UserSeries } from './models'
+import { Book, PageType, Series, UserBook, UserSeries } from './models'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string
@@ -64,10 +64,13 @@ class AppDatabase extends Dexie {
             b.completed = this.bookComplete(b)
             b.dirty = 0
         })
-        this.books.hook('updating', (mod, id, b) => {
+        this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),
+                cover_url:
+                    mod.pages?.find(p => p.type !== PageType.Deleted)?.url ??
+                    b.cover_url,
             }
         })
 

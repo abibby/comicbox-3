@@ -14,15 +14,15 @@ interface BookProps {
     book: DBBook
 }
 
-export const BookCard: FunctionalComponent<BookProps> = props => {
+export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
     const menu = useComputed<ContextMenuItems>(() => {
         return [
-            ['view series', `/series/${props.book.series}`],
+            ['view series', `/series/${book.series}`],
             [
                 'edit',
                 () =>
                     openModal(EditBook, {
-                        book: props.book,
+                        book: book,
                     }),
             ],
             [
@@ -30,44 +30,43 @@ export const BookCard: FunctionalComponent<BookProps> = props => {
                 () =>
                     post({
                         type: 'download-book',
-                        bookID: props.book.id,
+                        bookID: book.id,
                     }),
             ],
         ]
-    }, [props.book])
+    }, [book])
     const online = useOnline()
 
     let title = ''
-    if (props.book.volume) {
-        title += 'V' + props.book.volume
+    if (book.volume) {
+        title += 'V' + book.volume
     }
-    if (props.book.chapter) {
+    if (book.chapter) {
         if (title !== '') {
             title += ' '
         }
-        title += '#' + props.book.chapter
+        title += '#' + book.chapter
     }
-    if (props.book.title) {
+    if (book.title) {
         if (title !== '') {
             title += ' • '
         }
-        title += props.book.title
+        title += book.title
     }
-    const coverURL = usePageURL(props.book)
+    const coverURL = usePageURL(book)
 
-    const currentPage = props.book.user_book?.current_page ?? 0
-    const progress =
-        currentPage !== 0 ? currentPage / (props.book.page_count - 1) : 0
+    const currentPage = book.user_book?.current_page ?? 0
+    const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
 
     return (
         <Card
             image={coverURL}
-            link={route('book.view', { id: props.book.id })}
-            // link={`/book/${encodeURIComponent(props.book.id)}`}
-            title={props.book.series}
+            link={route('book.view', { id: book.id })}
+            // link={`/book/${encodeURIComponent(book.id)}`}
+            title={book.series}
             subtitle={title}
             menu={menu}
-            disabled={!online && !props.book.downloaded}
+            disabled={!online && !book.downloaded}
             progress={progress}
         />
     )

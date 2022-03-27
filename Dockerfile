@@ -6,7 +6,7 @@ RUN npm install
 COPY ui/ ./
 RUN npm run build
 
-FROM golang:1.17 as go-build
+FROM golang:1.18 as go-build
 
 WORKDIR /go/src/github.com/abibby/comicbox-3
 

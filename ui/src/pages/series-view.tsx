@@ -1,13 +1,13 @@
+import Dexie from 'dexie'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
 import { post } from 'src/message'
 import { Series } from 'src/models'
 import { book, series } from '../api'
-import { useCached } from '../cache'
+import { persist, useCached } from '../cache'
 import { BookList } from '../components/book-list'
 import { DB } from '../database'
 import { Error404 } from './404'
@@ -58,9 +58,42 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
             series: series,
         })
     }, [series])
-    const markAllRead = useCallback(() => {
-        prompt('Not implemented')
-    }, [series])
+    const seriesName = series?.name
+    const markAllRead = useCallback(async () => {
+        if (seriesName !== undefined) {
+            const seriesBooks = await DB.books
+                .where(['series', 'completed', 'sort'])
+                .between(
+                    [seriesName, 0, Dexie.minKey],
+                    [seriesName, 0, Dexie.maxKey],
+                )
+                .toArray()
+            for (const b of seriesBooks) {
+                await DB.saveBook(b, {
+                    user_book: {
+                        current_page: b.page_count,
+                    },
+                })
+            }
+            await persist(true)
+        }
+    }, [seriesName])
+    const markAllUnread = useCallback(async () => {
+        if (seriesName !== undefined) {
+            const seriesBooks = await DB.books
+                .where(['series', 'sort'])
+                .between([seriesName, Dexie.minKey], [seriesName, Dexie.maxKey])
+                .toArray()
+            for (const b of seriesBooks) {
+                await DB.saveBook(b, {
+                    user_book: {
+                        current_page: 0,
+                    },
+                })
+            }
+            await persist(true)
+        }
+    }, [seriesName])
 
     const downloadSeries = useCallback(() => {
         post({
@@ -76,6 +109,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                 <Button onClick={downloadSeries}>download</Button>
                 <Button onClick={editSeries}>edit</Button>
                 <Button onClick={markAllRead}>Mark All Read</Button>
+                <Button onClick={markAllUnread}>Mark All Unread</Button>
             </ButtonGroup>
             <BookList books={books} />
         </div>

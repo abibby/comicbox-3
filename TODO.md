@@ -23,7 +23,7 @@
   - Start as auto, based on portrait/landscape, and add forced options
 - [ ] navigate to next/previous book when moving to next/previous on first/last
       page
-- [ ] add keyboard nav to reader
+- [x] add keyboard nav to reader
 - [ ] add support for one page books
 - [ ] Look into thumbnail cache issue with non 200 responses
-- [ ] 
+- [ ]

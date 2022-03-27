@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -39,7 +40,10 @@ func CacheMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		cachePath := path.Join(config.CachePath, r.URL.Path)
 		err := serveFromCache(rw, cachePath)
-		if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+		} else if err == nil {
+			return
+		} else if err != nil {
 			log.Print(err)
 			return
 		}
@@ -85,14 +89,16 @@ func CacheMiddleware(next http.Handler) http.Handler {
 }
 
 func serveFromCache(rw http.ResponseWriter, cachePath string) error {
-	rw.Header().Add("Cache-Control", "max-age=3600")
 
 	f, err := os.Open(cachePath)
-	if err == nil {
-		_, err = io.Copy(rw, f)
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	rw.Header().Add("Cache-Control", "max-age=3600")
+	_, err = io.Copy(rw, f)
+	if err != nil {
+		return err
 	}
 	return nil
 }

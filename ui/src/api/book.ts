@@ -33,7 +33,26 @@ export async function readingPaged(
         '/api/books/reading?' + encodeParams(req),
     )
 
-    const series = books.data.map(b => b.series)
+    // TODO: make it so you don't need to fetch all of the books from series
+    // you are reading
+    // await Promise.all(
+    //     books.data.map(async readingBooks => {
+    //         const seriesBooks = await DB.books
+    //             .where(['series', 'completed', 'sort'])
+    //             .between(
+    //                 [readingBooks.series, 0, Dexie.minKey],
+    //                 [readingBooks.series, 0, readingBooks.sort],
+    //             )
+    //             .toArray()
+    //         for (const b of seriesBooks) {
+    //             DB.saveBook(b, {
+    //                 user_book: {
+    //                     current_page: b.page_count,
+    //                 },
+    //             })
+    //         }
+    //     }),
+    // )
 
     return books
 }

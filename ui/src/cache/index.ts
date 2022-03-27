@@ -51,8 +51,6 @@ export async function updateList<
         with_deleted: true,
     })
 
-    console.log(items)
-
     await Promise.all([
         DB.fromNetwork(table, items),
         DB.lastUpdated.put({

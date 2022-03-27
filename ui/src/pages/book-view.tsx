@@ -104,17 +104,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         [b, nextBookID, pages, previousBookID],
     )
 
-    const setCurrentPage = useCallback(
-        (newPage: number | string) => {
-            const newIndex = getPagesIndex(pages, Number(newPage))
-            if (newIndex === -1) {
-                return
-            }
-            setCurrentIndex(newIndex)
-        },
-        [pages, setCurrentIndex],
-    )
-
     let leftOffset = -1
     let rightOffset = +1
 
@@ -183,10 +172,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             </div>
             <Overlay
                 book={b}
-                page={page}
+                page={pagesIndex}
                 pageCount={pages.length}
                 baseRef={overlay}
-                changePage={setCurrentPage}
+                changePage={setCurrentIndex}
                 open={menuOpen}
             />
             <div class={styles.pageList}>

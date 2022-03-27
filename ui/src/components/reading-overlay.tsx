@@ -1,7 +1,7 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
 import { Link } from 'preact-router'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { Book } from 'src/models'
 import { route } from 'src/routes'
@@ -24,6 +24,19 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
         openModal(EditBook, { book: b })
     }, [b])
 
+    const [page, setPage] = useState<number | null>(null)
+    const sliderInput = useCallback((p: string) => {
+        setPage(Number(p))
+    }, [])
+    const changePage = props.changePage
+    const sliderChange = useCallback(
+        (p: string) => {
+            setPage(null)
+            changePage(p)
+        },
+        [changePage],
+    )
+
     return (
         <div
             class={classNames(styles.overlay, {
@@ -43,7 +56,6 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                                 href={route('series.view', {
                                     series: b.series,
                                 })}
-                                // href={`/series/${encodeURIComponent(b.series)}`}
                             >
                                 {b.series}
                             </Link>
@@ -57,12 +69,13 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                         value={props.page}
                         min={0}
                         max={props.pageCount - 1}
-                        onChange={bindValue(props.changePage)}
+                        onChange={bindValue(sliderChange)}
+                        onInput={bindValue(sliderInput)}
                     />
                     <input
                         class={styles.number}
                         type='number'
-                        value={props.page}
+                        value={page ?? props.page}
                         min={0}
                         max={props.pageCount - 1}
                         onChange={bindValue(props.changePage)}

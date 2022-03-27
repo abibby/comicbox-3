@@ -17,13 +17,14 @@ type UserSeries struct {
 
 type List string
 
-func (l List) Options() []string {
-	return []string{
-		string(ListReading),
-		string(ListDropped),
-		string(ListCompleted),
-		string(ListPaused),
-		string(ListPlanning),
+func (l List) Options() map[string]string {
+	return map[string]string{
+		"None":      string(ListNone),
+		"Reading":   string(ListReading),
+		"Dropped":   string(ListDropped),
+		"Completed": string(ListCompleted),
+		"Paused":    string(ListPaused),
+		"Planning":  string(ListPlanning),
 	}
 }
 

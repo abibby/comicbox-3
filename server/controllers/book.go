@@ -221,34 +221,35 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seriesQuery := `select (
-		select
-			id
+	seriesQuery := `select
+			(
+				select
+					id
+				from
+					books
+				left join user_books user_books on books.id = user_books.book_id and user_books.user_id = user_series.user_id
+				WHERE
+					books.series = series.name
+					and (
+						user_books.current_page < (books.page_count - 1)
+						or user_books.current_page is null
+					)
+					and books.deleted_at is null
+				order by
+						sort
+				limit 1
+			) as book_id
 		from
-			books
-		left join user_books user_books on
-			books.id = user_books.book_id
-			and user_books.user_id = ?
-		WHERE
-			books.series = series.name
-			and (user_books.current_page < (books.page_count - 1)
-				or user_books.current_page is null)
-		order by
-			sort
-		limit 1
-	)
-	from "series"
-	join user_series
-		on user_series.series_name = series.name
-		and user_series.user_id = ?
-	where user_series.list = 'reading'`
-
-	// seriesQuery := goqu.From("series").Select(goqu.L(bookQuery, uid))
+			"series"
+		join user_series on user_series.series_name = series.name and user_series.user_id = ?
+		where
+			user_series.list = 'reading'
+			and book_id is not null`
 
 	query := goqu.
 		From("books").
 		Select(&models.Book{}).
-		Where(goqu.C("id").In(goqu.L(seriesQuery, uid, uid)))
+		Where(goqu.C("id").In(goqu.L(seriesQuery, uid)))
 
 	index(rw, r, query, &models.BookList{}, afterExprs(r, true)...)
 }

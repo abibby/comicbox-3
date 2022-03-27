@@ -20,13 +20,13 @@ type Page struct {
 
 type PageType string
 
-func (pt PageType) Options() []string {
-	return []string{
-		string(PageTypeFrontCover),
-		string(PageTypeStory),
-		string(PageTypeSpread),
-		string(PageTypeSpreadSplit),
-		string(PageTypeDeleted),
+func (pt PageType) Options() map[string]string {
+	return map[string]string{
+		"FrontCover":  string(PageTypeFrontCover),
+		"Story":       string(PageTypeStory),
+		"Spread":      string(PageTypeSpread),
+		"SpreadSplit": string(PageTypeSpreadSplit),
+		"Deleted":     string(PageTypeDeleted),
 	}
 }
 
@@ -52,7 +52,7 @@ type Book struct {
 	PageCount   int            `json:"page_count" db:"page_count"`
 	RightToLeft bool           `json:"rtl"        db:"rtl"`
 	Sort        string         `json:"sort"       db:"sort"`
-	File        string         `json:"-"          db:"file"`
+	File        string         `json:"file"       db:"file"`
 	CoverURL    string         `json:"cover_url"  db:"-"`
 	UserBook    *UserBook      `json:"user_book"  db:"-"`
 }

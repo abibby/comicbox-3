@@ -5,12 +5,12 @@ import { book, userBook, userSeries } from '../api'
 import { PaginatedRequest } from '../api/internal'
 import { prompt } from '../components/alert'
 import { DB, DBBook, DBSeries } from '../database'
+import { debounce } from '../debounce'
 import { useEventListener } from '../hooks/event-listener'
 import { addRespondListener } from '../message'
 import './book'
 import { getCacheHandler } from './internal'
 import './series'
-import { debounce } from '../debounce'
 
 class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {
@@ -50,6 +50,8 @@ export async function updateList<
         updated_after: lastUpdated?.updatedAt,
         with_deleted: true,
     })
+
+    console.log(items)
 
     await Promise.all([
         DB.fromNetwork(table, items),

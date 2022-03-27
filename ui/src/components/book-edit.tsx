@@ -127,6 +127,12 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                 name='rtl'
                                 value={book.rtl}
                             />
+                            <Input
+                                title='File'
+                                name='file'
+                                readonly
+                                value={book.file}
+                            />
                         </Tab>
                         <Tab title='pages'>
                             <input type='hidden' name='tab' value='pages' />

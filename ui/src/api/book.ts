@@ -29,8 +29,13 @@ export const list = allPagesFactory<DBBook, BookListRequest>(listPaged)
 export async function readingPaged(
     req: PaginatedRequest = {},
 ): Promise<PaginatedResponse<Book>> {
-    // TODO: fetch all new books in reading series
-    return await apiFetch('/api/books/reading?' + encodeParams(req))
+    const books: PaginatedResponse<Book> = await apiFetch(
+        '/api/books/reading?' + encodeParams(req),
+    )
+
+    const series = books.data.map(b => b.series)
+
+    return books
 }
 export const reading = allPagesFactory<Book, PaginatedRequest>(readingPaged)
 

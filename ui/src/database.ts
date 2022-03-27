@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { Book, PageType, Series, UserBook, UserSeries } from './models'
+import { Book, List, PageType, Series, UserBook, UserSeries } from './models'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string
@@ -145,7 +145,7 @@ class AppDatabase extends Dexie {
                         updated_at: timestamp,
                         created_at: timestamp,
                         deleted_at: null,
-                        list: null,
+                        list: List.None,
                         update_map: {},
                     }
                 }

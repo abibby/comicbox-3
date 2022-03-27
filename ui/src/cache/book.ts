@@ -69,6 +69,7 @@ setCacheHandler(book.reading, async (): Promise<Book[]> => {
             .between([s.name, 0, Dexie.minKey], [s.name, 0, Dexie.maxKey])
             .first(),
     )
+
     const books = await Promise.all(bookPromises)
     return books.filter(notNullish)
 })

@@ -95,12 +95,12 @@ func generateTsEnum(model models.Enum) string {
 	t := reflect.TypeOf(model)
 
 	ts := "export enum " + t.Name() + " {"
-	for _, value := range model.Options() {
+	for name, value := range model.Options() {
 		b, err := json.Marshal(value)
 		if err != nil {
 			panic(err)
 		}
-		ts += "\n    " + value + " = " + string(b) + ","
+		ts += "\n    " + name + " = " + string(b) + ","
 	}
 	return ts + "\n}\n"
 }

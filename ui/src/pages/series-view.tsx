@@ -1,5 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
+import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
@@ -57,6 +58,9 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
             series: series,
         })
     }, [series])
+    const markAllRead = useCallback(() => {
+        prompt('Not implemented')
+    }, [series])
 
     const downloadSeries = useCallback(() => {
         post({
@@ -71,6 +75,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
             <ButtonGroup>
                 <Button onClick={downloadSeries}>download</Button>
                 <Button onClick={editSeries}>edit</Button>
+                <Button onClick={markAllRead}>Mark All Read</Button>
             </ButtonGroup>
             <BookList books={books} />
         </div>

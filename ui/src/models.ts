@@ -16,6 +16,7 @@ export interface Book {
     page_count: number
     rtl: boolean
     sort: string
+    file: string
     cover_url: string
     user_book: UserBook | null
 }
@@ -53,19 +54,20 @@ export interface UserSeries {
     updated_at: string
     deleted_at: string | null
     update_map: Record<string, string>
-    list: List | null
+    list: List
 }
 export enum PageType {
-    FrontCover = "FrontCover",
     Story = "Story",
     Spread = "Spread",
     SpreadSplit = "SpreadSplit",
     Deleted = "Deleted",
+    FrontCover = "FrontCover",
 }
 export enum List {
-    reading = "reading",
-    dropped = "dropped",
-    completed = "completed",
-    paused = "paused",
-    planning = "planning",
+    Completed = "completed",
+    Paused = "paused",
+    Planning = "planning",
+    None = "",
+    Reading = "reading",
+    Dropped = "dropped",
 }

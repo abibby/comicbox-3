@@ -21,7 +21,7 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
 }) => {
     const submit = useCallback(
         async (data: Data) => {
-            let list: List | null = null
+            let list: List = List.None
             const rawList = data.get('list')
             if (inEnum(List, rawList)) {
                 list = rawList

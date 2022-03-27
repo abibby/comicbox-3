@@ -34,7 +34,7 @@ func Sync(ctx context.Context) error {
 		return errors.Wrap(err, "failed to fetch book files from disk")
 	}
 
-	return database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
+	err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
 		dbBookFiles := []string{}
 		err := tx.Select(&dbBookFiles, "select file from books where deleted_at is null")
 		if err != nil {
@@ -64,7 +64,12 @@ func Sync(ctx context.Context) error {
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
+	log.Print("Finished sync")
+	return nil
 }
 
 func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error) {

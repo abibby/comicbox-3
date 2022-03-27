@@ -1,6 +1,6 @@
 module github.com/abibby/comicbox-3
 
-go 1.17
+go 1.18
 
 require (
 	github.com/abibby/nulls v1.1.0

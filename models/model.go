@@ -31,7 +31,7 @@ type Model interface {
 }
 
 type Enum interface {
-	Options() []string
+	Options() map[string]string
 }
 
 func init() {
@@ -49,9 +49,18 @@ func init() {
 			if IsEnumValid(enum, value) {
 				return nil
 			}
-			return fmt.Errorf("must be one of %s", strings.Join(enum.Options(), ", "))
+
+			return fmt.Errorf("must be one of %s", strings.Join(values(enum.Options()), ", "))
 		},
 	)
+}
+
+func values[K comparable, V any](m map[K]V) []V {
+	result := make([]V, 0, len(m))
+	for _, v := range m {
+		result = append(result, v)
+	}
+	return result
 }
 
 func IsEnumValid(enum Enum, value string) bool {

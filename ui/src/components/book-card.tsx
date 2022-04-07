@@ -17,7 +17,7 @@ interface BookProps {
 export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
     const menu = useComputed<ContextMenuItems>(() => {
         return [
-            ['view series', `/series/${book.series}`],
+            ['view series', route('series.view', { series: book.series })],
             [
                 'edit',
                 () =>

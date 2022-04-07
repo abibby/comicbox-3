@@ -47,6 +47,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 appShortName: manifest.short_name,
                 start_url: manifest.start_url,
                 theme_color: manifest.theme_color,
+                appleStatusBarStyle: 'black',
             }
             const faviconsPromise = generateFavicons(iconPath, {
                 ...faviconOptions,

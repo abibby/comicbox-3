@@ -147,26 +147,35 @@ export const persist = debounce(async function (
 ): Promise<void> {
     invalidateCache(fromUserInteraction)
     const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
+    let hasErrors = false
     for (const b of dirtyBooks) {
         let result = b
         if (b.user_book !== null && b.user_book.dirty) {
-            b.user_book = await userBook.update(b.id, {
-                current_page: b.user_book.current_page,
-                update_map: b.user_book.update_map ?? {},
-            })
+            try {
+                b.user_book = await userBook.update(b.id, {
+                    current_page: b.user_book.current_page,
+                    update_map: b.user_book.update_map ?? {},
+                })
+            } catch (e) {
+                hasErrors = true
+            }
         }
         if (b.dirty === 1) {
-            result = await book.update(b.id, {
-                title: b.title,
-                series: b.series,
-                chapter: b.chapter,
-                volume: b.volume,
-                rtl: b.rtl,
-                pages: b.pages.map(p => ({
-                    type: p.type,
-                })),
-                update_map: b.update_map ?? {},
-            })
+            try {
+                result = await book.update(b.id, {
+                    title: b.title,
+                    series: b.series,
+                    chapter: b.chapter,
+                    volume: b.volume,
+                    rtl: b.rtl,
+                    pages: b.pages.map(p => ({
+                        type: p.type,
+                    })),
+                    update_map: b.update_map ?? {},
+                })
+            } catch (e) {
+                hasErrors = true
+            }
         }
         DB.books.put({
             ...result,
@@ -176,14 +185,22 @@ export const persist = debounce(async function (
     const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
     for (const s of dirtySeries) {
         if (s.user_series !== null) {
-            const us = await userSeries.update(s.name, {
-                list: s.user_series.list,
-                update_map: s.user_series.update_map,
-            })
-            DB.series.update(s, { user_series: us, dirty: 0 })
+            try {
+                const us = await userSeries.update(s.name, {
+                    list: s.user_series.list,
+                    update_map: s.user_series.update_map,
+                })
+                DB.series.update(s, { user_series: us, dirty: 0 })
+            } catch (e) {
+                hasErrors = true
+            }
         }
     }
     invalidateCache(fromUserInteraction)
+
+    if (hasErrors) {
+        prompt('There were some errors in syncing data')
+    }
 },
 500)
 

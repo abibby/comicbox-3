@@ -105,12 +105,15 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     return (
         <div>
             <h1>{name}</h1>
-            <ButtonGroup>
-                <Button onClick={downloadSeries}>download</Button>
-                <Button onClick={editSeries}>edit</Button>
-                <Button onClick={markAllRead}>Mark All Read</Button>
-                <Button onClick={markAllUnread}>Mark All Unread</Button>
-            </ButtonGroup>
+            <section>
+                List: {series?.user_series?.list ?? 'none'}
+                <ButtonGroup>
+                    <Button onClick={downloadSeries}>download</Button>
+                    <Button onClick={editSeries}>edit</Button>
+                    <Button onClick={markAllRead}>Mark All Read</Button>
+                    <Button onClick={markAllUnread}>Mark All Unread</Button>
+                </ButtonGroup>
+            </section>
             <BookList books={books} />
         </div>
     )

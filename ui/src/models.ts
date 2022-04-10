@@ -57,17 +57,17 @@ export interface UserSeries {
     list: List
 }
 export enum PageType {
-    Story = "Story",
-    Spread = "Spread",
-    SpreadSplit = "SpreadSplit",
     Deleted = "Deleted",
     FrontCover = "FrontCover",
+    Spread = "Spread",
+    SpreadSplit = "SpreadSplit",
+    Story = "Story",
 }
 export enum List {
     Completed = "completed",
+    Dropped = "dropped",
+    None = "",
     Paused = "paused",
     Planning = "planning",
-    None = "",
     Reading = "reading",
-    Dropped = "dropped",
 }

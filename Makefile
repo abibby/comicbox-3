@@ -11,5 +11,5 @@ ui/dist/app.js: ui/src/models.ts
 ui/src/models.ts: helpers/generate-ts-models.go models/*.go
 	$(GC) run helpers/generate-ts-models.go
 
-dev:
+dev: ui/src/models.ts
 	$(GC) run -tags dev main.go

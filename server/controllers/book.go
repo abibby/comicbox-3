@@ -21,7 +21,6 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -88,7 +87,6 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.List != nil {
-		spew.Dump(req.List)
 		uid, ok := auth.UserID(r.Context())
 		if !ok {
 			sendError(rw, ErrUnauthorized)

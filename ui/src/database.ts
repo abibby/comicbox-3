@@ -77,12 +77,11 @@ class AppDatabase extends Dexie {
         this.series.hook('creating', (id, s) => {
             s.dirty = 0
         })
-        this.series.hook('updating', mod => {
-            return {
-                dirty: 1,
-                ...mod,
-            }
-        })
+        // this.series.hook('updating', mod => {
+        //     return {
+        //         ...mod,
+        //     }
+        // })
     }
 
     public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
@@ -134,9 +133,11 @@ class AppDatabase extends Dexie {
         s: DBSeries,
         mod: Modification<DBSeries>,
     ): Promise<void> {
+        console.log(s, mod)
+
         const updateMap: UpdateMap<DBSeries> = s.update_map ?? {}
-        let bookHasChanges = false
-        let userBookHasChanges = false
+        let seriesHasChanges = false
+        let userSeriesHasChanges = false
         const timestamp = updatedTimestamp()
         for (const [key] of entries(mod)) {
             if (key === 'user_series' && mod.user_series) {
@@ -156,22 +157,22 @@ class AppDatabase extends Dexie {
                 for (const [ubKey] of entries(mod.user_series)) {
                     if (mod.user_series[ubKey] !== s.user_series[ubKey]) {
                         ubUpdateMap[ubKey] = timestamp
-                        userBookHasChanges = true
+                        userSeriesHasChanges = true
                     }
                 }
                 mod.user_series.update_map = ubUpdateMap
-                if (userBookHasChanges) {
+                if (userSeriesHasChanges) {
                     mod.user_series.dirty = 1
                 }
             } else if (mod[key] !== s[key]) {
                 updateMap[key] = timestamp
-                bookHasChanges = true
+                seriesHasChanges = true
             }
         }
         mod.update_map = updateMap
-        if (bookHasChanges) {
+        if (seriesHasChanges) {
             mod.dirty = 1
-        } else if (userBookHasChanges) {
+        } else if (userSeriesHasChanges) {
             mod.dirty = 2
         }
 

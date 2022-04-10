@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"sort"
+	"strings"
 
 	"github.com/abibby/comicbox-3/models"
 )
@@ -94,13 +96,19 @@ func generateTsType(t reflect.Type, allowNull bool) string {
 func generateTsEnum(model models.Enum) string {
 	t := reflect.TypeOf(model)
 
-	ts := "export enum " + t.Name() + " {"
+	optionLines := []string{}
+
 	for name, value := range model.Options() {
 		b, err := json.Marshal(value)
 		if err != nil {
 			panic(err)
 		}
-		ts += "\n    " + name + " = " + string(b) + ","
+		optionLines = append(optionLines, "\n    "+name+" = "+string(b)+",")
 	}
-	return ts + "\n}\n"
+
+	sort.Sort(sort.StringSlice(optionLines))
+
+	return "export enum " + t.Name() + " {" +
+		strings.Join(optionLines, "") +
+		"\n}\n"
 }

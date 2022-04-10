@@ -64,5 +64,5 @@ function inEnum(e: typeof List, v: unknown): v is List {
     if (typeof v !== 'string' && typeof v !== 'number') {
         return false
     }
-    return v in e
+    return Object.values(e).includes(v as List)
 }

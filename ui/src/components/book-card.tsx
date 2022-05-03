@@ -55,8 +55,6 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
     }
     const coverURL = usePageURL(book)
 
-    console.log(new URL(coverURL ?? 'http://a').pathname)
-
     const currentPage = book.user_book?.current_page ?? 0
     const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
 

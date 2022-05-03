@@ -133,10 +133,15 @@ export async function getAuthImageToken(): Promise<string | null> {
 export async function pageURL(
     model: Book | Series | Page,
     page?: number,
+    thumbnail = false,
 ): Promise<string> {
     let u: URL
     if ('url' in model) {
-        u = new URL(model.url, location.href)
+        if (thumbnail) {
+            u = new URL(model.thumbnail_url, location.href)
+        } else {
+            u = new URL(model.url, location.href)
+        }
     } else if ('pages' in model && page !== undefined) {
         if (model.id === '') {
             return noImage
@@ -145,10 +150,15 @@ export async function pageURL(
         if (p === undefined) {
             return noImage
         }
-        u = new URL(p.url, location.href)
+        if (thumbnail) {
+            u = new URL(p.thumbnail_url, location.href)
+        } else {
+            u = new URL(p.url, location.href)
+        }
     } else {
         u = new URL(model.cover_url, location.href)
     }
+
     const token = await getAuthImageToken()
     if (token !== null) {
         u.searchParams.set('_token', token)

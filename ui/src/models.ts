@@ -22,6 +22,7 @@ export interface Book {
 }
 export interface Page {
     url: string
+    thumbnail_url: string
     type: PageType
 }
 export interface Series {

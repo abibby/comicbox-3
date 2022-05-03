@@ -14,8 +14,9 @@ import (
 )
 
 type Page struct {
-	URL  string   `json:"url"`
-	Type PageType `json:"type"`
+	URL          string   `json:"url"`
+	ThumbnailURL string   `json:"thumbnail_url"`
+	Type         PageType `json:"type"`
 }
 
 type PageType string
@@ -134,6 +135,7 @@ func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 
 	for i, page := range b.Pages {
 		page.URL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
+		page.ThumbnailURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
 	}
 	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
 	return nil

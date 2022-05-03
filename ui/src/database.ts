@@ -69,8 +69,8 @@ class AppDatabase extends Dexie {
                 ...mod,
                 completed: this.bookComplete(b, mod),
                 cover_url:
-                    mod.pages?.find(p => p.type !== PageType.Deleted)?.url ??
-                    b.cover_url,
+                    mod.pages?.find(p => p.type !== PageType.Deleted)
+                        ?.thumbnail_url ?? b.cover_url,
             }
         })
 

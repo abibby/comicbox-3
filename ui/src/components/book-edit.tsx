@@ -56,6 +56,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             pages: data.getAll('page.type')?.map(
                                 (type, i): Page => ({
                                     url: book.pages[i]?.url ?? '',
+                                    thumbnail_url:
+                                        book.pages[i]?.thumbnail_url ?? '',
                                     type: isPageType(type)
                                         ? type
                                         : PageType.Story,
@@ -180,7 +182,7 @@ interface PageThumbProps {
     page: Page
 }
 const PageThumb: FunctionalComponent<PageThumbProps> = props => {
-    const url = usePageURL(props.page)
+    const url = usePageURL(props.page, undefined, true)
 
     return (
         <div class={styles.page}>

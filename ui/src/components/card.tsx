@@ -9,7 +9,7 @@ interface CardProps {
     title: string
     subtitle?: string
     image?: string
-    link?: string
+    link?: string | (() => void)
     menu?: ContextMenuItems
     placeholder?: boolean
     disabled?: boolean
@@ -33,6 +33,15 @@ export const Card: FunctionalComponent<CardProps> = props => {
         alt += ' ' + props.subtitle
     }
 
+    let href: string | undefined
+    let click: (() => void) | undefined
+
+    if (typeof props.link === 'function') {
+        click = props.link
+    } else {
+        href = props.link
+    }
+
     return (
         <div
             class={classNames(styles.book, {
@@ -40,7 +49,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
                 [styles.disabled]: props.disabled,
             })}
         >
-            <a href={props.link}>
+            <a href={href} onClick={click}>
                 <Progress progress={props.progress ?? 0} />
                 <img
                     class={styles.cover}

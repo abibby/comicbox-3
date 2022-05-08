@@ -26,7 +26,8 @@ module.exports = {
         'react-hooks/exhaustive-deps': [
             'warn',
             {
-                additionalHooks: '(useComputed|useResizeEffect)',
+                additionalHooks:
+                    '(useComputed|useResizeEffect|useAsyncCallback)',
             },
         ],
         'no-undef': 0,

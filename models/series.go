@@ -7,6 +7,7 @@ import (
 
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/router"
+	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -18,6 +19,7 @@ type Series struct {
 	FirstBookID        *uuid.UUID  `json:"first_book_id" db:"first_book_id"`
 	FirstBookCoverPage int         `json:"-"             db:"first_book_cover_page"`
 	UserSeries         *UserSeries `json:"user_series"   db:"-"`
+	AnilistId          *nulls.Int  `json:"anilist_id"    db:"anilist_id"`
 }
 
 var _ BeforeSaver = &Series{}

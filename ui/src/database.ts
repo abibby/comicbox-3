@@ -133,8 +133,6 @@ class AppDatabase extends Dexie {
         s: DBSeries,
         mod: Modification<DBSeries>,
     ): Promise<void> {
-        console.log(s, mod)
-
         const updateMap: UpdateMap<DBSeries> = s.update_map ?? {}
         let seriesHasChanges = false
         let userSeriesHasChanges = false

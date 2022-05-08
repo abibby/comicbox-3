@@ -27,3 +27,18 @@ export async function listPaged(
 }
 
 export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
+
+interface SeriesUpdateRequest {
+    anilist_id: number | null
+    update_map: Record<string, string>
+}
+
+export async function update(
+    name: string,
+    req: SeriesUpdateRequest,
+): Promise<Series> {
+    return await apiFetch(`/api/series/${encodeURIComponent(name)}`, {
+        method: 'POST',
+        body: JSON.stringify(req),
+    })
+}

@@ -20,6 +20,7 @@ type HttpError struct {
 }
 
 var Err404 = NewHttpError(404, fmt.Errorf("404 not found"))
+var ErrUnauthorized = NewHttpError(http.StatusUnauthorized, fmt.Errorf("401 Unauthorized"))
 
 func NewHttpError(status int, err error) *HttpError {
 	return &HttpError{

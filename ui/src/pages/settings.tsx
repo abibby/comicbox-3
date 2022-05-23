@@ -3,6 +3,7 @@ import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
+import { anilist } from '../api'
 import { logout, userCreateToken } from '../api/auth'
 import { clearDatabase } from '../database'
 
@@ -36,6 +37,7 @@ export const Settings: FunctionalComponent = () => {
                 <Button onClick={clearDatabase}>Clear Database</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
                 <Button onClick={generateToken}>Invite User</Button>
+                <Button onClick={anilist.updateManga}>Anilist Update</Button>
             </ButtonGroup>
             <div>
                 <a href={link}>{link}</a>

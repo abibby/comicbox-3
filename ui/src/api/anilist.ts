@@ -1,3 +1,5 @@
+import { apiFetch } from './internal'
+
 export interface GraphQLResponseError {
     message: string
     locations?: GraphQLResponseErrorLocation[]
@@ -65,8 +67,6 @@ export interface SearchMangaResponse {
 export async function searchManga(
     search: string,
 ): Promise<PaginatedResponse<SearchMangaResponse>> {
-    // Here we define our query as a multi-line string
-    // Storing it in a separate .graphql/.gql file is also possible
     const query = `
       query ($search: String, $isAdult: Boolean) {
         manga: Page(perPage: 8) {
@@ -91,10 +91,15 @@ export async function searchManga(
       }
     `
 
-    // Define our query variables and values that will be used in the query request
     const variables = {
         search: search,
     }
     const response = await gql(query, variables)
     return response.manga
+}
+
+export async function updateManga(): Promise<unknown> {
+    return await apiFetch('/api/anilist/update', {
+        method: 'POST',
+    })
 }

@@ -31,14 +31,21 @@ export const AnilistMatch: ModalComponent<
             <ModalHead close={props.close}>Anilist Match</ModalHead>
             <ModalBody>
                 <div class={styles.bookList}>
-                    {data.map(r => (
-                        <Card
-                            title={r.title.userPreferred}
-                            subtitle={r.title.english}
-                            image={r.coverImage.large}
-                            link={bind(r.id, props.close)}
-                        />
-                    ))}
+                    {data.map(r => {
+                        const current = props.series.anilist_id === r.id
+                        return (
+                            <Card
+                                title={
+                                    r.title.userPreferred +
+                                    (current ? ' (current)' : '')
+                                }
+                                subtitle={r.title.english}
+                                image={r.coverImage.large}
+                                link={bind(r.id, props.close)}
+                                progress={current ? 1 : 0}
+                            />
+                        )
+                    })}
                 </div>
             </ModalBody>
         </Modal>

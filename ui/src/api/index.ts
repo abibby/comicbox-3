@@ -1,3 +1,4 @@
+export * as anilist from './anilist'
 export * as auth from './auth'
 export * as book from './book'
 export { FetchError, pageURL } from './internal'

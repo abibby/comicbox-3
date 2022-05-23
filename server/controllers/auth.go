@@ -38,10 +38,6 @@ const (
 	TokenImage         = TokenPurpose("image")
 )
 
-var (
-	ErrUnauthorized = NewHttpError(401, fmt.Errorf("unauthorized"))
-)
-
 func Login(rw http.ResponseWriter, r *http.Request) {
 	req := &LoginRequest{}
 	err := validate.Run(r, req)

@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 
+	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -11,10 +12,11 @@ import (
 
 type User struct {
 	BaseModel
-	ID           uuid.UUID `json:"id"       db:"id"`
-	Username     string    `json:"username" db:"username"`
-	Password     []byte    `json:"-"        db:"-"`
-	PasswordHash []byte    `json:"-"        db:"password"`
+	ID           uuid.UUID     `json:"id"       db:"id"`
+	Username     string        `json:"username" db:"username"`
+	Password     []byte        `json:"-"        db:"-"`
+	PasswordHash []byte        `json:"-"        db:"password"`
+	AnilistGrant *nulls.String `json:"-"        db:"anilist_grant"`
 }
 
 var _ Model = &User{}

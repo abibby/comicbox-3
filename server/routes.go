@@ -26,6 +26,7 @@ func init() {
 		auth.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
 
 		auth.HandleFunc("/anilist/update", controllers.AnilistUpdate).Methods("POST").Name("anilist.update")
+		auth.HandleFunc("/anilist/login", controllers.AnilistLogin).Methods("POST").Name("anilist.login")
 
 		auth.HandleFunc("/users/create-token", controllers.UserCreateToken).Methods("GET").Name("user-create-token")
 

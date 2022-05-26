@@ -28,6 +28,11 @@ export const routes = {
         path: '/users/create',
         component: () => import('./pages/user-create').then(p => p.UserCreate),
     },
+    'anilist.login': {
+        path: '/anilist/login',
+        component: () =>
+            import('./pages/anilist-login').then(p => p.AnilistLogin),
+    },
     login: {
         path: '/login',
         component: () => import('./pages/login').then(p => p.Login),

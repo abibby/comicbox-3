@@ -49,6 +49,8 @@ var LibraryPath string
 var Port int
 var Verbose bool
 var PublicUserCreate bool
+var AnilistClientID string
+var AnilistClientSecret string
 
 func Init() error {
 	err := godotenv.Load("./.env")
@@ -62,6 +64,9 @@ func Init() error {
 	LibraryPath = mustEnv("LIBRARY_PATH")
 	Port = envInt("PORT", 8080)
 	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)
+
+	AnilistClientID = env("ANILIST_CLIENT_ID", "")
+	AnilistClientSecret = env("ANILIST_CLIENT_SECRET", "")
 
 	Verbose = envBool("VERBOSE", false)
 

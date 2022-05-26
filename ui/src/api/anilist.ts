@@ -103,3 +103,14 @@ export async function updateManga(): Promise<unknown> {
         method: 'POST',
     })
 }
+
+interface LoginRequest {
+    grant: string
+}
+
+export async function login(req: LoginRequest): Promise<unknown> {
+    return await apiFetch('/api/anilist/login', {
+        method: 'POST',
+        body: JSON.stringify(req),
+    })
+}

@@ -184,26 +184,29 @@ export const persist = debounce(async function (
     }
     const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
     for (const s of dirtySeries) {
+        let result = s
         try {
-            const us = await series.update(s.name, {
+            result = await series.update(s.name, {
                 anilist_id: s.anilist_id,
                 update_map: s.update_map,
             })
-            DB.series.update(s, { user_series: us, dirty: 0 })
         } catch (e) {
             hasErrors = true
         }
         if (s.user_series !== null) {
             try {
-                const us = await userSeries.update(s.name, {
+                result.user_series = await userSeries.update(s.name, {
                     list: s.user_series.list,
                     update_map: s.user_series.update_map,
                 })
-                DB.series.update(s, { user_series: us, dirty: 0 })
             } catch (e) {
                 hasErrors = true
             }
         }
+        await DB.series.update(s, {
+            ...result,
+            dirty: 0,
+        })
     }
     invalidateCache(fromUserInteraction)
 

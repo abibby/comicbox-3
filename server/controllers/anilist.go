@@ -35,7 +35,7 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 			select
 				max(sort)
 			from books
-			left join user_books on books.id = user_books.book_id and user_books.user_id = 'cdda04ea-08c3-45f6-b7cf-25fd564e509d'
+			left join user_books on books.id = user_books.book_id and user_books.user_id = ?
 			where user_books.current_page >= (books.page_count - 1)
 				and series.anilist_id is not null
 			group by series
@@ -70,7 +70,7 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// sendJSON(rw, entries)
+	sendJSON(rw, entries)
 }
 
 type anilistList struct {

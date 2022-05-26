@@ -26,12 +26,12 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             if (inEnum(List, rawList)) {
                 list = rawList
             }
-            DB.saveSeries(series, {
+            await DB.saveSeries(series, {
                 user_series: {
                     list: list,
                 },
             })
-            persist(true)
+            await persist(true)
             close(undefined)
         },
         [series, close],

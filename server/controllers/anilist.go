@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
+	"time"
 
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
@@ -13,7 +14,6 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -30,7 +30,7 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := `select 
+	query := `select
 			books.*,
 			series.anilist_id
 		from books
@@ -44,6 +44,7 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 			where user_books.current_page >= (books.page_count - 1)
 				and series.anilist_id is not null
 				and user_series.list = ?
+				and (books.chapter is not null or books.volume is not null)
 			group by series
 			order by sort desc
 		)`
@@ -73,15 +74,13 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 		e, ok := entries[book.AnilistId.Value()]
 		if !ok || int(book.Chapter.Value()) > e.Progress.Value() {
 			fmt.Printf("update %s\n", book.Sort)
-			err = updateManga(
-				u,
-				book.AnilistId.Value(),
-				toNullsInt(book.Chapter),
-				toNullsInt(book.Volume),
-			)
+			err = saveMediaListEntry(u, &SaveMediaListEntryArguments{
+				MediaID:         book.AnilistId.Value(),
+				Progress:        toNullsInt(book.Chapter),
+				ProgressVolumes: toNullsInt(book.Volume),
+			})
 			if err != nil {
-				spew.Dump(([]*gqlError)(err.(gqlErrors)))
-				os.Exit(1)
+				log.Print(err)
 			}
 		} else {
 			fmt.Printf("ignore %s\n", book.Sort)
@@ -228,26 +227,31 @@ func lists(u *models.User) (map[int]*entry, error) {
 	return entries, err
 }
 
-func updateManga(u *models.User, mediaId int, progress, progressVolumes *nulls.Int) error {
+type SaveMediaListEntryArguments struct {
+	MediaID         int        `json:"mediaId"`
+	Progress        *nulls.Int `json:"progress,omitempty"`
+	ProgressVolumes *nulls.Int `json:"progressVolumes,omitempty"`
+	StartedAt       *time.Time `json:"startedAt,omitempty"`
+}
+
+func saveMediaListEntry(u *models.User, arguments *SaveMediaListEntryArguments) error {
 	query := `mutation (
 		$mediaId: Int
 		$progress: Int
 		$progressVolumes: Int
+		$startedAt: FuzzyDateInput
 	  ) {
 		SaveMediaListEntry(
 		  mediaId: $mediaId
 		  progress: $progress
 		  progressVolumes: $progressVolumes
+		  startedAt: $startedAt
 		) {
 			mediaId
 		}
 	  }`
 
-	_, err := anilistGQL[*any](u, query, map[string]any{
-		"mediaId":         mediaId,
-		"progress":        progress,
-		"progressVolumes": progressVolumes,
-	})
+	_, err := anilistGQL[*any](u, query, arguments)
 	if err != nil {
 		return err
 	}
@@ -256,8 +260,8 @@ func updateManga(u *models.User, mediaId int, progress, progressVolumes *nulls.I
 }
 
 type gqlRequest struct {
-	Query     string         `json:"query"`
-	Variables map[string]any `json:"variables"`
+	Query     string `json:"query"`
+	Variables any    `json:"variables"`
 }
 
 type gqlLocation struct {
@@ -282,7 +286,7 @@ type gqlResponse[T any] struct {
 	Errors gqlErrors `json:"errors"`
 }
 
-func anilistGQL[T any](u *models.User, query string, variables map[string]any) (T, error) {
+func anilistGQL[T any](u *models.User, query string, variables any) (T, error) {
 	body, err := json.Marshal(gqlRequest{
 		Query:     query,
 		Variables: variables,

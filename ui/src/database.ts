@@ -155,7 +155,7 @@ class AppDatabase extends Dexie {
         let dirty = 0
 
         for (const [key] of entries(modification)) {
-            if (this.isDBModel(b[key])) {
+            if (this.isDBModel(empty[key])) {
                 if (b[key] === null) {
                     b = {
                         ...b,

@@ -19,7 +19,7 @@ func sendJSON(rw http.ResponseWriter, v interface{}) {
 
 func shouldUpdate(current, updated map[string]string, field string) bool {
 	u, hasUpdate := updated[field]
-	if hasUpdate {
+	if hasUpdate || u == "" {
 		timestamp, err := strconv.Atoi(strings.Split(u, "-")[0])
 		if err != nil {
 			return false
@@ -30,7 +30,7 @@ func shouldUpdate(current, updated map[string]string, field string) bool {
 	}
 
 	c, hasCurrent := current[field]
-	if !hasCurrent {
+	if !hasCurrent || c == "" {
 		current[field] = updated[field]
 		return true
 	}

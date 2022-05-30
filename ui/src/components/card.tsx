@@ -62,8 +62,12 @@ export const Card: FunctionalComponent<CardProps> = props => {
                         <img src={moreVertical} alt='menu' />
                     </button>
                 )}
-                <div class={styles.title}>{props.title}</div>
-                <div class={styles.subtitle}>{props.subtitle}</div>
+                <div class={styles.title} title={props.title}>
+                    {props.title}
+                </div>
+                <div class={styles.subtitle} title={props.subtitle}>
+                    {props.subtitle}
+                </div>
             </a>
         </div>
     )

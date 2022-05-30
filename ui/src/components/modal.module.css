@@ -59,3 +59,8 @@
         border-radius: 4px;
     }
 }
+
+.modalOpen {
+    overflow: hidden;
+}
+

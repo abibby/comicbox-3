@@ -33,13 +33,17 @@ export const AnilistMatch: ModalComponent<
                 <div class={styles.bookList}>
                     {data.map(r => {
                         const current = props.series.anilist_id === r.id
+                        let subtitle: string = r.format
+                        if (r.title.english) {
+                            subtitle += ' • ' + r.title.english
+                        }
                         return (
                             <Card
                                 title={
                                     r.title.userPreferred +
                                     (current ? ' (current)' : '')
                                 }
-                                subtitle={r.title.english}
+                                subtitle={subtitle}
                                 image={r.coverImage.large}
                                 link={bind(r.id, props.close)}
                                 progress={current ? 1 : 0}

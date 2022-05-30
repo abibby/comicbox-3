@@ -1,3 +1,4 @@
+import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
 import { FormElement, FormElementProps } from './form-element'
@@ -8,6 +9,7 @@ export interface InputProps extends FormElementProps {
     focused?: boolean
     step?: 'any' | number
     readonly?: boolean
+    onInput?: (value: string) => void
 }
 
 export const Input: FunctionalComponent<InputProps> = props => {
@@ -31,6 +33,11 @@ export const Input: FunctionalComponent<InputProps> = props => {
                 step={props.step}
                 ref={input}
                 readOnly={props.readonly}
+                onInput={
+                    props.onInput !== undefined
+                        ? bindValue(props.onInput)
+                        : undefined
+                }
             />
         </FormElement>
     )

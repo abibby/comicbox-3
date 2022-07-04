@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -74,20 +73,20 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 		e, ok := entries[book.AnilistId.Value()]
 		if !ok || int(book.Chapter.Value()) > e.Progress.Value() {
 			fmt.Printf("update %s\n", book.Sort)
-			err = saveMediaListEntry(u, &SaveMediaListEntryArguments{
-				MediaID:         book.AnilistId.Value(),
-				Progress:        toNullsInt(book.Chapter),
-				ProgressVolumes: toNullsInt(book.Volume),
-			})
-			if err != nil {
-				log.Print(err)
-			}
+			// err = saveMediaListEntry(u, &SaveMediaListEntryArguments{
+			// 	MediaID:         book.AnilistId.Value(),
+			// 	Progress:        toNullsInt(book.Chapter),
+			// 	ProgressVolumes: toNullsInt(book.Volume),
+			// })
+			// if err != nil {
+			// 	log.Print(err)
+			// }
 		} else {
 			fmt.Printf("ignore %s\n", book.Sort)
 		}
 	}
 
-	sendJSON(rw, entries)
+	sendJSON(rw, nil)
 }
 
 func toNullsInt(f *nulls.Float64) *nulls.Int {

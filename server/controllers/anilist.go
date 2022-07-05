@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -22,71 +21,118 @@ type BookWithAnilistID struct {
 	AnilistId *nulls.Int `json:"anilist_id"    db:"anilist_id"`
 }
 
+// func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
+// 	userID, ok := auth.UserID(r.Context())
+// 	if !ok {
+// 		sendError(rw, ErrUnauthorized)
+// 		return
+// 	}
+
+// 	query := `select
+// 			books.*,
+// 			series.anilist_id
+// 		from books
+// 		join series on series.name = books.series
+// 		where sort in (
+// 			select
+// 				max(sort)
+// 			from books
+// 			left join user_books on books.id = user_books.book_id and user_books.user_id = ?
+// 			left join user_series on books.series = user_series.series_name and user_series.user_id = ?
+// 			where user_books.current_page >= (books.page_count - 1)
+// 				and series.anilist_id is not null
+// 				and user_series.list = ?
+// 				and (books.chapter is not null or books.volume is not null)
+// 			group by series
+// 			order by sort desc
+// 		)`
+
+// 	books := []*BookWithAnilistID{}
+// 	u := &models.User{}
+
+// 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
+// 		err := models.Find(r.Context(), tx, u, userID.String())
+// 		if err != nil {
+// 			return err
+// 		}
+
+// 		return tx.Select(&books, query, userID, userID, models.ListReading)
+// 	})
+// 	if err != nil {
+// 		sendError(rw, err)
+// 		return
+// 	}
+
+// 	entries, err := lists(r, u)
+// 	if err != nil {
+// 		sendError(rw, err)
+// 		return
+// 	}
+// 	for _, book := range books {
+// 		e, ok := entries[book.AnilistId.Value()]
+// 		if !ok || int(book.Chapter.Value()) > e.Progress.Value() {
+// 			fmt.Printf("update %s\n", book.Sort)
+// 			// err = saveMediaListEntry(u, &SaveMediaListEntryArguments{
+// 			// 	MediaID:         book.AnilistId.Value(),
+// 			// 	Progress:        toNullsInt(book.Chapter),
+// 			// 	ProgressVolumes: toNullsInt(book.Volume),
+// 			// })
+// 			// if err != nil {
+// 			// 	log.Print(err)
+// 			// }
+// 		} else {
+// 			fmt.Printf("ignore %s\n", book.Sort)
+// 		}
+// 	}
+
+// 	sendJSON(rw, nil)
+// }
+
+type AnilistUpdateRequest SaveMediaListEntryArguments
+type AnilistUpdateResponse struct {
+	Success bool `json:"success"`
+}
+
 func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
-	userID, ok := auth.UserID(r.Context())
-	if !ok {
-		sendError(rw, ErrUnauthorized)
+	req := &AnilistUpdateRequest{}
+	err := validate.Run(r, req)
+	if err != nil {
+		sendError(rw, err)
 		return
 	}
 
-	query := `select
-			books.*,
-			series.anilist_id
-		from books
-		join series on series.name = books.series
-		where sort in (
-			select
-				max(sort)
-			from books
-			left join user_books on books.id = user_books.book_id and user_books.user_id = ?
-			left join user_series on books.series = user_series.series_name and user_series.user_id = ?
-			where user_books.current_page >= (books.page_count - 1)
-				and series.anilist_id is not null
-				and user_series.list = ?
-				and (books.chapter is not null or books.volume is not null)
-			group by series
-			order by sort desc
-		)`
+	u, err := getUser(r)
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
 
-	books := []*BookWithAnilistID{}
+	err = saveMediaListEntry(r, u, (*SaveMediaListEntryArguments)(req))
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
+
+	sendJSON(rw, &AnilistUpdateResponse{
+		Success: true,
+	})
+}
+
+func getUser(r *http.Request) (*models.User, error) {
+	userID, ok := auth.UserID(r.Context())
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
 	u := &models.User{}
 
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		err := models.Find(r.Context(), tx, u, userID.String())
-		if err != nil {
-			return err
-		}
-
-		return tx.Select(&books, query, userID, userID, models.ListReading)
+		return models.Find(r.Context(), tx, u, userID.String())
 	})
 	if err != nil {
-		sendError(rw, err)
-		return
+		return nil, err
 	}
-
-	entries, err := lists(u)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-	for _, book := range books {
-		e, ok := entries[book.AnilistId.Value()]
-		if !ok || int(book.Chapter.Value()) > e.Progress.Value() {
-			fmt.Printf("update %s\n", book.Sort)
-			// err = saveMediaListEntry(u, &SaveMediaListEntryArguments{
-			// 	MediaID:         book.AnilistId.Value(),
-			// 	Progress:        toNullsInt(book.Chapter),
-			// 	ProgressVolumes: toNullsInt(book.Volume),
-			// })
-			// if err != nil {
-			// 	log.Print(err)
-			// }
-		} else {
-			fmt.Printf("ignore %s\n", book.Sort)
-		}
-	}
-
-	sendJSON(rw, nil)
+	return u, nil
 }
 
 func toNullsInt(f *nulls.Float64) *nulls.Int {
@@ -124,34 +170,6 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := map[string]string{
-		"grant_type":    "authorization_code",
-		"client_id":     config.AnilistClientID,
-		"client_secret": config.AnilistClientSecret,
-		"redirect_uri":  r.Header.Get("Origin") + "/anilist/login",
-		"code":          req.Grant,
-	}
-
-	b, err := json.Marshal(body)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-
-	resp, err := http.Post("https://anilist.co/api/v2/oauth/token", "application/json", bytes.NewBuffer(b))
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-	defer resp.Body.Close()
-
-	tokenResp := &anilistTokenResponse{}
-	err = json.NewDecoder(resp.Body).Decode(tokenResp)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
-
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		u := &models.User{}
 		err := models.Find(r.Context(), tx, u, userID.String())
@@ -159,17 +177,59 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		u.AnilistGrant = nulls.NewString(tokenResp.AccessToken)
+		u.AnilistGrant = nulls.NewString(req.Grant)
 
 		return models.Save(r.Context(), u, tx)
 	})
+	err = anilistLogin(r, userID.String())
 	if err != nil {
-		sendError(rw, err)
+		sendError(rw, ErrUnauthorized)
 		return
 	}
 
 	sendJSON(rw, &AnilistUpdateGrantResponse{
 		Success: true,
+	})
+}
+
+func anilistLogin(r *http.Request, userID string) error {
+	return database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+		u := &models.User{}
+		err := models.Find(r.Context(), tx, u, userID)
+		if err != nil {
+			return err
+		}
+
+		body := map[string]string{
+			"grant_type":    "authorization_code",
+			"client_id":     config.AnilistClientID,
+			"client_secret": config.AnilistClientSecret,
+			"redirect_uri":  r.Header.Get("Origin") + "/anilist/login",
+			"code":          u.AnilistGrant.String(),
+		}
+
+		b, err := json.Marshal(body)
+		if err != nil {
+			return err
+		}
+
+		resp, err := http.Post("https://anilist.co/api/v2/oauth/token", "application/json", bytes.NewBuffer(b))
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		tokenResp := &anilistTokenResponse{}
+		err = json.NewDecoder(resp.Body).Decode(tokenResp)
+		if err != nil {
+			return err
+		}
+
+		u.AnilistToken = nulls.NewString(tokenResp.AccessToken)
+		expiresAt := time.Now().Add(time.Second * time.Duration(tokenResp.ExpiresIn))
+		u.AnilistExpiresAt = (*database.Time)(&expiresAt)
+
+		return models.Save(r.Context(), u, tx)
 	})
 }
 
@@ -193,7 +253,7 @@ type entry struct {
 	ProgressVolumes *nulls.Int `json:"progressVolumes"`
 }
 
-func lists(u *models.User) (map[int]*entry, error) {
+func lists(r *http.Request, u *models.User) (map[int]*entry, error) {
 	query := `query ($userId: Int) {
 		MediaListCollection(userId: $userId, type: MANGA) {
 			lists {
@@ -208,7 +268,7 @@ func lists(u *models.User) (map[int]*entry, error) {
 		}
 	}`
 
-	resp, err := anilistGQL[*anilistList](u, query, map[string]any{
+	resp, err := anilistGQL[*anilistList](r, u, query, map[string]any{
 		"userId": 186514,
 	})
 	if err != nil {
@@ -233,7 +293,7 @@ type SaveMediaListEntryArguments struct {
 	StartedAt       *time.Time `json:"startedAt,omitempty"`
 }
 
-func saveMediaListEntry(u *models.User, arguments *SaveMediaListEntryArguments) error {
+func saveMediaListEntry(r *http.Request, u *models.User, arguments *SaveMediaListEntryArguments) error {
 	query := `mutation (
 		$mediaId: Int
 		$progress: Int
@@ -250,7 +310,7 @@ func saveMediaListEntry(u *models.User, arguments *SaveMediaListEntryArguments) 
 		}
 	  }`
 
-	_, err := anilistGQL[*any](u, query, arguments)
+	_, err := anilistGQL[*any](r, u, query, arguments)
 	if err != nil {
 		return err
 	}
@@ -285,7 +345,7 @@ type gqlResponse[T any] struct {
 	Errors gqlErrors `json:"errors"`
 }
 
-func anilistGQL[T any](u *models.User, query string, variables any) (T, error) {
+func anilistGQL[T any](r *http.Request, u *models.User, query string, variables any) (T, error) {
 	body, err := json.Marshal(gqlRequest{
 		Query:     query,
 		Variables: variables,
@@ -301,8 +361,16 @@ func anilistGQL[T any](u *models.User, query string, variables any) (T, error) {
 		return zero, err
 	}
 
-	if grant, ok := u.AnilistGrant.Ok(); ok {
-		req.Header.Add("Authorization", "Bearer "+grant)
+	if token, ok := u.AnilistToken.Ok(); ok {
+		if time.Now().After(u.AnilistExpiresAt.Time()) {
+			err = anilistLogin(r, u.ID.String())
+			if err != nil {
+				var zero T
+				return zero, err
+			}
+		}
+
+		req.Header.Add("Authorization", "Bearer "+token)
 	}
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")

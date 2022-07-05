@@ -1,7 +1,7 @@
 import generateFavicons, { FaviconOptions } from 'favicons'
 import { readFile } from 'fs/promises'
 import { render } from 'mustache'
-import { Plugin, PluginContext } from 'rollup'
+import { Plugin } from 'rollup'
 
 interface Options {
     templatePath: string
@@ -80,7 +80,7 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 .filter(
                     f => f.type === 'chunk' && f.isEntry && f.name === 'app',
                 )
-                .map(f => `<script src="/${f.fileName}"></script>`)
+                .map(f => `<script defer src="/${f.fileName}"></script>`)
                 .join('')
 
             const styles = Object.values(bundle)
@@ -139,8 +139,4 @@ export default function createHTMLPlugin(options: Options): Plugin {
             }
         },
     }
-}
-
-function resolveFile(plugin: PluginContext, path: string): Promise<string> {
-    return plugin.resolve(path).then(f => f?.id ?? '')
 }

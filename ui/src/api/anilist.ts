@@ -130,9 +130,16 @@ export async function searchManga(
     return response.manga
 }
 
-export async function updateManga(): Promise<unknown> {
+export interface UpdateMangaRequest {
+    mediaId: number
+    progress: number | null
+    progressVolumes: number | null
+    startedAt: string | null
+}
+export async function updateManga(r: UpdateMangaRequest): Promise<unknown> {
     return await apiFetch('/api/anilist/update', {
         method: 'POST',
+        body: JSON.stringify(r),
     })
 }
 

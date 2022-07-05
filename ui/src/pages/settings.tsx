@@ -3,7 +3,6 @@ import { route as preactRoute } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
-import { anilist } from '../api'
 import { logout, userCreateToken } from '../api/auth'
 import { clearDatabase } from '../database'
 
@@ -30,7 +29,6 @@ export const Settings: FunctionalComponent = () => {
 
     const link = `${location.host}/users/create?_token=${createToken}`
 
-    const clientID = 8195
     const redirectURI = location.origin + '/anilist/login'
 
     return (
@@ -40,7 +38,6 @@ export const Settings: FunctionalComponent = () => {
                 <Button onClick={clearDatabase}>Clear Database</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
                 <Button onClick={generateToken}>Invite User</Button>
-                <Button onClick={anilist.updateManga}>Anilist Update</Button>
             </ButtonGroup>
             <div>
                 <a href={link}>{link}</a>
@@ -48,7 +45,7 @@ export const Settings: FunctionalComponent = () => {
             <section>
                 <h1>Anilist</h1>
                 <a
-                    href={`https://anilist.co/api/v2/oauth/authorize?client_id=${clientID}&redirect_uri=${encodeURIComponent(
+                    href={`https://anilist.co/api/v2/oauth/authorize?client_id=${ANILIST_CLIENT_ID}&redirect_uri=${encodeURIComponent(
                         redirectURI,
                     )}&response_type=code`}
                 >

@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 
+	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -12,11 +13,13 @@ import (
 
 type User struct {
 	BaseModel
-	ID           uuid.UUID     `json:"id"       db:"id"`
-	Username     string        `json:"username" db:"username"`
-	Password     []byte        `json:"-"        db:"-"`
-	PasswordHash []byte        `json:"-"        db:"password"`
-	AnilistGrant *nulls.String `json:"-"        db:"anilist_grant"`
+	ID               uuid.UUID      `json:"id"       db:"id"`
+	Username         string         `json:"username" db:"username"`
+	Password         []byte         `json:"-"        db:"-"`
+	PasswordHash     []byte         `json:"-"        db:"password"`
+	AnilistGrant     *nulls.String  `json:"-"        db:"anilist_grant"`
+	AnilistToken     *nulls.String  `json:"-"        db:"anilist_token"`
+	AnilistExpiresAt *database.Time `json:"-"        db:"anilist_expires_at"`
 }
 
 var _ Model = &User{}

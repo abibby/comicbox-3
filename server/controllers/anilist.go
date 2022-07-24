@@ -114,7 +114,7 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 
 		return models.Save(r.Context(), u, tx)
 	})
-	err = anilistLogin(r, userID.String())
+	_, err = anilistLogin(r, userID.String())
 	if err != nil {
 		sendError(rw, ErrUnauthorized)
 		return
@@ -125,9 +125,9 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func anilistLogin(r *http.Request, userID string) error {
-	return database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		u := &models.User{}
+func anilistLogin(r *http.Request, userID string) (*models.User, error) {
+	u := &models.User{}
+	err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		err := models.Find(r.Context(), tx, u, userID)
 		if err != nil {
 			return err
@@ -164,6 +164,10 @@ func anilistLogin(r *http.Request, userID string) error {
 
 		return models.Save(r.Context(), u, tx)
 	})
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
 type anilistList struct {
@@ -296,11 +300,12 @@ func anilistGQL[T any](r *http.Request, u *models.User, query string, variables 
 
 	if token, ok := u.AnilistToken.Ok(); ok {
 		if time.Now().After(u.AnilistExpiresAt.Time()) {
-			err = anilistLogin(r, u.ID.String())
+			u, err = anilistLogin(r, u.ID.String())
 			if err != nil {
 				var zero T
 				return zero, err
 			}
+			token = u.AnilistToken.String()
 		}
 
 		req.Header.Add("Authorization", "Bearer "+token)

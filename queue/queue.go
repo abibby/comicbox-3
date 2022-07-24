@@ -90,7 +90,12 @@ func (d *JobQueue) EnqueueJob(job Job) {
 }
 
 func includes(haystack []string, needle string) bool {
-	return true
+	for _, v := range haystack {
+		if v == needle {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *JobQueue) Close() {

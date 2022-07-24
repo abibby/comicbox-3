@@ -33,36 +33,52 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
     public constructor(
         private subComponent: ComponentType<TProps>,
         private className?: string,
+        private onUpdate?: (state: TProps[]) => void,
     ) {}
 
     public Controller: FunctionalComponent = () => {
         const [alerts, setAlerts] = useState(new Map<string | number, TProps>())
 
+        const setAlerts2 = useCallback(
+            (
+                value: (
+                    previousState: Map<string | number, TProps>,
+                ) => Map<string | number, TProps>,
+            ) => {
+                setAlerts(pState => {
+                    const state = value(pState)
+                    this.onUpdate?.([...state.values()])
+                    return state
+                })
+            },
+            [setAlerts],
+        )
+
         const onOpen = useCallback(
             (e: OpenEvent<TProps>) => {
-                setAlerts(alerts => {
+                setAlerts2(alerts => {
                     const n = new Map(alerts)
                     n.set(e.props.id, e.props)
                     return n
                 })
             },
-            [setAlerts],
+            [setAlerts2],
         )
 
         const onClose = useCallback(
             (e: CloseEvent) => {
-                setAlerts(alerts => {
+                setAlerts2(alerts => {
                     const n = new Map(alerts)
                     n.delete(e.id)
                     return n
                 })
             },
-            [setAlerts],
+            [setAlerts2],
         )
 
         const onClear = useCallback(() => {
-            setAlerts(new Map())
-        }, [setAlerts])
+            setAlerts2(() => new Map())
+        }, [setAlerts2])
 
         useEffect(() => {
             this.target.addEventListener('open', onOpen)
@@ -73,7 +89,7 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
                 this.target.removeEventListener('close', onClose)
                 this.target.removeEventListener('clear', onClear)
             }
-        }, [onClear, onClose, onOpen, setAlerts])
+        }, [onClear, onClose, onOpen])
 
         const SubComponents = this.subComponent
         return (

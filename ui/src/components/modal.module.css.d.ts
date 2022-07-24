@@ -6,6 +6,7 @@ declare const styles: {
   readonly "body": string;
   readonly "foot": string;
   readonly "screen": string;
+  readonly "modalOpen": string;
 };
 export = styles;
 

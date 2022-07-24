@@ -17,12 +17,16 @@ func init() {
 		auth := r.NewRoute().Subrouter()
 		auth.Use(controllers.AuthMiddleware(false, controllers.TokenAuthenticated))
 		auth.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
+		auth.HandleFunc("/series/{name}", controllers.SeriesUpdate).Methods("POST").Name("series.update")
 		auth.HandleFunc("/series/{name}/user-series", controllers.UserSeriesUpdate).Methods("POST").Name("user-series.update")
 
 		auth.HandleFunc("/books", controllers.BookIndex).Methods("GET").Name("book.index")
 		auth.HandleFunc("/books/{id}", controllers.BookUpdate).Methods("POST").Name("book.update")
 		auth.HandleFunc("/books/reading", controllers.BookReading).Methods("GET").Name("book.reading")
 		auth.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
+
+		auth.HandleFunc("/anilist/update", controllers.AnilistUpdate).Methods("POST").Name("anilist.update")
+		auth.HandleFunc("/anilist/login", controllers.AnilistLogin).Methods("POST").Name("anilist.login")
 
 		auth.HandleFunc("/users/create-token", controllers.UserCreateToken).Methods("GET").Name("user-create-token")
 

@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { route } from 'preact-router'
+import { route as preactRoute } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
@@ -16,7 +16,7 @@ async function logoutAndRoute() {
     )
     if (accepted) {
         await logout()
-        route('/login')
+        preactRoute('/login')
     }
 }
 
@@ -29,6 +29,8 @@ export const Settings: FunctionalComponent = () => {
 
     const link = `${location.host}/users/create?_token=${createToken}`
 
+    const redirectURI = location.origin + '/anilist/login'
+
     return (
         <div>
             <h1>Settings</h1>
@@ -40,6 +42,16 @@ export const Settings: FunctionalComponent = () => {
             <div>
                 <a href={link}>{link}</a>
             </div>
+            <section>
+                <h1>Anilist</h1>
+                <a
+                    href={`https://anilist.co/api/v2/oauth/authorize?client_id=${ANILIST_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+                        redirectURI,
+                    )}&response_type=code`}
+                >
+                    Login with AniList
+                </a>
+            </section>
         </div>
     )
 }

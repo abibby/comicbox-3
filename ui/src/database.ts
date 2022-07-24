@@ -36,6 +36,50 @@ export type DBSeries = Series &
         user_series: DBUserSeries | null
     }
 
+const emptySeries: Readonly<DBSeries> = {
+    created_at: '1970-01-01T00:00:00Z',
+    updated_at: '1970-01-01T00:00:00Z',
+    deleted_at: null,
+    update_map: {},
+    name: '',
+    cover_url: '',
+    first_book_id: null,
+    user_series: {
+        created_at: '1970-01-01T00:00:00Z',
+        updated_at: '1970-01-01T00:00:00Z',
+        deleted_at: null,
+        update_map: {},
+        list: List.None,
+    },
+    anilist_id: null,
+}
+
+const emptyBook: Readonly<DBBook> = {
+    created_at: '1970-01-01T00:00:00Z',
+    updated_at: '1970-01-01T00:00:00Z',
+    deleted_at: null,
+    update_map: {},
+    id: '',
+    title: '',
+    chapter: null,
+    volume: null,
+    series: '',
+    authors: [],
+    pages: [],
+    page_count: 0,
+    rtl: false,
+    sort: '',
+    file: '',
+    cover_url: '',
+    user_book: {
+        created_at: '1970-01-01T00:00:00Z',
+        updated_at: '1970-01-01T00:00:00Z',
+        deleted_at: null,
+        update_map: {},
+        current_page: 0,
+    },
+}
+
 function entries<T>(o: T): [keyof T, T[keyof T]][] {
     return Object.entries(o) as [keyof T, T[keyof T]][]
 }
@@ -85,98 +129,67 @@ class AppDatabase extends Dexie {
     }
 
     public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
-        const updateMap: UpdateMap<DBBook> = b.update_map ?? {}
-        let bookHasChanges = false
-        let userBookHasChanges = false
-        const timestamp = updatedTimestamp()
-        for (const [key] of entries(mod)) {
-            if (key === 'user_book' && mod.user_book) {
-                if (b.user_book === null) {
-                    b.user_book = {
-                        updated_at: timestamp,
-                        created_at: timestamp,
-                        deleted_at: null,
-                        current_page: 0,
-                        update_map: {},
-                    }
-                }
-
-                const ubUpdateMap: UpdateMap<DBUserBook> =
-                    b.user_book.update_map ?? {}
-
-                for (const [ubKey] of entries(mod.user_book)) {
-                    if (mod.user_book[ubKey] !== b.user_book[ubKey]) {
-                        ubUpdateMap[ubKey] = timestamp
-                        userBookHasChanges = true
-                    }
-                }
-                mod.user_book.update_map = ubUpdateMap
-                if (userBookHasChanges) {
-                    mod.user_book.dirty = 1
-                }
-            } else if (mod[key] !== b[key]) {
-                updateMap[key] = timestamp
-                bookHasChanges = true
-            }
-        }
-        mod.update_map = updateMap
-        if (bookHasChanges) {
-            mod.dirty = 1
-        } else if (userBookHasChanges) {
-            mod.dirty = 2
-        }
-
-        await DB.books.update(b, mod)
+        await DB.books.update(
+            b,
+            this.saveModel(b, mod, emptyBook, updatedTimestamp()),
+        )
     }
 
     public async saveSeries(
         s: DBSeries,
         mod: Modification<DBSeries>,
     ): Promise<void> {
-        console.log(s, mod)
+        await DB.series.update(
+            s,
+            this.saveModel(s, mod, emptySeries, updatedTimestamp()),
+        )
+    }
 
-        const updateMap: UpdateMap<DBSeries> = s.update_map ?? {}
-        let seriesHasChanges = false
-        let userSeriesHasChanges = false
-        const timestamp = updatedTimestamp()
-        for (const [key] of entries(mod)) {
-            if (key === 'user_series' && mod.user_series) {
-                if (s.user_series === null) {
-                    s.user_series = {
-                        updated_at: timestamp,
-                        created_at: timestamp,
-                        deleted_at: null,
-                        list: List.None,
-                        update_map: {},
+    private saveModel<T extends DBModel>(
+        b: Readonly<T>,
+        modification: Readonly<Modification<T>>,
+        empty: Readonly<T>,
+        timestamp: string,
+    ): Modification<T> {
+        const updateMap: UpdateMap<T> = { ...b.update_map }
+        let dirty = 0
+
+        for (const [key] of entries(modification)) {
+            if (this.isDBModel(empty[key])) {
+                if (b[key] === null) {
+                    b = {
+                        ...b,
+                        [key]: empty[key],
                     }
                 }
 
-                const ubUpdateMap: UpdateMap<DBUserSeries> =
-                    s.user_series.update_map ?? {}
+                const subModification = this.saveModel(
+                    b[key],
+                    modification[key] as Readonly<Modification<DBModel>>,
+                    empty[key],
+                    timestamp,
+                )
+                modification = {
+                    ...modification,
+                    [key]: subModification,
+                }
 
-                for (const [ubKey] of entries(mod.user_series)) {
-                    if (mod.user_series[ubKey] !== s.user_series[ubKey]) {
-                        ubUpdateMap[ubKey] = timestamp
-                        userSeriesHasChanges = true
-                    }
-                }
-                mod.user_series.update_map = ubUpdateMap
-                if (userSeriesHasChanges) {
-                    mod.user_series.dirty = 1
-                }
-            } else if (mod[key] !== s[key]) {
+                dirty = dirty | ((subModification.dirty ?? 0) << 1)
+            } else if (modification[key] !== b[key]) {
                 updateMap[key] = timestamp
-                seriesHasChanges = true
+                dirty = dirty | 1
             }
         }
-        mod.update_map = updateMap
-        if (seriesHasChanges) {
-            mod.dirty = 1
-        } else if (userSeriesHasChanges) {
-            mod.dirty = 2
-        }
 
-        await DB.series.update(s, mod)
+        return {
+            ...modification,
+            dirty: dirty,
+            update_map: updateMap,
+        }
+    }
+
+    private isDBModel(v: unknown): v is DBModel {
+        return typeof v === 'object' && v !== null && 'update_map' in v
     }
 
     private bookComplete(b: DBBook, mod: Partial<DBBook> = {}): number {

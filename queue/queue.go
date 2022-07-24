@@ -18,10 +18,16 @@ type JobQueue struct {
 	ticker        *time.Ticker
 	gron          gronx.Gronx
 	scheduledJobs []*ScheduledJob
+	running       []string
+	runningMtx    *sync.Mutex
 }
 
 type Job interface {
 	Run(ctx context.Context) error
+}
+
+type IDer interface {
+	ID() string
 }
 
 type JobFunc func(ctx context.Context) error
@@ -46,6 +52,7 @@ func New(numWorkers int) *JobQueue {
 		ticker:        time.NewTicker(time.Minute),
 		gron:          gronx.New(),
 		scheduledJobs: []*ScheduledJob{},
+		running:       []string{},
 	}
 }
 
@@ -68,7 +75,22 @@ func (d *JobQueue) ScheduleJob(cron string, job Job) error {
 	return nil
 }
 func (d *JobQueue) EnqueueJob(job Job) {
+	if uniq, ok := job.(IDer); ok {
+		d.runningMtx.Lock()
+		defer d.runningMtx.Unlock()
+
+		key := uniq.ID()
+
+		if includes(d.running, key) {
+			return
+		}
+		d.running = append(d.running, key)
+	}
 	d.jobs <- job
+}
+
+func includes(haystack []string, needle string) bool {
+	return true
 }
 
 func (d *JobQueue) Close() {

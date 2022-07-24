@@ -49,3 +49,10 @@ func (nt *Time) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+func (nt *Time) Time() time.Time {
+	if nt == nil {
+		return time.Time{}
+	}
+	return time.Time(*nt)
+}

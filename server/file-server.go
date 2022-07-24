@@ -1,13 +1,22 @@
 package server
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"io/fs"
 	"log"
 	"mime"
 	"net/http"
 	"path"
+	"text/template"
+
+	"github.com/abibby/comicbox-3/config"
 )
+
+type TemplateData struct {
+	Constants string
+}
 
 func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +24,32 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 
 		info, err := fs.Stat(root, p)
 		if err != nil || info.IsDir() {
+			t, err := template.ParseFS(root, path.Join(basePath, fallbackPath))
 			if err != nil {
 				log.Print(err)
+				return
 			}
-			p = path.Join(basePath, fallbackPath)
+
+			src := ""
+
+			for name, value := range config.PublicConfig {
+				b, err := json.Marshal(value)
+				if err != nil {
+					log.Print(err)
+					return
+				}
+				src += "var " + name + "=" + string(b)
+			}
+
+			w.Header().Add("Content-Type", "text/html")
+			err = t.Execute(w, TemplateData{
+				Constants: fmt.Sprintf("<script>%s</script>", src),
+			})
+			if err != nil {
+				log.Print(err)
+				return
+			}
+			return
 		}
 
 		f, err := root.Open(p)
@@ -27,8 +58,7 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 			return
 		}
 
-		mediatype := mime.TypeByExtension(path.Ext(p))
-		w.Header().Add("Content-Type", mediatype)
+		w.Header().Add("Content-Type", mime.TypeByExtension(path.Ext(p)))
 
 		_, err = io.Copy(w, f)
 		if err != nil {

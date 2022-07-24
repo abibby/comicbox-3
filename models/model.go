@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -147,6 +148,28 @@ func Save(ctx context.Context, model Model, tx *sqlx.Tx) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to run after save hook")
 	}
+	return nil
+}
+
+func Find(ctx context.Context, tx *sqlx.Tx, model Model, id string) error {
+	query := goqu.
+		From(model.Table()).
+		Select(model).
+		Where(goqu.Ex{model.PrimaryKey(): id})
+	sqlQuery, args, err := query.ToSQL()
+
+	err = tx.Get(model, sqlQuery, args...)
+	if err == sql.ErrNoRows {
+		return sql.ErrNoRows
+	} else if err != nil {
+		return errors.Wrapf(err, "failed load %s", model.Table())
+	}
+
+	err = AfterLoad(model, ctx, tx)
+	if err != nil {
+		return errors.Wrap(err, "failed to run after load hook")
+	}
+
 	return nil
 }
 

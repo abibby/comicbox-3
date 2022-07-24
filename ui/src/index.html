@@ -10,10 +10,10 @@
         <title>ComicBox</title>
         <link rel="manifest" href="/manifest.json" />
 
-        {{{styles}}} {{{header}}}
+        {{{styles}}} {{{header}}} {{=<% %>=}}{{.Constants}}<%={{ }}=%>
+        {{{scripts}}}
     </head>
     <body>
         <div id="app">{{{shell}}}</div>
-        {{{scripts}}}
     </body>
 </html>

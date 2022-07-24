@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
@@ -14,6 +15,8 @@ type UserBook struct {
 	UserID      uuid.UUID `json:"-"            db:"user_id"`
 	CurrentPage int       `json:"current_page" db:"current_page"`
 }
+
+var _ AfterSaver = &UserBook{}
 
 func (ub *UserBook) Model() *BaseModel {
 	return &ub.BaseModel
@@ -55,6 +58,11 @@ func LoadUserBooks(tx *sqlx.Tx, books BookList, uid uuid.UUID) error {
 			}
 		}
 	}
+
+	return nil
+}
+
+func (*UserBook) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
 
 	return nil
 }

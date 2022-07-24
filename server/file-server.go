@@ -30,12 +30,9 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 				return
 			}
 
-			constants := map[string]string{
-				"ANILIST_CLIENT_ID": config.AnilistClientID,
-			}
-
 			src := ""
-			for name, value := range constants {
+
+			for name, value := range config.PublicConfig {
 				b, err := json.Marshal(value)
 				if err != nil {
 					log.Print(err)

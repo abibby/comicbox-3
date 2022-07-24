@@ -52,6 +52,8 @@ var PublicUserCreate bool
 var AnilistClientID string
 var AnilistClientSecret string
 
+var PublicConfig map[string]any
+
 func Init() error {
 	err := godotenv.Load("./.env")
 	if errors.Is(err, fs.ErrNotExist) {
@@ -69,6 +71,10 @@ func Init() error {
 	AnilistClientSecret = env("ANILIST_CLIENT_SECRET", "")
 
 	Verbose = envBool("VERBOSE", false)
+
+	PublicConfig = map[string]any{
+		"ANILIST_CLIENT_ID": AnilistClientID,
+	}
 
 	return nil
 }

@@ -7,6 +7,7 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { useResizeEffect } from 'src/hooks/resize-effect'
 import { route } from 'src/routes'
+import { updateAnilist } from 'src/services/anilist-service'
 import { book } from '../api'
 import { persist, useCached } from '../cache'
 import classNames from '../classnames'
@@ -72,6 +73,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const setCurrentIndex = useCallback(
         async (newIndex: number | string) => {
             if (newIndex >= pages.length) {
+                updateAnilist(b)
                 if (nextBookID) {
                     changeRoute(route('book.view', { id: nextBookID }))
                 } else {
@@ -108,7 +110,8 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     let rightOffset = +1
 
     if (rtl) {
-        ;[leftOffset, rightOffset] = [rightOffset, leftOffset]
+        leftOffset = +1
+        rightOffset = -1
     }
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)

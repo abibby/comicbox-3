@@ -75,7 +75,7 @@ export enum MediaFormat {
     manga = 'MANGA',
 
     // Written books released as a series of light novels
-    NOVEL = 'NOVEL',
+    novel = 'NOVEL',
 
     // Manga with just one chapter
     oneShot = 'ONE_SHOT',
@@ -134,7 +134,7 @@ export interface UpdateMangaRequest {
     mediaId: number
     progress: number | null
     progressVolumes: number | null
-    startedAt: string | null
+    startedAt?: string | null
 }
 export async function updateManga(r: UpdateMangaRequest): Promise<unknown> {
     return await apiFetch('/api/anilist/update', {

@@ -21,8 +21,8 @@ RUN GOOS=linux GOARCH=amd64 go install
 # Now copy it into our base image.
 FROM ubuntu
 
-# RUN apt-get update && apt-get install -y ca-certificates
-# RUN update-ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates
+RUN update-ca-certificates
 
 COPY --from=go-build /go/bin/comicbox-3 /comicbox
 

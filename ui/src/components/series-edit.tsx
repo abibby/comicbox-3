@@ -49,7 +49,7 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                 list = rawList
             }
             await DB.saveSeries(series, {
-                anilist_id: data.getNumber('anilist_id'),
+                anilist_id: Number(anilistID),
                 user_series: {
                     list: list,
                 },
@@ -57,7 +57,7 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             await persist(true)
             close(undefined)
         },
-        [series, close],
+        [series, anilistID, close],
     )
     return (
         <Modal>

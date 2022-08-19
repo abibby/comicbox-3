@@ -1,7 +1,6 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { AnilistMatch } from 'src/components/anilist-match'
 import { Button, ButtonGroup } from 'src/components/button'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
@@ -96,19 +95,6 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         }
     }, [seriesName])
 
-    const findAnilist = useCallback(async () => {
-        if (series !== undefined) {
-            const id = await openModal(AnilistMatch, { series: series })
-            if (id === undefined) {
-                return
-            }
-            await DB.saveSeries(series, {
-                anilist_id: id,
-            })
-            await persist(true)
-        }
-    }, [series])
-
     const downloadSeries = useCallback(() => {
         post({
             type: 'download-series',
@@ -122,11 +108,10 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
             <section>
                 List: {series?.user_series?.list ?? 'none'}
                 <ButtonGroup>
-                    <Button onClick={downloadSeries}>download</Button>
-                    <Button onClick={editSeries}>edit</Button>
+                    <Button onClick={downloadSeries}>Download</Button>
+                    <Button onClick={editSeries}>Edit</Button>
                     <Button onClick={markAllRead}>Mark All Read</Button>
                     <Button onClick={markAllUnread}>Mark All Unread</Button>
-                    <Button onClick={findAnilist}>Anilist</Button>
                 </ButtonGroup>
             </section>
             <BookList books={books} />

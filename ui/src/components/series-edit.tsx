@@ -48,8 +48,9 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             if (inEnum(List, rawList)) {
                 list = rawList
             }
+
             await DB.saveSeries(series, {
-                anilist_id: Number(anilistID),
+                anilist_id: anilistID === '' ? null : Number(anilistID),
                 user_series: {
                     list: list,
                 },

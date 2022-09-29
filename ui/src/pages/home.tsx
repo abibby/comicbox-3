@@ -37,10 +37,10 @@ export const Reading: FunctionalComponent = () => {
 
     if (books?.length === 0) {
         return (
-            <>
+            <div>
                 <h1>Reading</h1>
                 <div>Your all caught up</div>
-            </>
+            </div>
         )
     }
 

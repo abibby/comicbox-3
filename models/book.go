@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 
@@ -115,10 +116,17 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	err := Save(ctx, &Series{Name: b.Series}, tx)
-	if err != nil {
-		return errors.Wrap(err, "failed to create series from book")
+	s := &Series{}
+	err := Find(ctx, tx, s, b.Series)
+	if err == sql.ErrNoRows {
+		err = Save(ctx, &Series{Name: b.Series}, tx)
+		if err != nil {
+			return errors.Wrap(err, "failed to create series from book")
+		}
+	} else if err != nil {
+		return errors.Wrap(err, "failed find a series from book")
 	}
+
 	return nil
 }
 

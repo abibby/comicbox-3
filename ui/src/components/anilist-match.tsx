@@ -1,10 +1,12 @@
 import { bind } from '@zwzn/spicy'
 import { h } from 'preact'
+import { useState } from 'preact/hooks'
 import { searchManga, SearchMangaResponse } from 'src/api/anilist'
 import { useAsyncCallback } from 'src/hooks/async'
 import { Series } from 'src/models'
 import styles from './anilist-match.module.css'
 import { Card } from './card'
+import { Input } from './form/input'
 import { Modal, ModalBody, ModalComponent, ModalHead } from './modal'
 
 type AnilistMatchProps = {
@@ -16,9 +18,10 @@ export const AnilistMatch: ModalComponent<
     AnilistMatchProps
 > = props => {
     const seriesName = props.series.name
+    const [search, setSearch] = useState(seriesName)
     const result = useAsyncCallback(async () => {
-        return searchManga(seriesName)
-    }, [seriesName])
+        return searchManga(search)
+    }, [search])
 
     let data: SearchMangaResponse[] = []
 
@@ -30,6 +33,12 @@ export const AnilistMatch: ModalComponent<
         <Modal>
             <ModalHead close={props.close}>Anilist Match</ModalHead>
             <ModalBody>
+                <Input
+                    title='Search'
+                    name='search'
+                    value={search}
+                    onInput={setSearch}
+                />
                 <div class={styles.bookList}>
                     {data.map(r => {
                         const current = props.series.anilist_id === r.id

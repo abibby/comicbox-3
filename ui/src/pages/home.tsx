@@ -1,4 +1,4 @@
-import { Fragment, FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { BookListRequest } from 'src/api/book'
 import { List } from 'src/models'

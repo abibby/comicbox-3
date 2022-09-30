@@ -23,6 +23,7 @@
     "@types/favicons": "^6.2.2",
     "@types/find": "^0.2.1",
     "@types/mustache": "^4.1.2",
+    "@types/serviceworker": "^0.0.53",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
     "autoprefixer": "^10.4.2",

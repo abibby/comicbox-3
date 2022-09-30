@@ -1,10 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../node_modules/@types/serviceworker/index.d.ts" />
+
 import assets from 'build:assets'
 import { book, pageURL } from './api'
 import { DB, DBBook } from './database'
 import { Message, respond } from './message'
 import { Book } from './models'
 
-const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
+// const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
 
 type AsyncEvents =
     | 'activate'
@@ -24,7 +27,7 @@ function addAsyncEventListener<K extends AsyncEvents>(
     ) => Promise<void>,
     options?: boolean | AddEventListenerOptions,
 ): void {
-    sw.addEventListener(
+    addEventListener(
         type,
         function (event) {
             event.waitUntil(listener.call(this, event))
@@ -47,9 +50,9 @@ function globToRegex(glob: string): RegExp {
 const STATIC_CACHE_NAME = 'static-cache-v1'
 const IMAGE_CACHE_NAME = 'image-cache-v1'
 
-const cachedAssets = new Set(assets.map(a => `/${a.fileName}`))
+const cachedAssets = new Set(assets.map(a => `/${a.fileName}`).concat(['/']))
 
-sw.addEventListener('install', event => {
+addEventListener('install', event => {
     // Perform install steps
     event.waitUntil(
         Promise.all([
@@ -68,7 +71,7 @@ sw.addEventListener('install', event => {
         ]),
     )
 })
-sw.addEventListener('activate', event => {
+addEventListener('activate', event => {
     event.waitUntil(
         caches
             .keys()
@@ -82,28 +85,32 @@ sw.addEventListener('activate', event => {
     )
 })
 
-async function cacheFirst(request: Request, path: string): Promise<Response> {
-    const r = await caches.match(path, {
-        cacheName: STATIC_CACHE_NAME,
-    })
+async function cacheStatic(request: Request, path: string): Promise<Response> {
+    const staticCache = await caches.open(STATIC_CACHE_NAME)
+    const r = await staticCache.match(path)
     if (r !== undefined) {
         return r
     }
+
     return await fetch(request)
 }
 
 async function cacheThumbnail(
+    event: FetchEvent,
     request: Request,
     path: string,
 ): Promise<Response> {
-    const r = await caches.match(path, {
-        cacheName: IMAGE_CACHE_NAME,
+    const imageCache = await caches.open(IMAGE_CACHE_NAME)
+    const r = await imageCache.match(path, {
         ignoreSearch: true,
     })
     if (r !== undefined) {
         return r
     }
-    caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(request))
+
+    event.waitUntil(
+        caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(request)),
+    )
 
     const pageURL = request.url.replace('/thumbnail', '')
 
@@ -111,8 +118,8 @@ async function cacheThumbnail(
 }
 
 async function cachePage(request: Request, path: string): Promise<Response> {
-    const r = await caches.match(path, {
-        cacheName: IMAGE_CACHE_NAME,
+    const imageCache = await caches.open(IMAGE_CACHE_NAME)
+    const r = await imageCache.match(path, {
         ignoreSearch: true,
     })
     if (r !== undefined) {
@@ -121,22 +128,22 @@ async function cachePage(request: Request, path: string): Promise<Response> {
     return await fetch(request)
 }
 
-sw.addEventListener('fetch', function (event) {
+addEventListener('fetch', function (event) {
     const request = event.request
     const url = new URL(request.url)
 
     if (cachedAssets.has(url.pathname)) {
-        event.respondWith(cacheFirst(request, url.pathname))
+        event.respondWith(cacheStatic(request, url.pathname))
         return
     }
 
     if (!url.pathname.startsWith('/api/')) {
-        event.respondWith(cacheFirst(request, '/index.html'))
+        event.respondWith(cacheStatic(request, '/'))
         return
     }
 
     if (globToRegex('/api/books/*/page/*/thumbnail').test(url.pathname)) {
-        event.respondWith(cacheThumbnail(request, url.pathname))
+        event.respondWith(cacheThumbnail(event, request, url.pathname))
         return
     }
 
@@ -152,9 +159,9 @@ async function cacheBook(b: Book): Promise<void> {
         ...b.pages.map(p => pageURL(p)),
     ])
 
-    const cache = await caches.open(IMAGE_CACHE_NAME)
+    const imageCache = await caches.open(IMAGE_CACHE_NAME)
 
-    await cache.addAll(pageUrls)
+    await imageCache.addAll(pageUrls)
 }
 
 addAsyncEventListener('message', async function (event) {
@@ -172,13 +179,13 @@ addAsyncEventListener('message', async function (event) {
     if (books !== undefined) {
         for (const b of books) {
             await cacheBook(b)
-            b.downloaded = true
-            b.dirty = 1
+            await DB.saveBook(b, {
+                downloaded: true,
+            })
         }
-        await DB.books.bulkPut(books)
         respond(event, { type: 'book-update' })
     }
 })
 
 // eslint-disable-next-line no-console
-console.log('v21')
+console.log('v29')

@@ -49,7 +49,7 @@ function Main() {
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<Main />, document.getElementById('app')!)
 
-if ('serviceWorker' in navigator && 1 === 0) {
+if ('serviceWorker' in navigator) {
     navigator.serviceWorker
         .register(serviceWorkerURL, { scope: '/' })
         .then(reg => {

@@ -10,6 +10,7 @@ export interface GraphQLResponseErrorLocation {
     column: number
 }
 export interface GraphQlResponse {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any
     errors?: GraphQLResponseError[]
 }
@@ -17,6 +18,7 @@ export interface GraphQlResponse {
 async function gql(
     query: string,
     variables: Record<string, unknown>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<Record<string, any>> {
     // Define the config we'll need for our Api request
     const url = 'https://graphql.anilist.co',

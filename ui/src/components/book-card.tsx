@@ -68,6 +68,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
             menu={menu}
             disabled={!online && !book.downloaded}
             progress={progress}
+            downloaded={book.downloaded}
         />
     )
 }

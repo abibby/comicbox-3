@@ -12,6 +12,16 @@ import './book'
 import { getCacheHandler } from './internal'
 import './series'
 
+interface SyncManager {
+    getTags(): Promise<string[]>
+    register(tag: string): Promise<void>
+}
+declare global {
+    interface ServiceWorkerRegistration {
+        readonly sync: SyncManager
+    }
+}
+
 class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {
         super('update')
@@ -144,24 +154,15 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
 
 export const persist = debounce(async function (
     fromUserInteraction: boolean,
+    fromSyncEvent = false,
 ): Promise<void> {
     invalidateCache(fromUserInteraction)
     const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
     let hasErrors = false
     for (const b of dirtyBooks) {
-        let result = b
-        if (b.user_book !== null && b.user_book.dirty) {
-            try {
-                b.user_book = await userBook.update(b.id, {
-                    current_page: b.user_book.current_page,
-                    update_map: b.user_book.update_map ?? {},
-                })
-            } catch (e) {
-                hasErrors = true
-            }
-        }
-        if (b.dirty === 1) {
-            try {
+        let result: Partial<DBBook> = {}
+        try {
+            if (b.dirty === 1) {
                 result = await book.update(b.id, {
                     title: b.title,
                     series: b.series,
@@ -173,45 +174,58 @@ export const persist = debounce(async function (
                     })),
                     update_map: b.update_map ?? {},
                 })
-            } catch (e) {
-                hasErrors = true
+                result.dirty = 0
             }
+
+            if (b.user_book !== null && b.user_book.dirty) {
+                result.user_book = await userBook.update(b.id, {
+                    current_page: b.user_book.current_page,
+                    update_map: b.user_book.update_map ?? {},
+                })
+                result.user_book.dirty = 0
+            }
+        } catch (e) {
+            hasErrors = true
         }
-        DB.books.put({
-            ...result,
-            dirty: 0,
-        })
+        if (Object.keys(result).length > 0) {
+            await DB.books.update(b, result)
+        }
     }
     const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
     for (const s of dirtySeries) {
-        let result = s
+        let result: Partial<DBSeries> = {}
         try {
             result = await series.update(s.name, {
                 anilist_id: s.anilist_id,
                 update_map: s.update_map,
             })
+            result.dirty = 0
+            if (s.user_series !== null) {
+                try {
+                    result.user_series = await userSeries.update(s.name, {
+                        list: s.user_series.list,
+                        update_map: s.user_series.update_map,
+                    })
+                } catch (e) {
+                    hasErrors = true
+                }
+            }
         } catch (e) {
             hasErrors = true
         }
-        if (s.user_series !== null) {
-            try {
-                result.user_series = await userSeries.update(s.name, {
-                    list: s.user_series.list,
-                    update_map: s.user_series.update_map,
-                })
-            } catch (e) {
-                hasErrors = true
-            }
+        if (Object.keys(result).length > 0) {
+            await DB.series.update(s, result)
         }
-        await DB.series.update(s, {
-            ...result,
-            dirty: 0,
-        })
     }
     invalidateCache(fromUserInteraction)
 
-    if (hasErrors) {
-        prompt('There were some errors in syncing data')
+    if (hasErrors && !fromSyncEvent) {
+        const registration = await navigator.serviceWorker.ready
+        try {
+            await registration.sync.register('persist')
+        } catch {
+            prompt('There were some errors in syncing data')
+        }
     }
 },
 500)

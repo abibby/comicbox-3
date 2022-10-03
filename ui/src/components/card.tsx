@@ -1,3 +1,4 @@
+import checkCircle from 'asset-url:res/icons/check-circle.svg'
 import moreVertical from 'asset-url:res/icons/more-vertical.svg'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
@@ -14,6 +15,7 @@ interface CardProps {
     placeholder?: boolean
     disabled?: boolean
     progress?: number
+    downloaded?: boolean
 }
 
 export const Card: FunctionalComponent<CardProps> = props => {
@@ -57,6 +59,13 @@ export const Card: FunctionalComponent<CardProps> = props => {
                     alt={alt}
                     loading='lazy'
                 />
+                {props.downloaded && (
+                    <img
+                        class={styles.downloaded}
+                        src={checkCircle}
+                        alt='downloaded'
+                    />
+                )}
                 {props.menu && (
                     <button class={styles.menu} onClick={open}>
                         <img src={moreVertical} alt='menu' />

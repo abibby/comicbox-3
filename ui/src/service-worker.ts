@@ -3,11 +3,20 @@
 
 import assets from 'build:assets'
 import { book, pageURL } from './api'
-import { DB, DBBook } from './database'
+import { persist } from './cache'
+import { DB } from './database'
 import { Message, respond } from './message'
 import { Book } from './models'
 
-// const sw = self as unknown as ServiceWorkerGlobalScope & typeof globalThis
+interface SyncEvent extends ExtendableEvent {
+    readonly lastChance: boolean
+    readonly tag: string
+}
+declare global {
+    interface ServiceWorkerGlobalScopeEventMap {
+        sync: SyncEvent
+    }
+}
 
 type AsyncEvents =
     | 'activate'
@@ -71,6 +80,7 @@ addEventListener('install', event => {
         ]),
     )
 })
+
 addEventListener('activate', event => {
     event.waitUntil(
         caches
@@ -164,28 +174,40 @@ async function cacheBook(b: Book): Promise<void> {
     await imageCache.addAll(pageUrls)
 }
 
+async function cacheBooks(
+    event: ExtendableMessageEvent,
+    books: Book[],
+): Promise<void> {
+    for (const b of books) {
+        await cacheBook(b)
+        await DB.saveBook(b, {
+            downloaded: true,
+        })
+    }
+    respond(event, { type: 'book-update' })
+}
+
 addAsyncEventListener('message', async function (event) {
     const message: Message = event.data
 
-    let books: DBBook[] | undefined
-    if (message.type === 'download-book') {
-        books = await book.list({ id: message.bookID })
+    switch (message.type) {
+        case 'download-book':
+            await cacheBooks(event, await book.list({ id: message.bookID }))
+            break
+        case 'download-series':
+            await cacheBooks(
+                event,
+                await book.list({ series: message.seriesName }),
+            )
+            break
     }
-    if (message.type === 'download-series') {
-        books = await book.list({ series: message.seriesName })
-    }
-    // console.log(books)
+})
 
-    if (books !== undefined) {
-        for (const b of books) {
-            await cacheBook(b)
-            await DB.saveBook(b, {
-                downloaded: true,
-            })
-        }
-        respond(event, { type: 'book-update' })
+addEventListener('sync', event => {
+    if (event.tag === 'persist') {
+        persist(false, true)
     }
 })
 
 // eslint-disable-next-line no-console
-console.log('v29')
+console.log('v31')

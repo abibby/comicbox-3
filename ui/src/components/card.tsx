@@ -49,7 +49,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
                 [styles.disabled]: props.disabled,
             })}
         >
-            <a href={href} onClick={click}>
+            <a href={props.disabled ? undefined : href} onClick={click}>
                 <Progress progress={props.progress ?? 0} />
                 <img
                     class={styles.cover}

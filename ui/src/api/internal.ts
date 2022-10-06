@@ -78,8 +78,10 @@ export class FetchError<T> extends Error {
 
 let tokens: LoginResponse | undefined
 
-export async function setAuthToken(resp: LoginResponse | null): Promise<void> {
-    if (resp === null) {
+export async function setAuthToken(
+    resp: LoginResponse | null | undefined,
+): Promise<void> {
+    if (resp === null || resp === undefined) {
         await del('tokens')
     } else {
         await set('tokens', resp)
@@ -99,16 +101,19 @@ async function getTokens(): Promise<LoginResponse | undefined> {
         ) {
             await refreshTokenMutex.runExclusive(async () => {
                 if (tokens && isExpired(jwt.parse(tokens.token))) {
-                    const resp = await fetch('/api/login/refresh', {
-                        method: 'POST',
-                        headers: {
-                            Authorization: 'Bearer ' + tokens.refresh_token,
-                        },
-                    })
+                    try {
+                        const resp = await fetch('/api/login/refresh', {
+                            method: 'POST',
+                            headers: {
+                                Authorization: 'Bearer ' + tokens.refresh_token,
+                            },
+                        })
 
-                    if (resp.ok) {
-                        tokens = await resp.json()
-                    }
+                        if (resp.ok) {
+                            tokens = await resp.json()
+                            setAuthToken(tokens)
+                        }
+                    } catch {}
                 }
             })
         }

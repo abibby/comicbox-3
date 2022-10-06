@@ -59,25 +59,23 @@ function globToRegex(glob: string): RegExp {
 const STATIC_CACHE_NAME = 'static-cache-v1'
 const IMAGE_CACHE_NAME = 'image-cache-v1'
 
+const activeCaches = [STATIC_CACHE_NAME, IMAGE_CACHE_NAME]
+
 const cachedAssets = new Set(assets.map(a => `/${a.fileName}`).concat(['/']))
 
 addEventListener('install', event => {
     // Perform install steps
     event.waitUntil(
-        Promise.all([
-            caches.open(STATIC_CACHE_NAME).then(cache => {
-                return cache.addAll(Array.from(cachedAssets))
-            }),
-
-            caches.open(STATIC_CACHE_NAME).then(async cache => {
-                for (const key of await cache.keys()) {
-                    const url = new URL(key.url)
-                    if (!cachedAssets.has(url.pathname)) {
-                        cache.delete(key)
-                    }
+        (async () => {
+            const staticCache = await caches.open(STATIC_CACHE_NAME)
+            await staticCache.addAll(Array.from(cachedAssets))
+            for (const key of await staticCache.keys()) {
+                const url = new URL(key.url)
+                if (!cachedAssets.has(url.pathname)) {
+                    staticCache.delete(key)
                 }
-            }),
-        ]),
+            }
+        })(),
     )
 })
 
@@ -88,29 +86,29 @@ addEventListener('activate', event => {
             .then(keys =>
                 Promise.all(
                     keys
-                        .filter(key => key !== STATIC_CACHE_NAME)
+                        .filter(key => !activeCaches.includes(key))
                         .map(key => caches.delete(key)),
                 ),
             ),
     )
 })
 
-async function cacheStatic(request: Request, path: string): Promise<Response> {
+async function cacheStatic(event: FetchEvent, path: string): Promise<Response> {
     const staticCache = await caches.open(STATIC_CACHE_NAME)
     const r = await staticCache.match(path)
     if (r !== undefined) {
         return r
     }
 
-    return await fetch(request)
+    return fetch(event.request)
 }
 
 async function cacheThumbnail(
     event: FetchEvent,
-    request: Request,
     path: string,
 ): Promise<Response> {
     const imageCache = await caches.open(IMAGE_CACHE_NAME)
+
     const r = await imageCache.match(path, {
         ignoreSearch: true,
     })
@@ -118,16 +116,14 @@ async function cacheThumbnail(
         return r
     }
 
-    event.waitUntil(
-        caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(request)),
-    )
+    event.waitUntil(imageCache.add(event.request))
 
-    const pageURL = request.url.replace('/thumbnail', '')
+    const pageURL = path.replace('/thumbnail', '')
 
-    return await cachePage(request, pageURL)
+    return cachePage(event, pageURL)
 }
 
-async function cachePage(request: Request, path: string): Promise<Response> {
+async function cachePage(event: FetchEvent, path: string): Promise<Response> {
     const imageCache = await caches.open(IMAGE_CACHE_NAME)
     const r = await imageCache.match(path, {
         ignoreSearch: true,
@@ -135,30 +131,30 @@ async function cachePage(request: Request, path: string): Promise<Response> {
     if (r !== undefined) {
         return r
     }
-    return await fetch(request)
+    return fetch(event.request)
 }
 
-addEventListener('fetch', function (event) {
+addEventListener('fetch', event => {
     const request = event.request
     const url = new URL(request.url)
 
     if (cachedAssets.has(url.pathname)) {
-        event.respondWith(cacheStatic(request, url.pathname))
+        event.respondWith(cacheStatic(event, url.pathname))
         return
     }
 
     if (!url.pathname.startsWith('/api/')) {
-        event.respondWith(cacheStatic(request, '/'))
+        event.respondWith(cacheStatic(event, '/'))
         return
     }
 
     if (globToRegex('/api/books/*/page/*/thumbnail').test(url.pathname)) {
-        event.respondWith(cacheThumbnail(event, request, url.pathname))
+        event.respondWith(cacheThumbnail(event, url.pathname))
         return
     }
 
     if (globToRegex('/api/books/*/page/*').test(url.pathname)) {
-        event.respondWith(cachePage(request, url.pathname))
+        event.respondWith(cachePage(event, url.pathname))
         return
     }
 })
@@ -208,6 +204,3 @@ addEventListener('sync', event => {
         persist(false, true)
     }
 })
-
-// eslint-disable-next-line no-console
-console.log('v31')

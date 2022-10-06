@@ -64,20 +64,16 @@ const cachedAssets = new Set(assets.map(a => `/${a.fileName}`).concat(['/']))
 addEventListener('install', event => {
     // Perform install steps
     event.waitUntil(
-        Promise.all([
-            caches.open(STATIC_CACHE_NAME).then(cache => {
-                return cache.addAll(Array.from(cachedAssets))
-            }),
-
-            caches.open(STATIC_CACHE_NAME).then(async cache => {
-                for (const key of await cache.keys()) {
-                    const url = new URL(key.url)
-                    if (!cachedAssets.has(url.pathname)) {
-                        cache.delete(key)
-                    }
+        (async () => {
+            const staticCache = await caches.open(STATIC_CACHE_NAME)
+            await staticCache.addAll(Array.from(cachedAssets))
+            for (const key of await staticCache.keys()) {
+                const url = new URL(key.url)
+                if (!cachedAssets.has(url.pathname)) {
+                    staticCache.delete(key)
                 }
-            }),
-        ]),
+            }
+        })(),
     )
 })
 
@@ -95,47 +91,46 @@ addEventListener('activate', event => {
     )
 })
 
-async function cacheStatic(request: Request, path: string): Promise<Response> {
+async function cacheStatic(event: FetchEvent, path: string): Promise<void> {
     const staticCache = await caches.open(STATIC_CACHE_NAME)
     const r = await staticCache.match(path)
     if (r !== undefined) {
-        return r
+        event.respondWith(r)
+        return
     }
-
-    return await fetch(request)
 }
 
-async function cacheThumbnail(
-    event: FetchEvent,
-    request: Request,
-    path: string,
-): Promise<Response> {
+async function cacheThumbnail(event: FetchEvent, path: string): Promise<void> {
     const imageCache = await caches.open(IMAGE_CACHE_NAME)
     const r = await imageCache.match(path, {
         ignoreSearch: true,
     })
     if (r !== undefined) {
-        return r
+        event.respondWith(r)
+        return
     }
 
     event.waitUntil(
-        caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(request)),
+        caches.open(IMAGE_CACHE_NAME).then(cache => cache.add(event.request)),
     )
 
-    const pageURL = request.url.replace('/thumbnail', '')
+    const pageURL = path.replace('/thumbnail', '')
 
-    return await cachePage(request, pageURL)
+    await cachePage(event, pageURL)
 }
 
-async function cachePage(request: Request, path: string): Promise<Response> {
+async function cachePage(
+    event: FetchEvent,
+    path: string,
+): Promise<Response | undefined> {
     const imageCache = await caches.open(IMAGE_CACHE_NAME)
     const r = await imageCache.match(path, {
         ignoreSearch: true,
     })
     if (r !== undefined) {
-        return r
+        event.respondWith(r)
+        return
     }
-    return await fetch(request)
 }
 
 addEventListener('fetch', function (event) {
@@ -143,22 +138,22 @@ addEventListener('fetch', function (event) {
     const url = new URL(request.url)
 
     if (cachedAssets.has(url.pathname)) {
-        event.respondWith(cacheStatic(request, url.pathname))
+        event.waitUntil(cacheStatic(event, url.pathname))
         return
     }
 
     if (!url.pathname.startsWith('/api/')) {
-        event.respondWith(cacheStatic(request, '/'))
+        event.waitUntil(cacheStatic(event, '/'))
         return
     }
 
     if (globToRegex('/api/books/*/page/*/thumbnail').test(url.pathname)) {
-        event.respondWith(cacheThumbnail(event, request, url.pathname))
+        event.waitUntil(cacheThumbnail(event, url.pathname))
         return
     }
 
     if (globToRegex('/api/books/*/page/*').test(url.pathname)) {
-        event.respondWith(cachePage(request, url.pathname))
+        event.waitUntil(cachePage(event, url.pathname))
         return
     }
 })
@@ -208,6 +203,3 @@ addEventListener('sync', event => {
         persist(false, true)
     }
 })
-
-// eslint-disable-next-line no-console
-console.log('v31')

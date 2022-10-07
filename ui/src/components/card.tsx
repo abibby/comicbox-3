@@ -1,6 +1,6 @@
 import checkCircle from 'asset-url:res/icons/check-circle.svg'
 import moreVertical from 'asset-url:res/icons/more-vertical.svg'
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from './card.module.css'
@@ -16,6 +16,7 @@ interface CardProps {
     disabled?: boolean
     progress?: number
     downloaded?: boolean
+    downloadProgress?: number
 }
 
 export const Card: FunctionalComponent<CardProps> = props => {
@@ -59,13 +60,10 @@ export const Card: FunctionalComponent<CardProps> = props => {
                     alt={alt}
                     loading='lazy'
                 />
-                {props.downloaded && (
-                    <img
-                        class={styles.downloaded}
-                        src={checkCircle}
-                        alt='downloaded'
-                    />
-                )}
+                <Download
+                    progress={props.downloadProgress}
+                    completed={props.downloaded}
+                />
                 {props.menu && (
                     <button class={styles.menu} onClick={open}>
                         <img src={moreVertical} alt='menu' />
@@ -91,6 +89,33 @@ const Progress: FunctionalComponent<ProgressProps> = ({ progress }) => {
         <div
             class={styles.progress}
             style={{ '--progress': clamp(progress, 0, 1) }}
+        />
+    )
+}
+
+interface DownloadProps {
+    progress: number | undefined
+    completed: boolean | undefined
+}
+const Download: FunctionalComponent<DownloadProps> = ({
+    progress,
+    completed,
+}) => {
+    if (
+        (progress === undefined || progress === 0) &&
+        (completed === undefined || completed === false)
+    ) {
+        return <Fragment />
+    }
+
+    return (
+        <img
+            style={{
+                '--download-progress': clamp(progress ?? 0, 0, 1),
+            }}
+            class={styles.downloaded}
+            src={checkCircle}
+            alt='downloaded'
         />
     )
 }

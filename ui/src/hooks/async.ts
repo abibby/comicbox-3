@@ -3,13 +3,17 @@ import { Inputs, useCallback, useEffect, useState } from 'preact/hooks'
 export type UseAsyncResult<T, E> =
     | {
           status: 'pending'
+          data?: undefined
+          error?: undefined
       }
     | {
           status: 'success'
           data: T
+          error?: undefined
       }
     | {
           status: 'error'
+          data?: undefined
           error: E
       }
 export function useAsync<T, E = Error>(

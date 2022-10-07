@@ -24,7 +24,6 @@ export type DBUserBook = UserBook & DBModel
 export type DBBook = Book &
     DBModel & {
         completed?: number
-        downloaded?: boolean
         user_book: DBUserBook | null
     }
 
@@ -33,6 +32,7 @@ export type DBUserSeries = UserSeries & DBModel
 export type DBSeries = Series &
     DBModel & {
         completed?: number
+        downloaded?: boolean
         user_series: DBUserSeries | null
     }
 

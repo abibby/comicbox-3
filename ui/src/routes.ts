@@ -1,41 +1,62 @@
+function handleError() {
+    location.reload()
+}
+
 export const routes = {
     home: {
         path: '/',
-        component: () => import('./pages/home').then(p => p.Home),
+        component: () =>
+            import('./pages/home').then(p => p.Home).catch(handleError),
     },
     'book.view': {
         path: '/book/:id/:page?',
-        component: () => import('./pages/book-view').then(p => p.BookView),
+        component: () =>
+            import('./pages/book-view')
+                .then(p => p.BookView)
+                .catch(handleError),
     },
     list: {
         path: '/list',
-        component: () => import('./pages/lists').then(p => p.List),
+        component: () =>
+            import('./pages/lists').then(p => p.List).catch(handleError),
     },
     'series.index': {
         path: '/series',
         component: () =>
-            import('./pages/series-index').then(p => p.SeriesIndex),
+            import('./pages/series-index')
+                .then(p => p.SeriesIndex)
+                .catch(handleError),
     },
     'series.view': {
         path: '/series/:series',
-        component: () => import('./pages/series-view').then(p => p.SeriesView),
+        component: () =>
+            import('./pages/series-view')
+                .then(p => p.SeriesView)
+                .catch(handleError),
     },
     settings: {
         path: '/settings',
-        component: () => import('./pages/settings').then(p => p.Settings),
+        component: () =>
+            import('./pages/settings').then(p => p.Settings).catch(handleError),
     },
     'user.create': {
         path: '/users/create',
-        component: () => import('./pages/user-create').then(p => p.UserCreate),
+        component: () =>
+            import('./pages/user-create')
+                .then(p => p.UserCreate)
+                .catch(handleError),
     },
     'anilist.login': {
         path: '/anilist/login',
         component: () =>
-            import('./pages/anilist-login').then(p => p.AnilistLogin),
+            import('./pages/anilist-login')
+                .then(p => p.AnilistLogin)
+                .catch(handleError),
     },
     login: {
         path: '/login',
-        component: () => import('./pages/login').then(p => p.Login),
+        component: () =>
+            import('./pages/login').then(p => p.Login).catch(handleError),
     },
 } as const
 

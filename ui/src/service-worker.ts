@@ -1,6 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../node_modules/@types/serviceworker/index.d.ts" />
-
 import assets from 'build:assets'
 import { book, pageURL } from './api'
 import { persist } from './cache'
@@ -57,32 +56,41 @@ function globToRegex(glob: string): RegExp {
     return new RegExp(`^${re}$`)
 }
 
-const cachedAssets = new Set(assets.map(a => `/${a.fileName}`).concat(['/']))
-
-addEventListener('install', event => {
-    // Perform install steps
-    event.waitUntil(
-        (async () => {
-            const staticCache = await openStaticCache()
-            await staticCache.addAll(Array.from(cachedAssets))
-            for (const key of await staticCache.keys()) {
-                const url = new URL(key.url)
-                if (!cachedAssets.has(url.pathname)) {
-                    staticCache.delete(key)
-                }
-            }
-        })(),
+addAsyncEventListener('install', async () => {
+    const cachedAssets = new Set(assets.map(a => `/${a.fileName}`))
+    const newCachedAssets = new Set<string>(
+        await fetch('/static-files').then(r => r.json()),
     )
+    newCachedAssets.add('/')
+
+    const staticCache = await openStaticCache()
+    await staticCache.addAll(Array.from(newCachedAssets))
+    for (const key of await staticCache.keys()) {
+        const url = new URL(key.url)
+        if (
+            !newCachedAssets.has(url.pathname) &&
+            !cachedAssets.has(url.pathname)
+        ) {
+            staticCache.delete(key)
+        }
+    }
 })
 
 async function cacheStatic(event: FetchEvent, path: string): Promise<Response> {
     const staticCache = await openStaticCache()
-    const r = await staticCache.match(path)
-    if (r !== undefined) {
-        return r
+    const response = await staticCache.match(path)
+    if (response !== undefined) {
+        return response
+    }
+    const fallbackResponse = await staticCache.match('/')
+    if (fallbackResponse !== undefined) {
+        return fallbackResponse
     }
 
     return fetch(event.request)
+    // return new Response(undefined, {
+    //     status: 469,
+    // })
 }
 
 async function cacheThumbnail(
@@ -126,13 +134,8 @@ addEventListener('fetch', event => {
     const request = event.request
     const url = new URL(request.url)
 
-    if (cachedAssets.has(url.pathname)) {
-        event.respondWith(cacheStatic(event, url.pathname))
-        return
-    }
-
     if (!url.pathname.startsWith('/api/')) {
-        event.respondWith(cacheStatic(event, '/'))
+        event.respondWith(cacheStatic(event, url.pathname))
         return
     }
 

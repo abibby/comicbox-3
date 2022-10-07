@@ -4,7 +4,7 @@ import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
-import { AlertController, clearAlerts } from './components/alert'
+import { AlertController, clearAlerts, prompt } from './components/alert'
 import {
     clearContextMenus,
     ContextMenuController,
@@ -49,11 +49,65 @@ function Main() {
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 render(<Main />, document.getElementById('app')!)
 
+async function installingWorker(
+    reg: ServiceWorkerRegistration,
+): Promise<ServiceWorker> {
+    if (reg.installing) return reg.installing
+    return new Promise<ServiceWorker>(resolve => {
+        reg.addEventListener('updatefound', () => resolve(reg.installing!), {
+            once: true,
+        })
+    })
+}
+
+let reloading = false
+async function onUpdateFound(
+    registration: ServiceWorkerRegistration,
+): Promise<void> {
+    const worker = await installingWorker(registration)
+
+    worker.addEventListener('statechange', async () => {
+        if (reloading) return
+
+        // the very first activation!
+        // tell the user stuff works offline
+        if (
+            worker.state === 'activated' &&
+            !navigator.serviceWorker.controller
+        ) {
+            await prompt('Ready to work offline', {}, 5000)
+            return
+        }
+
+        if (
+            worker.state === 'activated' &&
+            navigator.serviceWorker.controller
+        ) {
+            // otherwise, show the user an alert
+            const answer = await prompt(
+                'Update available',
+                {
+                    reload: 'reload',
+                    dismiss: 'dismiss',
+                },
+                5000,
+            )
+
+            if (answer === 'reload') {
+                reloading = true
+                location.reload()
+            }
+        }
+    })
+}
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
         .register(serviceWorkerURL, { scope: '/' })
-        .then(reg => {
+        .then(async reg => {
+            await onUpdateFound(reg)
             setSW(reg)
+            await reg.update()
         })
         .catch(err => {
             console.error(err)

@@ -49,6 +49,8 @@ func init() {
 		r.NotFoundHandler = http.HandlerFunc(controllers.API404)
 	})
 
+	r.HandleFunc("/static-files", controllers.StaticFiles).Methods("GET")
+
 	r.PathPrefix("/").
 		Handler(FileServerDefault(ui.Content, "dist", "index.html")).
 		Methods("GET")

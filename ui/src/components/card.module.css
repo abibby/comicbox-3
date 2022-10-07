@@ -77,7 +77,13 @@
     right: 10px;
     height: 25px;
     width: 25px;
-    background: #fff;
     border-radius: 50%;
     padding: 2px;
+
+    background: conic-gradient(
+        white 0deg,
+        white calc(var(--download-progress) * 360deg),
+        grey calc(var(--download-progress) * 360deg),
+        grey 360deg
+    );
 }

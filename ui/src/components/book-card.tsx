@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { useBookCached } from 'src/caches'
 import { route } from 'src/routes'
 import { useOnline } from '../cache'
 import { DBBook } from '../database'
@@ -58,6 +59,8 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
     const currentPage = book.user_book?.current_page ?? 0
     const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
 
+    const [downloaded, downloadProgress] = useBookCached(book.id)
+
     return (
         <Card
             image={coverURL}
@@ -66,9 +69,10 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
             title={book.series}
             subtitle={title}
             menu={menu}
-            disabled={!online && !book.downloaded}
+            disabled={!online && !downloaded}
             progress={progress}
-            downloaded={book.downloaded}
+            downloaded={downloaded}
+            downloadProgress={downloadProgress}
         />
     )
 }

@@ -3,6 +3,8 @@ let reg: ServiceWorkerRegistration | null = null
 export type Message =
     | DownloadBookMessage
     | DownloadSeriesMessage
+    | DownloadProgressMessage
+    | DownloadCompleteMessage
     | BookUpdateMessage
 export type MessageType = Message['type']
 
@@ -16,6 +18,17 @@ export type DownloadSeriesMessage = {
 }
 export type BookUpdateMessage = {
     type: 'book-update'
+}
+export type DownloadProgressMessage = {
+    type: 'download-progress'
+    model: 'book' | 'series'
+    id: string
+    progress: number
+}
+export type DownloadCompleteMessage = {
+    type: 'download-complete'
+    model: 'book' | 'series'
+    id: string
 }
 
 const receiveListeners = new Map<MessageType, Set<(message: Message) => void>>()

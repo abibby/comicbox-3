@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../node_modules/@types/serviceworker/index.d.ts" />
+/// <reference path="../../node_modules/@types/serviceworker/index.d.ts" />
 import assets from 'build:assets'
-import { book, pageURL } from './api'
-import { persist } from './cache'
-import { openPageCache, openStaticCache, openThumbCache } from './caches'
-import { Message, respond } from './message'
-import { Book } from './models'
+import { book, pageURL } from 'src/api'
+import { persist } from 'src/cache'
+import { openPageCache, openStaticCache, openThumbCache } from 'src/caches'
+import { Message, respond } from 'src/message'
+import { Book } from 'src/models'
 
 interface SyncEvent extends ExtendableEvent {
     readonly lastChance: boolean
@@ -160,46 +160,59 @@ async function sendMessage(message: Message): Promise<void> {
     }
 }
 
-function progresser(
-    total: number,
-    model: 'book' | 'series',
-    id: string,
-): (finished?: boolean) => Promise<void> {
-    let current = 0
-    return async (finished = false) => {
-        if (finished) {
-            await sendMessage({
-                type: 'download-complete',
-                model: model,
-                id: id,
-            })
-            return
-        }
+class Progresser {
+    private current = 0
 
-        current++
+    constructor(
+        private total: number,
+        private model: 'book' | 'series',
+        private id: string,
+    ) {}
+
+    async start() {
         await sendMessage({
             type: 'download-progress',
-            model: model,
-            id: id,
-            progress: current / total,
+            model: this.model,
+            id: this.id,
+            progress: 0,
+        })
+    }
+
+    async finish() {
+        await sendMessage({
+            type: 'download-complete',
+            model: this.model,
+            id: this.id,
+        })
+    }
+
+    async next() {
+        this.current++
+        await sendMessage({
+            type: 'download-progress',
+            model: this.model,
+            id: this.id,
+            progress: this.current / this.total,
         })
     }
 }
 
 async function cacheBook(b: Book): Promise<void> {
-    const pageDownloaded = progresser(b.pages.length + 1, 'book', b.id)
+    const progresser = new Progresser(b.pages.length + 1, 'book', b.id)
+    await progresser.start()
 
     const thumbCache = await openThumbCache()
     thumbCache.add(await pageURL(b))
-    pageDownloaded()
+    await progresser.next()
+
     const pageCache = await openPageCache(b.id)
     await Promise.all(
         b.pages.map(async p => {
             await pageCache.add(await pageURL(p))
-            pageDownloaded()
+            await progresser.next()
         }),
-    ),
-        pageDownloaded(true)
+    )
+    await progresser.finish()
 }
 
 async function cacheBooks(

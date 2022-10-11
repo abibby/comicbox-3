@@ -1,5 +1,5 @@
 import EventTarget from 'event-target-shim'
-import serviceWorkerURL from 'omt:./service-worker.ts'
+import serviceWorkerURL from 'omt:./service-worker/sw'
 import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
@@ -104,10 +104,9 @@ async function onUpdateFound(
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
         .register(serviceWorkerURL, { scope: '/' })
-        .then(async reg => {
-            await onUpdateFound(reg)
+        .then(reg => {
+            onUpdateFound(reg)
             setSW(reg)
-            await reg.update()
         })
         .catch(err => {
             console.error(err)

@@ -67,7 +67,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         break
                 }
 
-                persist(true)
+                await persist(true)
                 prompt('Chapter updated', {})
 
                 switch (data.get('submit')) {

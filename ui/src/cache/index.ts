@@ -157,6 +157,8 @@ export const persist = debounce(async function (
     fromUserInteraction: boolean,
     fromSyncEvent = false,
 ): Promise<void> {
+    console.log('persist')
+
     invalidateCache(fromUserInteraction)
     const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
     let hasErrors = false

@@ -164,13 +164,13 @@ addAsyncEventListener('message', async function (event) {
 })
 
 if ('onsync' in globalThis) {
-    addEventListener('sync', event => {
+    addEventListener('sync', async event => {
         if (event.tag === 'persist') {
-            persist(false, true)
+            await persist(false, true)
         }
     })
 } else {
-    setInterval(() => {
-        persist(false, true)
+    setInterval(async () => {
+        await persist(false, true)
     }, 60 * 1000)
 }

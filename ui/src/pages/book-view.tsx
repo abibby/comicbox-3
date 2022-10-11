@@ -94,12 +94,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 b,
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
-            DB.saveBook(b, {
+            await DB.saveBook(b, {
                 user_book: {
                     current_page: newPage,
                 },
             })
-            persist(true)
+            await persist(true)
 
             changeRoute(route('book.view', { id: b.id, page: newPage }))
         },

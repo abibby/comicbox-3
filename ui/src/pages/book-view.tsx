@@ -58,7 +58,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         window.innerWidth > window.innerHeight,
     )
     useResizeEffect(() => {
-        setLandscape(window.innerWidth > window.innerHeight)
+        setTimeout(() => setLandscape(window.innerWidth > window.innerHeight))
     }, [])
 
     const pages = splitPages(b, landscape)

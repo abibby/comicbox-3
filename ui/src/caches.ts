@@ -95,10 +95,14 @@ export function useBookCached(
     )
     useEffect(() => {
         t.addEventListener('message', cb)
-        navigator.serviceWorker.addEventListener('message', cb)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', cb)
+        }
         return (): void => {
             t.removeEventListener('message', cb)
-            navigator.serviceWorker.removeEventListener('message', cb)
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.removeEventListener('message', cb)
+            }
         }
     }, [cb])
     return [cached, progress]

@@ -1,5 +1,5 @@
-import { UserBook } from '../models'
-import { apiFetch } from './internal'
+import { apiFetch } from 'src/api/internal'
+import { UserBook } from 'src/models'
 
 interface UserBookUpdateRequest {
     current_page: number

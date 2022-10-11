@@ -1,7 +1,7 @@
-import { series } from '../api'
-import { DB } from '../database'
-import { Series } from '../models'
-import { setCacheHandler } from './internal'
+import { series } from 'src/api'
+import { setCacheHandler } from 'src/cache/internal'
+import { DB } from 'src/database'
+import { Series } from 'src/models'
 
 setCacheHandler(series.list, async (req): Promise<Series[]> => {
     if (req.name !== undefined) {

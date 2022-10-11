@@ -1,8 +1,8 @@
 import { FunctionalComponent, h } from 'preact'
-import { series } from '../api'
-import { useCached } from '../cache'
-import { SeriesList } from '../components/series-list'
-import { DB } from '../database'
+import { series } from 'src/api'
+import { useCached } from 'src/cache'
+import { SeriesList } from 'src/components/series-list'
+import { DB } from 'src/database'
 
 export const SeriesIndex: FunctionalComponent = () => {
     const s = useCached('series-index', {}, DB.series, series.list)

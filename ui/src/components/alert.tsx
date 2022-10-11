@@ -1,8 +1,8 @@
 import { bind } from '@zwzn/spicy'
 import { h } from 'preact'
 import { useEffect } from 'preact/hooks'
-import styles from './alert.module.css'
-import { Factory, SubComponentProps } from './factory'
+import styles from 'src/components/alert.module.css'
+import { Factory, SubComponentProps } from 'src/components/factory'
 
 interface AlertProps<T = unknown> extends SubComponentProps {
     message: string

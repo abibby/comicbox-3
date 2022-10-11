@@ -1,13 +1,13 @@
 import { FunctionalComponent, h } from 'preact'
+import { Card } from 'src/components/card'
+import { ContextMenuItems } from 'src/components/context-menu'
+import { openModal } from 'src/components/modal'
+import { EditSeries } from 'src/components/series-edit'
+import { useComputed } from 'src/hooks/computed'
+import { usePageURL } from 'src/hooks/page'
+import { post } from 'src/message'
+import { Series } from 'src/models'
 import { route } from 'src/routes'
-import { useComputed } from '../hooks/computed'
-import { usePageURL } from '../hooks/page'
-import { post } from '../message'
-import { Series } from '../models'
-import { Card } from './card'
-import { ContextMenuItems } from './context-menu'
-import { openModal } from './modal'
-import { EditSeries } from './series-edit'
 
 interface SeriesCardProps {
     series: Series

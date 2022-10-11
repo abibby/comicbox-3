@@ -1,4 +1,4 @@
-import { apiFetch } from './internal'
+import { apiFetch } from 'src/api/internal'
 
 export interface GraphQLResponseError {
     message: string

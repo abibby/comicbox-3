@@ -1,16 +1,16 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
+import { book, series } from 'src/api'
+import { persist, useCached } from 'src/cache'
+import { BookList } from 'src/components/book-list'
 import { Button, ButtonGroup } from 'src/components/button'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
+import { DB } from 'src/database'
 import { post } from 'src/message'
 import { Series } from 'src/models'
-import { book, series } from '../api'
-import { persist, useCached } from '../cache'
-import { BookList } from '../components/book-list'
-import { DB } from '../database'
-import { Error404 } from './404'
+import { Error404 } from 'src/pages/404'
 
 interface SeriesViewProps {
     matches?: {

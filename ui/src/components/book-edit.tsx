@@ -1,16 +1,12 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { persist } from '../cache'
-import { DB } from '../database'
-import { useNextBook, usePreviousBook } from '../hooks/book'
-import { usePageURL } from '../hooks/page'
-import { Book, Page, PageType } from '../models'
-import { prompt } from './alert'
-import styles from './book-edit.module.css'
-import { Button, ButtonGroup } from './button'
-import { Data, Form } from './form/form'
-import { Input } from './form/input'
-import { Toggle } from './form/toggle'
+import { persist } from 'src/cache'
+import { prompt } from 'src/components/alert'
+import styles from 'src/components/book-edit.module.css'
+import { Button, ButtonGroup } from 'src/components/button'
+import { Data, Form } from 'src/components/form/form'
+import { Input } from 'src/components/form/input'
+import { Toggle } from 'src/components/form/toggle'
 import {
     Modal,
     ModalBody,
@@ -18,8 +14,12 @@ import {
     ModalFoot,
     ModalHead,
     openModal,
-} from './modal'
-import { Tab, TabContainer } from './tab'
+} from 'src/components/modal'
+import { Tab, TabContainer } from 'src/components/tab'
+import { DB } from 'src/database'
+import { useNextBook, usePreviousBook } from 'src/hooks/book'
+import { usePageURL } from 'src/hooks/page'
+import { Book, Page, PageType } from 'src/models'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],

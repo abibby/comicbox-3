@@ -1,9 +1,9 @@
 import { FunctionalComponent, h, JSX } from 'preact'
 import { Link } from 'preact-router'
 import { useRef, useState } from 'preact/hooks'
-import { useResizeEffect } from '../hooks/resize-effect'
-import styles from './context-menu.module.css'
-import { Factory, SubComponentProps } from './factory'
+import styles from 'src/components/context-menu.module.css'
+import { Factory, SubComponentProps } from 'src/components/factory'
+import { useResizeEffect } from 'src/hooks/resize-effect'
 
 export type ContextMenuItems = Array<[string, (() => void) | string]>
 

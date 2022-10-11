@@ -1,5 +1,5 @@
-import { UserSeries } from '../models'
-import { apiFetch } from './internal'
+import { apiFetch } from 'src/api/internal'
+import { UserSeries } from 'src/models'
 
 interface UserSeriesUpdateRequest {
     list: string | null

@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
-import { FormElement, FormElementProps } from './form-element'
+import { FormElement, FormElementProps } from 'src/components/form/form-element'
 
 export interface ToggleProps extends FormElementProps {
     name: string

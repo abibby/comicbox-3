@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'preact/hooks'
-import { useAsync } from './hooks/async'
-import { Message } from './message'
+import { useAsync } from 'src/hooks/async'
+import { Message } from 'src/message'
 
 const STATIC_CACHE_NAME = 'static-cache-v1'
 const THUMB_CACHE_NAME = 'image-cache-v1'

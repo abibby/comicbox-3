@@ -1,8 +1,8 @@
 import { bind } from '@zwzn/spicy'
 import { FunctionalComponent, h, VNode } from 'preact'
 import { useState } from 'preact/hooks'
-import classNames from '../classnames'
-import styles from './tab.module.css'
+import classNames from 'src/classnames'
+import styles from 'src/components/tab.module.css'
 
 export interface TabContainerProps {
     children: VNode<TabProps>[]

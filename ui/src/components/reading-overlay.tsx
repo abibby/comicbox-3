@@ -3,11 +3,11 @@ import { FunctionalComponent, h, RefObject } from 'preact'
 import { Link } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
+import { EditBook } from 'src/components/book-edit'
+import { openModal } from 'src/components/modal'
+import styles from 'src/components/reading-overlay.module.css'
 import { Book } from 'src/models'
 import { route } from 'src/routes'
-import { EditBook } from './book-edit'
-import { openModal } from './modal'
-import styles from './reading-overlay.module.css'
 
 interface OverlayProps {
     book: Book

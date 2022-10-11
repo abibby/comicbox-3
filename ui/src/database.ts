@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { Book, List, PageType, Series, UserBook, UserSeries } from './models'
+import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string

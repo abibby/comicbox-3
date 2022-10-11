@@ -1,16 +1,17 @@
 import { Table } from 'dexie'
 import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
-import { book, series, userBook, userSeries } from '../api'
-import { PaginatedRequest } from '../api/internal'
-import { prompt } from '../components/alert'
-import { DB, DBBook, DBSeries } from '../database'
-import { debounce } from '../debounce'
-import { useEventListener } from '../hooks/event-listener'
-import { addRespondListener } from '../message'
-import './book'
-import { getCacheHandler } from './internal'
-import './series'
+import { book, series, userBook, userSeries } from 'src/api'
+import { PaginatedRequest } from 'src/api/internal'
+import { getCacheHandler } from 'src/cache/internal'
+import { prompt } from 'src/components/alert'
+import { DB, DBBook, DBSeries } from 'src/database'
+import { debounce } from 'src/debounce'
+import { useEventListener } from 'src/hooks/event-listener'
+import { addRespondListener } from 'src/message'
+
+import 'src/cache/book'
+import 'src/cache/series'
 
 interface SyncManager {
     getTags(): Promise<string[]>

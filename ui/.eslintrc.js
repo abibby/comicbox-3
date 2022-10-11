@@ -32,5 +32,12 @@ module.exports = {
         ],
         'no-undef': 0,
         'no-unused-vars': 0,
+        'no-useless-constructor': 0,
+        'no-restricted-imports': [
+            1,
+            {
+                patterns: ['.*'],
+            },
+        ],
     },
 }

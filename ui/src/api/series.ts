@@ -1,11 +1,11 @@
-import { Series } from '../models'
 import {
     allPagesFactory,
     apiFetch,
     encodeParams,
     PaginatedRequest,
     PaginatedResponse,
-} from './internal'
+} from 'src/api/internal'
+import { Series } from 'src/models'
 
 export const listNames = [
     ['reading', 'Reading'],

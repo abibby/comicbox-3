@@ -1,14 +1,12 @@
 import { h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
-import { listNames } from '../api/series'
-import { persist } from '../cache'
-import { DB } from '../database'
-import { List, Series } from '../models'
-import { AnilistMatch } from './anilist-match'
-import { Button, ButtonGroup } from './button'
-import { Data, Form } from './form/form'
-import { Input } from './form/input'
-import { Select } from './form/select'
+import { listNames } from 'src/api/series'
+import { persist } from 'src/cache'
+import { AnilistMatch } from 'src/components/anilist-match'
+import { Button, ButtonGroup } from 'src/components/button'
+import { Data, Form } from 'src/components/form/form'
+import { Input } from 'src/components/form/input'
+import { Select } from 'src/components/form/select'
 import {
     Modal,
     ModalBody,
@@ -16,7 +14,9 @@ import {
     ModalFoot,
     ModalHead,
     openModal,
-} from './modal'
+} from 'src/components/modal'
+import { DB } from 'src/database'
+import { List, Series } from 'src/models'
 
 const listOptions = [['', 'None'], ...listNames] as const
 

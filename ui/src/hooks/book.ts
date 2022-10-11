@@ -1,7 +1,7 @@
-import { book } from '../api'
-import { useCached } from '../cache'
-import { DB } from '../database'
-import { Book } from '../models'
+import { book } from 'src/api'
+import { useCached } from 'src/cache'
+import { DB } from 'src/database'
+import { Book } from 'src/models'
 
 export function usePreviousBook(id: string, b: Book): Book | undefined {
     const previousResponse = useCached(

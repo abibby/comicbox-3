@@ -3,8 +3,8 @@ import moreVertical from 'asset-url:res/icons/more-vertical.svg'
 import { Fragment, FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
-import styles from './card.module.css'
-import { ContextMenuItems, openContextMenu } from './context-menu'
+import styles from 'src/components/card.module.css'
+import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
 
 interface CardProps {
     title: string
@@ -101,10 +101,7 @@ const Download: FunctionalComponent<DownloadProps> = ({
     progress,
     completed,
 }) => {
-    if (
-        (progress === undefined || progress === 0) &&
-        (completed === undefined || completed === false)
-    ) {
+    if (progress === undefined && completed === undefined) {
         return <Fragment />
     }
 

@@ -4,8 +4,8 @@ import list from 'asset-url:res/icons/list-check.svg'
 import settings from 'asset-url:res/icons/settings.svg'
 import logo from 'asset-url:res/images/logo.svg'
 import { FunctionalComponent, h } from 'preact'
+import styles from 'src/components/shell.module.css'
 import 'src/variables.css'
-import styles from './shell.module.css'
 
 export const Shell: FunctionalComponent = props => {
     return (

@@ -1,12 +1,12 @@
-import { DBBook } from '../database'
-import { Book, List, PageType } from '../models'
 import {
     allPagesFactory,
     apiFetch,
     encodeParams,
     PaginatedRequest,
     PaginatedResponse,
-} from './internal'
+} from 'src/api/internal'
+import { DBBook } from 'src/database'
+import { Book, List, PageType } from 'src/models'
 
 export type BookListRequest = PaginatedRequest & {
     id?: string

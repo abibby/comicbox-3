@@ -1,7 +1,7 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
-import { FormElement, FormElementProps } from './form-element'
+import { FormElement, FormElementProps } from 'src/components/form/form-element'
 
 export interface InputProps extends FormElementProps {
     type?: 'number' | 'text' | 'password'

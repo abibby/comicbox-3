@@ -67,7 +67,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := generateLoginRespose(u)
+	resp, err := generateLoginResponse(u)
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -92,7 +92,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := generateLoginRespose(u)
+	resp, err := generateLoginResponse(u)
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -101,7 +101,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, resp)
 }
 
-func generateLoginRespose(u *models.User) (*LoginResponse, error) {
+func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 
 	token, err := generateToken(u, withPurpose(TokenAuthenticated))
 	if err != nil {

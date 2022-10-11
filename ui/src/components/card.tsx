@@ -101,14 +101,24 @@ const Download: FunctionalComponent<DownloadProps> = ({
     progress,
     completed,
 }) => {
-    if (progress === undefined && completed === undefined) {
+    if (
+        progress === undefined &&
+        (completed === undefined || completed === false)
+    ) {
         return <Fragment />
+    }
+    let downloadProgress = 0
+    if (progress) {
+        downloadProgress = clamp(progress ?? 0, 0, 1)
+    }
+    if (completed) {
+        downloadProgress = 1.1
     }
 
     return (
         <img
             style={{
-                '--download-progress': clamp(progress ?? 0, 0, 1),
+                '--download-progress': downloadProgress,
             }}
             class={styles.downloaded}
             src={checkCircle}

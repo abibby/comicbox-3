@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useOnline } from 'src/cache'
-import { useBookCached } from 'src/caches'
+import { removeBookCache, useBookCached } from 'src/caches'
 import { EditBook } from 'src/components/book-edit'
 import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
@@ -16,7 +16,20 @@ interface BookProps {
 }
 
 export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
+    const [downloaded, downloadProgress] = useBookCached(book)
     const menu = useComputed<ContextMenuItems>(() => {
+        let downloadOrRemove: [string, () => void] = [
+            'download',
+            () =>
+                post({
+                    type: 'download-book',
+                    bookID: book.id,
+                }),
+        ]
+        if (downloaded) {
+            downloadOrRemove = ['remove', () => removeBookCache(book.id)]
+        }
+
         return [
             ['view series', route('series.view', { series: book.series })],
             [
@@ -26,16 +39,9 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
                         book: book,
                     }),
             ],
-            [
-                'download',
-                () =>
-                    post({
-                        type: 'download-book',
-                        bookID: book.id,
-                    }),
-            ],
+            downloadOrRemove,
         ]
-    }, [book])
+    }, [book, downloaded])
     const online = useOnline()
 
     let title = ''
@@ -58,8 +64,6 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
 
     const currentPage = book.user_book?.current_page ?? 0
     const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
-
-    const [downloaded, downloadProgress] = useBookCached(book.id)
 
     return (
         <Card

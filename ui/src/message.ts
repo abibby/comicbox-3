@@ -3,8 +3,7 @@ let reg: ServiceWorkerRegistration | null = null
 export type Message =
     | DownloadBookMessage
     | DownloadSeriesMessage
-    | DownloadProgressMessage
-    | DownloadCompleteMessage
+    | DownloadMessage
     | BookUpdateMessage
 export type MessageType = Message['type']
 
@@ -19,14 +18,26 @@ export type DownloadSeriesMessage = {
 export type BookUpdateMessage = {
     type: 'book-update'
 }
+export type DownloadMessage =
+    | DownloadProgressMessage
+    | DownloadCompleteMessage
+    | DownloadRemovedMessage
 export type DownloadProgressMessage = {
-    type: 'download-progress'
+    type: 'download'
+    downloadType: 'progress'
     model: 'book' | 'series'
     id: string
     progress: number
 }
 export type DownloadCompleteMessage = {
-    type: 'download-complete'
+    type: 'download'
+    downloadType: 'complete'
+    model: 'book' | 'series'
+    id: string
+}
+export type DownloadRemovedMessage = {
+    type: 'download'
+    downloadType: 'removed'
     model: 'book' | 'series'
     id: string
 }

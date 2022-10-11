@@ -11,7 +11,8 @@ export class Progressor {
 
     async start(): Promise<void> {
         await sendMessage({
-            type: 'download-progress',
+            type: 'download',
+            downloadType: 'progress',
             model: this.model,
             id: this.id,
             progress: 0,
@@ -20,7 +21,8 @@ export class Progressor {
 
     async finish(): Promise<void> {
         await sendMessage({
-            type: 'download-complete',
+            type: 'download',
+            downloadType: 'complete',
             model: this.model,
             id: this.id,
         })
@@ -29,7 +31,8 @@ export class Progressor {
     async next(): Promise<void> {
         this.current++
         await sendMessage({
-            type: 'download-progress',
+            type: 'download',
+            downloadType: 'progress',
             model: this.model,
             id: this.id,
             progress: this.current / this.total,

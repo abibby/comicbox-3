@@ -155,13 +155,10 @@ addAsyncEventListener('message', async function (event) {
 
     switch (message.type) {
         case 'download-book':
-            await cacheBooks(event, await book.list({ id: message.bookID }))
+            await cacheBooks(await book.list({ id: message.bookID }))
             break
         case 'download-series':
-            await cacheBooks(
-                event,
-                await book.list({ series: message.seriesName }),
-            )
+            await cacheBooks(await book.list({ series: message.seriesName }))
             break
     }
 })

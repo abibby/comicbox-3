@@ -1,6 +1,5 @@
 import { pageURL } from 'src/api'
 import { openPageCache, openThumbCache } from 'src/caches'
-import { respond } from 'src/message'
 import { Book } from 'src/models'
 import { Progressor } from 'src/service-worker/progressor'
 
@@ -22,12 +21,8 @@ async function cacheBook(b: Book): Promise<void> {
     await progressor.finish()
 }
 
-export async function cacheBooks(
-    event: ExtendableMessageEvent,
-    books: Book[],
-): Promise<void> {
+export async function cacheBooks(books: Book[]): Promise<void> {
     for (const b of books) {
         await cacheBook(b)
     }
-    respond(event, { type: 'book-update' })
 }

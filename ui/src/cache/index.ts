@@ -157,15 +157,13 @@ export const persist = debounce(async function (
     fromUserInteraction: boolean,
     fromSyncEvent = false,
 ): Promise<void> {
-    console.log('persist')
-
     invalidateCache(fromUserInteraction)
-    const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
+    const dirtyBooks = await DB.books.where('dirty').above(0).toArray()
     let hasErrors = false
     for (const b of dirtyBooks) {
         let result: Partial<DBBook> = {}
         try {
-            if (b.dirty === 1) {
+            if (b.update_map !== undefined) {
                 result = await book.update(b.id, {
                     title: b.title,
                     series: b.series,
@@ -175,15 +173,15 @@ export const persist = debounce(async function (
                     pages: b.pages.map(p => ({
                         type: p.type,
                     })),
-                    update_map: b.update_map ?? {},
+                    update_map: b.update_map,
                 })
                 result.dirty = 0
             }
 
-            if (b.user_book !== null && b.user_book.dirty) {
+            if (b.user_book?.update_map !== undefined) {
                 result.user_book = await userBook.update(b.id, {
                     current_page: b.user_book.current_page,
-                    update_map: b.user_book.update_map ?? {},
+                    update_map: b.user_book.update_map,
                 })
                 result.user_book.dirty = 0
             }
@@ -194,7 +192,7 @@ export const persist = debounce(async function (
             await DB.books.update(b, result)
         }
     }
-    const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
+    const dirtySeries = await DB.series.where('dirty').above(0).toArray()
     for (const s of dirtySeries) {
         let result: Partial<DBSeries> = {}
         try {

@@ -71,7 +71,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const previousBookID = previousBook?.id
 
     const setCurrentIndex = useCallback(
-        async (newIndex: number | string) => {
+        (newIndex: number | string) => {
             if (newIndex >= pages.length) {
                 updateAnilist(b)
                 if (nextBookID) {
@@ -94,12 +94,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 b,
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
-            await DB.saveBook(b, {
+
+            DB.saveBook(b, {
                 user_book: {
                     current_page: newPage,
                 },
-            })
-            await persist(true)
+            }).then(() => persist(true))
 
             changeRoute(route('book.view', { id: b.id, page: newPage }))
         },

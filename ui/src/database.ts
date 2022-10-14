@@ -1,4 +1,4 @@
-import Dexie from 'dexie'
+import Dexie, { DBCoreMutateRequest } from 'dexie'
 import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
 
 type UpdateMap<T> = {
@@ -6,7 +6,10 @@ type UpdateMap<T> = {
 }
 
 type Modification<T> = {
-    [P in keyof T]?: T extends DBModel ? Modification<T[P]> : T[P]
+    [P in keyof T]?: T[P] extends DBModel ? Modification<T[P]> : T[P]
+}
+type Update<T> = {
+    [P in keyof T]?: T[P] extends DBModel ? never : T[P]
 }
 
 interface LastUpdated {
@@ -97,41 +100,70 @@ class AppDatabase extends Dexie {
         })
         this.version(1).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty',
-            series: '&name, user_series.list, dirty',
+            seriecs: '&name, user_series.list, dirty',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
 
-        this.books.hook('creating', (id, b) => {
-            b.completed = this.bookComplete(b)
-            b.dirty = 0
-        })
-        this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
+        this.books.hook('updating', (mod: Update<DBBook>, id, b) => {
+            // const newMod = this.modelUpdating(b, mod)
+            // console.log('updating', b.file, newMod)
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),
                 cover_url:
+                    mod.pages?.find(p => p.type === PageType.FrontCover)
+                        ?.thumbnail_url ??
                     mod.pages?.find(p => p.type !== PageType.Deleted)
-                        ?.thumbnail_url ?? b.cover_url,
+                        ?.thumbnail_url ??
+                    b.cover_url,
             }
         })
-
-        this.series.hook('creating', (id, s) => {
-            s.dirty = 0
-        })
-        // this.series.hook('updating', mod => {
-        //     return {
-        //         ...mod,
-        //     }
-        // })
     }
 
+    // private modelUpdating<T extends DBModel>(
+    //     model: Readonly<T>,
+    //     mod: Readonly<Update<T>>,
+    // ): Update<T> {
+    //     const newMod: Update<T> = {}
+    //     for (const [key, value] of entries(mod)) {
+    //         if (typeof key !== 'string') {
+    //             continue
+    //         }
+    //         let modUpdateMap: Record<string, unknown> = mod.update_map ?? {}
+    //         let modelUpdateMap: Record<string, unknown> = model.update_map ?? {}
+    //         const parts = key.split('.').slice(0, -1)
+    //         if (parts.length > 1) {
+    //             continue
+    //         }
+    //         const updateMapKey = parts[parts.length - 1]!
+    //         const subObject = parts.join('.')
+    //         if (subObject.length > 0) {
+    //             modUpdateMap = mod[subObject + '.update_map']
+    //             modelUpdateMap = model[subObject].update_map
+    //         }
+    //         if (
+    //             (modUpdateMap[updateMapKey] ?? '0') >=
+    //             (modelUpdateMap[updateMapKey] ?? '0')
+    //         ) {
+    //             newMod[key] = mod[key]
+    //         }
+    //     }
+    //     console.log('modelUpdating', newMod)
+
+    //     return newMod
+    // }
+
+    // private updateMapValue(v: any, key: string) {
+
+    // }
+
     public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
-        await DB.books.update(
+        await this.books.update(
             b,
-            this.saveModel(b, mod, emptyBook, updatedTimestamp()),
+            this.modelModification(b, mod, emptyBook, updatedTimestamp()),
         )
     }
 
@@ -139,32 +171,32 @@ class AppDatabase extends Dexie {
         s: DBSeries,
         mod: Modification<DBSeries>,
     ): Promise<void> {
-        await DB.series.update(
+        await this.series.update(
             s,
-            this.saveModel(s, mod, emptySeries, updatedTimestamp()),
+            this.modelModification(s, mod, emptySeries, updatedTimestamp()),
         )
     }
 
-    private saveModel<T extends DBModel>(
-        b: Readonly<T>,
+    private modelModification<T extends DBModel>(
+        model: Readonly<T>,
         modification: Readonly<Modification<T>>,
         empty: Readonly<T>,
         timestamp: string,
     ): Modification<T> {
-        const updateMap: UpdateMap<T> = { ...b.update_map }
-        let dirty = 0
+        const updateMap: UpdateMap<T> = { ...model.update_map }
+        let dirty = model.dirty ?? 0
 
         for (const [key] of entries(modification)) {
-            if (this.isDBModel(empty[key])) {
-                if (b[key] === null) {
-                    b = {
-                        ...b,
+            if (isDBModel(empty[key])) {
+                if (model[key] === null) {
+                    model = {
+                        ...model,
                         [key]: empty[key],
                     }
                 }
 
-                const subModification = this.saveModel(
-                    b[key],
+                const subModification = this.modelModification(
+                    model[key],
                     modification[key] as Readonly<Modification<DBModel>>,
                     empty[key],
                     timestamp,
@@ -173,9 +205,10 @@ class AppDatabase extends Dexie {
                     ...modification,
                     [key]: subModification,
                 }
+                // console.log('subModification', subModification)
 
                 dirty = dirty | ((subModification.dirty ?? 0) << 1)
-            } else if (modification[key] !== b[key]) {
+            } else if (modification[key] !== model[key]) {
                 updateMap[key] = timestamp
                 dirty = dirty | 1
             }
@@ -186,10 +219,6 @@ class AppDatabase extends Dexie {
             dirty: dirty,
             update_map: updateMap,
         }
-    }
-
-    private isDBModel(v: unknown): v is DBModel {
-        return typeof v === 'object' && v !== null && 'update_map' in v
     }
 
     private bookComplete(b: DBBook, mod: Partial<DBBook> = {}): number {
@@ -230,6 +259,67 @@ class AppDatabase extends Dexie {
 }
 
 export let DB = new AppDatabase()
+
+function isDBModel(v: unknown): v is DBModel {
+    return typeof v === 'object' && v !== null && 'update_map' in v
+}
+function n(
+    changeSpec: Record<string, any>,
+    value: Record<string, any>,
+): Record<string, any> {
+    console.log(changeSpec, value)
+
+    const newValue = { ...value }
+    for (const [key, change] of entries(changeSpec)) {
+        if (isDBModel(value[key])) {
+            newValue[key] = n(change, value[key])
+        } else {
+            const changeMap = changeSpec.update_map ?? {}
+            const valueMap = value.update_map ?? {}
+            if (changeMap[key] > valueMap[key]) {
+                newValue[key] = change
+            } else if (key === 'current_page') {
+                console.log(key, changeMap, valueMap, changeSpec, value)
+            }
+        }
+    }
+    return newValue
+}
+
+function mutate(req: Readonly<DBCoreMutateRequest>): DBCoreMutateRequest {
+    if (req.type !== 'put') {
+        return req
+    }
+
+    const changes =
+        req.changeSpec !== undefined ? [req.changeSpec] : req.changeSpecs
+
+    const myRequest: DBCoreMutateRequest = {
+        ...req,
+        values: req.values.map((v, i) => n(changes?.[i] ?? {}, v)),
+    }
+
+    return myRequest
+}
+
+DB.use({
+    stack: 'dbcore',
+    name: 'MyMiddleware',
+    create(downlevelDatabase) {
+        return {
+            ...downlevelDatabase,
+            table(tableName) {
+                const downlevelTable = downlevelDatabase.table(tableName)
+                return {
+                    ...downlevelTable,
+                    mutate: async req => {
+                        return await downlevelTable.mutate(mutate(req))
+                    },
+                }
+            },
+        }
+    },
+})
 
 export function clearDatabase(): void {
     DB.delete()

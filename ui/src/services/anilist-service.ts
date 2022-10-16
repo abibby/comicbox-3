@@ -11,7 +11,7 @@ export async function updateAnilist(b: DBBook): Promise<void> {
 
     anilist.updateManga({
         mediaId: s.anilist_id,
-        progress: b.chapter,
+        progress: b.chapter !== null ? Math.floor(b.chapter) : null,
         progressVolumes: b.volume,
         // startedAt: ,
     })

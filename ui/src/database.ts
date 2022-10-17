@@ -1,4 +1,4 @@
-import Dexie, { DBCoreMutateRequest } from 'dexie'
+import Dexie from 'dexie'
 import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
 
 type UpdateMap<T> = {
@@ -6,10 +6,11 @@ type UpdateMap<T> = {
 }
 
 type Modification<T> = {
-    [P in keyof T]?: T[P] extends DBModel ? Modification<T[P]> : T[P]
-}
-type Update<T> = {
-    [P in keyof T]?: T[P] extends DBModel ? never : T[P]
+    [P in keyof T]?: T[P] extends DBModel
+        ? Modification<T[P]>
+        : T[P] extends DBModel | null
+        ? Modification<Exclude<T[P], null>> | null
+        : T[P]
 }
 
 interface LastUpdated {
@@ -83,9 +84,11 @@ const emptyBook: Readonly<DBBook> = {
     },
 }
 
-function entries<T>(o: T): [keyof T, T[keyof T]][] {
+// eslint-disable-next-line @typescript-eslint/ban-types
+function entries<T extends object>(o: T): [keyof T, T[keyof T]][] {
     return Object.entries(o) as [keyof T, T[keyof T]][]
 }
+
 class AppDatabase extends Dexie {
     books: Dexie.Table<DBBook, number>
     series: Dexie.Table<DBSeries, number>
@@ -107,7 +110,7 @@ class AppDatabase extends Dexie {
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
 
-        this.books.hook('updating', (mod: Update<DBBook>, id, b) => {
+        this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
             // const newMod = this.modelUpdating(b, mod)
             // console.log('updating', b.file, newMod)
             return {
@@ -122,43 +125,6 @@ class AppDatabase extends Dexie {
             }
         })
     }
-
-    // private modelUpdating<T extends DBModel>(
-    //     model: Readonly<T>,
-    //     mod: Readonly<Update<T>>,
-    // ): Update<T> {
-    //     const newMod: Update<T> = {}
-    //     for (const [key, value] of entries(mod)) {
-    //         if (typeof key !== 'string') {
-    //             continue
-    //         }
-    //         let modUpdateMap: Record<string, unknown> = mod.update_map ?? {}
-    //         let modelUpdateMap: Record<string, unknown> = model.update_map ?? {}
-    //         const parts = key.split('.').slice(0, -1)
-    //         if (parts.length > 1) {
-    //             continue
-    //         }
-    //         const updateMapKey = parts[parts.length - 1]!
-    //         const subObject = parts.join('.')
-    //         if (subObject.length > 0) {
-    //             modUpdateMap = mod[subObject + '.update_map']
-    //             modelUpdateMap = model[subObject].update_map
-    //         }
-    //         if (
-    //             (modUpdateMap[updateMapKey] ?? '0') >=
-    //             (modelUpdateMap[updateMapKey] ?? '0')
-    //         ) {
-    //             newMod[key] = mod[key]
-    //         }
-    //     }
-    //     console.log('modelUpdating', newMod)
-
-    //     return newMod
-    // }
-
-    // private updateMapValue(v: any, key: string) {
-
-    // }
 
     public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
         await this.books.update(
@@ -247,13 +213,21 @@ class AppDatabase extends Dexie {
                     return v.name
                 }),
         )
+        const updatedItems = items.filter(i => i.deleted_at === null)
+        const oldItems = await table.bulkGet(
+            updatedItems.map(v => ('id' in v ? v.id : v.name)),
+        )
         await table.bulkPut(
-            items
-                .filter(i => i.deleted_at === null)
-                .map(v => ({
-                    ...v,
+            updatedItems.map((v, i): T => {
+                const oldItem = oldItems[i]
+                if (oldItem === undefined) {
+                    return { ...v, dirty: 0 }
+                }
+                return {
+                    ...updateNewerFields(oldItem, v),
                     dirty: 0,
-                })),
+                }
+            }),
         )
     }
 }
@@ -263,64 +237,31 @@ export let DB = new AppDatabase()
 function isDBModel(v: unknown): v is DBModel {
     return typeof v === 'object' && v !== null && 'update_map' in v
 }
-function n(
-    changeSpec: Record<string, any>,
-    value: Record<string, any>,
-): Record<string, any> {
-    console.log(changeSpec, value)
 
-    const newValue = { ...value }
-    for (const [key, change] of entries(changeSpec)) {
-        if (isDBModel(value[key])) {
-            newValue[key] = n(change, value[key])
+function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
+    const newMap: UpdateMap<T> = newValue.update_map ?? {}
+    const oldMap: UpdateMap<T> = oldValue.update_map ?? {}
+
+    const combinedValue: T = { ...oldValue }
+    for (const [key, newV] of entries(newValue)) {
+        const oldV = oldValue[key]
+
+        if (isDBModel(oldV)) {
+            combinedValue[key] = updateNewerFields(oldV, newV)
         } else {
-            const changeMap = changeSpec.update_map ?? {}
-            const valueMap = value.update_map ?? {}
-            if (changeMap[key] > valueMap[key]) {
-                newValue[key] = change
-            } else if (key === 'current_page') {
-                console.log(key, changeMap, valueMap, changeSpec, value)
+            const oldMapKey = oldMap[key]
+            const newMapKey = newMap[key]
+
+            if (
+                oldMapKey === undefined ||
+                (newMapKey !== undefined && newMapKey > oldMapKey)
+            ) {
+                combinedValue[key] = newV
             }
         }
     }
-    return newValue
+    return combinedValue
 }
-
-function mutate(req: Readonly<DBCoreMutateRequest>): DBCoreMutateRequest {
-    if (req.type !== 'put') {
-        return req
-    }
-
-    const changes =
-        req.changeSpec !== undefined ? [req.changeSpec] : req.changeSpecs
-
-    const myRequest: DBCoreMutateRequest = {
-        ...req,
-        values: req.values.map((v, i) => n(changes?.[i] ?? {}, v)),
-    }
-
-    return myRequest
-}
-
-DB.use({
-    stack: 'dbcore',
-    name: 'MyMiddleware',
-    create(downlevelDatabase) {
-        return {
-            ...downlevelDatabase,
-            table(tableName) {
-                const downlevelTable = downlevelDatabase.table(tableName)
-                return {
-                    ...downlevelTable,
-                    mutate: async req => {
-                        return await downlevelTable.mutate(mutate(req))
-                    },
-                }
-            },
-        }
-    },
-})
-
 export function clearDatabase(): void {
     DB.delete()
     DB = new AppDatabase()

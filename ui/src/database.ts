@@ -1,5 +1,6 @@
 import Dexie from 'dexie'
 import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
+import { persist } from './cache'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string
@@ -111,8 +112,6 @@ class AppDatabase extends Dexie {
         this.lastUpdated = this.table('lastUpdated')
 
         this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
-            // const newMod = this.modelUpdating(b, mod)
-            // console.log('updating', b.file, newMod)
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),
@@ -131,6 +130,7 @@ class AppDatabase extends Dexie {
             b,
             this.modelModification(b, mod, emptyBook, updatedTimestamp()),
         )
+        console.log('save book')
     }
 
     public async saveSeries(
@@ -162,9 +162,9 @@ class AppDatabase extends Dexie {
                 }
 
                 const subModification = this.modelModification(
-                    model[key],
+                    model[key] as any,
                     modification[key] as Readonly<Modification<DBModel>>,
-                    empty[key],
+                    empty[key] as any,
                     timestamp,
                 )
                 modification = {
@@ -223,12 +223,10 @@ class AppDatabase extends Dexie {
                 if (oldItem === undefined) {
                     return { ...v, dirty: 0 }
                 }
-                return {
-                    ...updateNewerFields(oldItem, v),
-                    dirty: 0,
-                }
+                return updateNewerFields(oldItem, v)
             }),
         )
+        await persist(false)
     }
 }
 
@@ -241,13 +239,17 @@ function isDBModel(v: unknown): v is DBModel {
 function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
     const newMap: UpdateMap<T> = newValue.update_map ?? {}
     const oldMap: UpdateMap<T> = oldValue.update_map ?? {}
+    let dirty = 0
 
     const combinedValue: T = { ...oldValue }
     for (const [key, newV] of entries(newValue)) {
         const oldV = oldValue[key]
 
         if (isDBModel(oldV)) {
-            combinedValue[key] = updateNewerFields(oldV, newV)
+            const subModel = updateNewerFields(oldV, newV as any)
+            dirty = dirty | ((subModel.dirty ?? 0) << 1)
+
+            combinedValue[key] = subModel as any
         } else {
             const oldMapKey = oldMap[key]
             const newMapKey = newMap[key]
@@ -257,9 +259,25 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
                 (newMapKey !== undefined && newMapKey > oldMapKey)
             ) {
                 combinedValue[key] = newV
+                combinedValue.update_map = {
+                    ...combinedValue.update_map,
+                    [key]: newMapKey,
+                }
+            } else {
+                combinedValue[key] = oldV
+                combinedValue.update_map = {
+                    ...combinedValue.update_map,
+                    [key]: oldMapKey,
+                }
+                console.log(`${key} is dirty old: ${oldV} new: ${newV}`)
+
+                dirty |= 1
             }
         }
     }
+    combinedValue.dirty = dirty
+
+    console.log(combinedValue)
     return combinedValue
 }
 export function clearDatabase(): void {

@@ -1,5 +1,5 @@
 import noCover from 'asset-url:res/images/no-cover.svg'
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
 import { route as changeRoute } from 'preact-router'
 import { useCallback, useRef, useState } from 'preact/hooks'
 import { book } from 'src/api'
@@ -116,7 +116,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
-        (event: MouseEvent) => {
+        (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
             if (menuOpen) {
                 if (event.target === overlay.current) {
                     setMenuOpen(false)

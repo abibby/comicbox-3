@@ -1,6 +1,6 @@
 import checkCircle from 'asset-url:res/icons/check-circle.svg'
 import moreVertical from 'asset-url:res/icons/more-vertical.svg'
-import { Fragment, FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h, JSX } from 'preact'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
@@ -21,7 +21,7 @@ interface CardProps {
 
 export const Card: FunctionalComponent<CardProps> = props => {
     const open = useCallback(
-        (e: Event) => {
+        (e: JSX.TargetedMouseEvent<HTMLElement>) => {
             e.preventDefault()
             e.stopPropagation()
             if (props.menu !== undefined) {

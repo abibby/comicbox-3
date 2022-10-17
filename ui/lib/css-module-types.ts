@@ -37,7 +37,7 @@ export default function cssModuleTypes(root: string): Plugin {
         },
         async watchChange(id) {
             if (!id.endsWith('.css')) {
-                return null
+                return
             }
             await writeTypes(id)
         },

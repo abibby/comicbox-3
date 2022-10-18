@@ -1,9 +1,9 @@
 import { FunctionalComponent, h } from 'preact'
-import { series } from '../api'
-import { listNames } from '../api/series'
-import { useCached } from '../cache'
-import { SeriesList } from '../components/series-list'
-import { DB } from '../database'
+import { series } from 'src/api'
+import { listNames } from 'src/api/series'
+import { useCached } from 'src/cache'
+import { SeriesList } from 'src/components/series-list'
+import { DB } from 'src/database'
 
 export const List: FunctionalComponent = () => {
     const lists = listNames.map(

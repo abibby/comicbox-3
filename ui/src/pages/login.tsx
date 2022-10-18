@@ -1,12 +1,12 @@
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback } from 'preact/hooks'
+import { auth, FetchError } from 'src/api'
+import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
-import { auth, FetchError } from '../api'
-import { prompt } from '../components/alert'
-import { Data, Form } from '../components/form/form'
-import { Input } from '../components/form/input'
-import styles from './login.module.css'
+import { Data, Form } from 'src/components/form/form'
+import { Input } from 'src/components/form/input'
+import styles from 'src/pages/login.module.css'
 
 export const Login: FunctionalComponent = () => {
     const submit = useCallback(async (data: Data) => {

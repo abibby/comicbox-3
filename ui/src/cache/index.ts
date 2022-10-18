@@ -1,16 +1,17 @@
 import { Table } from 'dexie'
 import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
-import { book, series, userBook, userSeries } from '../api'
-import { PaginatedRequest } from '../api/internal'
-import { prompt } from '../components/alert'
-import { DB, DBBook, DBSeries } from '../database'
-import { debounce } from '../debounce'
-import { useEventListener } from '../hooks/event-listener'
-import { addRespondListener } from '../message'
-import './book'
-import { getCacheHandler } from './internal'
-import './series'
+import { book, series, userBook, userSeries } from 'src/api'
+import { PaginatedRequest } from 'src/api/internal'
+import { getCacheHandler } from 'src/cache/internal'
+import { prompt } from 'src/components/alert'
+import { DB, DBBook, DBSeries } from 'src/database'
+import { debounce } from 'src/debounce'
+import { useEventListener } from 'src/hooks/event-listener'
+import { addRespondListener } from 'src/message'
+
+import 'src/cache/book'
+import 'src/cache/series'
 
 interface SyncManager {
     getTags(): Promise<string[]>
@@ -157,12 +158,12 @@ export const persist = debounce(async function (
     fromSyncEvent = false,
 ): Promise<void> {
     invalidateCache(fromUserInteraction)
-    const dirtyBooks = await DB.books.where('dirty').notEqual(0).toArray()
+    const dirtyBooks = await DB.books.where('dirty').above(0).toArray()
     let hasErrors = false
     for (const b of dirtyBooks) {
         let result: Partial<DBBook> = {}
         try {
-            if (b.dirty === 1) {
+            if (b.update_map !== undefined) {
                 result = await book.update(b.id, {
                     title: b.title,
                     series: b.series,
@@ -172,15 +173,15 @@ export const persist = debounce(async function (
                     pages: b.pages.map(p => ({
                         type: p.type,
                     })),
-                    update_map: b.update_map ?? {},
+                    update_map: b.update_map,
                 })
                 result.dirty = 0
             }
 
-            if (b.user_book !== null && b.user_book.dirty) {
+            if (b.user_book?.update_map !== undefined) {
                 result.user_book = await userBook.update(b.id, {
                     current_page: b.user_book.current_page,
-                    update_map: b.user_book.update_map ?? {},
+                    update_map: b.user_book.update_map,
                 })
                 result.user_book.dirty = 0
             }
@@ -191,7 +192,7 @@ export const persist = debounce(async function (
             await DB.books.update(b, result)
         }
     }
-    const dirtySeries = await DB.series.where('dirty').notEqual(0).toArray()
+    const dirtySeries = await DB.series.where('dirty').above(0).toArray()
     for (const s of dirtySeries) {
         let result: Partial<DBSeries> = {}
         try {

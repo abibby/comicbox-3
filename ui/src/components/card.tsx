@@ -1,10 +1,10 @@
 import checkCircle from 'asset-url:res/icons/check-circle.svg'
 import moreVertical from 'asset-url:res/icons/more-vertical.svg'
-import { Fragment, FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h, JSX } from 'preact'
 import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
-import styles from './card.module.css'
-import { ContextMenuItems, openContextMenu } from './context-menu'
+import styles from 'src/components/card.module.css'
+import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
 
 interface CardProps {
     title: string
@@ -21,7 +21,7 @@ interface CardProps {
 
 export const Card: FunctionalComponent<CardProps> = props => {
     const open = useCallback(
-        (e: Event) => {
+        (e: JSX.TargetedMouseEvent<HTMLElement>) => {
             e.preventDefault()
             e.stopPropagation()
             if (props.menu !== undefined) {
@@ -102,16 +102,23 @@ const Download: FunctionalComponent<DownloadProps> = ({
     completed,
 }) => {
     if (
-        (progress === undefined || progress === 0) &&
+        progress === undefined &&
         (completed === undefined || completed === false)
     ) {
         return <Fragment />
+    }
+    let downloadProgress = 0
+    if (progress) {
+        downloadProgress = clamp(progress ?? 0, 0, 1)
+    }
+    if (completed) {
+        downloadProgress = 1.1
     }
 
     return (
         <img
             style={{
-                '--download-progress': clamp(progress ?? 0, 0, 1),
+                '--download-progress': downloadProgress,
             }}
             class={styles.downloaded}
             src={checkCircle}

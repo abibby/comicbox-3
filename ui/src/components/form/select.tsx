@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { FormElement, FormElementProps } from './form-element'
+import { FormElement, FormElementProps } from 'src/components/form/form-element'
 
 export interface SelectProps extends FormElementProps {
     name: string

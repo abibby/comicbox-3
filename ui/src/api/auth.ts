@@ -1,6 +1,6 @@
+import { apiFetch, getAuthToken, setAuthToken } from 'src/api/internal'
 import { clearDatabase } from 'src/database'
-import jwt from '../jwt'
-import { apiFetch, getAuthToken, setAuthToken } from './internal'
+import jwt from 'src/jwt'
 
 export interface LoginRequest {
     username: string

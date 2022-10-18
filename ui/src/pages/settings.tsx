@@ -1,10 +1,10 @@
 import { FunctionalComponent, h } from 'preact'
 import { route as preactRoute } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
+import { logout, userCreateToken } from 'src/api/auth'
 import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
-import { logout, userCreateToken } from '../api/auth'
-import { clearDatabase } from '../database'
+import { clearDatabase } from 'src/database'
 
 async function logoutAndRoute() {
     const accepted = await prompt(

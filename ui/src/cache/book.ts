@@ -1,8 +1,8 @@
 import Dexie, { Collection } from 'dexie'
-import { book } from '../api'
-import { DB } from '../database'
-import { Book } from '../models'
-import { setCacheHandler } from './internal'
+import { book } from 'src/api'
+import { setCacheHandler } from 'src/cache/internal'
+import { DB } from 'src/database'
+import { Book } from 'src/models'
 
 setCacheHandler(book.list, async (req): Promise<Book[]> => {
     if (req.id !== undefined) {

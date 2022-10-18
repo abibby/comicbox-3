@@ -1,8 +1,8 @@
 import { FunctionalComponent, h } from 'preact'
-import { Book } from '../models'
-import { BookCard } from './book-card'
-import styles from './book-list.module.css'
-import { Card } from './card'
+import { BookCard } from 'src/components/book-card'
+import styles from 'src/components/book-list.module.css'
+import { Card } from 'src/components/card'
+import { Book } from 'src/models'
 
 interface BookListProps {
     books: Book[] | null

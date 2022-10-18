@@ -1,5 +1,5 @@
-import { User } from '../models'
-import { apiFetch } from './internal'
+import { apiFetch } from 'src/api/internal'
+import { User } from 'src/models'
 
 export interface CreateRequest {
     username: string

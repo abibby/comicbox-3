@@ -31,7 +31,7 @@ const config: RollupOptions = {
             targets: ['./dist'],
         }),
         staticFileNamePlugin({
-            files: ['service-worker'],
+            files: ['sw'],
         }),
         resolveFilePlugin(),
         cssModuleTypes('src'),

@@ -1,7 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { Link } from 'preact-router'
 import classNames from 'src/classnames'
-import styles from './button.module.css'
+import styles from 'src/components/button.module.css'
 
 type ButtonProps = {
     disabled?: boolean

@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../node_modules/@types/serviceworker/index.d.ts" />
+/// <reference path="../../node_modules/@types/serviceworker/index.d.ts" />
 import assets from 'build:assets'
-import { book, pageURL } from './api'
-import { persist } from './cache'
-import { openPageCache, openStaticCache, openThumbCache } from './caches'
-import { Message, respond } from './message'
-import { Book } from './models'
+import { book } from 'src/api'
+import { persist } from 'src/cache'
+import { openPageCache, openStaticCache, openThumbCache } from 'src/caches'
+import { Message } from 'src/message'
+import { cacheBooks } from 'src/service-worker/cache'
 
 interface SyncEvent extends ExtendableEvent {
     readonly lastChance: boolean
@@ -150,86 +150,27 @@ addEventListener('fetch', event => {
     }
 })
 
-async function sendMessage(message: Message): Promise<void> {
-    const windows = await clients.matchAll({
-        includeUncontrolled: true,
-        type: 'window',
-    })
-    for (const w of windows) {
-        w.postMessage(message)
-    }
-}
-
-function progresser(
-    total: number,
-    model: 'book' | 'series',
-    id: string,
-): (finished?: boolean) => Promise<void> {
-    let current = 0
-    return async (finished = false) => {
-        if (finished) {
-            await sendMessage({
-                type: 'download-complete',
-                model: model,
-                id: id,
-            })
-            return
-        }
-
-        current++
-        await sendMessage({
-            type: 'download-progress',
-            model: model,
-            id: id,
-            progress: current / total,
-        })
-    }
-}
-
-async function cacheBook(b: Book): Promise<void> {
-    const pageDownloaded = progresser(b.pages.length + 1, 'book', b.id)
-
-    const thumbCache = await openThumbCache()
-    thumbCache.add(await pageURL(b))
-    pageDownloaded()
-    const pageCache = await openPageCache(b.id)
-    await Promise.all(
-        b.pages.map(async p => {
-            await pageCache.add(await pageURL(p))
-            pageDownloaded()
-        }),
-    ),
-        pageDownloaded(true)
-}
-
-async function cacheBooks(
-    event: ExtendableMessageEvent,
-    books: Book[],
-): Promise<void> {
-    for (const b of books) {
-        await cacheBook(b)
-    }
-    respond(event, { type: 'book-update' })
-}
-
 addAsyncEventListener('message', async function (event) {
     const message: Message = event.data
 
     switch (message.type) {
         case 'download-book':
-            await cacheBooks(event, await book.list({ id: message.bookID }))
+            await cacheBooks(await book.list({ id: message.bookID }))
             break
         case 'download-series':
-            await cacheBooks(
-                event,
-                await book.list({ series: message.seriesName }),
-            )
+            await cacheBooks(await book.list({ series: message.seriesName }))
             break
     }
 })
 
-addEventListener('sync', event => {
-    if (event.tag === 'persist') {
-        persist(false, true)
-    }
-})
+if ('onsync' in globalThis) {
+    addEventListener('sync', async event => {
+        if (event.tag === 'persist') {
+            await persist(false, true)
+        }
+    })
+} else {
+    setInterval(async () => {
+        await persist(false, true)
+    }, 60 * 1000)
+}

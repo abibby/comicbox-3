@@ -1,11 +1,11 @@
 import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
-import { FetchError, user } from '../api'
-import { prompt } from '../components/alert'
-import { Data, Form } from '../components/form/form'
-import { Errors } from '../components/form/form-element'
-import { Input } from '../components/form/input'
+import { FetchError, user } from 'src/api'
+import { prompt } from 'src/components/alert'
+import { Data, Form } from 'src/components/form/form'
+import { Errors } from 'src/components/form/form-element'
+import { Input } from 'src/components/form/input'
 
 export const UserCreate: FunctionalComponent = () => {
     const [errors, setErrors] = useState<Errors | undefined>(undefined)

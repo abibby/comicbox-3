@@ -1,10 +1,10 @@
-import noImage from 'asset-url:../../res/images/no-cover.svg'
+import noImage from 'asset-url:res/images/no-cover.svg'
 import { Mutex } from 'async-mutex'
 import { del, get, set } from 'idb-keyval'
 import { route } from 'preact-router'
+import { LoginResponse } from 'src/api/auth'
 import jwt, { JWT } from 'src/jwt'
-import { Book, Page, Series } from '../models'
-import { LoginResponse } from './auth'
+import { Book, Page, Series } from 'src/models'
 
 export type PaginatedRequest = {
     page?: number

@@ -1,8 +1,8 @@
 import { FunctionalComponent, h } from 'preact'
-import { Series } from '../models'
-import styles from './book-list.module.css'
-import { Card } from './card'
-import { SeriesCard } from './series-card'
+import styles from 'src/components/book-list.module.css'
+import { Card } from 'src/components/card'
+import { SeriesCard } from 'src/components/series-card'
+import { Series } from 'src/models'
 
 interface SeriesListProps {
     series: Series[] | null

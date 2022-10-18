@@ -2,12 +2,17 @@ import { bind } from '@zwzn/spicy'
 import { h } from 'preact'
 import { useState } from 'preact/hooks'
 import { searchManga, SearchMangaResponse } from 'src/api/anilist'
+import styles from 'src/components/anilist-match.module.css'
+import { Card } from 'src/components/card'
+import { Input } from 'src/components/form/input'
+import {
+    Modal,
+    ModalBody,
+    ModalComponent,
+    ModalHead,
+} from 'src/components/modal'
 import { useAsyncCallback } from 'src/hooks/async'
 import { Series } from 'src/models'
-import styles from './anilist-match.module.css'
-import { Card } from './card'
-import { Input } from './form/input'
-import { Modal, ModalBody, ModalComponent, ModalHead } from './modal'
 
 type AnilistMatchProps = {
     series: Series

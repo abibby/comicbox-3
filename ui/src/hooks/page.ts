@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks'
-import { pageURL } from '../api'
-import { Book, Page, Series } from '../models'
+import { pageURL } from 'src/api'
+import { Book, Page, Series } from 'src/models'
 
 export function usePageURL(
     model: Book | Series | Page,

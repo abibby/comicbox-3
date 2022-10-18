@@ -1,21 +1,21 @@
 import noCover from 'asset-url:res/images/no-cover.svg'
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
 import { route as changeRoute } from 'preact-router'
 import { useCallback, useRef, useState } from 'preact/hooks'
+import { book } from 'src/api'
+import { persist, useCached } from 'src/cache'
+import classNames from 'src/classnames'
 import { Overlay } from 'src/components/reading-overlay'
+import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
+import { usePageURL } from 'src/hooks/page'
 import { useResizeEffect } from 'src/hooks/resize-effect'
+import { Book, Page, PageType } from 'src/models'
+import { Error404 } from 'src/pages/404'
+import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
-import { book } from '../api'
-import { persist, useCached } from '../cache'
-import classNames from '../classnames'
-import { DB } from '../database'
-import { usePageURL } from '../hooks/page'
-import { Book, Page, PageType } from '../models'
-import { Error404 } from './404'
-import styles from './book-view.module.css'
 
 interface BookViewProps {
     matches?: {
@@ -58,7 +58,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         window.innerWidth > window.innerHeight,
     )
     useResizeEffect(() => {
-        setLandscape(window.innerWidth > window.innerHeight)
+        setTimeout(() => setLandscape(window.innerWidth > window.innerHeight))
     }, [])
 
     const pages = splitPages(b, landscape)
@@ -71,7 +71,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const previousBookID = previousBook?.id
 
     const setCurrentIndex = useCallback(
-        async (newIndex: number | string) => {
+        (newIndex: number | string) => {
             if (newIndex >= pages.length) {
                 updateAnilist(b)
                 if (nextBookID) {
@@ -94,12 +94,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 b,
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
+
             DB.saveBook(b, {
                 user_book: {
                     current_page: newPage,
                 },
-            })
-            persist(true)
+            }).then(() => persist(true))
 
             changeRoute(route('book.view', { id: b.id, page: newPage }))
         },
@@ -116,7 +116,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)
     const click = useCallback(
-        (event: MouseEvent) => {
+        (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
             if (menuOpen) {
                 if (event.target === overlay.current) {
                     setMenuOpen(false)

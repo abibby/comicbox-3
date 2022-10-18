@@ -1,19 +1,19 @@
 import EventTarget from 'event-target-shim'
-import serviceWorkerURL from 'omt:./service-worker.ts'
+import serviceWorkerURL from 'omt:src/service-worker/sw'
 import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
-import { AlertController, clearAlerts, prompt } from './components/alert'
+import { AlertController, clearAlerts, prompt } from 'src/components/alert'
 import {
     clearContextMenus,
     ContextMenuController,
-} from './components/context-menu'
-import { clearModals, ModalController } from './components/modal'
-import { Shell } from './components/shell'
-import { setSW } from './message'
-import { Error404 } from './pages/404'
-import { routes } from './routes'
+} from 'src/components/context-menu'
+import { clearModals, ModalController } from 'src/components/modal'
+import { Shell } from 'src/components/shell'
+import { setSW } from 'src/message'
+import { Error404 } from 'src/pages/404'
+import { routes } from 'src/routes'
 
 function changePage(): void {
     clearAlerts()
@@ -54,6 +54,7 @@ async function installingWorker(
 ): Promise<ServiceWorker> {
     if (reg.installing) return reg.installing
     return new Promise<ServiceWorker>(resolve => {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         reg.addEventListener('updatefound', () => resolve(reg.installing!), {
             once: true,
         })
@@ -104,10 +105,9 @@ async function onUpdateFound(
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker
         .register(serviceWorkerURL, { scope: '/' })
-        .then(async reg => {
-            await onUpdateFound(reg)
+        .then(reg => {
+            onUpdateFound(reg)
             setSW(reg)
-            await reg.update()
         })
         .catch(err => {
             console.error(err)

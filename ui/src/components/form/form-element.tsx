@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
-import classNames from '../../classnames'
-import styles from './form-element.module.css'
+import classNames from 'src/classnames'
+import styles from 'src/components/form/form-element.module.css'
 
 export type Errors = {
     [key: string]: string[]

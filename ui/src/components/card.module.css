@@ -71,6 +71,12 @@
     transform: translate(calc(-100% + var(--progress) * 100%));
 }
 
+@property --download-progress {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+
 .downloaded {
     position: absolute;
     top: calc(250px - 25px - 10px);
@@ -86,4 +92,6 @@
         grey calc(var(--download-progress) * 360deg),
         grey 360deg
     );
+
+    transition: --download-progress 1s;
 }

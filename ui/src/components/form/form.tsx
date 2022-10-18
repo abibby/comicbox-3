@@ -1,4 +1,4 @@
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useRef } from 'preact/hooks'
 
 export class Data {
@@ -60,7 +60,7 @@ export const Form: FunctionalComponent<FormProps> = ({
 }) => {
     const form = useRef<HTMLFormElement>(null)
     const submit = useCallback(
-        (e: Event) => {
+        (e: JSX.TargetedEvent<HTMLFormElement>) => {
             e.preventDefault()
             if (!form.current) {
                 return

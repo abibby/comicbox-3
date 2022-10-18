@@ -1,6 +1,6 @@
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
-import { FormElement, FormElementProps } from './form-element'
+import { FormElement, FormElementProps } from 'src/components/form/form-element'
 
 export interface ToggleProps extends FormElementProps {
     name: string
@@ -10,11 +10,8 @@ export interface ToggleProps extends FormElementProps {
 export const Toggle: FunctionalComponent<ToggleProps> = props => {
     const [value, setValue] = useState(props.value)
     const checkUpdate = useCallback(
-        (e: Event) => {
-            const input = e.target
-            if (input instanceof HTMLInputElement) {
-                setValue(input.checked)
-            }
+        (e: JSX.TargetedEvent<HTMLInputElement>) => {
+            setValue(e.currentTarget.checked)
         },
         [setValue],
     )

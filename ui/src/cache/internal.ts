@@ -1,4 +1,4 @@
-import { PaginatedRequest } from '../api/internal'
+import { PaginatedRequest } from 'src/api/internal'
 
 const cacheMap = new Map<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

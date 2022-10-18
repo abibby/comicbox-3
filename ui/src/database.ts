@@ -1,6 +1,5 @@
 import Dexie from 'dexie'
 import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
-import { persist } from './cache'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string
@@ -130,7 +129,6 @@ class AppDatabase extends Dexie {
             b,
             this.modelModification(b, mod, emptyBook, updatedTimestamp()),
         )
-        console.log('save book')
     }
 
     public async saveSeries(
@@ -226,7 +224,6 @@ class AppDatabase extends Dexie {
                 return updateNewerFields(oldItem, v)
             }),
         )
-        await persist(false)
     }
 }
 
@@ -241,43 +238,36 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
     const oldMap: UpdateMap<T> = oldValue.update_map ?? {}
     let dirty = 0
 
-    const combinedValue: T = { ...oldValue }
+    const combinedValue: T = { ...newValue }
     for (const [key, newV] of entries(newValue)) {
         const oldV = oldValue[key]
 
-        if (isDBModel(oldV)) {
-            const subModel = updateNewerFields(oldV, newV as any)
+        if (isDBModel(oldV) && isDBModel(newV)) {
+            const subModel = updateNewerFields(oldV, newV)
             dirty = dirty | ((subModel.dirty ?? 0) << 1)
 
-            combinedValue[key] = subModel as any
+            combinedValue[key] = subModel
         } else {
             const oldMapKey = oldMap[key]
             const newMapKey = newMap[key]
 
             if (
-                oldMapKey === undefined ||
-                (newMapKey !== undefined && newMapKey > oldMapKey)
+                !(
+                    oldMapKey === undefined ||
+                    (newMapKey !== undefined && newMapKey > oldMapKey)
+                )
             ) {
-                combinedValue[key] = newV
-                combinedValue.update_map = {
-                    ...combinedValue.update_map,
-                    [key]: newMapKey,
-                }
-            } else {
                 combinedValue[key] = oldV
                 combinedValue.update_map = {
                     ...combinedValue.update_map,
                     [key]: oldMapKey,
                 }
-                console.log(`${key} is dirty old: ${oldV} new: ${newV}`)
-
                 dirty |= 1
             }
         }
     }
     combinedValue.dirty = dirty
 
-    console.log(combinedValue)
     return combinedValue
 }
 export function clearDatabase(): void {

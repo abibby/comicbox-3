@@ -11,11 +11,12 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
 import { useResizeEffect } from 'src/hooks/resize-effect'
-import { Book, Page, PageType } from 'src/models'
+import { Book, Page } from 'src/models'
 import { Error404 } from 'src/pages/404'
 import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
+import { splitPages } from 'src/services/book-service'
 
 interface BookViewProps {
     matches?: {
@@ -224,43 +225,6 @@ const PageImage: FunctionalComponent<PageImageProps> = props => {
     return <img src={url} loading='lazy' />
 }
 
-function splitPages(
-    book: Book,
-    twoPage: boolean,
-): Array<[Page] | [Page, Page]> {
-    const pages: Array<[Page] | [Page, Page]> = []
-    const pageCount = book.pages.filter(p => p.type !== PageType.Deleted).length
-
-    for (let i = 0; i < pageCount; i++) {
-        const page = getPage(book, i)
-        const nextPage = getPage(book, i + 1)
-        if (page === undefined) {
-            continue
-        }
-        if (nextPage && showTwoPages(twoPage, page, nextPage)) {
-            pages.push([page, nextPage])
-            i++
-        } else {
-            pages.push([page])
-        }
-    }
-    return pages
-}
-
-function getPage(book: Book, page: number): Page | undefined {
-    let currentPage = -1
-    for (const p of book.pages) {
-        if (p.type !== PageType.Deleted) {
-            currentPage++
-        }
-
-        if (currentPage === page) {
-            return p
-        }
-    }
-    return undefined
-}
-
 function pageIndex(book: Book, page: number): number {
     const p = book.pages.filter(p => p.type !== 'Deleted')[page]
     if (p === undefined) {
@@ -289,27 +253,6 @@ function pageUnindex(book: Book, page: number): number {
         }
     }
     return out
-}
-
-function showTwoPages(
-    towPage: boolean,
-    currentPage: Page,
-    nextPage: Page,
-): boolean {
-    if (
-        currentPage.type === PageType.SpreadSplit &&
-        nextPage.type === PageType.SpreadSplit
-    ) {
-        return true
-    }
-    if (
-        towPage &&
-        currentPage.type === PageType.Story &&
-        nextPage.type === PageType.Story
-    ) {
-        return true
-    }
-    return false
 }
 
 function getPagesIndex(

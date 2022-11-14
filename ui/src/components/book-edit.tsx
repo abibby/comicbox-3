@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
 import { persist } from 'src/cache'
@@ -20,6 +21,7 @@ import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
+import { splitPages } from 'src/services/book-service'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -138,9 +140,13 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         </Tab>
                         <Tab title='pages'>
                             <input type='hidden' name='tab' value='pages' />
-                            <div class={styles.pageList}>
-                                {book.pages.map(p => (
-                                    <PageThumb key={p.url} page={p} />
+                            <div
+                                class={classNames(styles.pageList, {
+                                    [styles.rtl]: book.rtl,
+                                })}
+                            >
+                                {splitPages(book, true).map(p => (
+                                    <SpreadThumb key={p[0].url} page={p} />
                                 ))}
                             </div>
                         </Tab>
@@ -178,6 +184,19 @@ function isPageType(s: string): s is PageType {
     return s in PageType
 }
 
+interface SpreadThumbProps {
+    page: [Page] | [Page, Page]
+}
+const SpreadThumb: FunctionalComponent<SpreadThumbProps> = props => {
+    return (
+        <div class={styles.spread}>
+            {props.page.map(p => (
+                <PageThumb key={p.url} page={p} />
+            ))}
+        </div>
+    )
+}
+
 interface PageThumbProps {
     page: Page
 }
@@ -187,7 +206,7 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     return (
         <div class={styles.page}>
             <label>
-                <img src={url} height='200' />
+                <img src={url} />
                 <select
                     class={styles.pageTypeSelect}
                     name='page.type'

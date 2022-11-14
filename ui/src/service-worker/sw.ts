@@ -3,8 +3,15 @@
 import assets from 'build:assets'
 import { book } from 'src/api'
 import { persist } from 'src/cache'
-import { openPageCache, openStaticCache, openThumbCache } from 'src/caches'
+import {
+    openStaticCache,
+    openThumbCache,
+    pageCacheID,
+    STATIC_CACHE_NAME,
+    THUMB_CACHE_NAME,
+} from 'src/caches'
 import { Message } from 'src/message'
+import { PageType } from 'src/models'
 import { cacheBooks } from 'src/service-worker/cache'
 
 interface SyncEvent extends ExtendableEvent {
@@ -77,12 +84,15 @@ addAsyncEventListener('install', async () => {
 })
 
 async function cacheStatic(event: FetchEvent, path: string): Promise<Response> {
-    const staticCache = await openStaticCache()
-    const response = await staticCache.match(path)
+    const response = await caches.match(path, {
+        cacheName: STATIC_CACHE_NAME,
+    })
     if (response !== undefined) {
         return response
     }
-    const fallbackResponse = await staticCache.match('/')
+    const fallbackResponse = await caches.match('/', {
+        cacheName: STATIC_CACHE_NAME,
+    })
     if (fallbackResponse !== undefined) {
         return fallbackResponse
     }
@@ -97,32 +107,57 @@ async function cacheThumbnail(
     event: FetchEvent,
     path: string,
 ): Promise<Response> {
-    const imageCache = await openThumbCache()
-
-    const r = await imageCache.match(path, {
+    const r = await caches.match(path, {
         ignoreSearch: true,
+        cacheName: THUMB_CACHE_NAME,
     })
+
     if (r !== undefined) {
         return r
     }
+    // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0/thumbnail
+    const bookID = path.split('/')[3]
 
-    event.waitUntil(imageCache.add(event.request))
+    if (bookID !== undefined) {
+        const r = await caches.match(path.replace('/thumbnail', ''), {
+            ignoreSearch: true,
+            cacheName: pageCacheID(bookID),
+        })
 
-    const pageURL = path.replace('/thumbnail', '')
+        if (r !== undefined) {
+            return r
+        }
+    }
+    const response = await fetch(event.request)
+    const cacheResponse = response.clone()
 
-    return cachePage(event, pageURL)
+    event.waitUntil(
+        (async () => {
+            const books = await book.list({ id: bookID })
+            const b = books[0]
+            const page = b?.pages.find(p => {
+                const u = new URL(p.thumbnail_url)
+                return u.pathname === path
+            })
+            if (page?.type === PageType.FrontCover) {
+                const thumbCache = await openThumbCache()
+                await thumbCache.put(event.request, cacheResponse)
+            }
+        })(),
+    )
+    return response
 }
 
 async function cachePage(event: FetchEvent, path: string): Promise<Response> {
-    // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0/thumbnail
+    // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0
     const bookID = path.split('/')[3]
     if (bookID === undefined) {
         return fetch(event.request)
     }
 
-    const imageCache = await openPageCache(bookID)
-    const r = await imageCache.match(path, {
+    const r = await caches.match(path, {
         ignoreSearch: true,
+        cacheName: pageCacheID(bookID),
     })
     if (r !== undefined) {
         return r
@@ -133,6 +168,9 @@ async function cachePage(event: FetchEvent, path: string): Promise<Response> {
 addEventListener('fetch', event => {
     const request = event.request
     const url = new URL(request.url)
+    if (url.searchParams.has('ignore-sw')) {
+        return
+    }
 
     if (!url.pathname.startsWith('/api/')) {
         event.respondWith(cacheStatic(event, url.pathname))

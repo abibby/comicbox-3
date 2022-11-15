@@ -145,7 +145,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                     [styles.rtl]: book.rtl,
                                 })}
                             >
-                                {splitPages(book, true).map(p => (
+                                {splitPages(book, true, true).map(p => (
                                     <SpreadThumb key={p[0].url} page={p} />
                                 ))}
                             </div>

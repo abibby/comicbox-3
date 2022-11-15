@@ -3,13 +3,18 @@ import { Book, Page, PageType } from 'src/models'
 export function splitPages(
     book: Book,
     twoPage: boolean,
+    withDeleted = false,
 ): Array<[Page] | [Page, Page]> {
+    let p = book.pages
+    if (withDeleted) {
+        p = p.filter(p => p.type !== PageType.Deleted)
+    }
     const pages: Array<[Page] | [Page, Page]> = []
-    const pageCount = book.pages.filter(p => p.type !== PageType.Deleted).length
+    const pageCount = p.length
 
     for (let i = 0; i < pageCount; i++) {
-        const page = getPage(book, i)
-        const nextPage = getPage(book, i + 1)
+        const page = getPage(book, i, withDeleted)
+        const nextPage = getPage(book, i + 1, withDeleted)
         if (page === undefined) {
             continue
         }
@@ -23,10 +28,14 @@ export function splitPages(
     return pages
 }
 
-function getPage(book: Book, page: number): Page | undefined {
+function getPage(
+    book: Book,
+    page: number,
+    withDelete: boolean,
+): Page | undefined {
     let currentPage = -1
     for (const p of book.pages) {
-        if (p.type !== PageType.Deleted) {
+        if (p.type !== PageType.Deleted || withDelete) {
             currentPage++
         }
 

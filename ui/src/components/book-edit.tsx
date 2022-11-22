@@ -1,7 +1,7 @@
 import { bind, bindValue } from '@zwzn/spicy'
 import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useRef, useState } from 'preact/hooks'
+import { useCallback, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { prompt } from 'src/components/alert'
 import styles from 'src/components/book-edit.module.css'
@@ -240,26 +240,12 @@ interface PageThumbProps {
 const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     const url = usePageURL(props.page, undefined, true)
 
-    const select = useRef<HTMLSelectElement>(null)
-    // const click = useCallback(
-    //     (e: JSX.TargetedMouseEvent<HTMLImageElement>) => {
-    //         const evt = e
-    //         setTimeout(function () {
-    //             console.log(select.current)
-
-    //             select.current?.dispatchEvent(evt)
-    //         })
-    //     },
-    //     [select],
-    // )
-
     return (
         <div class={styles.page}>
             <label>
                 <img src={url} />
                 <span class={styles.index}>{props.page.index + 1}</span>
                 <select
-                    ref={select}
                     class={styles.pageTypeSelect}
                     name='page.type'
                     value={props.page.type}

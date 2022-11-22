@@ -1,6 +1,6 @@
 import classNames from 'classnames'
-import { FunctionalComponent, h } from 'preact'
-import { useCallback } from 'preact/hooks'
+import { FunctionalComponent, h, JSX } from 'preact'
+import { useCallback, useRef } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { prompt } from 'src/components/alert'
 import styles from 'src/components/book-edit.module.css'
@@ -203,11 +203,25 @@ interface PageThumbProps {
 const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     const url = usePageURL(props.page, undefined, true)
 
+    const select = useRef<HTMLSelectElement>(null)
+    const click = useCallback(
+        (e: JSX.TargetedMouseEvent<HTMLImageElement>) => {
+            const evt = e
+            setTimeout(function () {
+                console.log(select.current)
+
+                select.current?.dispatchEvent(evt)
+            })
+        },
+        [select],
+    )
+
     return (
         <div class={styles.page}>
             <label>
-                <img src={url} />
+                <img src={url} onClick={click} />
                 <select
+                    ref={select}
                     class={styles.pageTypeSelect}
                     name='page.type'
                     value={props.page.type}

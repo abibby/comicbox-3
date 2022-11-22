@@ -31,8 +31,6 @@ export function pageCacheID(bookID: string): string {
 }
 
 export async function openPageCache(bookID: string): Promise<Cache> {
-    console.log(`page cache ${bookID}`)
-
     return caches.open(pageCacheID(bookID))
 }
 

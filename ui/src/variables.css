@@ -27,6 +27,9 @@
     --default-button-text: 0, 0, 0;
     --primary-button: var(--primary);
     --primary-button-text: var(--text-on-primary);
+
+    --border-radius-small: 4px;
+    --border-radius-large: 6px;
 }
 
 .dark {

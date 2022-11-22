@@ -6,15 +6,15 @@ export function splitPages(
     withDeleted = false,
 ): Array<[Page] | [Page, Page]> {
     let p = book.pages
-    if (withDeleted) {
+    if (!withDeleted) {
         p = p.filter(p => p.type !== PageType.Deleted)
     }
     const pages: Array<[Page] | [Page, Page]> = []
-    const pageCount = p.length
 
-    for (let i = 0; i < pageCount; i++) {
-        const page = getPage(book, i, withDeleted)
-        const nextPage = getPage(book, i + 1, withDeleted)
+    for (let i = 0; i < p.length; i++) {
+        const page = p[i]
+        const nextPage = p[i + 1]
+
         if (page === undefined) {
             continue
         }
@@ -26,24 +26,6 @@ export function splitPages(
         }
     }
     return pages
-}
-
-function getPage(
-    book: Book,
-    page: number,
-    withDelete: boolean,
-): Page | undefined {
-    let currentPage = -1
-    for (const p of book.pages) {
-        if (p.type !== PageType.Deleted || withDelete) {
-            currentPage++
-        }
-
-        if (currentPage === page) {
-            return p
-        }
-    }
-    return undefined
 }
 
 function showTwoPages(

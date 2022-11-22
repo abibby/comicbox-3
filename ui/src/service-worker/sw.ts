@@ -129,7 +129,6 @@ async function cacheThumbnail(
         }
     }
     const response = await fetch(event.request)
-    const cacheResponse = response.clone()
 
     event.waitUntil(
         (async () => {
@@ -141,11 +140,11 @@ async function cacheThumbnail(
             })
             if (page?.type === PageType.FrontCover) {
                 const thumbCache = await openThumbCache()
-                await thumbCache.put(event.request, cacheResponse)
+                await thumbCache.put(event.request, response.clone())
             }
         })(),
     )
-    return response
+    return response.clone()
 }
 
 async function cachePage(event: FetchEvent, path: string): Promise<Response> {

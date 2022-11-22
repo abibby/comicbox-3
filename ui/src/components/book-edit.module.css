@@ -5,8 +5,12 @@
 }
 
 .spread {
-    border: solid 1px black;
     display: flex;
+    background-color: rgb(var(--background));
+    color: rgb(var(--on-background));
+    box-shadow: var(--surface-box-shadow);
+    border-radius: var(--border-radius-small);
+    padding: 5px;
 }
 
 .rtl .spread {

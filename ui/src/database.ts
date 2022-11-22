@@ -160,8 +160,10 @@ class AppDatabase extends Dexie {
                 }
 
                 const subModification = this.modelModification(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     model[key] as any,
                     modification[key] as Readonly<Modification<DBModel>>,
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     empty[key] as any,
                     timestamp,
                 )
@@ -169,7 +171,6 @@ class AppDatabase extends Dexie {
                     ...modification,
                     [key]: subModification,
                 }
-                // console.log('subModification', subModification)
 
                 dirty = dirty | ((subModification.dirty ?? 0) << 1)
             } else if (modification[key] !== model[key]) {

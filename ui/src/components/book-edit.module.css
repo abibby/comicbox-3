@@ -24,17 +24,34 @@
     flex-grow: 1;
 }
 
+.page:nth-child(1) .index {
+    float: left;
+}
+.page:nth-child(2) .index {
+    float: right;
+}
 .page:nth-child(1) img {
     object-position: right;
 }
-
+.page:nth-child(1):last-child img {
+    object-position: center;
+}
 .page:nth-child(2) img {
     object-position: left;
+}
+
+.rtl .page:nth-child(1) .index {
+    float: right;
+}
+.rtl .page:nth-child(2) .index {
+    float: left;
 }
 .rtl .page:nth-child(1) img {
     object-position: left;
 }
-
+.rtl .page:nth-child(1):last-child img {
+    object-position: center;
+}
 .rtl .page:nth-child(2) img {
     object-position: right;
 }

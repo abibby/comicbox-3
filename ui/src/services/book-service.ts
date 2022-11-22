@@ -1,15 +1,18 @@
-import { Book, Page, PageType } from 'src/models'
+import { Page, PageType } from 'src/models'
+
+export interface PageWithIndex extends Page {
+    index: number
+}
 
 export function splitPages(
-    book: Book,
+    p: Page[],
     twoPage: boolean,
     withDeleted = false,
-): Array<[Page] | [Page, Page]> {
-    let p = book.pages
+): Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> {
     if (!withDeleted) {
         p = p.filter(p => p.type !== PageType.Deleted)
     }
-    const pages: Array<[Page] | [Page, Page]> = []
+    const pages: Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> = []
 
     for (let i = 0; i < p.length; i++) {
         const page = p[i]
@@ -19,10 +22,24 @@ export function splitPages(
             continue
         }
         if (nextPage && showTwoPages(twoPage, page, nextPage)) {
-            pages.push([page, nextPage])
+            pages.push([
+                {
+                    ...page,
+                    index: i,
+                },
+                {
+                    ...nextPage,
+                    index: i + 1,
+                },
+            ])
             i++
         } else {
-            pages.push([page])
+            pages.push([
+                {
+                    ...page,
+                    index: i,
+                },
+            ])
         }
     }
     return pages

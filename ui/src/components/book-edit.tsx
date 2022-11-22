@@ -1,6 +1,7 @@
+import { bind, bindValue } from '@zwzn/spicy'
 import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { prompt } from 'src/components/alert'
 import styles from 'src/components/book-edit.module.css'
@@ -21,7 +22,7 @@ import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
-import { splitPages } from 'src/services/book-service'
+import { PageWithIndex, splitPages } from 'src/services/book-service'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -45,7 +46,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
             try {
                 switch (data.get('tab')) {
                     case 'meta':
-                        DB.saveBook(book, {
+                        await DB.saveBook(book, {
                             title: data.get('title') ?? '',
                             series: data.get('series') ?? '',
                             volume: data.getNumber('volume'),
@@ -54,7 +55,14 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         })
                         break
                     case 'pages':
-                        DB.saveBook(book, {
+                        if (
+                            book.pages.length !==
+                            data.getAll('page.type')?.length
+                        ) {
+                            prompt('Invalid page count')
+                            return
+                        }
+                        await DB.saveBook(book, {
                             pages: data.getAll('page.type')?.map(
                                 (type, i): Page => ({
                                     url: book.pages[i]?.url ?? '',
@@ -93,6 +101,25 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
             }
         },
         [book, close, next, previous],
+    )
+
+    const [editedPages, setEditedPages] = useState(book.pages)
+
+    const changePageType = useCallback(
+        (page: number, type: string) => {
+            setEditedPages(pages =>
+                pages.map((p, i) => {
+                    if (i === page && isPageType(type)) {
+                        return {
+                            ...p,
+                            type: type,
+                        }
+                    }
+                    return p
+                }),
+            )
+        },
+        [setEditedPages],
     )
 
     return (
@@ -145,8 +172,12 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                     [styles.rtl]: book.rtl,
                                 })}
                             >
-                                {splitPages(book, true, true).map(p => (
-                                    <SpreadThumb key={p[0].url} page={p} />
+                                {splitPages(editedPages, true, true).map(p => (
+                                    <SpreadThumb
+                                        key={p[0].url}
+                                        page={p}
+                                        onPageTypeChange={changePageType}
+                                    />
                                 ))}
                             </div>
                         </Tab>
@@ -185,20 +216,26 @@ function isPageType(s: string): s is PageType {
 }
 
 interface SpreadThumbProps {
-    page: [Page] | [Page, Page]
+    page: [PageWithIndex] | [PageWithIndex, PageWithIndex]
+    onPageTypeChange: (page: number, type: string) => void
 }
 const SpreadThumb: FunctionalComponent<SpreadThumbProps> = props => {
     return (
         <div class={styles.spread}>
             {props.page.map(p => (
-                <PageThumb key={p.url} page={p} />
+                <PageThumb
+                    key={p.url}
+                    page={p}
+                    onPageTypeChange={props.onPageTypeChange}
+                />
             ))}
         </div>
     )
 }
 
 interface PageThumbProps {
-    page: Page
+    page: PageWithIndex
+    onPageTypeChange: (page: number, type: string) => void
 }
 const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     const url = usePageURL(props.page, undefined, true)
@@ -207,10 +244,14 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
         <div class={styles.page}>
             <label>
                 <img src={url} />
+                <span class={styles.index}>{props.page.index + 1}</span>
                 <select
                     class={styles.pageTypeSelect}
                     name='page.type'
                     value={props.page.type}
+                    onInput={bindValue(
+                        bind(props.page.index, props.onPageTypeChange),
+                    )}
                 >
                     {pageTypeOptions.map(([value, title]) => (
                         <option key={value} value={value}>

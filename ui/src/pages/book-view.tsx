@@ -62,7 +62,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         setTimeout(() => setLandscape(window.innerWidth > window.innerHeight))
     }, [])
 
-    const pages = splitPages(b, landscape)
+    const pages = splitPages(b.pages, landscape)
     const pagesIndex = getPagesIndex(pages, page)
 
     const nextBook = useNextBook(`read:${b.id}:next`, b)

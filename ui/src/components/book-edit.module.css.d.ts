@@ -3,6 +3,7 @@ declare const styles: {
   readonly "spread": string;
   readonly "rtl": string;
   readonly "page": string;
+  readonly "index": string;
   readonly "pageTypeSelect": string;
 };
 export = styles;

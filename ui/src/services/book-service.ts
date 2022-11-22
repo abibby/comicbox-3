@@ -1,49 +1,48 @@
-import { Book, Page, PageType } from 'src/models'
+import { Page, PageType } from 'src/models'
+
+export interface PageWithIndex extends Page {
+    index: number
+}
 
 export function splitPages(
-    book: Book,
+    p: Page[],
     twoPage: boolean,
     withDeleted = false,
-): Array<[Page] | [Page, Page]> {
-    let p = book.pages
-    if (withDeleted) {
+): Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> {
+    if (!withDeleted) {
         p = p.filter(p => p.type !== PageType.Deleted)
     }
-    const pages: Array<[Page] | [Page, Page]> = []
-    const pageCount = p.length
+    const pages: Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> = []
 
-    for (let i = 0; i < pageCount; i++) {
-        const page = getPage(book, i, withDeleted)
-        const nextPage = getPage(book, i + 1, withDeleted)
+    for (let i = 0; i < p.length; i++) {
+        const page = p[i]
+        const nextPage = p[i + 1]
+
         if (page === undefined) {
             continue
         }
         if (nextPage && showTwoPages(twoPage, page, nextPage)) {
-            pages.push([page, nextPage])
+            pages.push([
+                {
+                    ...page,
+                    index: i,
+                },
+                {
+                    ...nextPage,
+                    index: i + 1,
+                },
+            ])
             i++
         } else {
-            pages.push([page])
+            pages.push([
+                {
+                    ...page,
+                    index: i,
+                },
+            ])
         }
     }
     return pages
-}
-
-function getPage(
-    book: Book,
-    page: number,
-    withDelete: boolean,
-): Page | undefined {
-    let currentPage = -1
-    for (const p of book.pages) {
-        if (p.type !== PageType.Deleted || withDelete) {
-            currentPage++
-        }
-
-        if (currentPage === page) {
-            return p
-        }
-    }
-    return undefined
 }
 
 function showTwoPages(

@@ -62,7 +62,7 @@ func Init() error {
 	}
 	AppKey = []byte(mustEnv("APP_KEY"))
 	DBPath = env("DB_PATH", "./db.sqlite")
-	CachePath = env("CACHE_PATH", "./cache")
+	CachePath = env("CACHE_PATH", "./.cache")
 	LibraryPath = mustEnv("LIBRARY_PATH")
 	Port = envInt("PORT", 8080)
 	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)

@@ -1,6 +1,6 @@
 /ui/node_modules
 /ui/dist
 /bin
-/cache
+/.cache
 .env
 *.sqlite

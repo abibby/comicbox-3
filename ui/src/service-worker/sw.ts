@@ -135,7 +135,7 @@ async function cacheThumbnail(
             const books = await book.list({ id: bookID })
             const b = books[0]
             const page = b?.pages.find(p => {
-                const u = new URL(p.thumbnail_url)
+                const u = new URL(p.thumbnail_url, location.origin)
                 return u.pathname === path
             })
             if (page?.type === PageType.FrontCover) {
@@ -167,6 +167,11 @@ async function cachePage(event: FetchEvent, path: string): Promise<Response> {
 addEventListener('fetch', event => {
     const request = event.request
     const url = new URL(request.url)
+
+    if (url.origin !== location.origin) {
+        return
+    }
+
     if (url.searchParams.has('ignore-sw')) {
         return
     }
@@ -185,6 +190,8 @@ addEventListener('fetch', event => {
         event.respondWith(cachePage(event, url.pathname))
         return
     }
+
+    event.respondWith(cachePage(event, '/'))
 })
 
 addAsyncEventListener('message', async function (event) {

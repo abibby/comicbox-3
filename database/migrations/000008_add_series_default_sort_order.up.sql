@@ -1,0 +1,1 @@
+ALTER TABLE series ADD sort_order TEXT DEFAULT "volume";

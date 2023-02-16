@@ -20,7 +20,25 @@ type Series struct {
 	FirstBookCoverPage int         `json:"-"             db:"first_book_cover_page"`
 	UserSeries         *UserSeries `json:"user_series"   db:"-"`
 	AnilistId          *nulls.Int  `json:"anilist_id"    db:"anilist_id"`
+	SortOrder          SortOrder   `json:"sort_order"    db:"sort_order"`
+	originalSortOrder  SortOrder   `json:"-"             db:"-"`
 }
+
+type SortOrder string
+
+func (l SortOrder) Options() map[string]string {
+	return map[string]string{
+		"Volume":  string(SortOrderVolume),
+		"Chapter": string(SortOrderChapter),
+		// "ReleaseDate": string(SortOrderReleaseDate),
+	}
+}
+
+const (
+	SortOrderVolume  = SortOrder("volume")
+	SortOrderChapter = SortOrder("chapter")
+	// SortOrderReleaseDate = SortOrder("release-date")
+)
 
 var _ BeforeSaver = &Series{}
 var _ AfterLoader = &Series{}
@@ -58,6 +76,12 @@ func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 		s.FirstBookID = &b.ID
 		s.FirstBookCoverPage = b.CoverPage()
 	}
+
+	if s.originalSortOrder != s.SortOrder {
+
+	}
+
+	s.originalSortOrder = s.SortOrder
 	return nil
 }
 
@@ -65,6 +89,7 @@ func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
 	}
+	s.originalSortOrder = s.SortOrder
 	return nil
 }
 

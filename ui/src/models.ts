@@ -35,6 +35,7 @@ export interface Series {
     first_book_id: string | null
     user_series: UserSeries | null
     anilist_id: number | null
+    sort_order: SortOrder
 }
 export interface User {
     created_at: string
@@ -72,4 +73,8 @@ export enum List {
     Paused = "paused",
     Planning = "planning",
     Reading = "reading",
+}
+export enum SortOrder {
+    Chapter = "chapter",
+    Volume = "volume",
 }

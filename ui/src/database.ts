@@ -1,5 +1,13 @@
 import Dexie from 'dexie'
-import { Book, List, PageType, Series, UserBook, UserSeries } from 'src/models'
+import {
+    Book,
+    List,
+    PageType,
+    Series,
+    SortOrder,
+    UserBook,
+    UserSeries,
+} from 'src/models'
 
 type UpdateMap<T> = {
     [P in keyof T]?: string
@@ -56,6 +64,7 @@ const emptySeries: Readonly<DBSeries> = {
         list: List.None,
     },
     anilist_id: null,
+    sort_order: SortOrder.Volume,
 }
 
 const emptyBook: Readonly<DBBook> = {

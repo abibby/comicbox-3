@@ -258,10 +258,10 @@ class AppDatabase extends Dexie {
         await table.bulkPut(
             updatedItems.map((v, i): T => {
                 const oldItem = oldItems[i]
-                if (oldItem !== undefined) {
-                    v = updateNewerFields(oldItem, v)
+                if (oldItem === undefined) {
+                    return { ...v, dirty: 0 }
                 }
-                return { ...v, dirty: 0 }
+                return updateNewerFields(oldItem, v)
             }),
         )
     }
@@ -291,11 +291,11 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
             const oldMapKey = oldMap[key]
             const newMapKey = newMap[key]
 
+            // Use the old value
             if (
-                !(
-                    oldMapKey === undefined ||
-                    (newMapKey !== undefined && newMapKey > oldMapKey)
-                )
+                oldMapKey !== undefined &&
+                newMapKey !== undefined &&
+                newMapKey < oldMapKey
             ) {
                 combinedValue[key] = oldV
                 combinedValue.update_map = {

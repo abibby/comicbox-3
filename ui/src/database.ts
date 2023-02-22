@@ -104,12 +104,20 @@ class AppDatabase extends Dexie {
         })
         this.version(1).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty',
-            seriecs: '&name, user_series.list, dirty',
+            series: '&name, user_series.list, dirty',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
+
+        this.series.hook('creating', (id, s) => {
+            s.dirty = 0
+            if (s.user_series) {
+                s.user_series.dirty = 0
+            }
+            return s
+        })
 
         this.books.hook('creating', (id, b) => {
             b.completed = this.bookComplete(b, {})
@@ -153,6 +161,7 @@ class AppDatabase extends Dexie {
     public async saveSeries(
         s: DBSeries,
         mod: Modification<DBSeries>,
+        setDirty = true,
     ): Promise<void> {
         await this.series.update(
             s,
@@ -161,7 +170,7 @@ class AppDatabase extends Dexie {
                 mod,
                 emptySeries,
                 updatedTimestamp(),
-                true,
+                setDirty,
             ),
         )
     }
@@ -249,10 +258,10 @@ class AppDatabase extends Dexie {
         await table.bulkPut(
             updatedItems.map((v, i): T => {
                 const oldItem = oldItems[i]
-                if (oldItem === undefined) {
-                    return { ...v, dirty: 0 }
+                if (oldItem !== undefined) {
+                    v = updateNewerFields(oldItem, v)
                 }
-                return updateNewerFields(oldItem, v)
+                return { ...v, dirty: 0 }
             }),
         )
     }

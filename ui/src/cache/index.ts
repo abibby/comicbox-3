@@ -6,10 +6,10 @@ import { PaginatedRequest } from 'src/api/internal'
 import { getCacheHandler } from 'src/cache/internal'
 import { prompt } from 'src/components/alert'
 import { DB, DBBook, DBSeries } from 'src/database'
-import { debounce } from 'src/debounce'
 import { useEventListener } from 'src/hooks/event-listener'
 import { addRespondListener } from 'src/message'
 
+import { Mutex } from 'async-mutex'
 import 'src/cache/book'
 import 'src/cache/series'
 
@@ -152,84 +152,88 @@ function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
     }
     return false
 }
+const persistMtx = new Mutex()
 
-export const persist = debounce(async function (
+export async function persist(
     fromUserInteraction: boolean,
     fromSyncEvent = false,
 ): Promise<void> {
-    invalidateCache(fromUserInteraction)
-    const dirtyBooks = await DB.books.where('dirty').above(0).toArray()
-    let hasErrors = false
-    for (const b of dirtyBooks) {
-        let result: Partial<DBBook> = {}
-        try {
-            if (b.update_map !== undefined) {
-                result = await book.update(b.id, {
-                    title: b.title,
-                    series: b.series,
-                    chapter: b.chapter,
-                    volume: b.volume,
-                    rtl: b.rtl,
-                    pages: b.pages.map(p => ({
-                        type: p.type,
-                    })),
-                    update_map: b.update_map,
+    await persistMtx.runExclusive(async () => {
+        invalidateCache(fromUserInteraction)
+        const dirtyBooks = await DB.books.where('dirty').above(0).toArray()
+
+        let hasErrors = false
+        for (const b of dirtyBooks) {
+            let result: Partial<DBBook> = {}
+            try {
+                if (b.update_map !== undefined) {
+                    result = await book.update(b.id, {
+                        title: b.title,
+                        series: b.series,
+                        chapter: b.chapter,
+                        volume: b.volume,
+                        rtl: b.rtl,
+                        pages: b.pages.map(p => ({
+                            type: p.type,
+                        })),
+                        update_map: b.update_map,
+                    })
+                    result.dirty = 0
+                }
+
+                if (b.user_book?.update_map !== undefined) {
+                    result.user_book = await userBook.update(b.id, {
+                        current_page: b.user_book.current_page,
+                        update_map: b.user_book.update_map,
+                    })
+                    result.user_book.dirty = 0
+                }
+            } catch (e) {
+                hasErrors = true
+            }
+            if (Object.keys(result).length > 0) {
+                await DB.books.update(b, result)
+            }
+        }
+        const dirtySeries = await DB.series.where('dirty').above(0).toArray()
+
+        for (const s of dirtySeries) {
+            let result: Partial<DBSeries> = {}
+            try {
+                result = await series.update(s.name, {
+                    anilist_id: s.anilist_id,
+                    update_map: s.update_map,
                 })
                 result.dirty = 0
-            }
-
-            if (b.user_book?.update_map !== undefined) {
-                result.user_book = await userBook.update(b.id, {
-                    current_page: b.user_book.current_page,
-                    update_map: b.user_book.update_map,
-                })
-                result.user_book.dirty = 0
-            }
-        } catch (e) {
-            hasErrors = true
-        }
-        if (Object.keys(result).length > 0) {
-            await DB.books.update(b, result)
-        }
-    }
-    const dirtySeries = await DB.series.where('dirty').above(0).toArray()
-    for (const s of dirtySeries) {
-        let result: Partial<DBSeries> = {}
-        try {
-            result = await series.update(s.name, {
-                anilist_id: s.anilist_id,
-                update_map: s.update_map,
-            })
-            result.dirty = 0
-            if (s.user_series !== null) {
-                try {
-                    result.user_series = await userSeries.update(s.name, {
-                        list: s.user_series.list,
-                        update_map: s.user_series.update_map,
-                    })
-                } catch (e) {
-                    hasErrors = true
+                if (s.user_series !== null) {
+                    try {
+                        result.user_series = await userSeries.update(s.name, {
+                            list: s.user_series.list,
+                            update_map: s.user_series.update_map,
+                        })
+                    } catch (e) {
+                        hasErrors = true
+                    }
                 }
+            } catch (e) {
+                hasErrors = true
             }
-        } catch (e) {
-            hasErrors = true
+            if (Object.keys(result).length > 0) {
+                await DB.series.update(s, result)
+            }
         }
-        if (Object.keys(result).length > 0) {
-            await DB.series.update(s, result)
-        }
-    }
-    invalidateCache(fromUserInteraction)
+        invalidateCache(fromUserInteraction)
 
-    if (hasErrors && !fromSyncEvent) {
-        const registration = await navigator.serviceWorker.ready
-        try {
-            await registration.sync.register('persist')
-        } catch {
-            prompt('There were some errors in syncing data')
+        if (hasErrors && !fromSyncEvent) {
+            const registration = await navigator.serviceWorker.ready
+            try {
+                await registration.sync.register('persist')
+            } catch {
+                prompt('There were some errors in syncing data')
+            }
         }
-    }
-},
-500)
+    })
+}
 
 export function useOnline(): boolean {
     const [online, setOnline] = useState(navigator.onLine)

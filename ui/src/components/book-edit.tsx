@@ -9,6 +9,7 @@ import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import { Toggle } from 'src/components/form/toggle'
+import { LazyImg } from 'src/components/lazy-img'
 import {
     Modal,
     ModalBody,
@@ -23,7 +24,6 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
 import { PageWithIndex, splitPages } from 'src/services/book-service'
-import { LazyImg } from './lazy-img'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],

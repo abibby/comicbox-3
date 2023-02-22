@@ -1,12 +1,10 @@
 import { FunctionalComponent, h } from 'preact'
 import { useEffect } from 'preact/hooks'
 import { book, series } from 'src/api'
-import { BookListRequest } from 'src/api/book'
 import { SeriesListRequest } from 'src/api/series'
 import { updateList, useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
-import { DB, DBBook, DBSeries } from 'src/database'
-import { List } from 'src/models'
+import { DB, DBSeries } from 'src/database'
 
 export const Home: FunctionalComponent = () => {
     useEffect(() => {
@@ -15,12 +13,6 @@ export const Home: FunctionalComponent = () => {
             {},
             DB.series,
             series.list,
-        )
-        updateList<DBBook, BookListRequest>(
-            'books:reading',
-            { list: List.Reading },
-            DB.books,
-            book.list,
         )
     }, [])
 

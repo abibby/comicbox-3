@@ -71,5 +71,6 @@ setCacheHandler(book.reading, async (): Promise<Book[]> => {
     )
 
     const books = await Promise.all(bookPromises)
+
     return books.filter(notNullish)
 })

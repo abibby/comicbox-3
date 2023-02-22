@@ -5,7 +5,7 @@ import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
 import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
-import { LazyImg } from './lazy-img'
+import { LazyImg } from 'src/components/lazy-img'
 
 interface CardProps {
     title: string

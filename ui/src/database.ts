@@ -82,6 +82,7 @@ const emptyBook: Readonly<DBBook> = {
         update_map: {},
         current_page: 0,
     },
+    completed: 0,
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -103,13 +104,29 @@ class AppDatabase extends Dexie {
         })
         this.version(1).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty',
-            seriecs: '&name, user_series.list, dirty',
+            series: '&name, user_series.list, dirty',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
 
+        this.series.hook('creating', (id, s) => {
+            s.dirty = 0
+            if (s.user_series) {
+                s.user_series.dirty = 0
+            }
+            return s
+        })
+
+        this.books.hook('creating', (id, b) => {
+            b.completed = this.bookComplete(b, {})
+            b.dirty = 0
+            if (b.user_book) {
+                b.user_book.dirty = 0
+            }
+            return b
+        })
         this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
             return {
                 ...mod,
@@ -124,20 +141,37 @@ class AppDatabase extends Dexie {
         })
     }
 
-    public async saveBook(b: DBBook, mod: Modification<DBBook>): Promise<void> {
+    public async saveBook(
+        b: DBBook,
+        mod: Modification<DBBook>,
+        setDirty = true,
+    ): Promise<void> {
         await this.books.update(
             b,
-            this.modelModification(b, mod, emptyBook, updatedTimestamp()),
+            this.modelModification(
+                b,
+                mod,
+                emptyBook,
+                updatedTimestamp(),
+                setDirty,
+            ),
         )
     }
 
     public async saveSeries(
         s: DBSeries,
         mod: Modification<DBSeries>,
+        setDirty = true,
     ): Promise<void> {
         await this.series.update(
             s,
-            this.modelModification(s, mod, emptySeries, updatedTimestamp()),
+            this.modelModification(
+                s,
+                mod,
+                emptySeries,
+                updatedTimestamp(),
+                setDirty,
+            ),
         )
     }
 
@@ -146,6 +180,7 @@ class AppDatabase extends Dexie {
         modification: Readonly<Modification<T>>,
         empty: Readonly<T>,
         timestamp: string,
+        setDirty: boolean,
     ): Modification<T> {
         const updateMap: UpdateMap<T> = { ...model.update_map }
         let dirty = model.dirty ?? 0
@@ -166,6 +201,7 @@ class AppDatabase extends Dexie {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     empty[key] as any,
                     timestamp,
+                    setDirty,
                 )
                 modification = {
                     ...modification,
@@ -179,6 +215,9 @@ class AppDatabase extends Dexie {
             }
         }
 
+        if (!setDirty) {
+            dirty = model.dirty ?? 0
+        }
         return {
             ...modification,
             dirty: dirty,
@@ -252,11 +291,11 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
             const oldMapKey = oldMap[key]
             const newMapKey = newMap[key]
 
+            // Use the old value
             if (
-                !(
-                    oldMapKey === undefined ||
-                    (newMapKey !== undefined && newMapKey > oldMapKey)
-                )
+                oldMapKey !== undefined &&
+                newMapKey !== undefined &&
+                newMapKey < oldMapKey
             ) {
                 combinedValue[key] = oldV
                 combinedValue.update_map = {

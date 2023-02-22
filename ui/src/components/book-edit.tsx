@@ -23,6 +23,7 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
 import { PageWithIndex, splitPages } from 'src/services/book-service'
+import { LazyImg } from './lazy-img'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -243,7 +244,7 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     return (
         <div class={styles.page}>
             <label>
-                <img src={url} />
+                <LazyImg src={url} />
                 <span class={styles.index}>{props.page.index + 1}</span>
                 <select
                     class={styles.pageTypeSelect}

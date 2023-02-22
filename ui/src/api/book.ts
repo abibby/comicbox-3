@@ -1,3 +1,4 @@
+import Dexie from 'dexie'
 import {
     allPagesFactory,
     apiFetch,
@@ -5,7 +6,7 @@ import {
     PaginatedRequest,
     PaginatedResponse,
 } from 'src/api/internal'
-import { DBBook } from 'src/database'
+import { DB, DBBook } from 'src/database'
 import { Book, List, PageType } from 'src/models'
 
 export type BookListRequest = PaginatedRequest & {
@@ -33,26 +34,28 @@ export async function readingPaged(
         '/api/books/reading?' + encodeParams(req),
     )
 
-    // TODO: make it so you don't need to fetch all of the books from series
-    // you are reading
-    // await Promise.all(
-    //     books.data.map(async readingBooks => {
-    //         const seriesBooks = await DB.books
-    //             .where(['series', 'completed', 'sort'])
-    //             .between(
-    //                 [readingBooks.series, 0, Dexie.minKey],
-    //                 [readingBooks.series, 0, readingBooks.sort],
-    //             )
-    //             .toArray()
-    //         for (const b of seriesBooks) {
-    //             DB.saveBook(b, {
-    //                 user_book: {
-    //                     current_page: b.page_count,
-    //                 },
-    //             })
-    //         }
-    //     }),
-    // )
+    await Promise.all(
+        books.data.map(async readingBook => {
+            const seriesBooks = await DB.books
+                .where(['series', 'completed', 'sort'])
+                .between(
+                    [readingBook.series, 0, Dexie.minKey],
+                    [readingBook.series, 0, readingBook.sort],
+                )
+                .toArray()
+            for (const b of seriesBooks) {
+                await DB.saveBook(
+                    b,
+                    {
+                        user_book: {
+                            current_page: b.page_count,
+                        },
+                    },
+                    false,
+                )
+            }
+        }),
+    )
 
     return books
 }

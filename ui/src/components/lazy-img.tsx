@@ -11,7 +11,8 @@ export const LazyImg: FunctionalComponent<
     const ogSrc = props.src
 
     useEffect(() => {
-        if (image.current !== null) {
+        const imageElement = image.current
+        if (imageElement !== null) {
             const lazyImageObserver = new IntersectionObserver(function (
                 entries,
             ) {
@@ -26,7 +27,11 @@ export const LazyImg: FunctionalComponent<
                 }
             })
 
-            lazyImageObserver.observe(image.current)
+            lazyImageObserver.observe(imageElement)
+
+            return () => {
+                lazyImageObserver.unobserve(imageElement)
+            }
         }
     }, [image, ogSrc])
 

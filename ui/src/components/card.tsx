@@ -5,6 +5,7 @@ import { useCallback } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
 import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
+import { LazyImg } from './lazy-img'
 
 interface CardProps {
     title: string
@@ -54,12 +55,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
         >
             <a href={props.disabled ? undefined : href} onClick={click}>
                 <Progress progress={props.progress ?? 0} />
-                <img
-                    class={styles.cover}
-                    src={props.image}
-                    alt={alt}
-                    loading='lazy'
-                />
+                <LazyImg class={styles.cover} src={props.image} alt={alt} />
                 <Download
                     progress={props.downloadProgress}
                     completed={props.downloaded}

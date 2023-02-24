@@ -91,8 +91,8 @@ function entries<T extends object>(o: T): [keyof T, T[keyof T]][] {
 }
 
 class AppDatabase extends Dexie {
-    books: Dexie.Table<DBBook, number>
-    series: Dexie.Table<DBSeries, number>
+    books: Dexie.Table<DBBook, string>
+    series: Dexie.Table<DBSeries, string>
     lastUpdated: Dexie.Table<LastUpdated, number>
 
     constructor() {
@@ -293,9 +293,10 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
 
             // Use the old value
             if (
-                oldMapKey !== undefined &&
-                newMapKey !== undefined &&
-                newMapKey < oldMapKey
+                (oldMapKey !== undefined && newMapKey === undefined) ||
+                (oldMapKey !== undefined &&
+                    newMapKey !== undefined &&
+                    newMapKey < oldMapKey)
             ) {
                 combinedValue[key] = oldV
                 combinedValue.update_map = {

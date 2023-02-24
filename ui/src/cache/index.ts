@@ -123,19 +123,22 @@ export function useCached<
     return items
 }
 
-function primaryKeyValue(item: unknown): unknown {
+function primaryKeyValue(item: DBSeries | DBBook): string {
     if (typeof item === 'object' && item !== null) {
         if ('id' in item) {
-            return (item as { id: unknown }).id
+            return item.id
         }
         if ('name' in item) {
-            return (item as { name: unknown }).name
+            return item.name
         }
     }
     return JSON.stringify(item)
 }
 
-function shouldPrompt<T>(cacheItems: T[], netItems: T[]): boolean {
+function shouldPrompt<T extends DBBook | DBSeries>(
+    cacheItems: T[],
+    netItems: T[],
+): boolean {
     if (cacheItems.length === 0) {
         return false
     }

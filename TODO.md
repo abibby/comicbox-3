@@ -16,12 +16,12 @@
 - [ ] Style pages
 - [x] Improve reading experience
   - [x] Respect deleted pages
-- [ ] Offline Support
+- [x] Offline Support
   - [ ] look into update process. It looks like it responds to js requests with
         index.html after an update
 - [ ] Add option to change from one page to two page view
   - Start as auto, based on portrait/landscape, and add forced options
-- [ ] navigate to next/previous book when moving to next/previous on first/last
+- [x] navigate to next/previous book when moving to next/previous on first/last
       page
 - [x] add keyboard nav to reader
 - [ ] add support for one page books

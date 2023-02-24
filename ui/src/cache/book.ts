@@ -8,7 +8,7 @@ setCacheHandler(book.list, async (req): Promise<Book[]> => {
     if (req.id !== undefined) {
         return DB.books.where('id').equals(req.id).toArray()
     }
-    let collection: Collection<Book, number> | undefined
+    let collection: Collection<Book, string> | undefined
     let beforeSort = Dexie.maxKey
     let afterSort: string | number = Dexie.minKey
 

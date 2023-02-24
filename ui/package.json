@@ -8,12 +8,13 @@
     "watch": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript --watch",
     "lint": "eslint ./src ./lib",
     "lint-fix": "eslint ./src ./lib --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@jest/globals": "^29.4.3",
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
     "@rollup/plugin-replace": "^3.0.0",
@@ -35,8 +36,10 @@
     "eslint-plugin-preact": "^0.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "fake-indexeddb": "^4.0.1",
     "favicons": "^6.2.2",
     "find": "^0.3.0",
+    "jest": "^29.4.3",
     "mustache": "^4.2.0",
     "postcss": "^8.4.5",
     "preact-render-to-string": "^5.1.19",
@@ -48,6 +51,7 @@
     "rollup-plugin-includepaths": "^0.2.4",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-postcss": "^4.0.1",
+    "ts-jest": "^29.0.5",
     "tslib": "^2.3.1",
     "typed-css-modules": "^0.7.0",
     "typescript": "^4.4.3"

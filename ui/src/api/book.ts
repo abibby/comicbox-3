@@ -30,36 +30,38 @@ export const list = allPagesFactory<DBBook, BookListRequest>(listPaged)
 export async function readingPaged(
     req: PaginatedRequest = {},
 ): Promise<PaginatedResponse<Book>> {
-    const books: PaginatedResponse<Book> = await apiFetch(
-        '/api/books/reading?' + encodeParams(req),
-    )
+    return await apiFetch('/api/books/reading?' + encodeParams(req))
+}
+export const reading = allPagesFactory<Book, PaginatedRequest>(readingPaged)
 
-    await Promise.all(
-        books.data.map(async readingBook => {
-            const seriesBooks = await DB.books
-                .where(['series', 'completed', 'sort'])
-                .between(
-                    [readingBook.series, 0, Dexie.minKey],
-                    [readingBook.series, 0, readingBook.sort],
-                )
-                .toArray()
-            for (const b of seriesBooks) {
-                await DB.saveBook(
-                    b,
-                    {
-                        user_book: {
-                            current_page: b.page_count,
-                        },
+export async function readingUpdateCache(): Promise<Book[]> {
+    const books = await reading({})
+
+    await DB.series.each(async s => {
+        const b = books.find(b => b.series === s.name)
+
+        const seriesBooks = await DB.books
+            .where(['series', 'completed', 'sort'])
+            .between(
+                [s.name, 0, Dexie.minKey],
+                [s.name, 0, b?.sort ?? Dexie.maxKey],
+            )
+            .toArray()
+        for (const b of seriesBooks) {
+            await DB.saveBook(
+                b,
+                {
+                    user_book: {
+                        current_page: b.page_count,
                     },
-                    false,
-                )
-            }
-        }),
-    )
+                },
+                false,
+            )
+        }
+    })
 
     return books
 }
-export const reading = allPagesFactory<Book, PaginatedRequest>(readingPaged)
 
 export interface BookUpdateRequest {
     title: string

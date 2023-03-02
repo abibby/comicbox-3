@@ -98,13 +98,13 @@ export function useCached<
                     items !== null &&
                     shouldPrompt(items, newItems))
             ) {
-                reload =
-                    (await prompt(
-                        'New ' + table.name,
-                        { reload: true },
-                        0,
-                        'reload-prompt',
-                    )) ?? false
+                const promptResult = await prompt(
+                    'New ' + table.name,
+                    { reload: true },
+                    0,
+                    'reload-prompt',
+                )
+                reload = promptResult ?? false
             }
 
             if (reload) {

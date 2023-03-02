@@ -25,7 +25,7 @@ export const Home: FunctionalComponent = () => {
 }
 
 export const Reading: FunctionalComponent = () => {
-    const books = useCached('reading', {}, DB.books, book.reading)
+    const books = useCached('reading', {}, DB.books, book.readingUpdateCache)
 
     if (books?.length === 0) {
         return (

@@ -53,7 +53,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 
 		ub.UserID = uid
 		ub.BookID = uuid.MustParse(req.BookID)
-		err = models.Save(r.Context(), ub, tx)
+		err = models.Save(r.Context(), tx, ub)
 		return errors.Wrap(err, "")
 	})
 	if err != nil {

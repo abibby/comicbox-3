@@ -21,7 +21,10 @@ export interface PaginatedResponse<T> {
 }
 
 export function encodeParams(
-    req: Record<string, string | number | boolean | undefined>,
+    req: Record<
+        string,
+        string | number | boolean | undefined | (string | number | boolean)[]
+    >,
 ): string {
     const u = new URLSearchParams()
 

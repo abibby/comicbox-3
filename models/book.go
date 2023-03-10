@@ -119,7 +119,7 @@ func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
 	s := &Series{}
 	err := Find(ctx, tx, s, b.Series)
 	if err == sql.ErrNoRows {
-		err = Save(ctx, &Series{Name: b.Series}, tx)
+		err = Save(ctx, tx, &Series{Name: b.Series})
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}

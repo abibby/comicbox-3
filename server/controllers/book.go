@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
@@ -28,6 +29,7 @@ import (
 
 type BookIndexRequest struct {
 	ID       *nulls.String `query:"id"        validate:"uuid"`
+	IDs      *nulls.String `query:"ids"`
 	Series   *nulls.String `query:"series"`
 	List     *models.List  `query:"list"`
 	BeforeID *nulls.String `query:"before_id" validate:"uuid"`
@@ -86,6 +88,18 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		)
 	}
 
+	if strIDs, ok := req.IDs.Ok(); ok {
+		ids := strings.Split(strIDs, ",")
+		args := make([]any, len(ids))
+		slots := make([]string, len(ids))
+		for i, id := range ids {
+			args[i] = id
+			slots[i] = "?"
+		}
+
+		query = query.Where(goqu.Literal(fmt.Sprintf("`id` in (%s)", strings.Join(slots, ", ")), args...))
+	}
+
 	if req.List != nil {
 		uid, ok := auth.UserID(r.Context())
 		if !ok {
@@ -104,16 +118,6 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 				),
 			),
 		)
-		// Join(
-		// 	goqu.T("user_series"),
-		// 	goqu.On(goqu.Ex{
-		// 		"user_series.series_name": goqu.I("books.series"),
-		// 		"user_series.user_id":     uid.String(),
-		// 	}),
-		// ).
-		// Where(
-		// 	goqu.C("user_series.list").Eq(req.List),
-		// )
 	}
 
 	index(rw, r, query, &models.BookList{}, afterExprs(r, false)...)
@@ -353,7 +357,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		models.Save(r.Context(), book, tx)
+		models.Save(r.Context(), tx, book)
 
 		err = models.AfterLoad(book, r.Context(), tx)
 		if err != nil {

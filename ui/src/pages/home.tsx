@@ -5,6 +5,7 @@ import { SeriesListRequest } from 'src/api/series'
 import { updateList, useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { DB, DBSeries } from 'src/database'
+import { useReadingBooks } from 'src/hooks/reading-books'
 
 export const Home: FunctionalComponent = () => {
     useEffect(() => {
@@ -25,7 +26,7 @@ export const Home: FunctionalComponent = () => {
 }
 
 export const Reading: FunctionalComponent = () => {
-    const books = useCached('reading', {}, DB.books, book.readingUpdateCache)
+    const books = useReadingBooks()
 
     if (books?.length === 0) {
         return (

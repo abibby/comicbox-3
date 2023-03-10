@@ -53,7 +53,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			us.List = req.List
 		}
 
-		return models.Save(r.Context(), us, tx)
+		return models.Save(r.Context(), tx, us)
 	})
 	if err != nil {
 		sendError(rw, err)

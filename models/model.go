@@ -119,7 +119,7 @@ func (bm *BaseModel) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	return nil
 }
 
-func Save(ctx context.Context, model Model, tx *sqlx.Tx) error {
+func Save(ctx context.Context, tx *sqlx.Tx, model Model) error {
 	err := BeforeSave(model, ctx, tx)
 	if err != nil {
 		return errors.Wrap(err, "failed to run before save hook")

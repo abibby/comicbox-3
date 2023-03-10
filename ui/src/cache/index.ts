@@ -118,7 +118,7 @@ export function useCached<
         cache(request).then(setItems)
         updateList(listName, request, table, network)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [setItems, listName, ...Object.values(request), table, network, cache])
+    }, [setItems, listName, JSON.stringify(request), table, network, cache])
 
     return items
 }

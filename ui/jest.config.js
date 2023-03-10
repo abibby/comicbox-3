@@ -5,6 +5,7 @@ module.exports = {
     moduleNameMapper: {
         'src/(.*)': '<rootDir>/src/$1',
         'res/(.*)': '<rootDir>/res/$1',
+        'helpers/(.*)': '<rootDir>/helpers/$1',
     },
     setupFiles: ['fake-indexeddb/auto'],
 }

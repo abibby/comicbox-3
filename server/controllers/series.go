@@ -82,7 +82,7 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			s.AnilistId = req.AnilistID
 		}
 
-		return models.Save(r.Context(), s, tx)
+		return models.Save(r.Context(), tx, s)
 	})
 	if err != nil {
 		sendError(rw, err)

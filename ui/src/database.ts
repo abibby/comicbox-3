@@ -40,7 +40,7 @@ export type DBSeries = Series &
         user_series: DBUserSeries | null
     }
 
-const emptySeries: Readonly<DBSeries> = {
+export const emptySeries: Readonly<DBSeries> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,
@@ -54,11 +54,12 @@ const emptySeries: Readonly<DBSeries> = {
         deleted_at: null,
         update_map: {},
         list: List.None,
+        latest_book_id: null,
     },
     anilist_id: null,
 }
 
-const emptyBook: Readonly<DBBook> = {
+export const emptyBook: Readonly<DBBook> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,

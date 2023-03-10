@@ -10,9 +10,10 @@ import (
 
 type UserSeries struct {
 	BaseModel
-	SeriesName string    `json:"-"    db:"series_name"`
-	UserID     uuid.UUID `json:"-"    db:"user_id"`
-	List       List      `json:"list" db:"list"`
+	SeriesName   string     `json:"-"              db:"series_name"`
+	UserID       uuid.UUID  `json:"-"              db:"user_id"`
+	List         List       `json:"list"           db:"list"`
+	LatestBookID *uuid.UUID `json:"latest_book_id" db:"latest_book_id"`
 }
 
 type List string

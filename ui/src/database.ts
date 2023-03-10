@@ -157,6 +157,32 @@ class AppDatabase extends Dexie {
                 setDirty,
             ),
         )
+        if (mod.user_book?.current_page) {
+            const seriesName = mod.series ?? b.series
+            const latestBook = await DB.books
+                .where(['series', 'completed', 'sort'])
+                .between(
+                    [seriesName, 0, Dexie.minKey],
+                    [seriesName, 0, Dexie.maxKey],
+                )
+                .first()
+
+            const s = await DB.series.get(seriesName)
+            if (s === undefined) {
+                return
+            }
+            console.log(latestBook?.sort)
+
+            await this.saveSeries(
+                s,
+                {
+                    user_series: {
+                        latest_book_id: latestBook?.id ?? null,
+                    },
+                },
+                false,
+            )
+        }
     }
 
     public async saveSeries(

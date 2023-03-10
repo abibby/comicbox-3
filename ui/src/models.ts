@@ -60,17 +60,17 @@ export interface UserSeries {
     latest_book_id: string | null
 }
 export enum PageType {
-    Deleted = 'Deleted',
-    FrontCover = 'FrontCover',
-    Spread = 'Spread',
-    SpreadSplit = 'SpreadSplit',
-    Story = 'Story',
+    Deleted = "Deleted",
+    FrontCover = "FrontCover",
+    Spread = "Spread",
+    SpreadSplit = "SpreadSplit",
+    Story = "Story",
 }
 export enum List {
-    Completed = 'completed',
-    Dropped = 'dropped',
-    None = '',
-    Paused = 'paused',
-    Planning = 'planning',
-    Reading = 'reading',
+    Completed = "completed",
+    Dropped = "dropped",
+    None = "",
+    Paused = "paused",
+    Planning = "planning",
+    Reading = "reading",
 }

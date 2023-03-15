@@ -129,6 +129,12 @@ class AppDatabase extends Dexie {
             return b
         })
         this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
+            if (
+                mod.series !== undefined ||
+                this.bookComplete(b, mod) !== this.bookComplete(b, {})
+            ) {
+                this.updateLatestChapter(b, mod)
+            }
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),
@@ -171,7 +177,6 @@ class AppDatabase extends Dexie {
             if (s === undefined) {
                 return
             }
-            console.log(latestBook?.sort)
 
             await this.saveSeries(
                 s,
@@ -262,6 +267,34 @@ class AppDatabase extends Dexie {
             return 0
         }
         return 1
+    }
+
+    private async updateLatestChapter(
+        b: DBBook,
+        mod: Modification<DBBook> = {},
+    ): Promise<void> {
+        if (mod.series !== undefined && b.series !== mod.series) {
+            await this.updateLatestChapterS(b.series)
+        }
+
+        await this.updateLatestChapterS(mod.series ?? b.series)
+    }
+
+    private async updateLatestChapterS(name: string) {
+        const s = await this.series.get(name)
+        if (s === undefined) {
+            return
+        }
+        const reading = await this.books
+            .where(['series', 'completed', 'sort'])
+            .between([s.name, 0, Dexie.minKey], [s.name, 0, Dexie.maxKey])
+            .first()
+
+        await this.saveSeries(
+            s,
+            { user_series: { latest_book_id: reading?.id ?? null } },
+            false,
+        )
     }
 
     public async fromNetwork<T extends DBSeries | DBBook>(

@@ -10,7 +10,7 @@ import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
-import { useResizeEffect } from 'src/hooks/resize-effect'
+import { useMediaQuery } from 'src/hooks/use-media-query'
 import { Book, Page } from 'src/models'
 import { Error404 } from 'src/pages/404'
 import styles from 'src/pages/book-view.module.css'
@@ -55,12 +55,13 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const page = props.page
     const rtl = b.rtl
 
-    const [landscape, setLandscape] = useState(
-        window.innerWidth > window.innerHeight,
-    )
-    useResizeEffect(() => {
-        setTimeout(() => setLandscape(window.innerWidth > window.innerHeight))
-    }, [])
+    // const [landscape, setLandscape] = useState(
+    //     window.innerWidth > window.innerHeight,
+    // )
+    const landscape = useMediaQuery('(orientation: landscape)')
+    // useResizeEffect(() => {
+    //     setTimeout(() => setLandscape(window.innerWidth > window.innerHeight))
+    // }, [])
 
     const pages = splitPages(b.pages, landscape)
     const pagesIndex = getPagesIndex(pages, page)

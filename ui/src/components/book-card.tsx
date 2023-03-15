@@ -9,6 +9,7 @@ import { DBBook } from 'src/database'
 import { useComputed } from 'src/hooks/computed'
 import { usePageURL } from 'src/hooks/page'
 import { post } from 'src/message'
+import { PageType } from 'src/models'
 import { route } from 'src/routes'
 
 interface BookProps {
@@ -63,13 +64,13 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
     const coverURL = usePageURL(book)
 
     const currentPage = book.user_book?.current_page ?? 0
-    const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
+    const pageCount = book.pages.filter(p => p.type !== PageType.Deleted).length
+    const progress = currentPage !== 0 ? currentPage / (pageCount - 1) : 0
 
     return (
         <Card
             image={coverURL}
             link={route('book.view', { id: book.id })}
-            // link={`/book/${encodeURIComponent(book.id)}`}
             title={book.series}
             subtitle={title}
             menu={menu}

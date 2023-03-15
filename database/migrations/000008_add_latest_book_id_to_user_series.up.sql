@@ -14,4 +14,4 @@ set latest_book_id = (
             and books.deleted_at is null
         order by sort
         limit 1
-    )
+    );

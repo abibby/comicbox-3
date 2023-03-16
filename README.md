@@ -8,4 +8,4 @@
 
 ComicBox is a free and open comic book reader. 
 
-![Home page light mode](.github/readme/home-light-mobile.png) ![Home page dark mode](.github/readme/home-dark-mobile.png) ![Home page desktop](.github/readme/home-light-desktop.png)
+<img src=".github/readme/home-light-mobile.png" width="20%"><img src=".github/readme/home-dark-mobile.png" width="20%"><img src=".github/readme/home-light-desktop.png" width="59%">

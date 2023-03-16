@@ -1,11 +1,11 @@
 # ComicBox
 
-## Development
+## Tagline
 
-### Migrations
+<!-- ![logo](ui/res/images/logo.svg) -->
 
-https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+[![Build](https://github.com/abibby/comicbox-3/actions/workflows/build.yml/badge.svg)](https://github.com/abibby/comicbox-3/actions/workflows/build.yml)
 
-```
-creating a migration migrate create -ext sql -dir database/migrations -seq migration_name
-```
+ComicBox is a free and open comic book reader. 
+
+![Home page light mode](.github/readme/home-light-mobile.png) ![Home page dark mode](.github/readme/home-dark-mobile.png) ![Home page desktop](.github/readme/home-light-desktop.png)

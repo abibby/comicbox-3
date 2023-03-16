@@ -74,3 +74,8 @@
         --alert-option: var(--primary);
     }
 }
+
+
+a {
+    color: rgb(var(--text-on-background));
+}

@@ -16,9 +16,19 @@ export const routes = {
                 .catch(handleError),
     },
     list: {
-        path: '/list',
+        path: '/list/:list',
         component: () =>
             import('./pages/lists').then(p => p.List).catch(handleError),
+    },
+    search: {
+        path: '/search',
+        component: () =>
+            import('./pages/search').then(p => p.Search).catch(handleError),
+    },
+    library: {
+        path: '/library',
+        component: () =>
+            import('./pages/library').then(p => p.Library).catch(handleError),
     },
     'series.index': {
         path: '/series',
@@ -88,7 +98,7 @@ export function route<T extends keyof typeof routes>(
 ): string {
     const route = routes[name]
     let path: string = route.path
-    for (const [key, value] of Object.entries(args)) {
+    for (const [key, value] of Object.entries(args ?? {})) {
         path = path.replace(`:${key}`, encodeURIComponent(String(value)))
     }
     path = path.replace(/\/:[^/]+\?/, '')

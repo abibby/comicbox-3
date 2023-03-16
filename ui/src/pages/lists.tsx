@@ -1,28 +1,33 @@
 import { FunctionalComponent, h } from 'preact'
 import { series } from 'src/api'
-import { listNames } from 'src/api/series'
+import { listNamesMap } from 'src/api/series'
 import { useCached } from 'src/cache'
 import { SeriesList } from 'src/components/series-list'
 import { DB } from 'src/database'
+import { List as LList } from 'src/models'
+import { Error404 } from 'src/pages/404'
 
-export const List: FunctionalComponent = () => {
-    const lists = listNames.map(
-        ([list, listName]) =>
-            [
-                listName,
-                // eslint-disable-next-line react-hooks/rules-of-hooks
-                useCached(list, { list: list }, DB.series, series.list),
-            ] as const,
-    )
+interface ListsProps {
+    matches: {
+        list: string
+    }
+}
+export const List: FunctionalComponent<ListsProps> = props => {
+    const list = props.matches.list
+    const s = useCached(list, { list: list }, DB.series, series.list)
+
+    if (!isList(list)) {
+        return <Error404 />
+    }
 
     return (
         <div>
-            {lists.map(([list, items]) => (
-                <div key={list}>
-                    <h1>{list}</h1>
-                    <SeriesList series={items ?? []} />
-                </div>
-            ))}
+            <h1>{listNamesMap.get(list)}</h1>
+            <SeriesList series={s ?? []} />
         </div>
     )
+}
+
+function isList(v: unknown): v is LList {
+    return Object.values(LList).includes(v as LList)
 }

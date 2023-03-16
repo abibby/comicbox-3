@@ -1,0 +1,8 @@
+.input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 1em;
+    color: rgb(var(--text-on-surface));
+    background-color: rgb(var(--surface));
+}

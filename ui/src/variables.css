@@ -37,13 +37,13 @@
     --primary: 33, 150, 243;
     --text-on-primary: 255, 255, 255;
 
-    --surface: 0, 0, 0;
+    --surface: 60, 60, 60;
     --surface-hover: 200, 200, 200, 0.3;
-    --text-on-surface: 200, 200, 200;
+    --text-on-surface: 255, 255, 255;
     --surface-box-shadow: none;
 
-    --background: 60, 60, 60;
-    --text-on-background: 255, 255, 255;
+    --background: 0, 0, 0;
+    --text-on-background: 200, 200, 200;
     --light-text: 150, 150, 150;
 
     --reading-background: 0, 0, 0;
@@ -74,7 +74,6 @@
         --alert-option: var(--primary);
     }
 }
-
 
 a {
     color: rgb(var(--text-on-background));

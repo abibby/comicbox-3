@@ -33,15 +33,12 @@ export const Shell: FunctionalComponent = props => {
                         img={library}
                         link={route('library', {})}
                     />
-                    {/* <MenuItem title='Lists' img={list} link='/list' />
-                    <MenuItem title='Series' img={book} link='/series' /> */}
                     <MenuItem
                         title='Settings'
                         img={settings}
                         link={route('settings', {})}
                     />
                 </ul>
-                {/* <div class={styles.background} /> */}
             </nav>
             {props.children ?? <div class={styles.empty} />}
         </div>

@@ -37,13 +37,13 @@ export function encodeParams(
     return u.toString()
 }
 
-export interface AllPagesRequest {
+export type AllPagesRequest<T> = T & {
     limit?: number
 }
 
 export async function allPages<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
-    req: TRequest & AllPagesRequest,
+    req: AllPagesRequest<TRequest>,
 ): Promise<T[]> {
     const items: T[] = []
     let page = 1
@@ -69,7 +69,7 @@ export async function allPages<T, TRequest extends PaginatedRequest>(
 
 export function allPagesFactory<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
-): (req: TRequest & AllPagesRequest) => Promise<T[]> {
+): (req: AllPagesRequest<TRequest>) => Promise<T[]> {
     return req => allPages(callback, req)
 }
 

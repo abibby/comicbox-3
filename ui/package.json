@@ -63,6 +63,7 @@
     "classnames": "^2.3.1",
     "dexie": "^3.0.3",
     "event-target-shim": "^6.0.2",
+    "fuse.js": "^6.6.2",
     "idb-keyval": "^6.0.3",
     "lodash.chunk": "^4.2.0",
     "preact": "^10.5.14",

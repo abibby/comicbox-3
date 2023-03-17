@@ -5,15 +5,17 @@ import {
     PaginatedRequest,
     PaginatedResponse,
 } from 'src/api/internal'
-import { Series } from 'src/models'
+import { List, Series } from 'src/models'
 
-export const listNames = [
-    ['reading', 'Reading'],
-    ['paused', 'Paused'],
-    ['dropped', 'Dropped'],
-    ['completed', 'Completed'],
-    ['planning', 'Planning'],
-] as const
+export const listNames: [List, string][] = [
+    [List.Reading, 'Reading'],
+    [List.Paused, 'Paused'],
+    [List.Dropped, 'Dropped'],
+    [List.Completed, 'Completed'],
+    [List.Planning, 'Planning'],
+]
+
+export const listNamesMap = new Map<List, string>(listNames)
 
 export type SeriesListRequest = PaginatedRequest & {
     name?: string

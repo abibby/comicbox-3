@@ -1,8 +1,7 @@
 {
     "name": "ComicBox",
     "short_name": "ComicBox",
-    "description": "ComicBox is a web server designed to allow you to read a digital comic collection where ever you are",
-    "orientation": "any",
+    "description": "ComicBox is a web server that allows you to read your digital comic collection where ever you are",
     "display": "standalone",
     "start_url": "/",
     "theme_color": "#2196F3",

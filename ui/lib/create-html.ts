@@ -37,16 +37,11 @@ export default function createHTMLPlugin(options: Options): Plugin {
                 readFile(manifestPath).then(f => JSON.parse(f.toString())),
             ])
             const faviconOptions: Partial<FaviconOptions> = {
+                ...manifest,
                 background: manifest.background_color,
                 appDescription: manifest.description,
-                dir: manifest.dir,
-                display: manifest.display,
-                lang: manifest.lang,
                 appName: manifest.name,
-                scope: manifest.scope,
                 appShortName: manifest.short_name,
-                start_url: manifest.start_url,
-                theme_color: manifest.theme_color,
                 appleStatusBarStyle: 'default',
             }
             const faviconsPromise = generateFavicons(iconPath, {

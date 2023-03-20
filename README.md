@@ -1,6 +1,6 @@
 # ComicBox
 
-## Tagline
+## Easy access to your digital comic collection
 
 <!-- ![logo](ui/res/images/logo.svg) -->
 

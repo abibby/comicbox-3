@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -60,7 +61,7 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 			return validate.NewValidationError().
 				Push("username", []error{fmt.Errorf("username is already in use")})
 		}
-		return models.Save(r.Context(), u, tx)
+		return bob.SaveContext(r.Context(), tx, u)
 	})
 	if err != nil {
 		sendError(rw, err)

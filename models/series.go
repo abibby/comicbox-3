@@ -2,10 +2,11 @@ package models
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
-	"github.com/abibby/comicbox-3/server/auth"
+	"github.com/abibby/bob"
+	"github.com/abibby/bob/hooks"
+	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
@@ -14,21 +15,25 @@ import (
 
 type Series struct {
 	BaseModel
-	Name               string      `json:"name"          db:"name"`
-	CoverURL           string      `json:"cover_url"     db:"-"`
-	FirstBookID        *uuid.UUID  `json:"first_book_id" db:"first_book_id"`
-	FirstBookCoverPage int         `json:"-"             db:"first_book_cover_page"`
-	UserSeries         *UserSeries `json:"user_series"   db:"-"`
-	AnilistId          *nulls.Int  `json:"anilist_id"    db:"anilist_id"`
+	Name               string                       `json:"name"             db:"name,primary"`
+	CoverURL           string                       `json:"cover_url"        db:"-"`
+	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
+	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`
+	AnilistId          *nulls.Int                   `json:"anilist_id"       db:"anilist_id"`
+	UserSeries         *selects.HasOne[*UserSeries] `json:"user_series"      db:"-"`
 }
 
-var _ BeforeSaver = &Series{}
-var _ AfterLoader = &Series{}
+func SeriesQuery() *selects.Builder[*Series] {
+	return bob.From[*Series]()
+}
+
+var _ hooks.BeforeSaver = &Series{}
+var _ hooks.AfterLoader = &Series{}
 var _ Model = &Series{}
 
-type SeriesList []*Series
+// type SeriesList []*Series
 
-var _ AfterLoader = SeriesList{}
+// var _ hooks.AfterLoader = SeriesList{}
 
 func (s *Series) Model() *BaseModel {
 	return &s.BaseModel
@@ -41,15 +46,11 @@ func (*Series) PrimaryKey() string {
 }
 
 func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
-	b := &Book{}
-	err := tx.Get(b, "select * from books where series = ? order by sort limit 1", s.Name)
-	if err == sql.ErrNoRows {
-		s.FirstBookID = nil
-	} else if err != nil {
-		return err
-	}
-
-	err = AfterLoad(b, ctx, tx)
+	b, err := BookQuery().
+		Where("series", "=", s.Name).
+		OrderBy("sort").
+		Limit(1).
+		FirstContext(ctx, tx)
 	if err != nil {
 		return err
 	}
@@ -57,6 +58,9 @@ func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if b != nil {
 		s.FirstBookID = &b.ID
 		s.FirstBookCoverPage = b.CoverPage()
+	} else {
+		s.FirstBookID = nil
+		s.FirstBookCoverPage = 0
 	}
 	return nil
 }
@@ -68,12 +72,12 @@ func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	return nil
 }
 
-func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if uid, ok := auth.UserID(ctx); ok {
-		err := LoadUserSeries(tx, sl, uid)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
+// 	if uid, ok := auth.UserID(ctx); ok {
+// 		err := LoadUserSeries(tx, sl, uid)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }

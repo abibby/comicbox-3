@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/abibby/comicbox-3/server/auth"
+	"github.com/abibby/bob"
+	"github.com/abibby/bob/hooks"
+	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
@@ -42,40 +44,35 @@ const (
 
 type Book struct {
 	BaseModel
-	ID          uuid.UUID      `json:"id"         db:"id"`
-	Title       string         `json:"title"      db:"title"`
-	Chapter     *nulls.Float64 `json:"chapter"    db:"chapter"`
-	Volume      *nulls.Float64 `json:"volume"     db:"volume"`
-	Series      string         `json:"series"     db:"series"`
-	Authors     []string       `json:"authors"    db:"-"`
-	RawAuthors  []byte         `json:"-"          db:"authors"`
-	Pages       []*Page        `json:"pages"      db:"-"`
-	RawPages    []byte         `json:"-"          db:"pages"`
-	PageCount   int            `json:"page_count" db:"page_count"`
-	RightToLeft bool           `json:"rtl"        db:"rtl"`
-	Sort        string         `json:"sort"       db:"sort"`
-	File        string         `json:"file"       db:"file"`
-	CoverURL    string         `json:"cover_url"  db:"-"`
-	UserBook    *UserBook      `json:"user_book"  db:"-"`
+	ID          uuid.UUID                   `json:"id"                db:"id,primary"`
+	Title       string                      `json:"title"             db:"title"`
+	Chapter     *nulls.Float64              `json:"chapter"           db:"chapter"`
+	Volume      *nulls.Float64              `json:"volume"            db:"volume"`
+	Series      string                      `json:"series"            db:"series"`
+	Authors     []string                    `json:"authors"           db:"-"`
+	RawAuthors  []byte                      `json:"-"                 db:"authors"`
+	Pages       []*Page                     `json:"pages"             db:"-"`
+	RawPages    []byte                      `json:"-"                 db:"pages"`
+	PageCount   int                         `json:"page_count"        db:"page_count"`
+	RightToLeft bool                        `json:"rtl"               db:"rtl"`
+	Sort        string                      `json:"sort"              db:"sort"`
+	File        string                      `json:"file"              db:"file"`
+	CoverURL    string                      `json:"cover_url"         db:"-"`
+	UserBook    *selects.HasOne[*UserBook]  `json:"user_book"         db:"-"`
+	SeriesModel *selects.BelongsTo[*Series] `json:"-"                 db:"-"`
 }
 
-var _ BeforeSaver = &Book{}
-var _ AfterSaver = &Book{}
-var _ AfterLoader = &Book{}
-
-type BookList []*Book
-
-var _ AfterLoader = BookList{}
-
-func (b *Book) Model() *BaseModel {
-	return &b.BaseModel
+func BookQuery() *selects.Builder[*Book] {
+	return bob.From[*Book]()
 }
-func (*Book) Table() string {
-	return "books"
-}
-func (*Book) PrimaryKey() string {
-	return "id"
-}
+
+var _ hooks.BeforeSaver = &Book{}
+var _ hooks.AfterSaver = &Book{}
+var _ hooks.AfterLoader = &Book{}
+
+// type BookList []*Book
+
+// var _ hooks.AfterLoader = BookList{}
 
 func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if b.Authors == nil {
@@ -116,10 +113,9 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	s := &Series{}
-	err := Find(ctx, tx, s, b.Series)
+	_, err := SeriesQuery().Where("name", "=", b.Series).FirstContext(ctx, tx)
 	if err == sql.ErrNoRows {
-		err = Save(ctx, &Series{Name: b.Series}, tx)
+		err = bob.SaveContext(ctx, tx, &Series{Name: b.Series})
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}
@@ -161,12 +157,12 @@ func (b *Book) CoverPage() int {
 	return fallback
 }
 
-func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if uid, ok := auth.UserID(ctx); ok {
-		err := LoadUserBooks(tx, bl, uid)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
+// func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
+// 	if uid, ok := auth.UserID(ctx); ok {
+// 		err := LoadUserBooks(tx, bl, uid)
+// 		if err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }

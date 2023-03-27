@@ -33,8 +33,8 @@ export interface Series {
     name: string
     cover_url: string
     first_book_id: string | null
-    user_series: UserSeries | null
     anilist_id: number | null
+    user_series: UserSeries | null
 }
 export interface User {
     created_at: string

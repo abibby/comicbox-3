@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
@@ -36,24 +37,23 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 	us := &models.UserSeries{}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		err = tx.Get(us, "select * from user_series where user_id = ? and series_name = ? limit 1", uid, req.SeriesName)
+		var err error
+		us, err = models.UserSeriesQuery().
+			Where("series_name", "=", req.SeriesName).
+			Where("user_id", "=", uid).
+			FirstContext(r.Context(), tx)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
-			return errors.Wrap(err, "failed to retrieve user series from the database")
+			return errors.Wrap(err, "failed to retrieve user book from the database")
 		}
-		err = models.AfterLoad(us, r.Context(), tx)
-		if err != nil {
-			return errors.Wrap(err, "failed to run after load hooks")
-		}
-
-		us.UserID = uid
-		us.SeriesName = req.SeriesName
-
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {
 			us.List = req.List
 		}
 
-		return models.Save(r.Context(), us, tx)
+		us.UserID = uid
+		us.SeriesName = req.SeriesName
+		err = bob.SaveContext(r.Context(), tx, us)
+		return errors.Wrap(err, "")
 	})
 	if err != nil {
 		sendError(rw, err)

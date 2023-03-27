@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -60,7 +61,9 @@ func getUser(r *http.Request) (*models.User, error) {
 	u := &models.User{}
 
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		return models.Find(r.Context(), tx, u, userID.String())
+		var err error
+		u, err = models.UserQuery().FindContext(r.Context(), tx, userID.String())
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -104,15 +107,14 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		u := &models.User{}
-		err := models.Find(r.Context(), tx, u, userID.String())
+		u, err := models.UserQuery().FindContext(r.Context(), tx, userID.String())
 		if err != nil {
 			return err
 		}
 
 		u.AnilistGrant = nulls.NewString(req.Grant)
 
-		return models.Save(r.Context(), u, tx)
+		return bob.SaveContext(r.Context(), tx, u)
 	})
 	_, err = anilistLogin(r, userID.String())
 	if err != nil {
@@ -128,7 +130,8 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 	u := &models.User{}
 	err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		err := models.Find(r.Context(), tx, u, userID)
+		var err error
+		u, err = models.UserQuery().FindContext(r.Context(), tx, userID)
 		if err != nil {
 			return err
 		}
@@ -162,7 +165,7 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 		expiresAt := time.Now().Add(time.Second * time.Duration(tokenResp.ExpiresIn))
 		u.AnilistExpiresAt = (*database.Time)(&expiresAt)
 
-		return models.Save(r.Context(), u, tx)
+		return bob.SaveContext(r.Context(), tx, u)
 	})
 	if err != nil {
 		return nil, err

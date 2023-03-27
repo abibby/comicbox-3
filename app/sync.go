@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -101,7 +102,7 @@ func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	}
 	book.ID = uuid.New()
 
-	return models.Save(ctx, book, tx)
+	return bob.SaveContext(ctx, tx, book)
 }
 
 func loadBookData(file string) (*models.Book, error) {

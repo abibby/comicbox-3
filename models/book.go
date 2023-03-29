@@ -16,10 +16,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type BasePage struct {
+	Type PageType `json:"type"`
+}
 type Page struct {
-	URL          string   `json:"url"`
-	ThumbnailURL string   `json:"thumbnail_url"`
-	Type         PageType `json:"type"`
+	BasePage
+	URL          string `json:"url"`
+	ThumbnailURL string `json:"thumbnail_url"`
 }
 
 type PageType string
@@ -82,14 +85,13 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if err != nil {
 		return err
 	}
-
-	if b.Pages == nil {
-		b.Pages = []*Page{}
+	basePages := make([]*BasePage, len(b.Pages))
+	if b.Pages != nil {
+		for i, page := range b.Pages {
+			basePages[i] = &page.BasePage
+		}
 	}
-	for _, page := range b.Pages {
-		page.URL = ""
-	}
-	err = marshal(&b.RawPages, b.Pages)
+	err = marshal(&b.RawPages, basePages)
 	if err != nil {
 		return err
 	}
@@ -113,7 +115,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	_, err := SeriesQuery().Where("name", "=", b.Series).FirstContext(ctx, tx)
+	_, err := SeriesQuery().FindContext(ctx, tx, b.Series)
 	if err == sql.ErrNoRows {
 		err = bob.SaveContext(ctx, tx, &Series{Name: b.Series})
 		if err != nil {
@@ -141,6 +143,7 @@ func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 		page.URL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
 		page.ThumbnailURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
 	}
+
 	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
 	return nil
 }

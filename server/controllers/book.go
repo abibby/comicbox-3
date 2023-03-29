@@ -24,6 +24,7 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -315,7 +316,6 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		book, err = models.BookQuery().FindContext(r.Context(), tx, req.ID)
-		err = tx.Get(book, "select * from books where id = ?", req.ID)
 		if err != nil {
 			return err
 		}
@@ -347,7 +347,10 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		return bob.SaveContext(r.Context(), tx, book)
+		spew.Dump(book.Pages[0].URL)
+		err = bob.SaveContext(r.Context(), tx, book)
+		spew.Dump(book.Pages[0].URL)
+		return err
 	})
 	if err != nil {
 		sendError(rw, err)

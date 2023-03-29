@@ -138,7 +138,7 @@ func loadBookData(file string) (*models.Book, error) {
 			f.Close()
 		}
 		tmpPages[i] = &models.Page{
-			Type: typ,
+			BasePage: models.BasePage{Type: typ},
 		}
 	}
 	book.Pages = tmpPages

@@ -3,7 +3,7 @@ module github.com/abibby/comicbox-3
 go 1.18
 
 require (
-	github.com/abibby/bob v0.5.0
+	github.com/abibby/bob v0.5.1
 	github.com/abibby/nulls v1.1.0
 	github.com/adhocore/gronx v0.2.5
 	github.com/cheggaaa/pb/v3 v3.0.8
@@ -40,7 +40,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/stoewer/go-strcase v1.2.1 // indirect
+	github.com/stoewer/go-strcase v1.3.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect

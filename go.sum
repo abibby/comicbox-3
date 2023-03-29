@@ -81,6 +81,8 @@ github.com/abibby/bob v0.4.4 h1:jkdkbh69dZOq2YB2PxWRV2q5SpIYouh6HQxA7NSNEj8=
 github.com/abibby/bob v0.4.4/go.mod h1:CvKW9WKwT6Cev+XE135eVtnQz3hSfRDtI96wEYjYDTM=
 github.com/abibby/bob v0.5.0 h1:2qtRAp94RW8khPWWem9+pGxWDtzIU7U5GgV1gcOmz3Y=
 github.com/abibby/bob v0.5.0/go.mod h1:CvKW9WKwT6Cev+XE135eVtnQz3hSfRDtI96wEYjYDTM=
+github.com/abibby/bob v0.5.1 h1:Q5q2wmnZVJNMFFDQEugcia8PfP+XVi6vLgFR0rPEfBM=
+github.com/abibby/bob v0.5.1/go.mod h1:CvKW9WKwT6Cev+XE135eVtnQz3hSfRDtI96wEYjYDTM=
 github.com/abibby/nulls v1.1.0 h1:uGxt4HRs6XHqO0mnqfUZcDNiiVzN8sH66daUd5g0EIE=
 github.com/abibby/nulls v1.1.0/go.mod h1:Nm6/cK/PYDg+RwGRv5/nAXGJZfu4nGHFp201Dg1HKWQ=
 github.com/adhocore/gronx v0.2.5 h1:trVgNYPle0IcsGDt0XGz78zN8Soek0YrcQtQ+Cs+jko=
@@ -485,6 +487,8 @@ github.com/spf13/cobra v0.0.3/go.mod h1:1l0Ry5zgKvJasoi3XT1TypsSe7PqH0Sj9dhYf7v3
 github.com/spf13/pflag v1.0.3/go.mod h1:DYY7MBk1bdzusC3SYhjObp+wFpr4gzcvqqNjLnInEg4=
 github.com/stoewer/go-strcase v1.2.1 h1:/1JWd+AcWPzkcGLEmjUCka99YqGOtTnp1H/wcP+uap4=
 github.com/stoewer/go-strcase v1.2.1/go.mod h1:fAH5hQ5pehh+j3nZfvwdk2RgEgQjAoM8wodgtPmh1xo=
+github.com/stoewer/go-strcase v1.3.0 h1:g0eASXYtp+yvN9fK8sH94oCIk0fau9uV1/ZdJ0AVEzs=
+github.com/stoewer/go-strcase v1.3.0/go.mod h1:fAH5hQ5pehh+j3nZfvwdk2RgEgQjAoM8wodgtPmh1xo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=

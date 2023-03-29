@@ -21,9 +21,9 @@ export interface Book {
     user_book: UserBook | null
 }
 export interface Page {
+    type: PageType
     url: string
     thumbnail_url: string
-    type: PageType
 }
 export interface Series {
     created_at: string

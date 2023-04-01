@@ -3,9 +3,9 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/abibby/bob"
-	"github.com/abibby/bob/builder"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -35,25 +35,23 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where("name", "=", name)
 	}
-
-	if uid, ok := auth.UserID(r.Context()); ok {
+	uid, uidOk := auth.UserID(r.Context())
+	if uidOk {
 		if list, ok := req.List.Ok(); ok {
-			query = query.Where("", "", builder.Raw("(select list from user_series where series_name=series.name and user_id=?)=?", uid, list))
+			query = query.WhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+				return q.Where("user_id", "=", uid).Where("list", "=", list)
+			})
 		}
 	}
 
-	wl := selects.NewWhereList()
-	uid, ok := auth.UserID(r.Context())
-	if ok {
-		wl.Where("updated_at", ">",
-			models.UserSeriesQuery().
-				Select("upated_at").
-				WhereColumn("series_name", "=", "series.name").
-				Where("user_id", "=", uid),
-		)
-	}
-
-	index(rw, r, query, wl)
+	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *time.Time) {
+		if !uidOk {
+			return
+		}
+		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+			return q.Where("user_id", "=", uid).Where("updated_at", ">=", updatedAfter)
+		})
+	})
 }
 
 type SeriesUpdateRequest struct {
@@ -75,7 +73,6 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		s, err = models.SeriesQuery().FindContext(r.Context(), tx, req.Name)
-		// err := models.Find(r.Context(), tx, s, req.Name)
 		if err == sql.ErrNoRows {
 			return Err404
 		} else if err != nil {

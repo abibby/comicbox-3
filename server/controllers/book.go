@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
@@ -24,7 +25,6 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -118,7 +118,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		// )
 	}
 
-	index(rw, r, query, afterExprs(r, false))
+	index(rw, r, query, updatedAfter(r.Context(), false))
 }
 
 type BookPageRequest struct {
@@ -249,7 +249,7 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 	query := models.BookQuery().
 		Where("id", "in", builder.Raw(seriesQuery, uid))
 
-	index(rw, r, query, afterExprs(r, true))
+	index(rw, r, query, updatedAfter(r.Context(), true))
 }
 
 func BookList(rw http.ResponseWriter, r *http.Request) {
@@ -286,7 +286,7 @@ func BookList(rw http.ResponseWriter, r *http.Request) {
 	query := models.BookQuery().
 		Where("id", "in", builder.Raw(seriesQuery, uid, uid))
 
-	index(rw, r, query, afterExprs(r, true))
+	index(rw, r, query, updatedAfter(r.Context(), true))
 }
 
 type BookUpdateRequest struct {
@@ -347,10 +347,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		spew.Dump(book.Pages[0].URL)
-		err = bob.SaveContext(r.Context(), tx, book)
-		spew.Dump(book.Pages[0].URL)
-		return err
+		return bob.SaveContext(r.Context(), tx, book)
 	})
 	if err != nil {
 		sendError(rw, err)
@@ -359,29 +356,20 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, book)
 }
 
-func afterExprs(r *http.Request, withSeries bool) *selects.WhereList {
-	wl := selects.NewWhereList()
-
-	if uid, ok := auth.UserID(r.Context()); ok {
-		wl.OrWhere(
-			"updated_at",
-			">=",
-			models.UserBookQuery().
-				Select("updated_at").
-				WhereColumn("book_id", "=", "books.id").
-				Where("user_id", "=", uid),
-		)
-		if withSeries {
-			wl.OrWhere(
-				"updated_at",
-				">=",
-				models.UserSeriesQuery().
-					Select("updated_at").
-					WhereColumn("series_name", "=", "books.series").
-					Where("user_id", "=", uid),
-			)
+func updatedAfter(ctx context.Context, withSeries bool) func(wl *selects.WhereList, updatedAfter *time.Time) {
+	return func(wl *selects.WhereList, updatedAfter *time.Time) {
+		if uid, ok := auth.UserID(ctx); ok {
+			wl.OrWhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
+				return q.Where("user_id", "=", uid).Where("updated_at", ">=", updatedAfter)
+			})
+			if withSeries {
+				wl.OrWhereExists(
+					models.UserSeriesQuery().
+						WhereColumn("series_name", "=", "books.series").
+						Where("user_id", "=", uid).
+						Where("updated_at", ">=", updatedAfter),
+				)
+			}
 		}
 	}
-
-	return wl
 }

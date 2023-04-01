@@ -55,8 +55,6 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
-github.com/abibby/bob v0.7.1 h1:705GfR/HIqSGes8mST772UE/X+FxIWDW3u9B7VKcJqE=
-github.com/abibby/bob v0.7.1/go.mod h1:CvKW9WKwT6Cev+XE135eVtnQz3hSfRDtI96wEYjYDTM=
 github.com/abibby/bob v0.8.0 h1:Tf/Pwx/xSKi8btxdZ9nyAs3PQvE5Fwqbkeyku2kE6vg=
 github.com/abibby/bob v0.8.0/go.mod h1:CvKW9WKwT6Cev+XE135eVtnQz3hSfRDtI96wEYjYDTM=
 github.com/abibby/nulls v1.1.0 h1:uGxt4HRs6XHqO0mnqfUZcDNiiVzN8sH66daUd5g0EIE=

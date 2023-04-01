@@ -6,6 +6,7 @@ require (
 	github.com/abibby/bob v0.8.0
 	github.com/abibby/nulls v1.1.0
 	github.com/adhocore/gronx v0.2.5
+	github.com/davecgh/go-spew v1.1.1
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
 	github.com/golang-jwt/jwt/v4 v4.1.0
 	github.com/golang-migrate/migrate/v4 v4.15.0
@@ -22,7 +23,6 @@ require (
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect

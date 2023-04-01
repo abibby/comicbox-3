@@ -9,6 +9,7 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -53,10 +54,15 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		count := 0
-		err = tx.Get(&count, "select count(*) from users where username = ? or id = ?", u.Username, u.ID)
+		err = models.UserQuery().
+			SelectFunction("count", "*").
+			Where("username", "=", u.Username).
+			OrWhere("id", "=", u.ID).Dump().
+			LoadOneContext(r.Context(), tx, &count)
 		if err != nil {
 			return err
 		}
+		spew.Dump(count)
 		if count > 0 {
 			return validate.NewValidationError().
 				Push("username", []error{fmt.Errorf("username is already in use")})

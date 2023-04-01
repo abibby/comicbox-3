@@ -30,7 +30,8 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	query := models.SeriesQuery().
-		OrderBy("name")
+		OrderBy("name").
+		With("UserSeries")
 
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where("name", "=", name)

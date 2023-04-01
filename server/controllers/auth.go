@@ -46,9 +46,13 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := &models.User{}
+	var u *models.User
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		return tx.Get(u, "select * from users where lower(username) = ? limit 1", strings.ToLower(req.Username))
+		var err error
+		u, err = models.UserQuery().
+			WhereRaw("lower(username) = ?", strings.ToLower(req.Username)).
+			First(tx)
+		return err
 	})
 	if err == sql.ErrNoRows {
 		sendError(rw, ErrUnauthorized)
@@ -83,9 +87,11 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := &models.User{}
+	var u *models.User
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		return tx.Get(u, "select * from users where id = ? limit 1", uid)
+		var err error
+		u, err = models.UserQuery().FindContext(r.Context(), tx, uid)
+		return err
 	})
 	if err != nil {
 		sendError(rw, err)

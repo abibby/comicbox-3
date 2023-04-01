@@ -186,9 +186,11 @@ func BookThumbnail(rw http.ResponseWriter, r *http.Request) {
 }
 
 func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, error) {
-	book := &models.Book{}
+	var book *models.Book
 	err := database.ReadTx(ctx, func(tx *sqlx.Tx) error {
-		return tx.Get(book, "select * from books where id = ?", id)
+		var err error
+		book, err = models.BookQuery().FindContext(ctx, tx, id)
+		return err
 	})
 	if err != nil {
 		return nil, err

@@ -23,17 +23,19 @@ type Series struct {
 	UserSeries         *selects.HasOne[*UserSeries] `json:"user_series"      db:"-"`
 }
 
-func SeriesQuery() *selects.Builder[*Series] {
-	return bob.From[*Series]()
+func SeriesQuery(ctx context.Context) *selects.Builder[*Series] {
+	return bob.From[*Series]().WithContext(ctx)
 }
 
 var _ hooks.BeforeSaver = &Series{}
 var _ hooks.AfterLoader = &Series{}
-var _ Model = &Series{}
+var _ bob.Scoper = &Series{}
 
-// type SeriesList []*Series
-
-// var _ hooks.AfterLoader = SeriesList{}
+func (b *Series) Scopes() []*bob.Scope {
+	return []*bob.Scope{
+		bob.SoftDeletes,
+	}
+}
 
 func (s *Series) Model() *BaseModel {
 	return &s.BaseModel
@@ -46,11 +48,11 @@ func (*Series) PrimaryKey() string {
 }
 
 func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
-	b, err := BookQuery().
+	b, err := BookQuery(ctx).
 		Where("series", "=", s.Name).
 		OrderBy("sort").
 		Limit(1).
-		FirstContext(ctx, tx)
+		First(tx)
 	if err != nil {
 		return err
 	}
@@ -71,13 +73,3 @@ func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 	}
 	return nil
 }
-
-// func (sl SeriesList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-// 	if uid, ok := auth.UserID(ctx); ok {
-// 		err := LoadUserSeries(tx, sl, uid)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }

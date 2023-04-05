@@ -18,7 +18,6 @@ func UserID(ctx context.Context) (uuid.UUID, bool) {
 	return userID, ok
 }
 
-func SetUserID(r *http.Request, uid uuid.UUID) {
-	newRequest := r.WithContext(context.WithValue(r.Context(), "user-id", uid))
-	*r = *newRequest
+func SetUserID(r *http.Request, uid uuid.UUID) *http.Request {
+	return r.WithContext(context.WithValue(r.Context(), "user-id", uid))
 }

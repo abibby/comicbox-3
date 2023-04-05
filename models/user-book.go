@@ -1,6 +1,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
 	"github.com/google/uuid"
@@ -13,6 +15,15 @@ type UserBook struct {
 	CurrentPage int       `json:"current_page" db:"current_page"`
 }
 
-func UserBookQuery() *selects.Builder[*UserBook] {
-	return bob.From[*UserBook]()
+func UserBookQuery(ctx context.Context) *selects.Builder[*UserBook] {
+	return bob.From[*UserBook]().WithContext(ctx)
+}
+
+var _ bob.Scoper = &UserBook{}
+
+func (b *UserBook) Scopes() []*bob.Scope {
+	return []*bob.Scope{
+		bob.SoftDeletes,
+		UserScoped,
+	}
 }

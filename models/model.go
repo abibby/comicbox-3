@@ -73,17 +73,6 @@ func IsEnumValid(enum Enum, value string) bool {
 	return false
 }
 
-// type BeforeSaver interface {
-// 	BeforeSave(ctx context.Context, tx *sqlx.Tx) error
-// }
-// type AfterSaver interface {
-// 	AfterSave(ctx context.Context, tx *sqlx.Tx) error
-// }
-
-// type AfterLoader interface {
-// 	AfterLoad(ctx context.Context, tx *sqlx.Tx) error
-// }
-
 func marshal(raw *[]byte, v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {

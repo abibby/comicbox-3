@@ -62,7 +62,7 @@ func getUser(r *http.Request) (*models.User, error) {
 
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery().FindContext(r.Context(), tx, userID.String())
+		u, err = models.UserQuery(r.Context()).Find(tx, userID.String())
 		return err
 	})
 	if err != nil {
@@ -107,7 +107,7 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		u, err := models.UserQuery().FindContext(r.Context(), tx, userID.String())
+		u, err := models.UserQuery(r.Context()).Find(tx, userID.String())
 		if err != nil {
 			return err
 		}
@@ -131,7 +131,7 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 	u := &models.User{}
 	err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery().FindContext(r.Context(), tx, userID)
+		u, err = models.UserQuery(r.Context()).Find(tx, userID)
 		if err != nil {
 			return err
 		}

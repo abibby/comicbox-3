@@ -46,7 +46,7 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := models.BookQuery().With("UserBook")
+	query := models.BookQuery(r.Context()).With("UserBook")
 
 	if id, ok := req.ID.Ok(); ok {
 		query = query.Where("id", "=", id)
@@ -69,56 +69,33 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 
 	if afterID, ok := req.AfterID.Ok(); ok {
 		query = query.Where("sort", ">",
-			models.BookQuery().
+			models.BookQuery(r.Context()).
 				Select("sort").
 				Where("id", "=", afterID),
 		)
 	}
 	if beforeID, ok := req.BeforeID.Ok(); ok {
 		query = query.Where("sort", "<",
-			models.BookQuery().
+			models.BookQuery(r.Context()).
 				Select("sort").
 				Where("id", "=", beforeID),
 		)
 	}
 
 	if req.List != nil {
-		uid, ok := auth.UserID(r.Context())
-		if !ok {
-			sendError(rw, ErrUnauthorized)
-			return
-		}
+		// uid, ok := auth.UserID(r.Context())
+		// if !ok {
+		// 	sendError(rw, ErrUnauthorized)
+		// 	return
+		// }
 		query = query.WhereExists(
-			models.UserSeriesQuery().
+			models.UserSeriesQuery(r.Context()).
 				WhereColumn("series_name", "=", "books.series").
-				Where("user_id", "=", uid).
+				// Where("user_id", "=", uid).
 				Where("list", "=", req.List),
 		)
-		// query = query.Where(
-		// 	goqu.L(
-		// 		"exists ?",
-		// 		goqu.From("user_series").Where(
-		// 			goqu.Ex{
-		// 				"user_series.series_name": goqu.I("books.series"),
-		// 				"user_series.user_id":     uid.String(),
-		// 				"user_series.list":        req.List,
-		// 			},
-		// 		),
-		// 	),
-		// )
-		// Join(
-		// 	goqu.T("user_series"),
-		// 	goqu.On(goqu.Ex{
-		// 		"user_series.series_name": goqu.I("books.series"),
-		// 		"user_series.user_id":     uid.String(),
-		// 	}),
-		// ).
-		// Where(
-		// 	goqu.C("user_series.list").Eq(req.List),
-		// )
 	}
-
-	index(rw, r, query, updatedAfter(r.Context(), false))
+	index(rw, r, query, updatedAfter(false))
 }
 
 type BookPageRequest struct {
@@ -189,7 +166,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	var book *models.Book
 	err := database.ReadTx(ctx, func(tx *sqlx.Tx) error {
 		var err error
-		book, err = models.BookQuery().FindContext(ctx, tx, id)
+		book, err = models.BookQuery(ctx).Find(tx, id)
 		return err
 	})
 	if err != nil {
@@ -248,47 +225,11 @@ func BookReading(rw http.ResponseWriter, r *http.Request) {
 			user_series.list = 'reading'
 			and book_id is not null)`
 
-	query := models.BookQuery().
+	query := models.BookQuery(r.Context()).
+		With("UserBook").
 		Where("id", "in", builder.Raw(seriesQuery, uid))
 
-	index(rw, r, query, updatedAfter(r.Context(), true))
-}
-
-func BookList(rw http.ResponseWriter, r *http.Request) {
-	uid, ok := auth.UserID(r.Context())
-	if !ok {
-		sendJSON(rw, &PaginatedResponse{})
-		return
-	}
-
-	seriesQuery := `select (
-		select
-			id
-		from
-			books
-		left join user_books user_books on
-			books.id = user_books.book_id
-			and user_books.user_id = ?
-		WHERE
-			books.series = series.name
-			and (user_books.current_page < (books.page_count - 1)
-				or user_books.current_page is null)
-		order by
-			sort
-		limit 1
-	)
-	from "series"
-	join user_series
-		on user_series.series_name = series.name
-		and user_series.user_id = ?
-	where user_series.list = 'reading'`
-
-	// seriesQuery := goqu.From("series").Select(goqu.L(bookQuery, uid))
-
-	query := models.BookQuery().
-		Where("id", "in", builder.Raw(seriesQuery, uid, uid))
-
-	index(rw, r, query, updatedAfter(r.Context(), true))
+	index(rw, r, query, updatedAfter(true))
 }
 
 type BookUpdateRequest struct {
@@ -317,7 +258,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	book := &models.Book{}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		book, err = models.BookQuery().FindContext(r.Context(), tx, req.ID)
+		book, err = models.BookQuery(r.Context()).With("UserBook").Find(tx, req.ID)
 		if err != nil {
 			return err
 		}
@@ -358,20 +299,21 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, book)
 }
 
-func updatedAfter(ctx context.Context, withSeries bool) func(wl *selects.WhereList, updatedAfter *time.Time) {
+func updatedAfter(withSeries bool) func(wl *selects.WhereList, updatedAfter *time.Time) {
 	return func(wl *selects.WhereList, updatedAfter *time.Time) {
-		if uid, ok := auth.UserID(ctx); ok {
-			wl.OrWhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
-				return q.Where("user_id", "=", uid).Where("updated_at", ">=", updatedAfter)
+		// if uid, ok := auth.UserID(ctx); ok {
+		wl.OrWhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
+			return q.
+				// Where("user_id", "=", uid).
+				Where("updated_at", ">=", updatedAfter)
+		})
+		if withSeries {
+			wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+				return q.
+					// Where("user_id", "=", uid).
+					Where("updated_at", ">=", updatedAfter)
 			})
-			if withSeries {
-				wl.OrWhereExists(
-					models.UserSeriesQuery().
-						WhereColumn("series_name", "=", "books.series").
-						Where("user_id", "=", uid).
-						Where("updated_at", ">=", updatedAfter),
-				)
-			}
 		}
+		// }
 	}
 }

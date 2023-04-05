@@ -9,7 +9,6 @@ import (
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
@@ -29,28 +28,22 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := models.SeriesQuery().
+	query := models.SeriesQuery(r.Context()).
 		OrderBy("name").
 		With("UserSeries")
 
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where("name", "=", name)
 	}
-	uid, uidOk := auth.UserID(r.Context())
-	if uidOk {
-		if list, ok := req.List.Ok(); ok {
-			query = query.WhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
-				return q.Where("user_id", "=", uid).Where("list", "=", list)
-			})
-		}
+	if list, ok := req.List.Ok(); ok {
+		query = query.WhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+			return q.Where("list", "=", list)
+		})
 	}
 
 	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *time.Time) {
-		if !uidOk {
-			return
-		}
 		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
-			return q.Where("user_id", "=", uid).Where("updated_at", ">=", updatedAfter)
+			return q.Where("updated_at", ">=", updatedAfter)
 		})
 	})
 }
@@ -73,7 +66,7 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		s, err = models.SeriesQuery().FindContext(r.Context(), tx, req.Name)
+		s, err = models.SeriesQuery(r.Context()).Find(tx, req.Name)
 		if err == sql.ErrNoRows {
 			return Err404
 		} else if err != nil {

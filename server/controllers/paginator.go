@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/abibby/bob"
 	bobmodels "github.com/abibby/bob/models"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
@@ -50,26 +51,25 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 		})
 	}
 
-	if !req.WithDeleted {
-		query = query.Where("deleted_at", "=", nil)
+	if req.WithDeleted {
+		query = query.WithoutGlobalScope(bob.SoftDeletes)
 	}
 
 	var total int
 	var v []T
-
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		v, err = query.
-			Clone().
+			WithContext(r.Context()).
 			Limit(pageSize).
-			Offset(page*pageSize).
-			GetContext(r.Context(), tx)
+			Offset(page * pageSize).Dump().
+			Get(tx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch page: %w", err)
 		}
 		err = query.
 			SelectFunction("count", "*").
-			LoadOneContext(r.Context(), tx, &total)
+			LoadOne(tx, &total)
 		if err != nil {
 			return fmt.Errorf("failed to fetch total count: %w", err)
 		}

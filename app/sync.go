@@ -37,7 +37,7 @@ func Sync(ctx context.Context) error {
 
 	err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
 		dbBookFiles := []string{}
-		err = models.BookQuery().Select("file").Where("deleted_at", "=", nil).LoadContext(ctx, tx, &dbBookFiles)
+		err = models.BookQuery(ctx).Select("file").Where("deleted_at", "=", nil).Load(tx, &dbBookFiles)
 		if err != nil {
 			return errors.Wrap(err, "failed to fetch book files from database")
 		}

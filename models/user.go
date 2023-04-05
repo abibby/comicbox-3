@@ -28,8 +28,8 @@ var _ hooks.BeforeSaver = &User{}
 
 type UserList []*User
 
-func UserQuery() *selects.Builder[*User] {
-	return selects.From[*User]()
+func UserQuery(ctx context.Context) *selects.Builder[*User] {
+	return selects.From[*User]().WithContext(ctx)
 }
 
 func (u *User) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {

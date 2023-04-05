@@ -38,10 +38,10 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		us, err = models.UserSeriesQuery().
+		us, err = models.UserSeriesQuery(r.Context()).
 			Where("series_name", "=", req.SeriesName).
-			Where("user_id", "=", uid).
-			FirstContext(r.Context(), tx)
+			// Where("user_id", "=", uid).
+			First(tx)
 		if err == sql.ErrNoRows {
 		} else if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")

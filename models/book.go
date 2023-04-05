@@ -47,35 +47,39 @@ const (
 
 type Book struct {
 	BaseModel
-	ID          uuid.UUID                   `json:"id"                db:"id,primary"`
-	Title       string                      `json:"title"             db:"title"`
-	Chapter     *nulls.Float64              `json:"chapter"           db:"chapter"`
-	Volume      *nulls.Float64              `json:"volume"            db:"volume"`
-	Series      string                      `json:"series"            db:"series"`
-	Authors     []string                    `json:"authors"           db:"-"`
-	RawAuthors  []byte                      `json:"-"                 db:"authors"`
-	Pages       []*Page                     `json:"pages"             db:"-"`
-	RawPages    []byte                      `json:"-"                 db:"pages"`
-	PageCount   int                         `json:"page_count"        db:"page_count"`
-	RightToLeft bool                        `json:"rtl"               db:"rtl"`
-	Sort        string                      `json:"sort"              db:"sort"`
-	File        string                      `json:"file"              db:"file"`
-	CoverURL    string                      `json:"cover_url"         db:"-"`
-	UserBook    *selects.HasOne[*UserBook]  `json:"user_book"         db:"-"`
-	SeriesModel *selects.BelongsTo[*Series] `json:"-"                 db:"-"`
+	ID          uuid.UUID                    `json:"id"         db:"id,primary"`
+	Title       string                       `json:"title"      db:"title"`
+	Chapter     *nulls.Float64               `json:"chapter"    db:"chapter"`
+	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
+	Series      string                       `json:"series"     db:"series"`
+	Authors     []string                     `json:"authors"    db:"-"`
+	RawAuthors  []byte                       `json:"-"          db:"authors"`
+	Pages       []*Page                      `json:"pages"      db:"-"`
+	RawPages    []byte                       `json:"-"          db:"pages"`
+	PageCount   int                          `json:"page_count" db:"page_count"`
+	RightToLeft bool                         `json:"rtl"        db:"rtl"`
+	Sort        string                       `json:"sort"       db:"sort"`
+	File        string                       `json:"file"       db:"file"`
+	CoverURL    string                       `json:"cover_url"  db:"-"`
+	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
+	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
+	SeriesModel *selects.BelongsTo[*Series]  `json:"-"          db:"-"`
 }
 
-func BookQuery() *selects.Builder[*Book] {
-	return bob.From[*Book]()
+func BookQuery(ctx context.Context) *selects.Builder[*Book] {
+	return bob.From[*Book]().WithContext(ctx)
 }
 
 var _ hooks.BeforeSaver = &Book{}
 var _ hooks.AfterSaver = &Book{}
 var _ hooks.AfterLoader = &Book{}
+var _ bob.Scoper = &Book{}
 
-// type BookList []*Book
-
-// var _ hooks.AfterLoader = BookList{}
+func (b *Book) Scopes() []*bob.Scope {
+	return []*bob.Scope{
+		bob.SoftDeletes,
+	}
+}
 
 func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if b.Authors == nil {
@@ -115,7 +119,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	_, err := SeriesQuery().FindContext(ctx, tx, b.Series)
+	_, err := SeriesQuery(ctx).Find(tx, b.Series)
 	if err == sql.ErrNoRows {
 		err = bob.SaveContext(ctx, tx, &Series{Name: b.Series})
 		if err != nil {
@@ -159,13 +163,3 @@ func (b *Book) CoverPage() int {
 	}
 	return fallback
 }
-
-// func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-// 	if uid, ok := auth.UserID(ctx); ok {
-// 		err := LoadUserBooks(tx, bl, uid)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }

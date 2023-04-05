@@ -20,7 +20,7 @@ type UserCreateRequest struct {
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
-	ok, claims := authenticate(false, r)
+	r, claims, ok := authenticate(false, r)
 	if !ok && !config.PublicUserCreate {
 		sendError(rw, ErrUnauthorized)
 		return
@@ -54,11 +54,11 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		count := 0
-		err = models.UserQuery().
+		err = models.UserQuery(r.Context()).
 			SelectFunction("count", "*").
 			Where("username", "=", u.Username).
-			OrWhere("id", "=", u.ID).Dump().
-			LoadOneContext(r.Context(), tx, &count)
+			OrWhere("id", "=", u.ID).
+			LoadOne(tx, &count)
 		if err != nil {
 			return err
 		}

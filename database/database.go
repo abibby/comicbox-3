@@ -8,6 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	// _ "modernc.org/sqlite"
 	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/abibby/bob/dialects/sqlite"
 )
 
 var database *sqlx.DB

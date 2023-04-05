@@ -38,10 +38,10 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		ub, err = models.UserBookQuery().
+		ub, err = models.UserBookQuery(r.Context()).
 			Where("book_id", "=", req.BookID).
-			Where("user_id", "=", uid).
-			FirstContext(r.Context(), tx)
+			// Where("user_id", "=", uid).
+			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
 		}

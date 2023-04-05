@@ -49,7 +49,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 	var u *models.User
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery().
+		u, err = models.UserQuery(r.Context()).
 			WhereRaw("lower(username) = ?", strings.ToLower(req.Username)).
 			First(tx)
 		return err
@@ -90,7 +90,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 	var u *models.User
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery().FindContext(r.Context(), tx, uid)
+		u, err = models.UserQuery(r.Context()).Find(tx, uid)
 		return err
 	})
 	if err != nil {
@@ -150,7 +150,7 @@ func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
 func AuthMiddleware(acceptQuery bool, purposes ...TokenPurpose) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			ok, claims := authenticate(acceptQuery, r)
+			r, claims, ok := authenticate(acceptQuery, r)
 			if !ok {
 				sendError(rw, ErrUnauthorized)
 				return
@@ -183,7 +183,7 @@ func hasPurpose(haystack []TokenPurpose, needle TokenPurpose) bool {
 	return false
 }
 
-func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
+func authenticate(acceptQuery bool, r *http.Request) (*http.Request, jwt.MapClaims, bool) {
 	tokenStr := ""
 	authHeader := r.Header.Get("Authorization")
 	if strings.HasPrefix(authHeader, "Bearer ") {
@@ -205,30 +205,30 @@ func authenticate(acceptQuery bool, r *http.Request) (bool, jwt.MapClaims) {
 	})
 	if err != nil {
 		log.Printf("failed to parse JWT: %v", err)
-		return false, nil
+		return r, nil, false
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return false, nil
+		return r, nil, false
 	}
 
 	iQuery, _ := claims["query"]
 	shouldUseQuery, _ := iQuery.(bool)
 
 	if usingQuery != shouldUseQuery {
-		return false, nil
+		return r, nil, false
 	}
 
 	if uid, ok := claims["client_id"]; ok {
 		userID, err := uuid.Parse(uid.(string))
 		if err != nil {
 			log.Printf("failed to parse UID: %v", err)
-			return false, nil
+			return r, nil, false
 		}
-		auth.SetUserID(r, userID)
+		r = auth.SetUserID(r, userID)
 	}
-	return true, claims
+	return r, claims, true
 }
 
 func generateToken(u *models.User, modifyClaims ...func(jwt.MapClaims) jwt.MapClaims) (string, error) {

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"context"
+
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
 	"github.com/google/uuid"
@@ -35,6 +37,15 @@ const (
 	ListPlanning  = List("planning")
 )
 
-func UserSeriesQuery() *selects.Builder[*UserSeries] {
-	return bob.From[*UserSeries]()
+func UserSeriesQuery(ctx context.Context) *selects.Builder[*UserSeries] {
+	return bob.From[*UserSeries]().WithContext(ctx)
+}
+
+var _ bob.Scoper = &UserSeries{}
+
+func (b *UserSeries) Scopes() []*bob.Scope {
+	return []*bob.Scope{
+		bob.SoftDeletes,
+		UserScoped,
+	}
 }

@@ -260,7 +260,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			book.Title = req.Title
 		}
 		if shouldUpdate(book.UpdateMap, req.UpdateMap, "series") {
-			book.Series = req.Series
+			book.SeriesName = req.Series
 		}
 		if shouldUpdate(book.UpdateMap, req.UpdateMap, "volume") {
 			book.Volume = req.Volume

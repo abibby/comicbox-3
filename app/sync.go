@@ -187,7 +187,7 @@ func parseFileName(book *models.Book, path string) *models.Book {
 	name := filepath.Base(path[:len(path)-len(extension)])
 	dir := filepath.Base(filepath.Dir(path))
 
-	book.Series = dir
+	book.SeriesName = dir
 
 	if strings.HasPrefix(name, dir) {
 		name = name[len(dir):]

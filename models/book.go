@@ -50,7 +50,7 @@ type Book struct {
 	Title       string                       `json:"title"      db:"title"`
 	Chapter     *nulls.Float64               `json:"chapter"    db:"chapter"`
 	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
-	Series      string                       `json:"series"     db:"series"`
+	SeriesName  string                       `json:"series"     db:"series"`
 	Authors     []string                     `json:"authors"    db:"-"`
 	RawAuthors  []byte                       `json:"-"          db:"authors"`
 	Pages       []*Page                      `json:"pages"      db:"-"`
@@ -62,7 +62,7 @@ type Book struct {
 	CoverURL    string                       `json:"cover_url"  db:"-"`
 	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
 	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
-	SeriesModel *selects.BelongsTo[*Series]  `json:"-"          db:"-"`
+	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-"`
 }
 
 func BookQuery(ctx context.Context) *selects.Builder[*Book] {
@@ -108,7 +108,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 
 	b.Sort = fmt.Sprintf(
 		"%s|%013.3f|%013.3f|%s",
-		b.Series,
+		b.SeriesName,
 		volume,
 		b.Chapter.Float64(),
 		b.Title,
@@ -118,12 +118,12 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	s, err := SeriesQuery(ctx).Find(tx, b.Series)
+	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
 	if err != nil {
 		return errors.Wrap(err, "failed find a series from book")
 	}
 	if s == nil {
-		err = bob.SaveContext(ctx, tx, &Series{Name: b.Series})
+		err = bob.SaveContext(ctx, tx, &Series{Name: b.SeriesName})
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}

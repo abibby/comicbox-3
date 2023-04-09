@@ -9,7 +9,7 @@ var r *mux.Router
 func init() {
 	r = mux.NewRouter()
 
-	// r.Use(loggingMiddleware)
+	r.Use(loggingMiddleware)
 	r.Use(errorMiddleware)
 
 }

@@ -64,7 +64,9 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		s, err = models.SeriesQuery(r.Context()).Find(tx, req.Name)
+		s, err = models.SeriesQuery(r.Context()).
+			With("UserSeries").
+			Find(tx, req.Name)
 		if err == sql.ErrNoRows {
 			return Err404
 		} else if err != nil {

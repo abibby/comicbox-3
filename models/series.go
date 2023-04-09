@@ -20,7 +20,7 @@ type Series struct {
 	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
 	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`
 	AnilistId          *nulls.Int                   `json:"anilist_id"       db:"anilist_id"`
-	UserSeries         *selects.HasOne[*UserSeries] `json:"user_series"      db:"-"`
+	UserSeries         *selects.HasOne[*UserSeries] `json:"user_series"      db:"-" local:"name" foreign:"series_name"`
 }
 
 func SeriesQuery(ctx context.Context) *selects.Builder[*Series] {

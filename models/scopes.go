@@ -14,6 +14,6 @@ var UserScoped = &bob.Scope{
 			return b.WhereRaw("1=0")
 		}
 
-		return b.Where("user_id", "=", uid).Dump()
+		return b.Where("user_id", "=", uid)
 	},
 }

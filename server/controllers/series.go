@@ -3,7 +3,6 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"time"
 
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
@@ -27,10 +26,9 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
-
 	query := models.SeriesQuery(r.Context()).
-		OrderBy("name").
-		With("UserSeries")
+		With("UserSeries").
+		OrderBy("name")
 
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where("name", "=", name)
@@ -41,7 +39,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *time.Time) {
+	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *database.Time) {
 		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
 			return q.Where("updated_at", ">=", updatedAfter)
 		})

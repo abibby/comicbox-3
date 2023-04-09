@@ -40,7 +40,6 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		var err error
 		us, err = models.UserSeriesQuery(r.Context()).
 			Where("series_name", "=", req.SeriesName).
-			// Where("user_id", "=", uid).
 			First(tx)
 		if err == sql.ErrNoRows {
 		} else if err != nil {

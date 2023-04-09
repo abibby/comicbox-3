@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
@@ -83,15 +82,9 @@ func BookIndex(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.List != nil {
-		// uid, ok := auth.UserID(r.Context())
-		// if !ok {
-		// 	sendError(rw, ErrUnauthorized)
-		// 	return
-		// }
 		query = query.WhereExists(
 			models.UserSeriesQuery(r.Context()).
 				WhereColumn("series_name", "=", "books.series").
-				// Where("user_id", "=", uid).
 				Where("list", "=", req.List),
 		)
 	}
@@ -299,21 +292,15 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, book)
 }
 
-func updatedAfter(withSeries bool) func(wl *selects.WhereList, updatedAfter *time.Time) {
-	return func(wl *selects.WhereList, updatedAfter *time.Time) {
-		// if uid, ok := auth.UserID(ctx); ok {
+func updatedAfter(withSeries bool) func(wl *selects.WhereList, updatedAfter *database.Time) {
+	return func(wl *selects.WhereList, updatedAfter *database.Time) {
 		wl.OrWhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
-			return q.
-				// Where("user_id", "=", uid).
-				Where("updated_at", ">=", updatedAfter)
+			return q.Where("updated_at", ">=", updatedAfter)
 		})
 		if withSeries {
 			wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
-				return q.
-					// Where("user_id", "=", uid).
-					Where("updated_at", ">=", updatedAfter)
+				return q.Where("updated_at", ">=", updatedAfter)
 			})
 		}
-		// }
 	}
 }

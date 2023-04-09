@@ -28,7 +28,7 @@ type PaginatedResponse struct {
 	Data     interface{} `json:"data"`
 }
 
-func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.WhereList, updatedAfter *time.Time)) {
+func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.WhereList, updatedAfter *database.Time)) {
 	req := &PaginatedRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -46,8 +46,9 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 	}
 	if req.UpdatedAfter != nil {
 		query = query.And(func(wl *selects.WhereList) {
-			wl.OrWhere("updated_at", ">=", req.UpdatedAfter)
-			updatedAfter(wl, req.UpdatedAfter)
+			t := (*database.Time)(req.UpdatedAfter)
+			wl.OrWhere("updated_at", ">=", t)
+			updatedAfter(wl, t)
 		})
 	}
 
@@ -60,9 +61,8 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		v, err = query.
-			WithContext(r.Context()).
 			Limit(pageSize).
-			Offset(page * pageSize).Dump().
+			Offset(page * pageSize).
 			Get(tx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch page: %w", err)

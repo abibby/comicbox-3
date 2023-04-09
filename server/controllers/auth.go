@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -54,11 +53,12 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 			First(tx)
 		return err
 	})
-	if err == sql.ErrNoRows {
-		sendError(rw, ErrUnauthorized)
-		return
-	} else if err != nil {
+	if err != nil {
 		sendError(rw, err)
+		return
+	}
+	if u == nil {
+		sendError(rw, ErrUnauthorized)
 		return
 	}
 

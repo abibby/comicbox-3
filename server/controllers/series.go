@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/abibby/bob"
@@ -67,10 +66,11 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		s, err = models.SeriesQuery(r.Context()).
 			With("UserSeries").
 			Find(tx, req.Name)
-		if err == sql.ErrNoRows {
-			return Err404
-		} else if err != nil {
+		if err != nil {
 			return errors.Wrap(err, "failed to retrieve series from the database")
+		}
+		if s == nil {
+			return Err404
 		}
 
 		if shouldUpdate(s.UpdateMap, req.UpdateMap, "anilist_id") {

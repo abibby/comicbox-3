@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -41,8 +40,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		us, err = models.UserSeriesQuery(r.Context()).
 			Where("series_name", "=", req.SeriesName).
 			First(tx)
-		if err == sql.ErrNoRows {
-		} else if err != nil {
+		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
 		}
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {

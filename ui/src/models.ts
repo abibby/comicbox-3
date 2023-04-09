@@ -21,9 +21,9 @@ export interface Book {
     user_book: UserBook | null
 }
 export interface Page {
+    type: PageType
     url: string
     thumbnail_url: string
-    type: PageType
 }
 export interface Series {
     created_at: string
@@ -33,8 +33,8 @@ export interface Series {
     name: string
     cover_url: string
     first_book_id: string | null
-    user_series: UserSeries | null
     anilist_id: number | null
+    user_series: UserSeries | null
 }
 export interface User {
     created_at: string

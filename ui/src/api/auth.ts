@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'preact/hooks'
 import { apiFetch, getAuthToken, setAuthToken } from 'src/api/internal'
 import { clearDatabase } from 'src/database'
-import jwt from 'src/jwt'
+import jwt, { JWT } from 'src/jwt'
 
 export interface LoginRequest {
     username: string
@@ -47,4 +48,18 @@ export async function userCreateToken(): Promise<string> {
     )
 
     return response.token
+}
+
+export function useJWTClaims(): JWT | null {
+    const [claims, setClaims] = useState<JWT | null>(null)
+    useEffect(() => {
+        getAuthToken().then(t => {
+            if (t === null) {
+                setClaims(null)
+            } else {
+                setClaims(jwt.parse(t))
+            }
+        })
+    }, [])
+    return claims
 }

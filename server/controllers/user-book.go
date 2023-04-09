@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
@@ -37,23 +37,24 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 	ub := &models.UserBook{}
 
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-		err = tx.Get(ub, "select * from user_books where user_id = ? and book_id = ? limit 1", uid, req.BookID)
-		if err == sql.ErrNoRows {
-		} else if err != nil {
+		var err error
+		ub, err = models.UserBookQuery(r.Context()).
+			Where("book_id", "=", req.BookID).
+			First(tx)
+		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
 		}
-		err = models.AfterLoad(ub, r.Context(), tx)
-		if err != nil {
-			return errors.Wrap(err, "failed to run after load hooks")
+		if ub == nil {
+			ub = &models.UserBook{
+				UserID: uid,
+				BookID: uuid.MustParse(req.BookID),
+			}
 		}
-
 		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
 			ub.CurrentPage = req.CurrentPage
 		}
 
-		ub.UserID = uid
-		ub.BookID = uuid.MustParse(req.BookID)
-		err = models.Save(r.Context(), ub, tx)
+		err = bob.SaveContext(r.Context(), tx, ub)
 		return errors.Wrap(err, "")
 	})
 	if err != nil {

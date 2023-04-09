@@ -2,11 +2,12 @@ package models
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 
-	"github.com/abibby/comicbox-3/server/auth"
+	"github.com/abibby/bob"
+	"github.com/abibby/bob/hooks"
+	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
@@ -14,10 +15,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+type BasePage struct {
+	Type PageType `json:"type"`
+}
 type Page struct {
-	URL          string   `json:"url"`
-	ThumbnailURL string   `json:"thumbnail_url"`
-	Type         PageType `json:"type"`
+	BasePage
+	URL          string `json:"url"`
+	ThumbnailURL string `json:"thumbnail_url"`
 }
 
 type PageType string
@@ -42,39 +46,38 @@ const (
 
 type Book struct {
 	BaseModel
-	ID          uuid.UUID      `json:"id"         db:"id"`
-	Title       string         `json:"title"      db:"title"`
-	Chapter     *nulls.Float64 `json:"chapter"    db:"chapter"`
-	Volume      *nulls.Float64 `json:"volume"     db:"volume"`
-	Series      string         `json:"series"     db:"series"`
-	Authors     []string       `json:"authors"    db:"-"`
-	RawAuthors  []byte         `json:"-"          db:"authors"`
-	Pages       []*Page        `json:"pages"      db:"-"`
-	RawPages    []byte         `json:"-"          db:"pages"`
-	PageCount   int            `json:"page_count" db:"page_count"`
-	RightToLeft bool           `json:"rtl"        db:"rtl"`
-	Sort        string         `json:"sort"       db:"sort"`
-	File        string         `json:"file"       db:"file"`
-	CoverURL    string         `json:"cover_url"  db:"-"`
-	UserBook    *UserBook      `json:"user_book"  db:"-"`
+	ID          uuid.UUID                    `json:"id"         db:"id,primary"`
+	Title       string                       `json:"title"      db:"title"`
+	Chapter     *nulls.Float64               `json:"chapter"    db:"chapter"`
+	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
+	SeriesName  string                       `json:"series"     db:"series"`
+	Authors     []string                     `json:"authors"    db:"-"`
+	RawAuthors  []byte                       `json:"-"          db:"authors"`
+	Pages       []*Page                      `json:"pages"      db:"-"`
+	RawPages    []byte                       `json:"-"          db:"pages"`
+	PageCount   int                          `json:"page_count" db:"page_count"`
+	RightToLeft bool                         `json:"rtl"        db:"rtl"`
+	Sort        string                       `json:"sort"       db:"sort"`
+	File        string                       `json:"file"       db:"file"`
+	CoverURL    string                       `json:"cover_url"  db:"-"`
+	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
+	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
+	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-"`
 }
 
-var _ BeforeSaver = &Book{}
-var _ AfterSaver = &Book{}
-var _ AfterLoader = &Book{}
-
-type BookList []*Book
-
-var _ AfterLoader = BookList{}
-
-func (b *Book) Model() *BaseModel {
-	return &b.BaseModel
+func BookQuery(ctx context.Context) *selects.Builder[*Book] {
+	return bob.From[*Book]().WithContext(ctx)
 }
-func (*Book) Table() string {
-	return "books"
-}
-func (*Book) PrimaryKey() string {
-	return "id"
+
+var _ hooks.BeforeSaver = &Book{}
+var _ hooks.AfterSaver = &Book{}
+var _ hooks.AfterLoader = &Book{}
+var _ bob.Scoper = &Book{}
+
+func (b *Book) Scopes() []*bob.Scope {
+	return []*bob.Scope{
+		bob.SoftDeletes,
+	}
 }
 
 func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
@@ -85,14 +88,13 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	if err != nil {
 		return err
 	}
-
-	if b.Pages == nil {
-		b.Pages = []*Page{}
+	basePages := make([]*BasePage, len(b.Pages))
+	if b.Pages != nil {
+		for i, page := range b.Pages {
+			basePages[i] = &page.BasePage
+		}
 	}
-	for _, page := range b.Pages {
-		page.URL = ""
-	}
-	err = marshal(&b.RawPages, b.Pages)
+	err = marshal(&b.RawPages, basePages)
 	if err != nil {
 		return err
 	}
@@ -106,7 +108,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 
 	b.Sort = fmt.Sprintf(
 		"%s|%013.3f|%013.3f|%s",
-		b.Series,
+		b.SeriesName,
 		volume,
 		b.Chapter.Float64(),
 		b.Title,
@@ -116,17 +118,16 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 }
 
 func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
-	s := &Series{}
-	err := Find(ctx, tx, s, b.Series)
-	if err == sql.ErrNoRows {
-		err = Save(ctx, &Series{Name: b.Series}, tx)
+	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
+	if err != nil {
+		return errors.Wrap(err, "failed find a series from book")
+	}
+	if s == nil {
+		err = bob.SaveContext(ctx, tx, &Series{Name: b.SeriesName})
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}
-	} else if err != nil {
-		return errors.Wrap(err, "failed find a series from book")
 	}
-
 	return nil
 }
 
@@ -145,6 +146,7 @@ func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
 		page.URL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
 		page.ThumbnailURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
 	}
+
 	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
 	return nil
 }
@@ -159,14 +161,4 @@ func (b *Book) CoverPage() int {
 		}
 	}
 	return fallback
-}
-
-func (bl BookList) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if uid, ok := auth.UserID(ctx); ok {
-		err := LoadUserBooks(tx, bl, uid)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

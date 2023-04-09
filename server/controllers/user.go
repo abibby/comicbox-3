@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -18,7 +19,7 @@ type UserCreateRequest struct {
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
-	ok, claims := authenticate(false, r)
+	r, claims, ok := authenticate(false, r)
 	if !ok && !config.PublicUserCreate {
 		sendError(rw, ErrUnauthorized)
 		return
@@ -52,7 +53,11 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		count := 0
-		err = tx.Get(&count, "select count(*) from users where username = ? or id = ?", u.Username, u.ID)
+		err = models.UserQuery(r.Context()).
+			SelectFunction("count", "*").
+			Where("username", "=", u.Username).
+			OrWhere("id", "=", u.ID).
+			LoadOne(tx, &count)
 		if err != nil {
 			return err
 		}
@@ -60,7 +65,7 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 			return validate.NewValidationError().
 				Push("username", []error{fmt.Errorf("username is already in use")})
 		}
-		return models.Save(r.Context(), u, tx)
+		return bob.SaveContext(r.Context(), tx, u)
 	})
 	if err != nil {
 		sendError(rw, err)

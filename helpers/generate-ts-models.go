@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/models"
 )
 
@@ -83,14 +85,34 @@ func generateTsType(t reflect.Type, allowNull bool) string {
 	if t.Kind() == reflect.Map {
 		return fmt.Sprintf("Record<%s, %s>", generateTsType(t.Key(), false), generateTsType(t.Elem(), false))
 	}
+
+	suffix := ""
+	if allowNull {
+		suffix = " | null"
+	}
+
+	if t.Implements(reflect.TypeOf((*selects.Relationship)(nil)).Elem()) {
+		return generateRelationType(t) + suffix
+	}
+
 	if t.Name() == "" {
-		suffix := ""
-		if allowNull {
-			suffix = " | null"
-		}
 		return generateTsType(t.Elem(), false) + suffix
 	}
 	return t.Name()
+}
+
+func generateRelationType(t reflect.Type) string {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if f.Anonymous && f.Name == "relationValue" {
+			matches := regexp.MustCompile(`[^[]+\[(\[\])?.+\.([A-Za-z]+)\]`).FindStringSubmatch(t.Field(i).Type.Name())
+			return matches[2] + matches[1]
+		}
+	}
+	return ""
 }
 
 func generateTsEnum(model models.Enum) string {

@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -36,7 +37,7 @@ func Sync(ctx context.Context) error {
 
 	err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
 		dbBookFiles := []string{}
-		err := tx.Select(&dbBookFiles, "select file from books where deleted_at is null")
+		err = models.BookQuery(ctx).Select("file").Where("deleted_at", "=", nil).Load(tx, &dbBookFiles)
 		if err != nil {
 			return errors.Wrap(err, "failed to fetch book files from database")
 		}
@@ -101,7 +102,7 @@ func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	}
 	book.ID = uuid.New()
 
-	return models.Save(ctx, book, tx)
+	return bob.SaveContext(ctx, tx, book)
 }
 
 func loadBookData(file string) (*models.Book, error) {
@@ -137,7 +138,7 @@ func loadBookData(file string) (*models.Book, error) {
 			f.Close()
 		}
 		tmpPages[i] = &models.Page{
-			Type: typ,
+			BasePage: models.BasePage{Type: typ},
 		}
 	}
 	book.Pages = tmpPages
@@ -186,7 +187,7 @@ func parseFileName(book *models.Book, path string) *models.Book {
 	name := filepath.Base(path[:len(path)-len(extension)])
 	dir := filepath.Base(filepath.Dir(path))
 
-	book.Series = dir
+	book.SeriesName = dir
 
 	if strings.HasPrefix(name, dir) {
 		name = name[len(dir):]

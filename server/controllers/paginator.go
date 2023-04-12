@@ -21,11 +21,11 @@ type PaginatedRequest struct {
 	UpdatedAfter *time.Time `query:"updated_after"`
 }
 
-type PaginatedResponse struct {
-	Page     int         `json:"page"`
-	PageSize int         `json:"page_size"`
-	Total    int         `json:"total"`
-	Data     interface{} `json:"data"`
+type PaginatedResponse[T any] struct {
+	Page     int `json:"page"`
+	PageSize int `json:"page_size"`
+	Total    int `json:"total"`
+	Data     []T `json:"data"`
 }
 
 func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.WhereList, updatedAfter *database.Time)) {
@@ -35,7 +35,7 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 		sendError(rw, err)
 		return
 	}
-	pageSize := 10
+	pageSize := 100
 	page := 0
 
 	if p, ok := req.Page.Ok(); ok {
@@ -80,7 +80,7 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 		return
 	}
 
-	sendJSON(rw, &PaginatedResponse{
+	sendJSON(rw, &PaginatedResponse[T]{
 		Page:     page + 1,
 		PageSize: pageSize,
 		Total:    total,

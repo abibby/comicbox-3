@@ -189,7 +189,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 func BookReading(rw http.ResponseWriter, r *http.Request) {
 	uid, ok := auth.UserID(r.Context())
 	if !ok {
-		sendJSON(rw, &PaginatedResponse{})
+		sendJSON(rw, &PaginatedResponse[*models.Book]{})
 		return
 	}
 

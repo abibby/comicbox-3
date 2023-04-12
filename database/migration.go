@@ -1,18 +1,27 @@
 package database
 
 import (
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/hashicorp/go-multierror"
+	"embed"
 
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/golang-migrate/migrate/v4"
+
+	"github.com/golang-migrate/migrate/v4/database/sqlite"
+	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-func Migrate(dsnURI string) error {
-	m, err := migrate.New(
-		"embedded://",
-		"sqlite://"+dsnURI,
-	)
+//go:embed migrations/*
+var migrationsFS embed.FS
+
+func Migrate() error {
+	source, err := iofs.New(migrationsFS, "migrations")
+	if err != nil {
+		return err
+	}
+	driver, err := sqlite.WithInstance(database.DB, &sqlite.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithInstance("iofs", source, "sqlite://", driver)
 	if err != nil {
 		return err
 	}
@@ -22,9 +31,9 @@ func Migrate(dsnURI string) error {
 	} else if err != nil {
 		return err
 	}
-	sErr, dbErr := m.Close()
-	if sErr != nil || dbErr != nil {
-		return multierror.Append(nil, sErr, dbErr)
+	err = source.Close()
+	if err != nil {
+		return err
 	}
 	return nil
 }

@@ -14,8 +14,9 @@ import (
 )
 
 type SeriesIndexRequest struct {
-	Name *nulls.String `query:"name"`
-	List *nulls.String `query:"list"`
+	Name           *nulls.String `query:"name"`
+	List           *nulls.String `query:"list"`
+	WithLatestBook bool          `query:"with_latest_book"`
 }
 
 func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
+
 	query := models.SeriesQuery(r.Context()).
 		With("UserSeries").
 		OrderBy("name")
@@ -36,6 +38,10 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.WhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
 			return q.Where("list", "=", list)
 		})
+	}
+
+	if req.WithLatestBook {
+		query = query.With("UserSeries.LatestBook")
 	}
 
 	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *database.Time) {

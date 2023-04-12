@@ -13,6 +13,7 @@ import (
 )
 
 var database *sqlx.DB
+var testTx *sqlx.Tx
 
 // there seems to be an error with modernc.org/sqlite that requires a lock. If
 // it becomes an issue I may need to add CGO and switch to
@@ -35,6 +36,13 @@ func Close() error {
 	return database.Close()
 }
 
+func SetTestDB(db *sqlx.DB) {
+	database = db
+}
+func SetTestTx(tx *sqlx.Tx) {
+	testTx = tx
+}
+
 func ReadTx(ctx context.Context, cb func(tx *sqlx.Tx) error) error {
 	mtx.RLock()
 	defer mtx.RUnlock()
@@ -47,6 +55,9 @@ func UpdateTx(ctx context.Context, cb func(tx *sqlx.Tx) error) error {
 }
 
 func transaction(ctx context.Context, opts *sql.TxOptions, cb func(tx *sqlx.Tx) error) error {
+	if testTx != nil {
+		return cb(testTx)
+	}
 	tx, err := database.BeginTxx(ctx, opts)
 	if err != nil {
 		return err

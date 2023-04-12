@@ -18,17 +18,17 @@ func main() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	log.Print("Running migrations")
-	err = database.Migrate(config.DBPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Print("Finished migrations")
-
 	err = database.Open(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Print("Running migrations")
+	err = database.Migrate()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("Finished migrations")
 
 	s := server.New()
 

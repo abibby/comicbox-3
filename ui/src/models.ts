@@ -35,6 +35,8 @@ export interface Series {
     first_book_id: string | null
     anilist_id: number | null
     user_series: UserSeries | null
+    latest_book_id: string | null
+    latest_book: Book | null
 }
 export interface User {
     created_at: string

@@ -9,7 +9,6 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
@@ -60,7 +59,7 @@ func TestSeries(t *testing.T) {
 			With("UserSeries").
 			Get(tx)
 		assert.NoError(t, err)
-		spew.Dump(s)
+
 		if !assert.Len(t, s, 1) {
 			return
 		}

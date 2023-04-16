@@ -46,7 +46,7 @@ func (b *UserBook) Scopes() []*bob.Scope {
 // 		latestBook, err := BookQuery(ctx).
 // 			Where("series", "=", b.Series).
 // 			WhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
-// 				return q.Or(func(q *selects.WhereList) {
+// 				return q.Or(func(q *selects.Conditions) {
 // 					q.Where("current_page", "<", "books.page_count").
 // 						Where("current_page", "=", nil)
 // 				})

@@ -28,7 +28,7 @@ type PaginatedResponse[T any] struct {
 	Data     []T `json:"data"`
 }
 
-func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.WhereList, updatedAfter *database.Time)) {
+func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.Conditions, updatedAfter *database.Time)) {
 	req := &PaginatedRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -45,7 +45,7 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 		pageSize = ps
 	}
 	if req.UpdatedAfter != nil {
-		query = query.And(func(wl *selects.WhereList) {
+		query = query.And(func(wl *selects.Conditions) {
 			t := (*database.Time)(req.UpdatedAfter)
 			wl.OrWhere("updated_at", ">=", t)
 			updatedAfter(wl, t)

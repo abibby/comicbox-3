@@ -20,6 +20,7 @@ export const listNamesMap = new Map<List, string>(listNames)
 export type SeriesListRequest = PaginatedRequest & {
     name?: string
     list?: string
+    with_latest_book?: boolean
 }
 
 export async function listPaged(

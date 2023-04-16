@@ -7,6 +7,7 @@ import (
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
@@ -14,8 +15,9 @@ import (
 )
 
 type SeriesIndexRequest struct {
-	Name *nulls.String `query:"name"`
-	List *nulls.String `query:"list"`
+	Name           *nulls.String `query:"name"`
+	List           *nulls.String `query:"list"`
+	WithLatestBook bool          `query:"with_latest_book"`
 }
 
 func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
@@ -25,6 +27,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
+
 	query := models.SeriesQuery(r.Context()).
 		With("UserSeries").
 		OrderBy("name")
@@ -38,7 +41,31 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	index(rw, r, query, func(wl *selects.WhereList, updatedAfter *database.Time) {
+	if req.WithLatestBook {
+		uid, ok := auth.UserID(r.Context())
+		if ok {
+			query = query.
+				AddSelectSubquery(
+					models.BookQuery(r.Context()).
+						Select("id").
+						LeftJoinOn("user_books", func(q *selects.Conditions) {
+							q.WhereColumn("books.id", "=", "user_books.book_id").
+								Where("user_books.user_id", "=", uid)
+						}).
+						WhereColumn("books.series", "=", "series.name").
+						And(func(q *selects.Conditions) {
+							q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
+								OrWhere("current_page", "=", nil)
+						}).
+						OrderBy("sort").
+						Limit(1),
+					"latest_book_id",
+				).
+				With("LatestBook").Dump()
+		}
+	}
+
+	index(rw, r, query, func(wl *selects.Conditions, updatedAfter *database.Time) {
 		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
 			return q.Where("updated_at", ">=", updatedAfter)
 		})

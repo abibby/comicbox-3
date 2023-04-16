@@ -52,21 +52,3 @@ setCacheHandler(book.list, async (req): Promise<Book[]> => {
 
     return collection.toArray()
 })
-
-// setCacheHandler(book.reading, async (): Promise<Book[]> => {
-//     const s = await DB.series
-//         .where('user_series.list')
-//         .equals('reading')
-//         .toArray()
-
-//     const bookPromises = s.map(s =>
-//         DB.books
-//             .where(['series', 'completed', 'sort'])
-//             .between([s.name, 0, Dexie.minKey], [s.name, 0, Dexie.maxKey])
-//             .first(),
-//     )
-
-//     const books = await Promise.all(bookPromises)
-
-//     return books.filter(notNullish)
-// })

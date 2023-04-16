@@ -184,45 +184,6 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	return f, nil
 }
 
-// func BookReading(rw http.ResponseWriter, r *http.Request) {
-// 	uid, ok := auth.UserID(r.Context())
-// 	if !ok {
-// 		sendJSON(rw, &PaginatedResponse[*models.Book]{})
-// 		return
-// 	}
-
-// 	seriesQuery := `(select
-// 			(
-// 				select
-// 					id
-// 				from
-// 					books
-// 				left join user_books user_books on books.id = user_books.book_id and user_books.user_id = user_series.user_id
-// 				WHERE
-// 					books.series = series.name
-// 					and (
-// 						user_books.current_page < (books.page_count - 1)
-// 						or user_books.current_page is null
-// 					)
-// 					and books.deleted_at is null
-// 				order by
-// 						sort
-// 				limit 1
-// 			) as book_id
-// 		from
-// 			"series"
-// 		join user_series on user_series.series_name = series.name and user_series.user_id = ?
-// 		where
-// 			user_series.list = 'reading'
-// 			and book_id is not null)`
-
-// 	query := models.BookQuery(r.Context()).
-// 		With("UserBook").
-// 		Where("id", "in", builder.Raw(seriesQuery, uid))
-
-// 	index(rw, r, query, updatedAfter(true))
-// }
-
 type BookUpdateRequest struct {
 	ID          string            `url:"id"          validate:"require|uuid"`
 	Title       string            `json:"title"`

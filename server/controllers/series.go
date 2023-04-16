@@ -61,7 +61,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 						Limit(1),
 					"latest_book_id",
 				).
-				With("LatestBook").Dump()
+				With("LatestBook.UserBook")
 		}
 	}
 

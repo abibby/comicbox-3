@@ -32,7 +32,7 @@ async function readingBooks(): Promise<Book[]> {
                     b,
                     {
                         user_book: {
-                            current_page: b.page_count,
+                            current_page: b.page_count - 1,
                         },
                     },
                     false,

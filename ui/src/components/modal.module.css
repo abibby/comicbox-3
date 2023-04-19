@@ -44,6 +44,10 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+.modalOpen {
+    overflow: hidden;
+}
+
 @media screen and (min-width: 500px) {
     .popup {
         left: 50%;
@@ -60,7 +64,8 @@
     }
 }
 
-.modalOpen {
-    overflow: hidden;
+@media (prefers-color-scheme: dark) {
+    .close {
+        filter: invert(1);
+    }
 }
-

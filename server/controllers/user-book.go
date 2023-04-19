@@ -40,6 +40,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		var err error
 		ub, err = models.UserBookQuery(r.Context()).
 			Where("book_id", "=", req.BookID).
+			WithoutGlobalScope(bob.SoftDeletes).
 			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
@@ -53,9 +54,10 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
 			ub.CurrentPage = req.CurrentPage
 		}
+		ub.DeletedAt = nil
 
 		err = bob.SaveContext(r.Context(), tx, ub)
-		return errors.Wrap(err, "")
+		return errors.Wrap(err, "failed to save user book")
 	})
 	if err != nil {
 		sendError(rw, err)

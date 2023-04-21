@@ -101,6 +101,11 @@ class AppDatabase extends Dexie {
 
     constructor() {
         super('AppDatabase')
+        this.version(3).stores({
+            books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
+            series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at]',
+            lastUpdated: '&list',
+        })
         this.version(2).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
             series: '&name, user_series.list, dirty',
@@ -109,11 +114,6 @@ class AppDatabase extends Dexie {
         this.version(1).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty',
             series: '&name, user_series.list, dirty',
-            lastUpdated: '&list',
-        })
-        this.version(2).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, dirty',
-            series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at]',
             lastUpdated: '&list',
         })
         this.books = this.table('books')

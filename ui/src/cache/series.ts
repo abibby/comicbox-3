@@ -1,8 +1,8 @@
-import { Collection } from 'dexie'
+import Dexie, { Collection } from 'dexie'
 import { series } from 'src/api'
 import { setCacheHandler } from 'src/cache/internal'
 import { DB } from 'src/database'
-import { Series } from 'src/models'
+import { Series, SeriesOrder } from 'src/models'
 
 setCacheHandler(series.list, async (req): Promise<Series[]> => {
     let query: Collection<Series>
@@ -10,7 +10,14 @@ setCacheHandler(series.list, async (req): Promise<Series[]> => {
     if (req.name !== undefined) {
         query = DB.series.where('name').equals(req.name)
     } else if (req.list !== undefined) {
-        query = DB.series.where('user_series.list').equals(req.list)
+        if (req.order == SeriesOrder.LastRead) {
+            query = DB.series
+                .where(['user_series.list', 'user_series.last_read_at'])
+                .between([req.list, Dexie.minKey], [req.list, Dexie.maxKey])
+                .reverse()
+        } else {
+            query = DB.series.where('user_series.list').equals(req.list)
+        }
     } else {
         query = DB.series.orderBy('name')
     }

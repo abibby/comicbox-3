@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/abibby/bob"
+	"github.com/abibby/bob/builder"
 	bobmodels "github.com/abibby/bob/models"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
@@ -47,7 +48,8 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 	if req.UpdatedAfter != nil {
 		query = query.And(func(wl *selects.Conditions) {
 			t := (*database.Time)(req.UpdatedAfter)
-			wl.OrWhere("updated_at", ">=", t)
+			var m T
+			wl.OrWhere(builder.GetTable(m)+".updated_at", ">=", t)
 			updatedAfter(wl, t)
 		})
 	}

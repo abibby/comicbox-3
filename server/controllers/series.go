@@ -14,10 +14,25 @@ import (
 	"github.com/pkg/errors"
 )
 
+type SeriesOrder string
+
+func (l SeriesOrder) Options() map[string]string {
+	return map[string]string{
+		"Name":     string(SeriesOrderName),
+		"LastRead": string(SeriesOrderLastRead),
+	}
+}
+
+const (
+	SeriesOrderName     = SeriesOrder("name")
+	SeriesOrderLastRead = SeriesOrder("last-read")
+)
+
 type SeriesIndexRequest struct {
 	Name           *nulls.String `query:"name"`
 	List           *nulls.String `query:"list"`
 	WithLatestBook bool          `query:"with_latest_book"`
+	Order          *SeriesOrder  `query:"order"`
 }
 
 func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
@@ -29,8 +44,21 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	query := models.SeriesQuery(r.Context()).
-		With("UserSeries").
-		OrderBy("name")
+		With("UserSeries")
+
+	if req.Order != nil {
+		switch *req.Order {
+		case SeriesOrderLastRead:
+			uid, ok := auth.UserID(r.Context())
+			if ok {
+				query = query.JoinOn("user_series", func(q *selects.Conditions) {
+					q.WhereColumn("series.name", "=", "user_series.series_name").
+						Where("user_series.user_id", "=", uid)
+				}).OrderByDesc("user_series.last_read_at")
+			}
+		}
+	}
+	query = query.OrderBy("name")
 
 	if name, ok := req.Name.Ok(); ok {
 		query = query.Where("name", "=", name)
@@ -67,7 +95,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 
 	index(rw, r, query, func(wl *selects.Conditions, updatedAfter *database.Time) {
 		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
-			return q.Where("updated_at", ">=", updatedAfter)
+			return q.Where("series.updated_at", ">=", updatedAfter)
 		})
 	})
 }

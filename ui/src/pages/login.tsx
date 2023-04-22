@@ -39,7 +39,9 @@ export const Login: FunctionalComponent = () => {
                         <Button type='submit' color='primary'>
                             Login
                         </Button>
-                        <Button href='/users/create'>Create user</Button>
+                        {PUBLIC_USER_CREATE && (
+                            <Button href='/users/create'>Create user</Button>
+                        )}
                     </ButtonGroup>
                 </Form>
             </div>

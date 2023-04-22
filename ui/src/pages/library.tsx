@@ -5,6 +5,7 @@ import { listNames, SeriesListRequest } from 'src/api/series'
 import { useCached } from 'src/cache'
 import { SeriesCard } from 'src/components/series-card'
 import { DB } from 'src/database'
+import { SeriesOrder } from 'src/models'
 import styles from 'src/pages/library.module.css'
 import { route } from 'src/routes'
 
@@ -16,10 +17,18 @@ export function Library(): JSX.Element {
                 <SeriesRow
                     listName={listName}
                     cacheName={list}
-                    request={{ list: list, limit: 10 }}
+                    request={{
+                        list: list,
+                        limit: 10,
+                        order: SeriesOrder.LastRead,
+                    }}
                 />
             ))}
-            <a href={route('series.index', {})}>All Series</a>
+            <SeriesRow
+                listName='All Series'
+                cacheName='library-all-series'
+                request={{ limit: 10, order: SeriesOrder.LastRead }}
+            />
         </div>
     )
 }

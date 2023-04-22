@@ -40,7 +40,15 @@ export type DBSeries = Series &
         user_series: DBUserSeries | null
     }
 
-const emptySeries: Readonly<DBSeries> = {
+export const emptyUserSeries: Readonly<UserSeries> = {
+    created_at: '1970-01-01T00:00:00Z',
+    updated_at: '1970-01-01T00:00:00Z',
+    deleted_at: null,
+    update_map: {},
+    list: List.None,
+    last_read_at: '1970-01-01T00:00:00Z',
+}
+export const emptySeries: Readonly<DBSeries> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,
@@ -50,17 +58,11 @@ const emptySeries: Readonly<DBSeries> = {
     first_book_id: null,
     latest_book: null,
     latest_book_id: null,
-    user_series: {
-        created_at: '1970-01-01T00:00:00Z',
-        updated_at: '1970-01-01T00:00:00Z',
-        deleted_at: null,
-        update_map: {},
-        list: List.None,
-    },
+    user_series: emptyUserSeries,
     anilist_id: null,
 }
 
-const emptyBook: Readonly<DBBook> = {
+export const emptyBook: Readonly<DBBook> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,
@@ -99,6 +101,11 @@ class AppDatabase extends Dexie {
 
     constructor() {
         super('AppDatabase')
+        this.version(3).stores({
+            books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
+            series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at]',
+            lastUpdated: '&list',
+        })
         this.version(2).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
             series: '&name, user_series.list, dirty',

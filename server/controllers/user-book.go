@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/database"
@@ -53,6 +54,26 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		}
 		if shouldUpdate(ub.UpdateMap, req.UpdateMap, "current_page") {
 			ub.CurrentPage = req.CurrentPage
+
+			b, err := models.BookQuery(r.Context()).With("UserSeries").Find(tx, req.BookID)
+			if err != nil {
+				return fmt.Errorf("failed to find book: %w", err)
+			}
+
+			us, ok := b.UserSeries.Value()
+			if !ok {
+				uid, _ := auth.UserID(r.Context())
+				us = &models.UserSeries{
+					UserID:     uid,
+					SeriesName: b.SeriesName,
+				}
+			}
+			us.LastReadAt = database.Time(time.Now())
+			err = bob.SaveContext(r.Context(), tx, us)
+			if err != nil {
+				return fmt.Errorf("failed to save user series: %w", err)
+			}
+
 		}
 		ub.DeletedAt = nil
 

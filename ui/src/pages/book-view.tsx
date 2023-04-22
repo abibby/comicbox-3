@@ -6,7 +6,7 @@ import { book } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import classNames from 'src/classnames'
 import { Overlay } from 'src/components/reading-overlay'
-import { DB } from 'src/database'
+import { DB, emptyUserSeries } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
@@ -90,11 +90,22 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
 
-            DB.saveBook(b, {
-                user_book: {
-                    current_page: newPage,
-                },
-            }).then(() => persist(true))
+            ;(async () => {
+                await DB.saveBook(b, {
+                    user_book: {
+                        current_page: newPage,
+                    },
+                })
+                const s = await DB.series.where('name').equals(b.series).first()
+                if (s !== undefined) {
+                    await DB.saveSeries(s, {
+                        user_series: {
+                            last_read_at: new Date().toISOString(),
+                        },
+                    })
+                }
+                await persist(true)
+            })()
 
             changeRoute(route('book.view', { id: b.id, page: newPage }))
         },

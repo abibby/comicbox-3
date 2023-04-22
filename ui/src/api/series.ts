@@ -5,7 +5,7 @@ import {
     PaginatedRequest,
     PaginatedResponse,
 } from 'src/api/internal'
-import { List, Series } from 'src/models'
+import { List, Series, SeriesOrder } from 'src/models'
 
 export const listNames: [List, string][] = [
     [List.Reading, 'Reading'],
@@ -21,6 +21,7 @@ export type SeriesListRequest = PaginatedRequest & {
     name?: string
     list?: string
     with_latest_book?: boolean
+    order?: SeriesOrder
 }
 
 export async function listPaged(

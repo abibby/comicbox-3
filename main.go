@@ -53,8 +53,15 @@ func main() {
 		}
 	}()
 	queue.Default.Start()
-	queue.Default.ScheduleJob("0 * * * *", queue.JobFunc(app.Sync))
-	queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
+	if config.ScanInterval != "" {
+		err := queue.Default.ScheduleJob(config.ScanInterval, queue.JobFunc(app.Sync))
+		if err != nil {
+			log.Print(err)
+		}
+	}
+	if config.ScanOnStartup {
+		queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
+	}
 
 	log.Printf("Server started at http://localhost:%d", config.Port)
 	log.Fatal(s.Run())

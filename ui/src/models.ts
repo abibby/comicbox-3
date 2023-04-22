@@ -59,6 +59,7 @@ export interface UserSeries {
     deleted_at: string | null
     update_map: Record<string, string>
     list: List
+    last_read_at: string
 }
 export enum PageType {
     Deleted = "Deleted",
@@ -74,4 +75,8 @@ export enum List {
     Paused = "paused",
     Planning = "planning",
     Reading = "reading",
+}
+export enum SeriesOrder {
+    LastRead = "last-read",
+    Name = "name",
 }

@@ -5,16 +5,16 @@ import (
 
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
+	"github.com/abibby/comicbox-3/database"
 	"github.com/google/uuid"
 )
 
 type UserSeries struct {
 	BaseModel
-	SeriesName string    `json:"-"              db:"series_name,primary"`
-	UserID     uuid.UUID `json:"-"              db:"user_id,primary"`
-	List       List      `json:"list"           db:"list"`
-	// LatestBookID *uuid.UUID             `json:"latest_book_id" db:"latest_book_id"`
-	// LatestBook   *selects.HasOne[*Book] `json:"latest_book"    db:"-" local:"latest_book_id" foreign:"id"`
+	SeriesName string        `json:"-"            db:"series_name,primary"`
+	UserID     uuid.UUID     `json:"-"            db:"user_id,primary"`
+	List       List          `json:"list"         db:"list"`
+	LastReadAt database.Time `json:"last_read_at" db:"last_read_at"`
 }
 
 type List string
@@ -49,36 +49,5 @@ func (b *UserSeries) Scopes() []*bob.Scope {
 	return []*bob.Scope{
 		bob.SoftDeletes,
 		UserScoped,
-		// WithLatestBookID,
 	}
 }
-
-// var WithLatestBookID = &bob.Scope{
-// 	Name: "with-latest-book-id",
-// 	Apply: func(b *selects.SubBuilder) *selects.SubBuilder {
-// 		return b.AddSelectSubquery(
-// 			BookQuery(b.Context()).
-// 				Select("id").
-// 				WhereColumn("books.series", "=", "user_series.series_name").
-// 				WhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
-// 					return q.Or(func(q *selects.Conditions) {
-// 						q.Where("current_page", "<", "books.page_count").
-// 							Where("current_page", "=", nil)
-// 					})
-// 				}).
-// 				OrderBy("sort").
-// 				Limit(1),
-// 			"latest_book_id",
-// 		)
-// 		// BookQuery(ctx).
-// 		// Where("series", "=", b.Series).
-// 		// WhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
-// 		// 	return q.Or(func(q *selects.Conditions) {
-// 		// 		q.Where("current_page", "<", "books.page_count").
-// 		// 			Where("current_page", "=", nil)
-// 		// 	})
-// 		// }).
-// 		// OrderBy("sort").
-// 		// First(tx)
-// 	},
-// }

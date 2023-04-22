@@ -31,17 +31,31 @@ export const Settings: FunctionalComponent = () => {
 
     const redirectURI = location.origin + '/anilist/login'
 
+    /*
+     settings
+
+     start scan
+     generate user create link
+     clear database     
+     logout
+     anilist login
+
+     */
+
     return (
         <div>
             <h1>Settings</h1>
             <ButtonGroup>
                 <Button onClick={clearDatabase}>Clear Database</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
-                <Button onClick={generateToken}>Invite User</Button>
             </ButtonGroup>
-            <div>
-                <a href={link}>{link}</a>
-            </div>
+
+            {!PUBLIC_USER_CREATE && (
+                <div>
+                    <Button onClick={generateToken}>Invite User</Button>
+                    <a href={link}>{link}</a>
+                </div>
+            )}
             <section>
                 <h1>Anilist</h1>
                 <a

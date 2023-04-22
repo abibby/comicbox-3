@@ -38,7 +38,7 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 					log.Print(err)
 					return
 				}
-				src += "var " + name + "=" + string(b)
+				src += "var " + name + "=" + string(b) + "; "
 			}
 
 			w.Header().Add("Content-Type", "text/html")

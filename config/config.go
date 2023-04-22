@@ -42,15 +42,19 @@ func envInt(key string, def int) int {
 	return value
 }
 
-var AppKey []byte
-var DBPath string
-var CachePath string
-var LibraryPath string
-var Port int
-var Verbose bool
-var PublicUserCreate bool
-var AnilistClientID string
-var AnilistClientSecret string
+var (
+	AppKey              []byte
+	DBPath              string
+	CachePath           string
+	LibraryPath         string
+	Port                int
+	Verbose             bool
+	PublicUserCreate    bool
+	AnilistClientID     string
+	AnilistClientSecret string
+	ScanOnStartup       bool
+	ScanInterval        string
+)
 
 var PublicConfig map[string]any
 
@@ -66,6 +70,8 @@ func Init() error {
 	LibraryPath = mustEnv("LIBRARY_PATH")
 	Port = envInt("PORT", 8080)
 	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)
+	ScanOnStartup = envBool("SCAN_ON_STARTUP", true)
+	ScanInterval = env("SCAN_INTERVAL", "0 * * * *")
 
 	AnilistClientID = env("ANILIST_CLIENT_ID", "")
 	AnilistClientSecret = env("ANILIST_CLIENT_SECRET", "")
@@ -73,7 +79,8 @@ func Init() error {
 	Verbose = envBool("VERBOSE", false)
 
 	PublicConfig = map[string]any{
-		"ANILIST_CLIENT_ID": AnilistClientID,
+		"ANILIST_CLIENT_ID":  AnilistClientID,
+		"PUBLIC_USER_CREATE": PublicUserCreate,
 	}
 
 	return nil

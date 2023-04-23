@@ -1,23 +1,28 @@
-import EventTarget, { Event } from 'event-target-shim'
-import { Inputs, useEffect } from 'preact/hooks'
+import EventTargetShim, { Event as EventShim } from 'event-target-shim'
+import { Inputs, useCallback, useEffect } from 'preact/hooks'
 
 export function useEventListener<
-    TEventMap extends Record<string, Event>,
+    TEventMap extends Record<string, EventShim | Event>,
     TMode extends 'standard' | 'strict',
     TType extends string & keyof TEventMap,
 >(
-    target: EventTarget<TEventMap, TMode>,
+    target: TEventMap extends Record<string, EventShim>
+        ? EventTargetShim<TEventMap, TMode>
+        : EventTarget,
     type: TType,
     callback: (e: TEventMap[TType]) => void,
     inputs: Inputs,
 ): void {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const cb = useCallback(callback, inputs)
+
     useEffect(() => {
-        target.addEventListener(type, callback)
+        target.addEventListener(type, callback as never)
         return () => {
-            target.removeEventListener(type, callback)
+            target.removeEventListener(type, callback as never)
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [callback, target, type, ...inputs])
+    }, [cb, target, type])
 }
 
 export function useWindowEvent<K extends keyof WindowEventMap>(

@@ -119,6 +119,16 @@ export function useCached<
         updateList(listName, request, table, network)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setItems, listName, ...Object.values(request), table, network, cache])
+    useEventListener(
+        document,
+        'visibilitychange',
+        () => {
+            if (document.visibilityState === 'visible') {
+                updateList(listName, request, table, network)
+            }
+        },
+        [listName, ...Object.values(request), table, network],
+    )
 
     return items
 }

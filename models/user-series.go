@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type UserSeries struct {
 	BaseModel
 	SeriesName string        `json:"-"            db:"series_name,primary"`

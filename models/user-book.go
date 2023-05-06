@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type UserBook struct {
 	BaseModel
 	BookID      uuid.UUID `json:"-"            db:"book_id,primary"`

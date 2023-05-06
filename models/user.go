@@ -13,6 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type User struct {
 	BaseModel
 	ID               uuid.UUID      `json:"id"       db:"id,primary"`

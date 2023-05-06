@@ -44,6 +44,7 @@ const (
 	PageTypeDeleted     = PageType("Deleted")
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type Book struct {
 	BaseModel
 	ID          uuid.UUID                    `json:"id"         db:"id,primary"`
@@ -52,9 +53,9 @@ type Book struct {
 	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
 	SeriesName  string                       `json:"series"     db:"series"`
 	Authors     []string                     `json:"authors"    db:"-"`
-	RawAuthors  []byte                       `json:"-"          db:"authors"`
+	RawAuthors  json.RawMessage              `json:"-"          db:"authors"`
 	Pages       []*Page                      `json:"pages"      db:"-"`
-	RawPages    []byte                       `json:"-"          db:"pages"`
+	RawPages    json.RawMessage              `json:"-"          db:"pages"`
 	PageCount   int                          `json:"page_count" db:"page_count"`
 	RightToLeft bool                         `json:"rtl"        db:"rtl"`
 	Sort        string                       `json:"sort"       db:"sort"`

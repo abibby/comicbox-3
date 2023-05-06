@@ -13,6 +13,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type Series struct {
 	BaseModel
 	Name               string                       `json:"name"             db:"name,primary"`

@@ -22,7 +22,7 @@ type BaseModel struct {
 	UpdatedAt    database.Time     `json:"updated_at" db:"updated_at"`
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
 	UpdateMap    map[string]string `json:"update_map" db:"-"`
-	RawUpdateMap []byte            `json:"-"          db:"update_map"`
+	RawUpdateMap json.RawMessage   `json:"-"          db:"update_map"`
 }
 
 type Model interface {
@@ -73,7 +73,7 @@ func IsEnumValid(enum Enum, value string) bool {
 	return false
 }
 
-func marshal(raw *[]byte, v interface{}) error {
+func marshal(raw *json.RawMessage, v interface{}) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err

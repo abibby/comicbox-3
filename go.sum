@@ -57,6 +57,14 @@ github.com/ClickHouse/clickhouse-go v1.4.3/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHg
 github.com/Microsoft/go-winio v0.4.16/go.mod h1:XB6nPKklQyQ7GC9LdcBEcBl8PF76WugXOPRXwdLnMv0=
 github.com/abibby/bob v0.16.6 h1:FBa28mRLmao6lHFgGpQqXq+on5Mu01E3NyAswRiy604=
 github.com/abibby/bob v0.16.6/go.mod h1:uHfGENjnkK8KHcKg5zkutMdLLQpNVF7VKGzvBCmuUcw=
+github.com/abibby/bob v0.17.0 h1:en7oynSlf1ffpKntJ9jVtiaHI647UU6njgCRLemX0ns=
+github.com/abibby/bob v0.17.0/go.mod h1:ez8EX49X6XTGrnp8T0V6DlKU2OmTwTgGjz9ZDLrqmpM=
+github.com/abibby/bob v0.17.1 h1:jTHb81pYDGaXZt4Cf4LwubdUCQKS4B8VCTjcgdNjBus=
+github.com/abibby/bob v0.17.1/go.mod h1:JQqd1og13CWV9RhnPbdYidA06/By2NevUK5cN3fb3+M=
+github.com/abibby/bob v0.17.2 h1:eeLeW3jArKGqJnyYSSv+wFWUi0CGHKVqZXpYnX39bMY=
+github.com/abibby/bob v0.17.2/go.mod h1:JQqd1og13CWV9RhnPbdYidA06/By2NevUK5cN3fb3+M=
+github.com/abibby/bob v0.17.3 h1:aCx09RTlO8XchlOQPPZqgN8DnqBs79xqza9pTFmBxJA=
+github.com/abibby/bob v0.17.3/go.mod h1:JQqd1og13CWV9RhnPbdYidA06/By2NevUK5cN3fb3+M=
 github.com/abibby/nulls v1.1.0 h1:uGxt4HRs6XHqO0mnqfUZcDNiiVzN8sH66daUd5g0EIE=
 github.com/abibby/nulls v1.1.0/go.mod h1:Nm6/cK/PYDg+RwGRv5/nAXGJZfu4nGHFp201Dg1HKWQ=
 github.com/adhocore/gronx v0.2.5 h1:trVgNYPle0IcsGDt0XGz78zN8Soek0YrcQtQ+Cs+jko=

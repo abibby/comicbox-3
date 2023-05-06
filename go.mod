@@ -3,7 +3,7 @@ module github.com/abibby/comicbox-3
 go 1.18
 
 require (
-	github.com/abibby/bob v0.16.6
+	github.com/abibby/bob v0.17.3
 	github.com/abibby/nulls v1.1.0
 	github.com/adhocore/gronx v0.2.5
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222

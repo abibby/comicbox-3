@@ -51,7 +51,7 @@ func (*Series) PrimaryKey() string {
 }
 
 func (s *Series) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
-	err, _ := s.UpdateFirstBook(ctx, tx, nil)
+	_, err := s.UpdateFirstBook(ctx, tx, nil)
 	return err
 }
 
@@ -62,14 +62,14 @@ func (s *Series) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
 	return nil
 }
 
-func (s *Series) UpdateFirstBook(ctx context.Context, tx builder.QueryExecer, newBook *Book) (error, bool) {
+func (s *Series) UpdateFirstBook(ctx context.Context, tx builder.QueryExecer, newBook *Book) (bool, error) {
 	b, err := BookQuery(ctx).
 		Where("series", "=", s.Name).
 		OrderBy("sort").
 		Limit(1).
 		First(tx)
 	if err != nil {
-		return err, false
+		return false, err
 	}
 
 	if b == nil {
@@ -89,5 +89,5 @@ func (s *Series) UpdateFirstBook(ctx context.Context, tx builder.QueryExecer, ne
 		s.FirstBookID = nil
 		s.FirstBookCoverPage = 0
 	}
-	return nil, s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage
+	return s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage, nil
 }

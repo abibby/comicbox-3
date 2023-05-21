@@ -133,7 +133,10 @@ func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 		seriesChange = true
 		s = &Series{Name: b.SeriesName}
 	}
-	err, changed := s.UpdateFirstBook(ctx, tx, b)
+	changed, err := s.UpdateFirstBook(ctx, tx, b)
+	if err != nil {
+		return errors.Wrap(err, "failed update series first book")
+	}
 	seriesChange = seriesChange || changed
 	if seriesChange {
 		err = bob.SaveContext(ctx, tx, s)

@@ -16,6 +16,9 @@ type UserSeries struct {
 	UserID     uuid.UUID     `json:"-"            db:"user_id,primary"`
 	List       List          `json:"list"         db:"list"`
 	LastReadAt database.Time `json:"last_read_at" db:"last_read_at"`
+
+	Series *selects.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
+	User   *selects.BelongsTo[*User]   `json:"-"`
 }
 
 type List string

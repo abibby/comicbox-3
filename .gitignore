@@ -3,5 +3,6 @@
 /bin
 /cache
 .env
+pgsql
 *.sqlite
 *.sqlite-journal

@@ -14,6 +14,9 @@ type UserBook struct {
 	BookID      uuid.UUID `json:"-"            db:"book_id,primary"`
 	UserID      uuid.UUID `json:"-"            db:"user_id,primary"`
 	CurrentPage int       `json:"current_page" db:"current_page"`
+
+	Book *selects.BelongsTo[*Book] `json:"-"`
+	User *selects.BelongsTo[*User] `json:"-"`
 }
 
 func UserBookQuery(ctx context.Context) *selects.Builder[*UserBook] {

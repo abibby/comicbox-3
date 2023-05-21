@@ -1,0 +1,36 @@
+version: "3"
+services:
+  comicbox3:
+    container_name: comicbox3
+    build: .
+    restart: unless-stopped
+    environment:
+      - APP_KEY=${APP_KEY}
+      - ANILIST_CLIENT_ID=${ANILIST_CLIENT_ID}
+      - ANILIST_CLIENT_SECRET=${ANILIST_CLIENT_SECRET}
+      - DB_DRIVER=postgres
+      - DB_HOST=db
+      - DB_USERNAME=comicbox3
+      - DB_PASSWORD=secret
+      - DB_NAME=comicbox
+      - SCAN_ON_STARTUP=false
+      - SCAN_INTERVAL=""
+    ports:
+      - 8080:8080
+    volumes:
+      - ./db.sqlite:/db.sqlite
+      - ./cache:/cache
+      - ${LIBRARY_PATH}:/comics
+
+  db:
+    container_name: postgres
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: comicbox3
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: comicbox
+    volumes:
+      - ./pgsql:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

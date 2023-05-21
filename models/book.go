@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/abibby/bob"
+	"github.com/abibby/bob/builder"
 	"github.com/abibby/bob/hooks"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
@@ -53,17 +53,17 @@ type Book struct {
 	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
 	SeriesName  string                       `json:"series"     db:"series"`
 	Authors     []string                     `json:"authors"    db:"-"`
-	RawAuthors  json.RawMessage              `json:"-"          db:"authors"`
+	RawAuthors  []byte                       `json:"-"          db:"authors"`
 	Pages       []*Page                      `json:"pages"      db:"-"`
-	RawPages    json.RawMessage              `json:"-"          db:"pages"`
+	RawPages    []byte                       `json:"-"          db:"pages"`
 	PageCount   int                          `json:"page_count" db:"page_count"`
 	RightToLeft bool                         `json:"rtl"        db:"rtl"`
-	Sort        string                       `json:"sort"       db:"sort"`
+	Sort        string                       `json:"sort"       db:"sort,index"`
 	File        string                       `json:"file"       db:"file"`
 	CoverURL    string                       `json:"cover_url"  db:"-"`
 	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
 	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
-	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-"`
+	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-" foreign:"series" owner:"name"`
 }
 
 func BookQuery(ctx context.Context) *selects.Builder[*Book] {
@@ -71,7 +71,8 @@ func BookQuery(ctx context.Context) *selects.Builder[*Book] {
 }
 
 var _ hooks.BeforeSaver = &Book{}
-var _ hooks.AfterSaver = &Book{}
+
+// var _ hooks.AfterSaver = &Book{}
 var _ hooks.AfterLoader = &Book{}
 var _ bob.Scoper = &Book{}
 
@@ -81,11 +82,15 @@ func (b *Book) Scopes() []*bob.Scope {
 	}
 }
 
-func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
+func (b *Book) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
+	err := b.updateSeries(ctx, tx)
+	if err != nil {
+		return err
+	}
 	if b.Authors == nil {
 		b.Authors = []string{}
 	}
-	err := marshal(&b.RawAuthors, b.Authors)
+	err = marshal(&b.RawAuthors, b.Authors)
 	if err != nil {
 		return err
 	}
@@ -118,13 +123,20 @@ func (b *Book) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	return nil
 }
 
-func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
+func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
+	seriesChange := false
 	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
 	if err != nil {
 		return errors.Wrap(err, "failed find a series from book")
 	}
 	if s == nil {
-		err = bob.SaveContext(ctx, tx, &Series{Name: b.SeriesName})
+		seriesChange = true
+		s = &Series{Name: b.SeriesName}
+	}
+	err, changed := s.UpdateFirstBook(ctx, tx, b)
+	seriesChange = seriesChange || changed
+	if seriesChange {
+		err = bob.SaveContext(ctx, tx, s)
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}
@@ -132,7 +144,21 @@ func (b *Book) AfterSave(ctx context.Context, tx *sqlx.Tx) error {
 	return nil
 }
 
-func (b *Book) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
+// func (b *Book) AfterSave(ctx context.Context, tx builder.QueryExecer) error {
+// 	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
+// 	if err != nil {
+// 		return errors.Wrap(err, "failed find a series from book")
+// 	}
+// 	if s == nil {
+// 		err = bob.SaveContext(ctx, tx, &Series{Name: b.SeriesName})
+// 		if err != nil {
+// 			return errors.Wrap(err, "failed to create series from book")
+// 		}
+// 	}
+// 	return nil
+// }
+
+func (b *Book) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err

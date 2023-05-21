@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/abibby/bob"
+	"github.com/abibby/bob/builder"
 	"github.com/abibby/bob/hooks"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 )
 
 //go:generate go run github.com/abibby/bob/bob-cli@latest generate
@@ -50,16 +50,38 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
+func (s *Series) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
+	err, _ := s.UpdateFirstBook(ctx, tx, nil)
+	return err
+}
+
+func (s *Series) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
+	if s.FirstBookID != nil {
+		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
+	}
+	return nil
+}
+
+func (s *Series) UpdateFirstBook(ctx context.Context, tx builder.QueryExecer, newBook *Book) (error, bool) {
 	b, err := BookQuery(ctx).
 		Where("series", "=", s.Name).
 		OrderBy("sort").
 		Limit(1).
 		First(tx)
 	if err != nil {
-		return err
+		return err, false
 	}
 
+	if b == nil {
+		b = newBook
+	}
+	if newBook != nil {
+		if b.Sort > newBook.Sort {
+			b = newBook
+		}
+	}
+	oldID := s.FirstBookID
+	oldCoverPage := s.FirstBookCoverPage
 	if b != nil {
 		s.FirstBookID = &b.ID
 		s.FirstBookCoverPage = b.CoverPage()
@@ -67,12 +89,5 @@ func (s *Series) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 		s.FirstBookID = nil
 		s.FirstBookCoverPage = 0
 	}
-	return nil
-}
-
-func (s *Series) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
-	if s.FirstBookID != nil {
-		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
-	}
-	return nil
+	return nil, s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage
 }

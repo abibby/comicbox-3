@@ -81,6 +81,7 @@ let tokens: LoginResponse | undefined
 export async function setAuthToken(
     resp: LoginResponse | null | undefined,
 ): Promise<void> {
+    tokens = resp ?? undefined
     if (resp === null || resp === undefined) {
         await del('tokens')
     } else {

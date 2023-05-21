@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"sync"
 
+	"github.com/abibby/bob/dialects/sqlite"
 	"github.com/jmoiron/sqlx"
-	// _ "modernc.org/sqlite"
-	_ "github.com/mattn/go-sqlite3"
 
-	_ "github.com/abibby/bob/dialects/sqlite"
+	// _ "github.com/abibby/bob/dialects/postgres"
+	// _ "github.com/lib/pq"
+	_ "modernc.org/sqlite"
+	// _ "github.com/mattn/go-sqlite3"
 )
 
 var database *sqlx.DB
@@ -21,7 +23,15 @@ var testTx *sqlx.Tx
 var mtx = &sync.RWMutex{}
 
 func Open(dsnURI string) error {
+	sqlite.UseSQLite()
 	db, err := sqlx.Open("sqlite", dsnURI)
+	// username := "comicbox3"
+	// password := "secret"
+	// host := "db"
+	// databaseName := "comicbox"
+	// connStr := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", username, password, host, databaseName)
+
+	// db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		return err
 	}

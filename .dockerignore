@@ -3,8 +3,10 @@ Dockerfile
 .git
 .gitattributes
 .gitignore
+docker-compose.yml
 
 *.sqlite
+/pgsql
 cache/*
 bin/*
 .env

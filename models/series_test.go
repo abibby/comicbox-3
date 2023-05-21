@@ -2,24 +2,22 @@ package models_test
 
 import (
 	"context"
-	"os"
 	"testing"
 
-	"github.com/abibby/bob/bobtesting"
-	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
+	"github.com/abibby/comicbox-3/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(m *testing.M) {
-	bobtesting.SetMigrate(func(db *sqlx.DB) error {
-		database.SetTestDB(db)
-		return database.Migrate()
-	})
-	os.Exit(m.Run())
-}
+// func TestMain(m *testing.M) {
+// 	bobtest.SetMigrate(func(db *sqlx.DB) error {
+// 		database.SetTestDB(db)
+// 		return database.Migrate()
+// 	})
+// 	os.Exit(m.Run())
+// }
 
 func userContext(u *models.User) context.Context {
 	return context.WithValue(context.Background(), "user-id", u.ID)
@@ -39,7 +37,7 @@ func FromUser(u *models.User) func(us *models.UserSeries) *models.UserSeries {
 }
 
 func TestSeries(t *testing.T) {
-	bobtesting.RunWithDatabase(t, "", func(t *testing.T, tx *sqlx.Tx) {
+	test.Run(t, "", func(t *testing.T, tx *sqlx.Tx) {
 		u := factory.User.Create(tx)
 		{
 			s := factory.Series.Create(tx)

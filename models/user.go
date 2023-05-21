@@ -2,17 +2,19 @@ package models
 
 import (
 	"context"
+	"strings"
 
+	"github.com/abibby/bob/builder"
 	"github.com/abibby/bob/hooks"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate go run github.com/abibby/bob/bob-cli@latest generate
 type User struct {
 	BaseModel
 	ID               uuid.UUID      `json:"id"       db:"id,primary"`
@@ -32,7 +34,7 @@ func UserQuery(ctx context.Context) *selects.Builder[*User] {
 	return selects.From[*User]().WithContext(ctx)
 }
 
-func (u *User) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
+func (u *User) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
 	if u.Password != nil {
 		hash, err := bcrypt.GenerateFromPassword(u.Password, bcrypt.DefaultCost)
 		if err != nil {
@@ -40,6 +42,8 @@ func (u *User) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 		}
 		u.PasswordHash = hash
 	}
+
+	u.Username = strings.ToLower(u.Username)
 
 	return nil
 }

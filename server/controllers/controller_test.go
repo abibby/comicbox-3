@@ -6,28 +6,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"path"
-	"testing"
 
-	"github.com/abibby/bob/bobtesting"
-	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/jmoiron/sqlx"
 )
 
 type Request struct {
 	request *http.Request
 	handler http.Handler
-}
-
-func TestMain(m *testing.M) {
-	bobtesting.SetMigrate(func(db *sqlx.DB) error {
-		database.SetTestDB(db)
-		return database.Migrate()
-	})
-	os.Exit(m.Run())
 }
 
 func NewRequest(h http.HandlerFunc, method, target string, body io.Reader) *Request {

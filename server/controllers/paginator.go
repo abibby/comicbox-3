@@ -70,6 +70,7 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 			return fmt.Errorf("failed to fetch page: %w", err)
 		}
 		err = query.
+			Unordered().
 			SelectFunction("count", "*").
 			LoadOne(tx, &total)
 		if err != nil {

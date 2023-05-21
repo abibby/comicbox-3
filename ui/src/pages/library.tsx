@@ -16,7 +16,7 @@ export function Library(): JSX.Element {
             {listNames.map(([list, listName]) => (
                 <SeriesRow
                     listName={listName}
-                    cacheName={list}
+                    href={route('list', { list: list })}
                     request={{
                         list: list,
                         limit: 10,
@@ -26,7 +26,7 @@ export function Library(): JSX.Element {
             ))}
             <SeriesRow
                 listName='All Series'
-                cacheName='library-all-series'
+                href={route('series.index', {})}
                 request={{ limit: 10, order: SeriesOrder.LastRead }}
             />
         </div>
@@ -35,7 +35,7 @@ export function Library(): JSX.Element {
 
 interface SeriesRowProps {
     listName: string
-    cacheName: string
+    href: string
     request: AllPagesRequest<SeriesListRequest>
 }
 function SeriesRow(props: SeriesRowProps): JSX.Element {
@@ -48,10 +48,7 @@ function SeriesRow(props: SeriesRowProps): JSX.Element {
     return (
         <div class={styles.seriesRow}>
             <h3 class={styles.title}>{props.listName}</h3>
-            <a
-                class={styles.more}
-                href={route('list', { list: props.cacheName })}
-            >
+            <a class={styles.more} href={props.href}>
                 see all
             </a>
             <div class={styles.cards}>

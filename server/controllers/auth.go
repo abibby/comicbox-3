@@ -49,7 +49,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		u, err = models.UserQuery(r.Context()).
-			WhereRaw("lower(username) = ?", strings.ToLower(req.Username)).
+			Where("username", "=", strings.ToLower(req.Username)).
 			First(tx)
 		return err
 	})

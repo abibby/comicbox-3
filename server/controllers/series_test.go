@@ -3,18 +3,18 @@ package controllers_test
 import (
 	"testing"
 
-	"github.com/abibby/bob/bobtesting"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
 	_ "github.com/abibby/comicbox-3/server"
 	"github.com/abibby/comicbox-3/server/controllers"
+	"github.com/abibby/comicbox-3/test"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSeries(t *testing.T) {
-	bobtesting.RunWithDatabase(t, "", func(t *testing.T, tx *sqlx.Tx) {
+	test.Run(t, "", func(t *testing.T, tx *sqlx.Tx) {
 		database.SetTestTx(tx)
 
 		series := factory.Series.Count(5).Create(tx)

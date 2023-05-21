@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/abibby/bob"
+	"github.com/abibby/bob/builder"
 	"github.com/abibby/bob/hooks"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 )
 
 type BaseModel struct {
@@ -22,7 +22,7 @@ type BaseModel struct {
 	UpdatedAt    database.Time     `json:"updated_at" db:"updated_at"`
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
 	UpdateMap    map[string]string `json:"update_map" db:"-"`
-	RawUpdateMap []byte            `json:"-"          db:"update_map"`
+	RawUpdateMap []byte            `json:"-"          db:"update_map,type:json"`
 }
 
 type Model interface {
@@ -85,7 +85,7 @@ func marshal(raw *[]byte, v interface{}) error {
 var _ hooks.BeforeSaver = &BaseModel{}
 var _ hooks.AfterLoader = &BaseModel{}
 
-func (bm *BaseModel) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
+func (bm *BaseModel) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
 	if bm.UpdateMap == nil {
 		bm.UpdateMap = map[string]string{}
 	}
@@ -101,7 +101,7 @@ func (bm *BaseModel) BeforeSave(ctx context.Context, tx *sqlx.Tx) error {
 	return nil
 }
 
-func (bm *BaseModel) AfterLoad(ctx context.Context, tx *sqlx.Tx) error {
+func (bm *BaseModel) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
 	if bm.RawUpdateMap != nil && len(bm.RawUpdateMap) > 0 {
 		err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
 		if err != nil {

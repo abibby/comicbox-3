@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"errors"
 	"time"
+
+	"github.com/abibby/bob/dialects"
 )
 
 type Time time.Time
@@ -59,4 +61,8 @@ func (nt *Time) Time() time.Time {
 		return time.Time{}
 	}
 	return time.Time(*nt)
+}
+
+func (Time) DataType() dialects.DataType {
+	return dialects.DataTypeDateTime
 }

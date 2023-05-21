@@ -35,38 +35,44 @@ func Sync(ctx context.Context) error {
 		return errors.Wrap(err, "failed to fetch book files from disk")
 	}
 
-	err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
-		dbBookFiles := []string{}
-		err = models.BookQuery(ctx).Select("file").Where("deleted_at", "=", nil).Load(tx, &dbBookFiles)
+	dbBookFiles := []string{}
+	err = database.ReadTx(ctx, func(tx *sqlx.Tx) error {
+		err = models.BookQuery(ctx).Select("file").Load(tx, &dbBookFiles)
 		if err != nil {
 			return errors.Wrap(err, "failed to fetch book files from database")
 		}
-		for _, file := range dbBookFiles {
-			if _, ok := bookFiles[file]; ok {
-				delete(bookFiles, file)
-			} else {
-				err = removeBook(ctx, tx, file)
-				if err != nil {
-					log.Printf("Failed to remove %s from the library: %v", file, err)
-				} else {
-					log.Printf("Removed %s from the library", file)
-				}
-			}
-		}
-
-		for file := range bookFiles {
-			err = addBook(ctx, tx, file)
-			if err != nil {
-				log.Printf("failed to add %s to the library: %v", file, err)
-			} else {
-				log.Printf("Added %s to the library", file)
-			}
-		}
-
 		return nil
 	})
 	if err != nil {
 		return err
+	}
+
+	for _, file := range dbBookFiles {
+		if _, ok := bookFiles[file]; ok {
+			delete(bookFiles, file)
+		} else {
+			err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
+				return removeBook(ctx, tx, file)
+			})
+			if err != nil {
+				log.Printf("Failed to remove %s from the library: %v", file, err)
+			} else {
+				log.Printf("Removed %s from the library", file)
+			}
+		}
+	}
+
+	count := 0
+	for file := range bookFiles {
+		count++
+		err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
+			return addBook(ctx, tx, file)
+		})
+		if err != nil {
+			log.Printf("failed to add %s to the library: %v", file, err)
+		} else {
+			log.Printf("Added %s to the library (%d of %d)", file, count, len(bookFiles))
+		}
 	}
 
 	log.Print("Finished sync")

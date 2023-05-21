@@ -53,9 +53,9 @@ type Book struct {
 	Volume      *nulls.Float64               `json:"volume"     db:"volume"`
 	SeriesName  string                       `json:"series"     db:"series"`
 	Authors     []string                     `json:"authors"    db:"-"`
-	RawAuthors  []byte                       `json:"-"          db:"authors"`
+	RawAuthors  []byte                       `json:"-"          db:"authors,type:json"`
 	Pages       []*Page                      `json:"pages"      db:"-"`
-	RawPages    []byte                       `json:"-"          db:"pages"`
+	RawPages    []byte                       `json:"-"          db:"pages,type:json"`
 	PageCount   int                          `json:"page_count" db:"page_count"`
 	RightToLeft bool                         `json:"rtl"        db:"rtl"`
 	Sort        string                       `json:"sort"       db:"sort,index"`

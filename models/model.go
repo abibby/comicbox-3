@@ -22,7 +22,7 @@ type BaseModel struct {
 	UpdatedAt    database.Time     `json:"updated_at" db:"updated_at"`
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
 	UpdateMap    map[string]string `json:"update_map" db:"-"`
-	RawUpdateMap []byte            `json:"-"          db:"update_map"`
+	RawUpdateMap []byte            `json:"-"          db:"update_map,type:json"`
 }
 
 type Model interface {

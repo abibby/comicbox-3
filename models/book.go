@@ -72,7 +72,6 @@ func BookQuery(ctx context.Context) *selects.Builder[*Book] {
 
 var _ hooks.BeforeSaver = &Book{}
 
-// var _ hooks.AfterSaver = &Book{}
 var _ hooks.AfterLoader = &Book{}
 var _ bob.Scoper = &Book{}
 
@@ -146,20 +145,6 @@ func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 	}
 	return nil
 }
-
-// func (b *Book) AfterSave(ctx context.Context, tx builder.QueryExecer) error {
-// 	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed find a series from book")
-// 	}
-// 	if s == nil {
-// 		err = bob.SaveContext(ctx, tx, &Series{Name: b.SeriesName})
-// 		if err != nil {
-// 			return errors.Wrap(err, "failed to create series from book")
-// 		}
-// 	}
-// 	return nil
-// }
 
 func (b *Book) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)

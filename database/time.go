@@ -63,9 +63,6 @@ func (nt *Time) Time() time.Time {
 	return time.Time(*nt)
 }
 
-//	func (nt *Time) DataType() dialects.DataType {
-//		return dialects.DataTypeDateTime
-//	}
 func (Time) DataType() dialects.DataType {
 	return dialects.DataTypeDateTime
 }

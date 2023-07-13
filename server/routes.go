@@ -24,6 +24,8 @@ func init() {
 		auth.HandleFunc("/books/{id}", controllers.BookUpdate).Methods("POST").Name("book.update")
 		auth.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
 
+		auth.HandleFunc("/sync", controllers.Sync).Methods("POST").Name("sync")
+
 		auth.HandleFunc("/anilist/update", controllers.AnilistUpdate).Methods("POST").Name("anilist.update")
 		auth.HandleFunc("/anilist/login", controllers.AnilistLogin).Methods("POST").Name("anilist.login")
 

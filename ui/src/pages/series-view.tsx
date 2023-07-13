@@ -1,6 +1,6 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { book, series } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
@@ -9,7 +9,7 @@ import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
 import { DB } from 'src/database'
 import { post } from 'src/message'
-import { Series } from 'src/models'
+import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/404'
 
 interface SeriesViewProps {
@@ -49,6 +49,24 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     const listName = `series:${name}`
 
     const books = useCached(listName, { series: name }, DB.books, book.list)
+    const [currentBooks, setCurrentBooks] = useState<Book[]>([])
+    useEffect(() => {
+        if (books === null) return
+        const count = 7
+        const current = books.findIndex(b => b.completed === 0)
+        let start = current - Math.floor(count / 2)
+        let end = current + Math.ceil(count / 2)
+        if (start < 0) {
+            start = 0
+            end = count
+        }
+        if (end > books.length || current === -1) {
+            start = books.length - count
+            end = books.length
+        }
+
+        setCurrentBooks(books.slice(start, end))
+    }, [books])
 
     const editSeries = useCallback(() => {
         if (series === undefined) {
@@ -114,6 +132,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                     <Button onClick={markAllUnread}>Mark All Unread</Button>
                 </ButtonGroup>
             </section>
+            <BookList books={currentBooks} />
+            <h2>All Books</h2>
             <BookList books={books} />
         </div>
     )

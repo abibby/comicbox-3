@@ -1,5 +1,7 @@
 FROM node:20 as ui
 
+WORKDIR /ui
+
 COPY ui/package.json ui/package-lock.json ./
 RUN npm install
 
@@ -14,7 +16,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-COPY --from=ui /dist ui/dist
+COPY --from=ui /ui/dist ui/dist
 
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build
 

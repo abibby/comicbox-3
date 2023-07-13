@@ -2,6 +2,7 @@ import { FunctionalComponent, h } from 'preact'
 import { route as preactRoute } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { logout, userCreateToken } from 'src/api/auth'
+import { bookSync } from 'src/api/sync'
 import { prompt } from 'src/components/alert'
 import { Button, ButtonGroup } from 'src/components/button'
 import { clearDatabase } from 'src/database'
@@ -48,6 +49,7 @@ export const Settings: FunctionalComponent = () => {
             <ButtonGroup>
                 <Button onClick={clearDatabase}>Clear Database</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
+                <Button onClick={bookSync}>Start Scan</Button>
             </ButtonGroup>
 
             {!PUBLIC_USER_CREATE && (

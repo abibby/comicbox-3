@@ -124,11 +124,12 @@ func (b *Book) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
 
 func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 	seriesChange := false
-	s, err := SeriesQuery(ctx).Find(tx, b.SeriesName)
+	err := selects.LoadMissing(tx, b, "Series")
 	if err != nil {
 		return errors.Wrap(err, "failed find a series from book")
 	}
-	if s == nil {
+	s, ok := b.Series.Value()
+	if !ok {
 		seriesChange = true
 		s = &Series{Name: b.SeriesName}
 	}

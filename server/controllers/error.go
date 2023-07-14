@@ -46,7 +46,10 @@ type Sender interface {
 	Status() int
 }
 
-func sendError(rw http.ResponseWriter, err error) {
+func sendError(rw http.ResponseWriter, err error) bool {
+	if err == nil {
+		return false
+	}
 	if config.Verbose {
 		fmt.Printf("%+v\n", err)
 		debug.PrintStack()
@@ -58,7 +61,7 @@ func sendError(rw http.ResponseWriter, err error) {
 		if sendErr != nil {
 			log.Print(sendErr)
 		}
-		return
+		return true
 	}
 	rw.WriteHeader(500)
 	err = json.NewEncoder(rw).Encode(ErrorResponse{
@@ -67,6 +70,7 @@ func sendError(rw http.ResponseWriter, err error) {
 	if err != nil {
 		log.Print(err)
 	}
+	return true
 }
 
 func API404(rw http.ResponseWriter, r *http.Request) {

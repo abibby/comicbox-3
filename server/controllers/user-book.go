@@ -60,8 +60,8 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 				return fmt.Errorf("failed to find book: %w", err)
 			}
 
-			us, ok := b.UserSeries.Value()
-			if !ok {
+			us, _ := b.UserSeries.Value()
+			if us == nil {
 				uid, _ := auth.UserID(r.Context())
 				us = &models.UserSeries{
 					UserID:     uid,

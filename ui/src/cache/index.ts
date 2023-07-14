@@ -264,3 +264,13 @@ export function useOnline(): boolean {
 
     return online
 }
+
+export async function deleteBook(
+    b: DBBook,
+    deleteFile = false,
+    fromUserInteraction = false,
+): Promise<void> {
+    await book.remove(b.id, { file: deleteFile })
+    await DB.books.delete(b.id)
+    invalidateCache(fromUserInteraction)
+}

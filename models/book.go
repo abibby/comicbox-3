@@ -82,7 +82,11 @@ func (b *Book) Scopes() []*bob.Scope {
 }
 
 func (b *Book) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
-	err := b.updateSeries(ctx, tx)
+	err := selects.InitializeRelationships(b)
+	if err != nil {
+		return err
+	}
+	err = b.updateSeries(ctx, tx)
 	if err != nil {
 		return err
 	}
@@ -128,8 +132,8 @@ func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 	if err != nil {
 		return errors.Wrap(err, "failed find a series from book")
 	}
-	s, ok := b.Series.Value()
-	if !ok {
+	s, _ := b.Series.Value()
+	if s == nil {
 		seriesChange = true
 		s = &Series{Name: b.SeriesName}
 	}

@@ -11,6 +11,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
@@ -249,6 +251,50 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendJSON(rw, book)
+}
+
+type BookDeleteRequest struct {
+	ID   string `url:"id" validate:"require|uuid"`
+	File bool   `json:"file"`
+}
+type BookDeleteResponse struct {
+	Success bool `json:"success"`
+}
+
+func BookDelete(rw http.ResponseWriter, r *http.Request) {
+	req := &BookDeleteRequest{}
+	err := validate.Run(r, req)
+	if sendError(rw, err) {
+		return
+	}
+
+	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+		b, err := models.BookQuery(r.Context()).Find(tx, req.ID)
+		if err != nil {
+			return err
+		}
+		if b == nil {
+			return Err404
+		}
+		b.DeletedAt = database.TimePtr(time.Now())
+		err = bob.SaveContext(r.Context(), tx, b)
+		if err != nil {
+			return err
+		}
+
+		if req.File {
+			err = os.Remove(b.File)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if sendError(rw, err) {
+		return
+	}
+
+	sendJSON(rw, BookDeleteResponse{Success: true})
 }
 
 func updatedAfter(withSeries bool) func(wl *selects.Conditions, updatedAfter *database.Time) {

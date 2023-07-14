@@ -26,6 +26,20 @@ export async function listPaged(
 
 export const list = allPagesFactory<DBBook, BookListRequest>(listPaged)
 
+export interface BookDeleteRequest {
+    file: boolean
+}
+
+export async function remove(
+    id: string,
+    req: BookDeleteRequest = { file: false },
+): Promise<Book> {
+    return await apiFetch(`/api/books/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        body: JSON.stringify(req),
+    })
+}
+
 export interface BookUpdateRequest {
     title: string
     series: string

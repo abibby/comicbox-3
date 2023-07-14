@@ -1,6 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
-import { useOnline } from 'src/cache'
+import { deleteBook, useOnline } from 'src/cache'
 import { removeBookCache, useBookCached } from 'src/caches'
+import { prompt } from 'src/components/alert'
 import { EditBook } from 'src/components/book-edit'
 import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
@@ -40,6 +41,23 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
                     }),
             ],
             downloadOrRemove,
+            ['delete', () => deleteBook(book)],
+            [
+                'delete file',
+                async () => {
+                    const shouldDelete = await prompt(
+                        `Are you sure you want to delete ${book.file}?`,
+                        {
+                            Yes: true,
+                            No: false,
+                        },
+                        -1,
+                    )
+                    if (shouldDelete) {
+                        deleteBook(book, true)
+                    }
+                },
+            ],
         ]
     }, [book, downloaded])
     const online = useOnline()

@@ -43,12 +43,16 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
 		}
+		if us == nil {
+			us = &models.UserSeries{
+				UserID:     uid,
+				SeriesName: req.SeriesName,
+			}
+		}
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {
 			us.List = req.List
 		}
 
-		us.UserID = uid
-		us.SeriesName = req.SeriesName
 		err = bob.SaveContext(r.Context(), tx, us)
 		return errors.Wrap(err, "")
 	})

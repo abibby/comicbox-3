@@ -14,7 +14,6 @@ import cssModuleTypes from './lib/css-module-types'
 import { eslint } from './lib/eslint-plugin'
 import resolveFilePlugin from './lib/resolve-file-plugin'
 import staticFileNamePlugin from './lib/static-file-name-plugin'
-import sourcemaps from 'rollup-plugin-sourcemaps'
 
 const config: RollupOptions = {
     preserveEntrySignatures: false,
@@ -54,8 +53,7 @@ const config: RollupOptions = {
         }),
         assetPlugin(),
         includePaths(),
-        typescript({ sourceMap: true }),
-        // sourcemaps(),
+        typescript(),
         nodeResolve(),
         commonjs({
             include: 'node_modules/**', // Default: undefined

@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, Fragment, h } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { book, series } from 'src/api'
 import { persist, useCached } from 'src/cache'
@@ -49,10 +49,14 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     const listName = `series:${name}`
 
     const books = useCached(listName, { series: name }, DB.books, book.list)
-    const [currentBooks, setCurrentBooks] = useState<Book[]>([])
+    const [currentBooks, setCurrentBooks] = useState<Book[] | null>(null)
     useEffect(() => {
         if (books === null) return
         const count = 7
+        if (books.length <= count) {
+            setCurrentBooks([])
+            return
+        }
         const current = books.findIndex(b => b.completed === 0)
         let start = current - Math.floor(count / 2)
         let end = current + Math.ceil(count / 2)
@@ -132,8 +136,12 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                     <Button onClick={markAllUnread}>Mark All Unread</Button>
                 </ButtonGroup>
             </section>
-            <BookList books={currentBooks} />
-            <h2>All Books</h2>
+            {(currentBooks?.length ?? 0) > 0 && (
+                <>
+                    <BookList books={currentBooks} />
+                    <h2>All Books</h2>
+                </>
+            )}
             <BookList books={books} />
         </div>
     )

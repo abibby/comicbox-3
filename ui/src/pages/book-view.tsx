@@ -43,8 +43,6 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
         page = b.user_book?.current_page
     }
 
-    console.log(page, pageUnindex(b, page))
-
     return <Reader book={b} page={pageUnindex(b, page)} />
 }
 
@@ -190,16 +188,8 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             `[data-page="${page}"]`,
         )
 
-        if (img?.complete && img.naturalHeight !== 0) {
-            if (!isInViewport(img)) {
-                img.scrollIntoView()
-            }
-        } else {
-            img?.addEventListener('load', () => {
-                if (!isInViewport(img)) {
-                    img.scrollIntoView()
-                }
-            })
+        if (img && !isInViewport(img)) {
+            img.scrollIntoView()
         }
     }, [page])
 
@@ -286,8 +276,10 @@ interface PageImageProps extends h.JSX.HTMLAttributes<HTMLImageElement> {
 const PageImage: FunctionalComponent<PageImageProps> = ({
     page,
     onPageVisible,
+    class: className,
     ...props
 }) => {
+    const [loading, setLoading] = useState(true)
     const url = usePageURL(page)
     const img = useRef<HTMLImageElement>(null)
     useEffect(() => {
@@ -296,21 +288,13 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
         }
         const imageElement = img.current
         if (imageElement !== null) {
-            const lazyImageObserver = new IntersectionObserver(
-                entries => {
-                    for (const entry of entries) {
-                        if (entry.isIntersecting) {
-                            if (
-                                imageElement.naturalHeight !== 0 &&
-                                imageElement.complete
-                            ) {
-                                onPageVisible()
-                            }
-                        }
+            const lazyImageObserver = new IntersectionObserver(entries => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        onPageVisible()
                     }
-                },
-                { threshold: 0.5 },
-            )
+                }
+            })
 
             lazyImageObserver.observe(imageElement)
 
@@ -319,7 +303,22 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             }
         }
     }, [img, onPageVisible])
-    return <img {...props} ref={img} src={url} loading='lazy' />
+    useEffect(() => {
+        img.current?.addEventListener('load', () => {
+            setLoading(false)
+        })
+    }, [img, url, setLoading])
+    return (
+        <img
+            {...props}
+            class={classNames(className, {
+                [styles.loading]: loading,
+            })}
+            ref={img}
+            src={url}
+            loading='lazy'
+        />
+    )
 }
 
 function pageIndex(book: Book, page: number): number {

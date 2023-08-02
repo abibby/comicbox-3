@@ -8,6 +8,7 @@ declare const styles: {
   readonly "direction": string;
   readonly "longStrip": string;
   readonly "longStripPage": string;
+  readonly "loading": string;
 };
 export = styles;
 

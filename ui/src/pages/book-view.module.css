@@ -80,5 +80,8 @@
 .longStripPage {
     width: 80rem;
     max-width: 100%;
-    /* min-height: 101vh; */
+}
+
+.longStripPage.loading {
+    min-height: 101vh;
 }

@@ -46,6 +46,7 @@ export interface BookUpdateRequest {
     volume: number | null
     chapter: number | null
     rtl: boolean
+    long_strip: boolean | null
     pages: BookPageUpdate[]
     update_map: Record<string, string>
 }

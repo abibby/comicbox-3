@@ -186,6 +186,7 @@ export async function persist(
                         chapter: b.chapter,
                         volume: b.volume,
                         rtl: b.rtl,
+                        long_strip: b.long_strip,
                         pages: b.pages.map(p => ({
                             type: p.type,
                         })),

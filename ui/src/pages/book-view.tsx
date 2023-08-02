@@ -1,7 +1,8 @@
+import { bind } from '@zwzn/spicy'
 import noCover from 'asset-url:res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
 import { route as changeRoute } from 'preact-router'
-import { useCallback, useRef, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { book } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import classNames from 'src/classnames'
@@ -13,7 +14,7 @@ import { usePageURL } from 'src/hooks/page'
 import { useMediaQuery } from 'src/hooks/use-media-query'
 import { Book, Page } from 'src/models'
 import { Error404 } from 'src/pages/404'
-import styles from 'src/pages/book-view.module.css'
+import styles, { longStrip } from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
 import { splitPages } from 'src/services/book-service'
@@ -56,15 +57,38 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const rtl = b.rtl
     const landscape = useMediaQuery('(orientation: landscape)')
 
-    const pages = splitPages(b.pages, landscape)
+    const pages = splitPages(b.pages, b.long_strip, landscape)
     const pagesIndex = getPagesIndex(pages, page)
 
     const nextBook = useNextBook(`read:${b.id}:next`, b)
     const previousBook = usePreviousBook(`read:${b.id}:previous`, b)
 
+    const bookID = b.id
     const nextBookID = nextBook?.id
     const previousBookID = previousBook?.id
-
+    const setCurrentPage = useCallback(
+        async (newPage: number) => {
+            const b = await DB.books.where('id').equals(bookID).first()
+            if (b === undefined) {
+                return
+            }
+            await DB.saveBook(b, {
+                user_book: {
+                    current_page: newPage,
+                },
+            })
+            const s = await DB.series.where('name').equals(b.series).first()
+            if (s !== undefined) {
+                await DB.saveSeries(s, {
+                    user_series: {
+                        last_read_at: new Date().toISOString(),
+                    },
+                })
+            }
+            await persist(true)
+        },
+        [bookID],
+    )
     const setCurrentIndex = useCallback(
         (newIndex: number | string) => {
             if (Number(newIndex) >= pages.length) {
@@ -90,26 +114,11 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
 
-            ;(async () => {
-                await DB.saveBook(b, {
-                    user_book: {
-                        current_page: newPage,
-                    },
-                })
-                const s = await DB.series.where('name').equals(b.series).first()
-                if (s !== undefined) {
-                    await DB.saveSeries(s, {
-                        user_series: {
-                            last_read_at: new Date().toISOString(),
-                        },
-                    })
-                }
-                await persist(true)
-            })()
+            setCurrentPage(newPage)
 
             changeRoute(route('book.view', { id: b.id, page: newPage }))
         },
-        [b, nextBookID, pages, previousBookID],
+        [b, nextBookID, pages, previousBookID, setCurrentPage],
     )
 
     let leftOffset = -1
@@ -166,6 +175,38 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         [leftOffset, rightOffset, pagesIndex, setCurrentIndex],
     )
 
+    const setCurrentPageLongStrip = useCallback(
+        (newPage: number) => {
+            changeRoute(route('book.view', { id: bookID, page: newPage }))
+            setCurrentPage(newPage)
+        },
+        [bookID, setCurrentPage],
+    )
+
+    useEffect(() => {
+        const img = document.querySelector<HTMLImageElement>(
+            `[data-page="${page}"]`,
+        )
+        console.log(
+            'scroll to page',
+            page,
+            img?.complete,
+            img?.naturalHeight,
+            isInViewport(img),
+        )
+        if (img?.complete && img.naturalHeight !== 0) {
+            if (!isInViewport(img)) {
+                img.scrollIntoView()
+            }
+        } else {
+            img?.addEventListener('load', () => {
+                if (!isInViewport(img)) {
+                    img.scrollIntoView()
+                }
+            })
+        }
+    }, [page])
+
     return (
         <div
             class={classNames(styles.reader, {
@@ -187,9 +228,23 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 changePage={setCurrentIndex}
                 open={menuOpen}
             />
-            <div class={styles.pageList}>
-                <PageView pages={pages[pagesIndex]} />
-            </div>
+            {b.long_strip ? (
+                <div className={styles.longStrip}>
+                    {b.pages.map((p, i) => (
+                        <PageImage
+                            class={styles.longStripPage}
+                            key={p.url}
+                            page={p}
+                            data-page={i}
+                            onPageVisible={bind(i, setCurrentPageLongStrip)}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div class={styles.pageList}>
+                    <PageView pages={pages[pagesIndex]} />
+                </div>
+            )}
         </div>
     )
 }
@@ -222,12 +277,47 @@ const PageView: FunctionalComponent<PageProps> = props => {
     )
 }
 
-interface PageImageProps {
+interface PageImageProps extends h.JSX.HTMLAttributes<HTMLImageElement> {
     page: Page
+    onPageVisible?: () => void
 }
-const PageImage: FunctionalComponent<PageImageProps> = props => {
-    const url = usePageURL(props.page)
-    return <img src={url} loading='lazy' />
+const PageImage: FunctionalComponent<PageImageProps> = ({
+    page,
+    onPageVisible,
+    ...props
+}) => {
+    const url = usePageURL(page)
+    const img = useRef<HTMLImageElement>(null)
+    useEffect(() => {
+        if (onPageVisible === undefined) {
+            return
+        }
+        const imageElement = img.current
+        if (imageElement !== null) {
+            const lazyImageObserver = new IntersectionObserver(
+                entries => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting) {
+                            if (
+                                imageElement.naturalHeight !== 0 &&
+                                imageElement.complete
+                            ) {
+                                onPageVisible()
+                            }
+                        }
+                    }
+                },
+                { threshold: 0.5 },
+            )
+
+            lazyImageObserver.observe(imageElement)
+
+            return () => {
+                lazyImageObserver.unobserve(imageElement)
+            }
+        }
+    }, [img, onPageVisible])
+    return <img {...props} ref={img} src={url} loading='lazy' />
 }
 
 function pageIndex(book: Book, page: number): number {
@@ -272,4 +362,29 @@ function getPagesIndex(
         }
     }
     return -1
+}
+
+// function isInViewport(el: HTMLElement) {
+//     const rect = el.getBoundingClientRect()
+//     console.log(rect)
+
+//     return (
+//         (rect.top > 0 ||
+//             rect.bottom <
+//                 (window.innerHeight ||
+//                     document.documentElement.clientHeight)) &&
+//         (rect.left > 0 ||
+//             rect.right <
+//                 (window.innerWidth || document.documentElement.clientWidth))
+//     )
+// }
+const isInViewport = (el: HTMLElement, partiallyVisible = true) => {
+    const { top, left, bottom, right } = el.getBoundingClientRect()
+    const { innerHeight, innerWidth } = window
+    return partiallyVisible
+        ? ((top > 0 && top < innerHeight) ||
+              (bottom > 0 && bottom < innerHeight)) &&
+              ((left > 0 && left < innerWidth) ||
+                  (right > 0 && right < innerWidth))
+        : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth
 }

@@ -58,7 +58,8 @@ body {
 }
 
 .icon {
-    height: 2em;
+    height: 2.4em;
+    padding: 0.2em 0;
 }
 :global(.dark) .icon {
     filter: invert(1);
@@ -70,6 +71,7 @@ body {
 }
 
 .label {
+    display: none;
     font-size: 0.75em;
 }
 
@@ -121,6 +123,7 @@ body {
     }
 
     .label {
+        display: block;
         font-size: 1em;
     }
 }

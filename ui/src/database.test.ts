@@ -15,6 +15,7 @@ const emptyBook: Readonly<DBBook> = {
     pages: [],
     page_count: 0,
     rtl: false,
+    long_strip: false,
     sort: '',
     file: '',
     cover_url: '',

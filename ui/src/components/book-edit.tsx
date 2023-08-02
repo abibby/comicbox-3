@@ -8,7 +8,6 @@ import styles from 'src/components/book-edit.module.css'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
-import { Toggle } from 'src/components/form/toggle'
 import { LazyImg } from 'src/components/lazy-img'
 import {
     Modal,
@@ -24,6 +23,7 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
 import { PageWithIndex, splitPages } from 'src/services/book-service'
+import { Select } from 'src/components/form/select'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -35,6 +35,13 @@ const pageTypeOptions: [PageType, string][] = [
 type EditBookProps = {
     book: Book
 }
+
+const viewOptions = [
+    ['ltr', 'Left to Right →'],
+    ['rtl', 'Right to Left ←'],
+    ['long_strip_ltr', 'Long Strip ↓'],
+    ['long_strip_rtl', 'Long Strip, Right to Left ↓ ←'],
+] as const
 
 export const EditBook: ModalComponent<undefined, EditBookProps> = ({
     book,
@@ -52,7 +59,10 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             series: data.get('series') ?? '',
                             volume: data.getNumber('volume'),
                             chapter: data.getNumber('chapter'),
-                            rtl: data.getBoolean('rtl') ?? false,
+                            rtl: data.get('view')?.endsWith('rtl') ?? false,
+                            long_strip:
+                                data.get('view')?.startsWith('long_strip') ??
+                                false,
                         })
                         break
                     case 'pages':
@@ -123,6 +133,11 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
         [setEditedPages],
     )
 
+    let view = book.rtl ? 'rtl' : 'ltr'
+    if (book.long_strip) {
+        view = 'long_strip_' + view
+    }
+
     return (
         <Modal>
             <Form onSubmit={submit}>
@@ -154,10 +169,11 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                 value={book.chapter ?? ''}
                                 step='any'
                             />
-                            <Toggle
-                                title='Right to Left'
-                                name='rtl'
-                                value={book.rtl}
+                            <Select
+                                title='View'
+                                name='view'
+                                options={viewOptions}
+                                value={view}
                             />
                             <Input
                                 title='File'
@@ -171,9 +187,15 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             <div
                                 class={classNames(styles.pageList, {
                                     [styles.rtl]: book.rtl,
+                                    [styles.longStrip]: book.long_strip,
                                 })}
                             >
-                                {splitPages(editedPages, true, true).map(p => (
+                                {splitPages(
+                                    editedPages,
+                                    book.long_strip,
+                                    true,
+                                    true,
+                                ).map(p => (
                                     <SpreadThumb
                                         key={p[0].url}
                                         page={p}

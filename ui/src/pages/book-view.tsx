@@ -187,19 +187,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         const img = document.querySelector<HTMLImageElement>(
             `[data-page="${page}"]`,
         )
-        console.log('scroll into view', page)
 
         if (img && !isInViewport(img)) {
             img.scrollIntoView()
         }
-        // if (img?.complete && img.naturalHeight !== 0) {
-        // } else {
-        //     img?.addEventListener('load', () => {
-        //         if (!isInViewport(img)) {
-        //             img.scrollIntoView()
-        //         }
-        //     })
-        // }
     }, [page])
 
     return (

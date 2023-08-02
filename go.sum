@@ -1,5 +1,7 @@
 github.com/abibby/bob v0.20.4 h1:+Zkl8QL2EMGrlFK/7sOYrkY28+ndieq4s9ykASoQpj4=
 github.com/abibby/bob v0.20.4/go.mod h1:zXzUJ+2u7P5HSOHKyiDz+vRxFiWLhIxWMGI2/4DP+po=
+github.com/abibby/bob v0.21.2 h1:0BpRULe1Pw/gxvAlnwJSPS5jHEKDZSq7c9Vm3g/he2Y=
+github.com/abibby/bob v0.21.2/go.mod h1:zXzUJ+2u7P5HSOHKyiDz+vRxFiWLhIxWMGI2/4DP+po=
 github.com/abibby/nulls v1.1.0 h1:uGxt4HRs6XHqO0mnqfUZcDNiiVzN8sH66daUd5g0EIE=
 github.com/abibby/nulls v1.1.0/go.mod h1:Nm6/cK/PYDg+RwGRv5/nAXGJZfu4nGHFp201Dg1HKWQ=
 github.com/adhocore/gronx v0.2.5 h1:trVgNYPle0IcsGDt0XGz78zN8Soek0YrcQtQ+Cs+jko=
@@ -83,6 +85,7 @@ golang.org/x/text v0.3.7/go.mod h1:u+2+/6zg+i71rQMx5EYifcz6MCKuco9NR6JIITiCfzQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
 golang.org/x/tools v0.7.0 h1:W4OVu8VVOaIO0yzWMNdepAulS7YfoS3Zabrm8DOXXU4=
 golang.org/x/tools v0.7.0/go.mod h1:4pg6aUX35JBAogB10C9AtvVL+qowtN4pT3CGSQex14s=
+golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f h1:BLraFXnmrev5lT+xlilqcH8XK9/i0At2xKjWk4p6zsU=
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=

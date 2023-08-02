@@ -58,6 +58,7 @@ type Book struct {
 	RawPages    []byte                       `json:"-"          db:"pages,type:json"`
 	PageCount   int                          `json:"page_count" db:"page_count"`
 	RightToLeft bool                         `json:"rtl"        db:"rtl"`
+	LongStrip   bool                         `json:"long_strip" db:"long_strip"`
 	Sort        string                       `json:"sort"       db:"sort,index"`
 	File        string                       `json:"file"       db:"file"`
 	CoverURL    string                       `json:"cover_url"  db:"-"`

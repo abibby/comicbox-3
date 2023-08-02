@@ -4,6 +4,10 @@
     gap: 10px;
 }
 
+.pageList.longStrip {
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+}
+
 .spread {
     display: flex;
     background-color: rgb(var(--background));

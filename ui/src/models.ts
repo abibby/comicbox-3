@@ -15,6 +15,7 @@ export interface Book {
     pages: Array<Page>
     page_count: number
     rtl: boolean
+    long_strip: boolean
     sort: string
     file: string
     cover_url: string

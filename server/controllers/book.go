@@ -193,6 +193,7 @@ type BookUpdateRequest struct {
 	Volume      *nulls.Float64    `json:"volume"`
 	Chapter     *nulls.Float64    `json:"chapter"`
 	RightToLeft bool              `json:"rtl"        validate:"require"`
+	LongStrip   bool              `json:"long_strip" validate:"require"`
 	Pages       []PageUpdate      `json:"pages"      validate:"require"`
 	UpdateMap   map[string]string `json:"update_map" validate:"require"`
 }
@@ -231,6 +232,9 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 		}
 		if shouldUpdate(book.UpdateMap, req.UpdateMap, "rtl") {
 			book.RightToLeft = req.RightToLeft
+		}
+		if shouldUpdate(book.UpdateMap, req.UpdateMap, "long_strip") {
+			book.LongStrip = req.LongStrip
 		}
 
 		if shouldUpdate(book.UpdateMap, req.UpdateMap, "pages") {

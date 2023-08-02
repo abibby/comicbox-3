@@ -6,6 +6,8 @@ declare const styles: {
   readonly "page": string;
   readonly "twoPage": string;
   readonly "direction": string;
+  readonly "longStrip": string;
+  readonly "longStripPage": string;
 };
 export = styles;
 

@@ -6,6 +6,7 @@ export interface PageWithIndex extends Page {
 
 export function splitPages(
     p: Page[],
+    longStrip: boolean,
     twoPage: boolean,
     withDeleted = false,
 ): Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> {
@@ -21,7 +22,7 @@ export function splitPages(
         if (page === undefined) {
             continue
         }
-        if (nextPage && showTwoPages(twoPage, page, nextPage)) {
+        if (!longStrip && nextPage && showTwoPages(twoPage, page, nextPage)) {
             pages.push([
                 {
                     ...page,

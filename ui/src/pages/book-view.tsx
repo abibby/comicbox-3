@@ -1,7 +1,7 @@
 import { bind } from '@zwzn/spicy'
 import noCover from 'asset-url:res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
-import { route as changeRoute } from 'preact-router'
+import { route as navigate } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { book } from 'src/api'
 import { persist, useCached } from 'src/cache'
@@ -12,9 +12,9 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
 import { useMediaQuery } from 'src/hooks/use-media-query'
-import { Book, Page } from 'src/models'
+import { Book, Page, PageType } from 'src/models'
 import { Error404 } from 'src/pages/404'
-import styles, { longStrip } from 'src/pages/book-view.module.css'
+import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
 import { splitPages } from 'src/services/book-service'
@@ -42,6 +42,8 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
     } else if (b.user_book?.current_page) {
         page = b.user_book?.current_page
     }
+
+    console.log(page, pageUnindex(b, page))
 
     return <Reader book={b} page={pageUnindex(b, page)} />
 }
@@ -94,17 +96,17 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             if (Number(newIndex) >= pages.length) {
                 updateAnilist(b)
                 if (nextBookID) {
-                    changeRoute(route('book.view', { id: nextBookID }))
+                    navigate(route('book.view', { id: nextBookID }))
                 } else {
-                    changeRoute(route('home', {}))
+                    navigate(route('home', {}))
                 }
                 return
             }
             if (Number(newIndex) < 0) {
                 if (previousBookID) {
-                    changeRoute(route('book.view', { id: previousBookID }))
+                    navigate(route('book.view', { id: previousBookID }))
                 } else {
-                    changeRoute(route('home', {}))
+                    navigate(route('home', {}))
                 }
                 return
             }
@@ -116,7 +118,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             setCurrentPage(newPage)
 
-            changeRoute(route('book.view', { id: b.id, page: newPage }))
+            navigate(route('book.view', { id: b.id, page: newPage }))
         },
         [b, nextBookID, pages, previousBookID, setCurrentPage],
     )
@@ -177,7 +179,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setCurrentPageLongStrip = useCallback(
         (newPage: number) => {
-            changeRoute(route('book.view', { id: bookID, page: newPage }))
+            navigate(route('book.view', { id: bookID, page: newPage }))
             setCurrentPage(newPage)
         },
         [bookID, setCurrentPage],
@@ -187,13 +189,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         const img = document.querySelector<HTMLImageElement>(
             `[data-page="${page}"]`,
         )
-        console.log(
-            'scroll to page',
-            page,
-            img?.complete,
-            img?.naturalHeight,
-            isInViewport(img),
-        )
+
         if (img?.complete && img.naturalHeight !== 0) {
             if (!isInViewport(img)) {
                 img.scrollIntoView()
@@ -230,15 +226,21 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             />
             {b.long_strip ? (
                 <div className={styles.longStrip}>
-                    {b.pages.map((p, i) => (
-                        <PageImage
-                            class={styles.longStripPage}
-                            key={p.url}
-                            page={p}
-                            data-page={i}
-                            onPageVisible={bind(i, setCurrentPageLongStrip)}
-                        />
-                    ))}
+                    {b.pages
+                        .map((p, i) => ({ ...p, index: i }))
+                        .filter(p => p.type !== PageType.Deleted)
+                        .map((p, i) => (
+                            <PageImage
+                                class={styles.longStripPage}
+                                key={p.url}
+                                page={p}
+                                data-page={i}
+                                onPageVisible={bind(
+                                    p.index,
+                                    setCurrentPageLongStrip,
+                                )}
+                            />
+                        ))}
                 </div>
             ) : (
                 <div class={styles.pageList}>
@@ -364,21 +366,7 @@ function getPagesIndex(
     return -1
 }
 
-// function isInViewport(el: HTMLElement) {
-//     const rect = el.getBoundingClientRect()
-//     console.log(rect)
-
-//     return (
-//         (rect.top > 0 ||
-//             rect.bottom <
-//                 (window.innerHeight ||
-//                     document.documentElement.clientHeight)) &&
-//         (rect.left > 0 ||
-//             rect.right <
-//                 (window.innerWidth || document.documentElement.clientWidth))
-//     )
-// }
-const isInViewport = (el: HTMLElement, partiallyVisible = true) => {
+function isInViewport(el: HTMLElement, partiallyVisible = true): boolean {
     const { top, left, bottom, right } = el.getBoundingClientRect()
     const { innerHeight, innerWidth } = window
     return partiallyVisible

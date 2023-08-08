@@ -52,7 +52,8 @@ func init() {
 							}
 							cfg, _, err := image.DecodeConfig(f)
 							if err != nil {
-								return err
+								log.Print(err)
+								continue
 							}
 
 							p.Height = cfg.Height

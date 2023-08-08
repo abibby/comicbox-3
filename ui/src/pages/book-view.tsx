@@ -285,10 +285,8 @@ interface PageImageProps extends h.JSX.HTMLAttributes<HTMLImageElement> {
 const PageImage: FunctionalComponent<PageImageProps> = ({
     page,
     onPageVisible,
-    class: className,
     ...props
 }) => {
-    const [loading, setLoading] = useState(true)
     const url = usePageURL(page)
     const img = useRef<HTMLImageElement>(null)
     useEffect(() => {
@@ -312,17 +310,13 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             }
         }
     }, [img, onPageVisible])
-    useEffect(() => {
-        img.current?.addEventListener('load', () => {
-            setLoading(false)
-        })
-    }, [img, url, setLoading])
     return (
         <img
             {...props}
-            class={classNames(className, {
-                [styles.loading]: loading,
-            })}
+            style={{
+                '--width': page.width,
+                '--height': page.height,
+            }}
             ref={img}
             src={url}
             loading='lazy'

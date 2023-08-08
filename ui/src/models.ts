@@ -23,6 +23,8 @@ export interface Book {
 }
 export interface Page {
     type: PageType
+    height: number
+    width: number
     url: string
     thumbnail_url: string
 }

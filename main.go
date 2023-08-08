@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
@@ -8,6 +9,7 @@ import (
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/migrations"
 	"github.com/abibby/comicbox-3/queue"
 	"github.com/abibby/comicbox-3/server"
 )
@@ -18,13 +20,13 @@ func main() {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	err = database.Open(config.DBPath)
+	db, err := database.Open(config.DBPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Print("Running migrations")
-	err = database.Migrate()
+	err = migrations.Use().Up(context.Background(), db)
 	if err != nil {
 		log.Fatal(err)
 	}

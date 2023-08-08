@@ -82,6 +82,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                     type: isPageType(type)
                                         ? type
                                         : PageType.Story,
+                                    width: book.pages[i]?.height ?? 0,
+                                    height: book.pages[i]?.width ?? 0,
                                 }),
                             ),
                         })

@@ -80,8 +80,5 @@
 .longStripPage {
     width: calc(9 / 16 * 100vh);
     max-width: 100%;
-}
-
-.longStripPage.loading {
-    min-height: 101vh;
+    aspect-ratio: calc(var(--width) / var(--height));
 }

@@ -19,7 +19,6 @@ import (
 
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
-	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
@@ -171,7 +170,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 		return nil, err
 	}
 
-	imgs, err := app.ZippedImages(reader)
+	imgs, err := models.ZippedImages(reader)
 	if err != nil {
 		return nil, err
 	}

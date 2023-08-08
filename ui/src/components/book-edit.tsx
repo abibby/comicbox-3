@@ -88,8 +88,15 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         break
                 }
 
-                await persist(true)
-                prompt('Chapter updated', {})
+                prompt('Chapter updating', {}, 5000, `chapter-save-${book.id}`)
+                persist(true).then(() =>
+                    prompt(
+                        'Chapter updated',
+                        {},
+                        5000,
+                        `chapter-save-${book.id}`,
+                    ),
+                )
 
                 switch (data.get('submit')) {
                     case 'next':

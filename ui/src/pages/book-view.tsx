@@ -177,9 +177,13 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setCurrentPageLongStrip = useCallback(
         (newPage: number) => {
-            navigate(route('book.view', { id: bookID, page: newPage }))
-            setCurrentPage(newPage)
+            const index = pageIndex(b, newPage)
+            navigate(route('book.view', { id: bookID, page: index }))
+
+            setCurrentPage(index)
         },
+        // `b` cant be part of the inputs because it leads to an infinite loop
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [bookID, setCurrentPage],
     )
 
@@ -217,7 +221,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             {b.long_strip ? (
                 <div className={styles.longStrip}>
                     {b.pages
-                        .map((p, i) => ({ ...p, index: i }))
                         .filter(p => p.type !== PageType.Deleted)
                         .map((p, i) => (
                             <PageImage
@@ -225,10 +228,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                                 key={p.url}
                                 page={p}
                                 data-page={i}
-                                onPageVisible={bind(
-                                    p.index,
-                                    setCurrentPageLongStrip,
-                                )}
+                                onPageVisible={bind(i, setCurrentPageLongStrip)}
                             />
                         ))}
                 </div>
@@ -365,13 +365,13 @@ function getPagesIndex(
     return -1
 }
 
-function isInViewport(el: HTMLElement, partiallyVisible = true): boolean {
+function isInViewport(el: HTMLElement): boolean {
     const { top, left, bottom, right } = el.getBoundingClientRect()
     const { innerHeight, innerWidth } = window
-    return partiallyVisible
-        ? ((top > 0 && top < innerHeight) ||
-              (bottom > 0 && bottom < innerHeight)) &&
-              ((left > 0 && left < innerWidth) ||
-                  (right > 0 && right < innerWidth))
-        : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth
+
+    return (
+        ((top > 0 && top <= innerHeight) ||
+            (bottom > 0 && bottom <= innerHeight)) &&
+        ((left > 0 && left <= innerWidth) || (right > 0 && right <= innerWidth))
+    )
 }

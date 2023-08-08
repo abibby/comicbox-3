@@ -22,7 +22,7 @@ var testTx *sqlx.Tx
 // github.com/mattn/go-sqlite3
 var mtx = &sync.RWMutex{}
 
-func Open(dsnURI string) error {
+func Open(dsnURI string) (*sqlx.DB, error) {
 	sqlite.UseSQLite()
 	db, err := sqlx.Open("sqlite", dsnURI)
 	// username := "comicbox3"
@@ -33,10 +33,10 @@ func Open(dsnURI string) error {
 
 	// db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	database = db
-	return nil
+	return db, nil
 }
 
 func Close() error {

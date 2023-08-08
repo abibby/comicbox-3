@@ -40,7 +40,7 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
     if (props.matches?.page) {
         page = Number(props.matches.page)
     } else if (b.user_book?.current_page) {
-        page = b.user_book?.current_page
+        page = b.user_book.current_page
     }
 
     return <Reader book={b} page={pageUnindex(b, page)} />
@@ -62,6 +62,8 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const nextBook = useNextBook(`read:${b.id}:next`, b)
     const previousBook = usePreviousBook(`read:${b.id}:previous`, b)
+
+    const [loaded, setLoaded] = useState(false)
 
     const bookID = b.id
     const nextBookID = nextBook?.id
@@ -177,6 +179,9 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setCurrentPageLongStrip = useCallback(
         (newPage: number) => {
+            if (!loaded) {
+                return
+            }
             const index = pageIndex(b, newPage)
             navigate(route('book.view', { id: bookID, page: index }))
 
@@ -184,18 +189,22 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         },
         // `b` cant be part of the inputs because it leads to an infinite loop
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [bookID, setCurrentPage],
+        [bookID, loaded, setCurrentPage],
     )
-
+    const longStrip = b.long_strip
     useEffect(() => {
+        if (!longStrip) {
+            return
+        }
         const img = document.querySelector<HTMLImageElement>(
             `[data-page="${page}"]`,
         )
 
         if (img && !isInViewport(img)) {
             img.scrollIntoView()
+            setLoaded(true)
         }
-    }, [page])
+    }, [bookID, longStrip, page])
 
     return (
         <div
@@ -276,10 +285,8 @@ interface PageImageProps extends h.JSX.HTMLAttributes<HTMLImageElement> {
 const PageImage: FunctionalComponent<PageImageProps> = ({
     page,
     onPageVisible,
-    class: className,
     ...props
 }) => {
-    const [loading, setLoading] = useState(true)
     const url = usePageURL(page)
     const img = useRef<HTMLImageElement>(null)
     useEffect(() => {
@@ -303,17 +310,13 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             }
         }
     }, [img, onPageVisible])
-    useEffect(() => {
-        img.current?.addEventListener('load', () => {
-            setLoading(false)
-        })
-    }, [img, url, setLoading])
     return (
         <img
             {...props}
-            class={classNames(className, {
-                [styles.loading]: loading,
-            })}
+            style={{
+                '--width': page.width,
+                '--height': page.height,
+            }}
             ref={img}
             src={url}
             loading='lazy'

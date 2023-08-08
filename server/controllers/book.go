@@ -10,6 +10,7 @@ import (
 	_ "image/png"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/selects"
-	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
@@ -138,6 +138,13 @@ func BookThumbnail(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
+	if img.Bounds().Dy() > img.Bounds().Dx()*2 {
+		img, err = cropImage(img, image.Rect(0, 0, img.Bounds().Dx(), int(float64(img.Bounds().Dx())*math.Phi)))
+		if err != nil {
+			sendError(rw, err)
+			return
+		}
+	}
 
 	thumbHeight := 500
 	thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
@@ -153,6 +160,24 @@ func BookThumbnail(rw http.ResponseWriter, r *http.Request) {
 		sendError(rw, err)
 		return
 	}
+}
+
+// cropImage takes an image and crops it to the specified rectangle.
+// From https://stackoverflow.com/questions/32544927/cropping-and-creating-thumbnails-with-go
+func cropImage(img image.Image, crop image.Rectangle) (image.Image, error) {
+	type subImager interface {
+		SubImage(r image.Rectangle) image.Image
+	}
+
+	// img is an Image interface. This checks if the underlying value has a
+	// method called SubImage. If it does, then we can use SubImage to crop the
+	// image.
+	simg, ok := img.(subImager)
+	if !ok {
+		return nil, fmt.Errorf("image does not support cropping")
+	}
+
+	return simg.SubImage(crop), nil
 }
 
 func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, error) {
@@ -171,7 +196,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 		return nil, err
 	}
 
-	imgs, err := app.ZippedImages(reader)
+	imgs, err := models.ZippedImages(reader)
 	if err != nil {
 		return nil, err
 	}

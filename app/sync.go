@@ -11,7 +11,6 @@ import (
 	"log"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -119,32 +118,38 @@ func loadBookData(file string) (*models.Book, error) {
 		return nil, errors.Wrap(err, "could not open zip file")
 	}
 
-	imgs, err := ZippedImages(reader)
+	imgs, err := models.ZippedImages(reader)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not list page images from zip file")
 	}
 
 	tmpPages := make([]*models.Page, len(imgs))
 	for i, img := range imgs {
+		f, err := img.Open()
+		if err != nil {
+			return nil, err
+		}
+		cfg, _, err := image.DecodeConfig(f)
+		if err != nil {
+			return nil, err
+		}
+
 		typ := models.PageTypeStory
 		if i == 0 {
 			typ = models.PageTypeFrontCover
 		} else {
-			f, err := img.Open()
-			if err != nil {
-				return nil, err
-			}
-			cfg, _, err := image.DecodeConfig(f)
-			if err != nil {
-				return nil, err
-			}
 			if cfg.Height < cfg.Width {
 				typ = models.PageTypeSpread
 			}
 			f.Close()
 		}
+
 		tmpPages[i] = &models.Page{
-			BasePage: models.BasePage{Type: typ},
+			BasePage: models.BasePage{
+				Type:   typ,
+				Width:  cfg.Width,
+				Height: cfg.Height,
+			},
 		}
 	}
 	book.Pages = tmpPages
@@ -165,27 +170,6 @@ func loadBookData(file string) (*models.Book, error) {
 	}
 	book.File = file
 	return book, nil
-}
-
-func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
-	sort.Slice(reader.File, func(i, j int) bool {
-		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0
-	})
-
-	imageFiles := reader.File[:0]
-	for _, x := range reader.File {
-		lowerName := strings.ToLower(x.Name)
-		if strings.HasSuffix(lowerName, ".jpg") ||
-			strings.HasSuffix(lowerName, ".jpeg") ||
-			strings.HasSuffix(lowerName, ".png") ||
-			strings.HasSuffix(lowerName, ".bmp") ||
-			strings.HasSuffix(lowerName, ".gif") ||
-			strings.HasSuffix(lowerName, ".webp") ||
-			strings.HasSuffix(lowerName, ".tiff") {
-			imageFiles = append(imageFiles, x)
-		}
-	}
-	return imageFiles, nil
 }
 
 func parseFileName(book *models.Book, path string) *models.Book {

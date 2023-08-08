@@ -1,9 +1,12 @@
 package models
 
 import (
+	"archive/zip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/abibby/bob"
 	"github.com/abibby/bob/builder"
@@ -15,8 +18,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+var (
+	ErrPageNotFound = fmt.Errorf("page not found")
+)
+
 type BasePage struct {
-	Type PageType `json:"type"`
+	Type   PageType `json:"type"`
+	Height int      `json:"height"`
+	Width  int      `json:"width"`
 }
 type Page struct {
 	BasePage
@@ -65,6 +74,8 @@ type Book struct {
 	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
 	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
 	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-" foreign:"series" owner:"name"`
+
+	zipReader *zip.ReadCloser
 }
 
 func BookQuery(ctx context.Context) *selects.Builder[*Book] {
@@ -182,4 +193,25 @@ func (b *Book) CoverPage() int {
 		}
 	}
 	return fallback
+}
+
+func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
+	sort.Slice(reader.File, func(i, j int) bool {
+		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0
+	})
+
+	imageFiles := reader.File[:0]
+	for _, x := range reader.File {
+		lowerName := strings.ToLower(x.Name)
+		if strings.HasSuffix(lowerName, ".jpg") ||
+			strings.HasSuffix(lowerName, ".jpeg") ||
+			strings.HasSuffix(lowerName, ".png") ||
+			strings.HasSuffix(lowerName, ".bmp") ||
+			strings.HasSuffix(lowerName, ".gif") ||
+			strings.HasSuffix(lowerName, ".webp") ||
+			strings.HasSuffix(lowerName, ".tiff") {
+			imageFiles = append(imageFiles, x)
+		}
+	}
+	return imageFiles, nil
 }

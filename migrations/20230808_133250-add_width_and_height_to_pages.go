@@ -44,18 +44,20 @@ func init() {
 						return err
 					}
 					for i, p := range book.Pages {
-						img := imgs[i]
-						f, err := img.Open()
-						if err != nil {
-							return err
-						}
-						cfg, _, err := image.DecodeConfig(f)
-						if err != nil {
-							return err
-						}
+						if i < len(imgs) {
+							img := imgs[i]
+							f, err := img.Open()
+							if err != nil {
+								return err
+							}
+							cfg, _, err := image.DecodeConfig(f)
+							if err != nil {
+								return err
+							}
 
-						p.Height = cfg.Height
-						p.Width = cfg.Width
+							p.Height = cfg.Height
+							p.Width = cfg.Width
+						}
 					}
 					err = bob.Save(tx, book)
 					if err != nil {

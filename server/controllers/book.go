@@ -24,7 +24,6 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -145,7 +144,6 @@ func BookThumbnail(rw http.ResponseWriter, r *http.Request) {
 			sendError(rw, err)
 			return
 		}
-		spew.Dump(img.Bounds().Dx(), img.Bounds().Dy())
 	}
 
 	thumbHeight := 500

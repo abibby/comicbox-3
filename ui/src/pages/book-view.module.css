@@ -78,7 +78,7 @@
 }
 
 .longStripPage {
-    width: 80rem;
+    width: calc(9 / 16 * 100vh);
     max-width: 100%;
 }
 

@@ -36,19 +36,22 @@ func init() {
 				for _, book := range books {
 					reader, err := zip.OpenReader(book.File)
 					if err != nil {
-						return fmt.Errorf("could not open zip file: %w", err)
+						log.Printf("could not open zip file: %v", err)
+						continue
 					}
 
 					imgs, err := models.ZippedImages(reader)
 					if err != nil {
-						return err
+						log.Print(err)
+						continue
 					}
 					for i, p := range book.Pages {
 						if i < len(imgs) {
 							img := imgs[i]
 							f, err := img.Open()
 							if err != nil {
-								return err
+								log.Print(err)
+								continue
 							}
 							cfg, _, err := image.DecodeConfig(f)
 							if err != nil {

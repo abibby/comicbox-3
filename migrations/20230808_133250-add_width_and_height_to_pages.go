@@ -24,8 +24,8 @@ func init() {
 			if err != nil {
 				return err
 			}
-			for i := 0; i < total; i += pageSize {
-				books, err := models.BookQuery(ctx).Limit(pageSize).Offset(i).Get(tx)
+			for offset := 0; offset < total; offset += pageSize {
+				books, err := models.BookQuery(ctx).Limit(pageSize).Offset(offset).Get(tx)
 				if err != nil {
 					return err
 				}
@@ -65,7 +65,7 @@ func init() {
 						return err
 					}
 				}
-				log.Printf("%d/%d %.0f%%", i+pageSize, total, float32(i+pageSize)/float32(total)*100)
+				log.Printf("%d/%d %.0f%%", offset+pageSize, total, float32(offset+pageSize)/float32(total)*100)
 			}
 			return nil
 		}),

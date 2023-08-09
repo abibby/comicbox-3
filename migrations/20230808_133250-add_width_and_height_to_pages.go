@@ -3,7 +3,6 @@ package migrations
 import (
 	"archive/zip"
 	"context"
-	"fmt"
 	"image"
 	"log"
 

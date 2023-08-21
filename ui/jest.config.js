@@ -7,4 +7,5 @@ module.exports = {
         'res/(.*)': '<rootDir>/res/$1',
     },
     setupFiles: ['fake-indexeddb/auto'],
+    modulePathIgnorePatterns: ['<rootDir>/tests/integration/']
 }

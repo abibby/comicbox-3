@@ -1,8 +1,12 @@
 package test
 
 import (
+	"context"
+	"log"
+
 	"github.com/abibby/bob/bobtest"
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/migrations"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -12,7 +16,11 @@ var r = bobtest.NewRunner(func() (*sqlx.DB, error) {
 		return nil, err
 	}
 	database.SetTestDB(db)
-	err = database.Migrate()
+
+	err = migrations.Use().Up(context.Background(), db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if err != nil {
 		return nil, err
 	}

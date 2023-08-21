@@ -13,3 +13,6 @@ ui/src/models.ts: helpers/generate-ts-models.go models/*.go
 
 dev: ui/src/models.ts
 	$(GC) run -tags dev main.go
+
+test: ui/src/models.ts ui/dist/app.js
+	$(GC) run -tags test main.go

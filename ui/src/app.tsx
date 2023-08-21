@@ -1,4 +1,5 @@
 import EventTarget from 'event-target-shim'
+import { get, set } from 'idb-keyval'
 import serviceWorkerURL from 'omt:src/service-worker/sw'
 import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
@@ -112,4 +113,10 @@ if ('serviceWorker' in navigator) {
         .catch(err => {
             console.error(err)
         })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(window as any).__TEST_UTILS__ = {
+    getTokens: () => get('tokens'),
+    setTokens: (tokens: unknown) => set('tokens', tokens),
 }

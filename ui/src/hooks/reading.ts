@@ -3,15 +3,19 @@ import { series } from 'src/api'
 import { useCached } from 'src/cache'
 import { setCacheHandler } from 'src/cache/internal'
 import { DB } from 'src/database'
-import { Book, List } from 'src/models'
+import { Book } from 'src/models'
 import { notNullish } from 'src/util'
 
 async function readingBooks(): Promise<Book[]> {
     const s = await series.list({
         with_latest_book: true,
-        list: List.Reading,
     })
     const books = s.map(s => s.latest_book).filter(notNullish)
+
+    await DB.fromNetwork(
+        DB.series,
+        s.map(s => ({ ...s, latest_book: null, latest_book_id: null })),
+    )
 
     await Promise.all(
         s.map(async readingSeries => {
@@ -39,11 +43,6 @@ async function readingBooks(): Promise<Book[]> {
                 )
             }
         }),
-    )
-
-    DB.fromNetwork(
-        DB.series,
-        s.map(s => ({ ...s, latest_book: null, latest_book_id: null })),
     )
 
     return books

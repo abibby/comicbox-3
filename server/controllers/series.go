@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/abibby/bob"
+	"github.com/abibby/bob/dialects/sqlite"
 	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -85,12 +86,14 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 							q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
 								OrWhere("current_page", "=", nil)
 						}).
+						Where("books.page_count", ">", 1).
 						OrderBy("sort").
 						Limit(1),
 					"latest_book_id",
 				).
 				With("LatestBook.UserBook")
 		}
+		println(query.ToSQL(&sqlite.SQLite{}))
 	}
 
 	index(rw, r, query, func(wl *selects.Conditions, updatedAfter *database.Time) {

@@ -142,7 +142,14 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                     <h2>All Books</h2>
                 </>
             )}
-            <BookList books={books} />
+            <BookList books={reverse(books)} />
         </div>
     )
+}
+
+function reverse<T>(a: T[] | null): T[] | null {
+    if (a === null) {
+        return null
+    }
+    return Array.from(a).reverse()
 }

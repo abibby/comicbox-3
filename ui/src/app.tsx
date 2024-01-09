@@ -102,7 +102,7 @@ async function onUpdateFound(
     })
 }
 
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && __ENV !== 'development') {
     navigator.serviceWorker
         .register(serviceWorkerURL, { scope: '/' })
         .then(reg => {
@@ -112,4 +112,8 @@ if ('serviceWorker' in navigator) {
         .catch(err => {
             console.error(err)
         })
+}
+
+if ('virtualKeyboard' in navigator) {
+    ;(navigator as any).virtualKeyboard.overlaysContent = true
 }

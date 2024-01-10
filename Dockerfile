@@ -6,7 +6,7 @@ COPY ui/package.json ui/package-lock.json ./
 RUN npm install
 
 COPY ui/ ./
-RUN npm run build
+RUN npm run prod
 
 FROM golang:1.20 as go-build
 

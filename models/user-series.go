@@ -3,13 +3,12 @@ package models
 import (
 	"context"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/salusa/database/builder"
 	"github.com/google/uuid"
 )
 
-//go:generate go run github.com/abibby/bob/bob-cli@latest generate
+//go:generate spice generate:migration
 type UserSeries struct {
 	BaseModel
 	SeriesName string        `json:"-"            db:"series_name,primary"`
@@ -17,8 +16,8 @@ type UserSeries struct {
 	List       List          `json:"list"         db:"list"`
 	LastReadAt database.Time `json:"last_read_at" db:"last_read_at"`
 
-	Series *selects.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
-	User   *selects.BelongsTo[*User]   `json:"-"`
+	Series *builder.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
+	User   *builder.BelongsTo[*User]   `json:"-"`
 }
 
 type List string
@@ -43,15 +42,15 @@ const (
 	ListPlanning  = List("planning")
 )
 
-func UserSeriesQuery(ctx context.Context) *selects.Builder[*UserSeries] {
-	return bob.From[*UserSeries]().WithContext(ctx)
+func UserSeriesQuery(ctx context.Context) *builder.Builder[*UserSeries] {
+	return builder.From[*UserSeries]().WithContext(ctx)
 }
 
-var _ bob.Scoper = &UserSeries{}
+var _ builder.Scoper = &UserSeries{}
 
-func (b *UserSeries) Scopes() []*bob.Scope {
-	return []*bob.Scope{
-		bob.SoftDeletes,
+func (b *UserSeries) Scopes() []*builder.Scope {
+	return []*builder.Scope{
+		builder.SoftDeletes,
 		UserScoped,
 	}
 }

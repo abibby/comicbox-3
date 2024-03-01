@@ -1,18 +1,23 @@
 package test
 
 import (
-	"github.com/abibby/bob/bobtest"
+	"context"
+
 	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/migrations"
+	"github.com/abibby/salusa/database/dbtest"
+	"github.com/abibby/salusa/database/dialects/sqlite"
 	"github.com/jmoiron/sqlx"
 )
 
-var r = bobtest.NewRunner(func() (*sqlx.DB, error) {
-	db, err := sqlx.Open("sqlite3", ":memory:")
+var r = dbtest.NewRunner(func() (*sqlx.DB, error) {
+	sqlite.UseSQLite()
+	db, err := sqlx.Open("sqlite", ":memory:")
 	if err != nil {
 		return nil, err
 	}
 	database.SetTestDB(db)
-	err = database.Migrate()
+	err = migrations.Use().Up(context.Background(), db)
 	if err != nil {
 		return nil, err
 	}

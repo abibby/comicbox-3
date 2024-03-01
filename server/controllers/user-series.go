@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -53,7 +53,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			us.List = req.List
 		}
 
-		err = bob.SaveContext(r.Context(), tx, us)
+		err = model.SaveContext(r.Context(), tx, us)
 		return errors.Wrap(err, "")
 	})
 	if err != nil {

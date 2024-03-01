@@ -15,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/model"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -107,7 +107,7 @@ func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	}
 	book.ID = uuid.New()
 
-	return bob.SaveContext(ctx, tx, book)
+	return model.SaveContext(ctx, tx, book)
 }
 
 func loadBookData(file string) (*models.Book, error) {

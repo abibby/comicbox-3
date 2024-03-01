@@ -1,14 +1,13 @@
 package models
 
 import (
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/auth"
+	"github.com/abibby/salusa/database/builder"
 )
 
-var UserScoped = &bob.Scope{
+var UserScoped = &builder.Scope{
 	Name: "user-scoped",
-	Apply: func(b *selects.SubBuilder) *selects.SubBuilder {
+	Apply: func(b *builder.SubBuilder) *builder.SubBuilder {
 		uid, ok := auth.UserID(b.Context())
 		if !ok {
 			return b.WhereRaw("1=0")

@@ -8,12 +8,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/builder"
-	"github.com/abibby/bob/hooks"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/hooks"
+	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -53,7 +52,7 @@ const (
 	PageTypeDeleted     = PageType("Deleted")
 )
 
-//go:generate go run github.com/abibby/bob/bob-cli@latest generate
+//go:generate spice generate:migration
 type Book struct {
 	BaseModel
 	ID          uuid.UUID                    `json:"id"         db:"id,primary"`
@@ -71,34 +70,30 @@ type Book struct {
 	Sort        string                       `json:"sort"       db:"sort,index"`
 	File        string                       `json:"file"       db:"file"`
 	CoverURL    string                       `json:"cover_url"  db:"-"`
-	UserBook    *selects.HasOne[*UserBook]   `json:"user_book"  db:"-"`
-	UserSeries  *selects.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
-	Series      *selects.BelongsTo[*Series]  `json:"-"          db:"-" foreign:"series" owner:"name"`
+	UserBook    *builder.HasOne[*UserBook]   `json:"user_book"  db:"-"`
+	UserSeries  *builder.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
+	Series      *builder.BelongsTo[*Series]  `json:"-"          db:"-" foreign:"series" owner:"name"`
 
 	zipReader *zip.ReadCloser
 }
 
-func BookQuery(ctx context.Context) *selects.Builder[*Book] {
-	return bob.From[*Book]().WithContext(ctx)
+func BookQuery(ctx context.Context) *builder.Builder[*Book] {
+	return builder.From[*Book]().WithContext(ctx)
 }
 
 var _ hooks.BeforeSaver = &Book{}
 
 var _ hooks.AfterLoader = &Book{}
-var _ bob.Scoper = &Book{}
+var _ builder.Scoper = &Book{}
 
-func (b *Book) Scopes() []*bob.Scope {
-	return []*bob.Scope{
-		bob.SoftDeletes,
+func (b *Book) Scopes() []*builder.Scope {
+	return []*builder.Scope{
+		builder.SoftDeletes,
 	}
 }
 
-func (b *Book) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
-	err := selects.InitializeRelationships(b)
-	if err != nil {
-		return err
-	}
-	err = b.updateSeries(ctx, tx)
+func (b *Book) BeforeSave(ctx context.Context, tx hooks.DB) error {
+	err := b.updateSeries(ctx, tx)
 	if err != nil {
 		return err
 	}
@@ -138,9 +133,9 @@ func (b *Book) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
 	return nil
 }
 
-func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
+func (b *Book) updateSeries(ctx context.Context, tx hooks.DB) error {
 	seriesChange := false
-	err := selects.LoadMissing(tx, b, "Series")
+	err := builder.LoadMissing(tx, b, "Series")
 	if err != nil {
 		return errors.Wrap(err, "failed find a series from book")
 	}
@@ -155,7 +150,7 @@ func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 	}
 	seriesChange = seriesChange || changed
 	if seriesChange {
-		err = bob.SaveContext(ctx, tx, s)
+		err = model.SaveContext(ctx, tx, s)
 		if err != nil {
 			return errors.Wrap(err, "failed to create series from book")
 		}
@@ -163,7 +158,7 @@ func (b *Book) updateSeries(ctx context.Context, tx builder.QueryExecer) error {
 	return nil
 }
 
-func (b *Book) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
+func (b *Book) AfterLoad(ctx context.Context, tx hooks.DB) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err

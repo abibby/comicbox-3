@@ -5,13 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/builder"
-	bobmodels "github.com/abibby/bob/models"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -29,7 +27,7 @@ type PaginatedResponse[T any] struct {
 	Data     []T `json:"data"`
 }
 
-func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *selects.Builder[T], updatedAfter func(wl *selects.Conditions, updatedAfter *database.Time)) {
+func index[T model.Model](rw http.ResponseWriter, r *http.Request, query *builder.Builder[T], updatedAfter func(wl *builder.Conditions, updatedAfter *database.Time)) {
 	req := &PaginatedRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -46,16 +44,16 @@ func index[T bobmodels.Model](rw http.ResponseWriter, r *http.Request, query *se
 		pageSize = ps
 	}
 	if req.UpdatedAfter != nil {
-		query = query.And(func(wl *selects.Conditions) {
+		query = query.And(func(wl *builder.Conditions) {
 			t := (*database.Time)(req.UpdatedAfter)
-			var m T
-			wl.OrWhere(builder.GetTable(m)+".updated_at", ">=", t)
+			// var m T
+			// wl.OrWhere(builder.GetTable(m)+".updated_at", ">=", t)
 			updatedAfter(wl, t)
 		})
 	}
 
 	if req.WithDeleted {
-		query = query.WithoutGlobalScope(bob.SoftDeletes)
+		query = query.WithoutGlobalScope(builder.SoftDeletes)
 	}
 
 	var total int

@@ -1,8 +1,8 @@
 package migrations
 
 import (
-	"github.com/abibby/bob/migrate"
-	"github.com/abibby/bob/schema"
+	"github.com/abibby/salusa/database/migrate"
+	"github.com/abibby/salusa/database/schema"
 )
 
 func init() {

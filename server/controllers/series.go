@@ -3,14 +3,14 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/dialects/sqlite"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/dialects/sqlite"
+	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -52,7 +52,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		case SeriesOrderLastRead:
 			uid, ok := auth.UserID(r.Context())
 			if ok {
-				query = query.JoinOn("user_series", func(q *selects.Conditions) {
+				query = query.JoinOn("user_series", func(q *builder.Conditions) {
 					q.WhereColumn("series.name", "=", "user_series.series_name").
 						Where("user_series.user_id", "=", uid)
 				}).OrderByDesc("user_series.last_read_at")
@@ -65,7 +65,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.Where("name", "=", name)
 	}
 	if list, ok := req.List.Ok(); ok {
-		query = query.WhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+		query = query.WhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
 			return q.Where("list", "=", list)
 		})
 	}
@@ -77,12 +77,12 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 				AddSelectSubquery(
 					models.BookQuery(r.Context()).
 						Select("id").
-						LeftJoinOn("user_books", func(q *selects.Conditions) {
+						LeftJoinOn("user_books", func(q *builder.Conditions) {
 							q.WhereColumn("books.id", "=", "user_books.book_id").
 								Where("user_books.user_id", "=", uid)
 						}).
 						WhereColumn("books.series", "=", "series.name").
-						And(func(q *selects.Conditions) {
+						And(func(q *builder.Conditions) {
 							q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
 								OrWhere("current_page", "=", nil)
 						}).
@@ -96,8 +96,8 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		println(query.ToSQL(&sqlite.SQLite{}))
 	}
 
-	index(rw, r, query, func(wl *selects.Conditions, updatedAfter *database.Time) {
-		wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+	index(rw, r, query, func(wl *builder.Conditions, updatedAfter *database.Time) {
+		wl.OrWhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
 			return q.Where("series.updated_at", ">=", updatedAfter)
 		})
 	})
@@ -135,7 +135,7 @@ func SeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			s.AnilistId = req.AnilistID
 		}
 
-		return bob.SaveContext(r.Context(), tx, s)
+		return model.SaveContext(r.Context(), tx, s)
 	})
 	if err != nil {
 		sendError(rw, err)

@@ -94,7 +94,7 @@ type RouteArgs<T extends string> = {
 
 export function route<T extends keyof typeof routes>(
     name: T,
-    args: RouteArgs<typeof routes[T]['path']>,
+    args: RouteArgs<(typeof routes)[T]['path']>,
 ): string {
     const route = routes[name]
     let path: string = route.path

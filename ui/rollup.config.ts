@@ -15,13 +15,9 @@ import { eslint } from './lib/eslint-plugin'
 import resolveFilePlugin from './lib/resolve-file-plugin'
 import staticFileNamePlugin from './lib/static-file-name-plugin'
 
-const config = (args: {}): RollupOptions => {
-    let __ENV = 'development'
-    if ('dev' in args && typeof args.dev === 'boolean') {
-        if (!args.dev) {
-            __ENV = 'production'
-        }
-    }
+const config = (args: Record<string, unknown>): RollupOptions => {
+    const dev = 'dev' in args && typeof args.dev === 'boolean' && args.dev
+    const __ENV = dev ? 'development' : 'production'
 
     return {
         preserveEntrySignatures: false,
@@ -45,7 +41,7 @@ const config = (args: {}): RollupOptions => {
             cssModuleTypes('src'),
             postcss({
                 autoModules: true,
-                // minimize: true,
+                minimize: !dev,
                 extract: true,
                 plugins: [require('autoprefixer')],
             }),

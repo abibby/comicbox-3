@@ -85,7 +85,7 @@ export const Form: FunctionalComponent<FormProps> = ({
 
 function isSubmittable(
     e: Element | null,
-): e is typeof submittableElements[number]['prototype'] {
+): e is (typeof submittableElements)[number]['prototype'] {
     for (const se of submittableElements) {
         if (e instanceof se) {
             return true

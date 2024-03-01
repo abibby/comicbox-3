@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -114,7 +114,7 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 
 		u.AnilistGrant = nulls.NewString(req.Grant)
 
-		return bob.SaveContext(r.Context(), tx, u)
+		return model.SaveContext(r.Context(), tx, u)
 	})
 	_, err = anilistLogin(r, userID.String())
 	if err != nil {
@@ -165,7 +165,7 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 		expiresAt := time.Now().Add(time.Second * time.Duration(tokenResp.ExpiresIn))
 		u.AnilistExpiresAt = (*database.Time)(&expiresAt)
 
-		return bob.SaveContext(r.Context(), tx, u)
+		return model.SaveContext(r.Context(), tx, u)
 	})
 	if err != nil {
 		return nil, err

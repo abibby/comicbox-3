@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abibby/bob"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		var err error
 		ub, err = models.UserBookQuery(r.Context()).
 			Where("book_id", "=", req.BookID).
-			WithoutGlobalScope(bob.SoftDeletes).
+			WithoutGlobalScope(builder.SoftDeletes).
 			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
@@ -69,7 +70,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 				}
 			}
 			us.LastReadAt = database.Time(time.Now())
-			err = bob.SaveContext(r.Context(), tx, us)
+			err = model.SaveContext(r.Context(), tx, us)
 			if err != nil {
 				return fmt.Errorf("failed to save user series: %w", err)
 			}
@@ -77,7 +78,7 @@ func UserBookUpdate(rw http.ResponseWriter, r *http.Request) {
 		}
 		ub.DeletedAt = nil
 
-		err = bob.SaveContext(r.Context(), tx, ub)
+		err = model.SaveContext(r.Context(), tx, ub)
 		return errors.Wrap(err, "failed to save user book")
 	})
 	if err != nil {

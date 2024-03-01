@@ -9,9 +9,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/controllers"
+	"github.com/abibby/salusa/database/builder"
 )
 
 var types = map[string]string{
@@ -94,7 +94,7 @@ func generateTsType(t reflect.Type, allowNull bool) string {
 		suffix = " | null"
 	}
 
-	if t.Implements(reflect.TypeOf((*selects.Relationship)(nil)).Elem()) {
+	if t.Implements(reflect.TypeOf((*builder.Relationship)(nil)).Elem()) {
 		return generateRelationType(t) + suffix
 	}
 

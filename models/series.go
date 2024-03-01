@@ -4,16 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/builder"
-	"github.com/abibby/bob/hooks"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/hooks"
 	"github.com/google/uuid"
 )
 
-//go:generate go run github.com/abibby/bob/bob-cli@latest generate
+//go:generate spice generate:migration
 type Series struct {
 	BaseModel
 	Name               string                       `json:"name"             db:"name,primary"`
@@ -21,22 +19,22 @@ type Series struct {
 	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
 	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`
 	AnilistId          *nulls.Int                   `json:"anilist_id"       db:"anilist_id"`
-	UserSeries         *selects.HasOne[*UserSeries] `json:"user_series"      db:"-" local:"name" foreign:"series_name"`
+	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"      db:"-" local:"name" foreign:"series_name"`
 	LatestBookID       *uuid.UUID                   `json:"latest_book_id"   db:"latest_book_id,readonly"`
-	LatestBook         *selects.BelongsTo[*Book]    `json:"latest_book"      db:"-" foreign:"latest_book_id" owner:"id"`
+	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"      db:"-" foreign:"latest_book_id" owner:"id"`
 }
 
-func SeriesQuery(ctx context.Context) *selects.Builder[*Series] {
-	return bob.From[*Series]().WithContext(ctx)
+func SeriesQuery(ctx context.Context) *builder.Builder[*Series] {
+	return builder.From[*Series]().WithContext(ctx)
 }
 
 var _ hooks.BeforeSaver = &Series{}
 var _ hooks.AfterLoader = &Series{}
-var _ bob.Scoper = &Series{}
+var _ builder.Scoper = &Series{}
 
-func (b *Series) Scopes() []*bob.Scope {
-	return []*bob.Scope{
-		bob.SoftDeletes,
+func (b *Series) Scopes() []*builder.Scope {
+	return []*builder.Scope{
+		builder.SoftDeletes,
 	}
 }
 
@@ -50,19 +48,19 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(ctx context.Context, tx builder.QueryExecer) error {
+func (s *Series) BeforeSave(ctx context.Context, tx hooks.DB) error {
 	_, err := s.UpdateFirstBook(ctx, tx, nil)
 	return err
 }
 
-func (s *Series) AfterLoad(ctx context.Context, tx builder.QueryExecer) error {
+func (s *Series) AfterLoad(ctx context.Context, tx hooks.DB) error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
 	}
 	return nil
 }
 
-func (s *Series) UpdateFirstBook(ctx context.Context, tx builder.QueryExecer, newBook *Book) (bool, error) {
+func (s *Series) UpdateFirstBook(ctx context.Context, tx hooks.DB, newBook *Book) (bool, error) {
 	b, err := BookQuery(ctx).
 		Where("series", "=", s.Name).
 		OrderBy("sort").

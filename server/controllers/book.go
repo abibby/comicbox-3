@@ -18,12 +18,12 @@ import (
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 
-	"github.com/abibby/bob"
-	"github.com/abibby/bob/selects"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database/builder"
+	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -273,7 +273,7 @@ func BookUpdate(rw http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		return bob.SaveContext(r.Context(), tx, book)
+		return model.SaveContext(r.Context(), tx, book)
 	})
 	if err != nil {
 		sendError(rw, err)
@@ -306,7 +306,7 @@ func BookDelete(rw http.ResponseWriter, r *http.Request) {
 			return Err404
 		}
 		b.DeletedAt = database.TimePtr(time.Now())
-		err = bob.SaveContext(r.Context(), tx, b)
+		err = model.SaveContext(r.Context(), tx, b)
 		if err != nil {
 			return err
 		}
@@ -326,13 +326,13 @@ func BookDelete(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, BookDeleteResponse{Success: true})
 }
 
-func updatedAfter(withSeries bool) func(wl *selects.Conditions, updatedAfter *database.Time) {
-	return func(wl *selects.Conditions, updatedAfter *database.Time) {
-		wl.OrWhereHas("UserBook", func(q *selects.SubBuilder) *selects.SubBuilder {
+func updatedAfter(withSeries bool) func(wl *builder.Conditions, updatedAfter *database.Time) {
+	return func(wl *builder.Conditions, updatedAfter *database.Time) {
+		wl.OrWhereHas("UserBook", func(q *builder.SubBuilder) *builder.SubBuilder {
 			return q.Where("updated_at", ">=", updatedAfter)
 		})
 		if withSeries {
-			wl.OrWhereHas("UserSeries", func(q *selects.SubBuilder) *selects.SubBuilder {
+			wl.OrWhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
 				return q.Where("updated_at", ">=", updatedAfter)
 			})
 		}

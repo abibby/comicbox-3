@@ -1,4 +1,4 @@
 model:
   dir: "models"
 migration:
-  dir: "migrations"
+  dir: "database/migrations"

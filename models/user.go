@@ -23,6 +23,9 @@ type User struct {
 	AnilistGrant     *nulls.String  `json:"-"        db:"anilist_grant"`
 	AnilistToken     *nulls.String  `json:"-"        db:"anilist_token"`
 	AnilistExpiresAt *database.Time `json:"-"        db:"anilist_expires_at"`
+	RoleID           int            `json:"-"        db:"role_id"`
+
+	Role builder.BelongsTo[*Role] `json:"role"`
 }
 
 var _ hooks.BeforeSaver = &User{}

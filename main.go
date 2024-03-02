@@ -9,7 +9,7 @@ import (
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/comicbox-3/migrations"
+	"github.com/abibby/comicbox-3/database/migrations"
 	"github.com/abibby/comicbox-3/queue"
 	"github.com/abibby/comicbox-3/server"
 )

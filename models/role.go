@@ -11,7 +11,8 @@ import (
 type Role struct {
 	model.BaseModel
 
-	ID int `json:"id" db:"id,primary,autoincrement"`
+	ID   int    `json:"id" db:"id,primary,autoincrement"`
+	Name string `json:"name" db:"name"`
 }
 
 func RoleQuery(ctx context.Context) *builder.Builder[*Role] {

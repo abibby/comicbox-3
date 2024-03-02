@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/comicbox-3/migrations"
+	"github.com/abibby/comicbox-3/database/migrations"
 	"github.com/abibby/salusa/database/dbtest"
 	"github.com/abibby/salusa/database/dialects/sqlite"
 	"github.com/jmoiron/sqlx"

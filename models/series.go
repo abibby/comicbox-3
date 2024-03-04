@@ -6,6 +6,7 @@ import (
 
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/google/uuid"
@@ -48,19 +49,19 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(ctx context.Context, tx hooks.DB) error {
+func (s *Series) BeforeSave(ctx context.Context, tx database.DB) error {
 	_, err := s.UpdateFirstBook(ctx, tx, nil)
 	return err
 }
 
-func (s *Series) AfterLoad(ctx context.Context, tx hooks.DB) error {
+func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
 	if s.FirstBookID != nil {
 		s.CoverURL = router.MustURL("book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
 	}
 	return nil
 }
 
-func (s *Series) UpdateFirstBook(ctx context.Context, tx hooks.DB, newBook *Book) (bool, error) {
+func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *Book) (bool, error) {
 	b, err := BookQuery(ctx).
 		Where("series", "=", s.Name).
 		OrderBy("sort").

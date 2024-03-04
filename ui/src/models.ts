@@ -48,6 +48,7 @@ export interface User {
     update_map: Record<string, string>
     id: string
     username: string
+    role: Role | null
 }
 export interface UserBook {
     created_at: string

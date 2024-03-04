@@ -10,6 +10,7 @@ import (
 
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model"
@@ -92,7 +93,7 @@ func (b *Book) Scopes() []*builder.Scope {
 	}
 }
 
-func (b *Book) BeforeSave(ctx context.Context, tx hooks.DB) error {
+func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 	err := b.updateSeries(ctx, tx)
 	if err != nil {
 		return err
@@ -133,7 +134,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx hooks.DB) error {
 	return nil
 }
 
-func (b *Book) updateSeries(ctx context.Context, tx hooks.DB) error {
+func (b *Book) updateSeries(ctx context.Context, tx database.DB) error {
 	seriesChange := false
 	err := builder.LoadMissing(tx, b, "Series")
 	if err != nil {
@@ -158,7 +159,7 @@ func (b *Book) updateSeries(ctx context.Context, tx hooks.DB) error {
 	return nil
 }
 
-func (b *Book) AfterLoad(ctx context.Context, tx hooks.DB) error {
+func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
 	err := json.Unmarshal(b.RawAuthors, &b.Authors)
 	if err != nil {
 		return err

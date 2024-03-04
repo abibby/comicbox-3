@@ -10,6 +10,7 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
+	sldb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
@@ -84,7 +85,7 @@ func marshal(raw *[]byte, v interface{}) error {
 var _ hooks.BeforeSaver = &BaseModel{}
 var _ hooks.AfterLoader = &BaseModel{}
 
-func (bm *BaseModel) BeforeSave(ctx context.Context, tx hooks.DB) error {
+func (bm *BaseModel) BeforeSave(ctx context.Context, tx sldb.DB) error {
 	if bm.UpdateMap == nil {
 		bm.UpdateMap = map[string]string{}
 	}
@@ -100,7 +101,7 @@ func (bm *BaseModel) BeforeSave(ctx context.Context, tx hooks.DB) error {
 	return nil
 }
 
-func (bm *BaseModel) AfterLoad(ctx context.Context, tx hooks.DB) error {
+func (bm *BaseModel) AfterLoad(ctx context.Context, tx sldb.DB) error {
 	if bm.RawUpdateMap != nil && len(bm.RawUpdateMap) > 0 {
 		err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
 		if err != nil {

@@ -6,7 +6,7 @@ toolchain go1.22.0
 
 require (
 	github.com/abibby/nulls v1.1.0
-	github.com/abibby/salusa v0.6.0
+	github.com/abibby/salusa v0.7.2
 	github.com/adhocore/gronx v0.2.5
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
 	github.com/go-faker/faker/v4 v4.1.0

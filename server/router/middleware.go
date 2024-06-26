@@ -6,10 +6,14 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"time"
 )
 
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		next.ServeHTTP(w, r)
 		u, _ := url.ParseRequestURI(r.RequestURI)
 
 		q := u.Query()
@@ -17,9 +21,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 			q.Del("_token")
 			u.RawQuery = q.Encode()
 		}
-		log.Println(u.String())
-
-		next.ServeHTTP(w, r)
+		log.Printf("%s, %v", u.String(), time.Since(start))
 	})
 }
 

@@ -1,14 +1,14 @@
-FROM node:20 as ui
+FROM node:20 AS ui
 
 WORKDIR /ui
 
 COPY ui/package.json ui/package-lock.json ./
-RUN npm install
+RUN npm ci
 
 COPY ui/ ./
 RUN npm run prod
 
-FROM golang:1.20 as go-build
+FROM golang:1.22 AS go-build
 
 WORKDIR /go/src/github.com/abibby/comicbox-3
 
@@ -21,14 +21,13 @@ COPY --from=ui /ui/dist ui/dist
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build
 
 # Now copy it into our base image.
-FROM alpine
-
-RUN apk update && \
-    apk add ca-certificates && \
+FROM alpine:latest AS certs
+RUN apk add --no-cache ca-certificates && \
     update-ca-certificates
 
-# RUN apt-get update && apt-get install -y ca-certificates
-# RUN update-ca-certificates
+FROM scratch
+
+COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 COPY --from=go-build /go/src/github.com/abibby/comicbox-3/comicbox-3 /comicbox
 

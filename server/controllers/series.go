@@ -9,7 +9,6 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/dialects/sqlite"
 	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -65,7 +64,7 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 		query = query.Where("name", "=", name)
 	}
 	if list, ok := req.List.Ok(); ok {
-		query = query.WhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
+		query = query.WhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
 			return q.Where("list", "=", list)
 		})
 	}
@@ -93,11 +92,10 @@ func SeriesIndex(rw http.ResponseWriter, r *http.Request) {
 				).
 				With("LatestBook.UserBook")
 		}
-		println(query.ToSQL(&sqlite.SQLite{}))
 	}
 
 	index(rw, r, query, func(wl *builder.Conditions, updatedAfter *database.Time) {
-		wl.OrWhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
+		wl.OrWhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
 			return q.Where("series.updated_at", ">=", updatedAfter)
 		})
 	})

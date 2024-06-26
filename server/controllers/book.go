@@ -328,11 +328,11 @@ func BookDelete(rw http.ResponseWriter, r *http.Request) {
 
 func updatedAfter(withSeries bool) func(wl *builder.Conditions, updatedAfter *database.Time) {
 	return func(wl *builder.Conditions, updatedAfter *database.Time) {
-		wl.OrWhereHas("UserBook", func(q *builder.SubBuilder) *builder.SubBuilder {
+		wl.OrWhereHas("UserBook", func(q *builder.Builder) *builder.Builder {
 			return q.Where("updated_at", ">=", updatedAfter)
 		})
 		if withSeries {
-			wl.OrWhereHas("UserSeries", func(q *builder.SubBuilder) *builder.SubBuilder {
+			wl.OrWhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
 				return q.Where("updated_at", ">=", updatedAfter)
 			})
 		}

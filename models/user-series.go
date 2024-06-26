@@ -42,7 +42,7 @@ const (
 	ListPlanning  = List("planning")
 )
 
-func UserSeriesQuery(ctx context.Context) *builder.Builder[*UserSeries] {
+func UserSeriesQuery(ctx context.Context) *builder.ModelBuilder[*UserSeries] {
 	return builder.From[*UserSeries]().WithContext(ctx)
 }
 

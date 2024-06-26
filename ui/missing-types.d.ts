@@ -68,9 +68,9 @@ declare module 'rollup-plugin-includepaths' {
     export default assets
 }
 
-declare module 'omt:*' {
-    const url: string
-    export default url
-}
+// declare module 'omt:*' {
+//     const url: string
+//     export default url
+// }
 
 declare const __ENV: 'production' | 'development'

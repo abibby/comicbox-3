@@ -8,6 +8,8 @@ services:
       - APP_KEY=${APP_KEY}
       - ANILIST_CLIENT_ID=${ANILIST_CLIENT_ID}
       - ANILIST_CLIENT_SECRET=${ANILIST_CLIENT_SECRET}
+      - SCAN_ON_STARTUP=${SCAN_ON_STARTUP}
+      - SCAN_INTERVAL=${SCAN_INTERVAL}
       # - DB_DRIVER=postgres
       # - DB_HOST=db
       # - DB_USERNAME=comicbox3

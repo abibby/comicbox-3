@@ -27,7 +27,7 @@ type PaginatedResponse[T any] struct {
 	Data     []T `json:"data"`
 }
 
-func index[T model.Model](rw http.ResponseWriter, r *http.Request, query *builder.Builder[T], updatedAfter func(wl *builder.Conditions, updatedAfter *database.Time)) {
+func index[T model.Model](rw http.ResponseWriter, r *http.Request, query *builder.ModelBuilder[T], updatedAfter func(wl *builder.Conditions, updatedAfter *database.Time)) {
 	req := &PaginatedRequest{}
 	err := validate.Run(r, req)
 	if err != nil {

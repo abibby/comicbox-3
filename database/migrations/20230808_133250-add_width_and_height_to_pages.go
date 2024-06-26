@@ -7,7 +7,7 @@ import (
 	"log"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/salusa/database/hooks"
+	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/migrate"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/database/schema"
@@ -16,7 +16,7 @@ import (
 func init() {
 	migrations.Add(&migrate.Migration{
 		Name: "20230808_133250-add_width_and_height_to_pages",
-		Up: schema.Run(func(ctx context.Context, tx hooks.DB) error {
+		Up: schema.Run(func(ctx context.Context, tx database.DB) error {
 			pageSize := 1000
 			total := 0
 			err := models.BookQuery(ctx).SelectFunction("count", "*").LoadOne(tx, &total)
@@ -71,7 +71,7 @@ func init() {
 			}
 			return nil
 		}),
-		Down: schema.Run(func(ctx context.Context, tx hooks.DB) error {
+		Down: schema.Run(func(ctx context.Context, tx database.DB) error {
 			return nil
 		}),
 	})

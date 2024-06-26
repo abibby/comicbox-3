@@ -7,7 +7,7 @@ import (
 
 var UserScoped = &builder.Scope{
 	Name: "user-scoped",
-	Apply: func(b *builder.SubBuilder) *builder.SubBuilder {
+	Apply: func(b *builder.Builder) *builder.Builder {
 		uid, ok := auth.UserID(b.Context())
 		if !ok {
 			return b.WhereRaw("1=0")

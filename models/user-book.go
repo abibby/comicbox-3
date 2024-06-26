@@ -18,7 +18,7 @@ type UserBook struct {
 	User *builder.BelongsTo[*User] `json:"-"`
 }
 
-func UserBookQuery(ctx context.Context) *builder.Builder[*UserBook] {
+func UserBookQuery(ctx context.Context) *builder.ModelBuilder[*UserBook] {
 	return builder.From[*UserBook]().WithContext(ctx)
 }
 

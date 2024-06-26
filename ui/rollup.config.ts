@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import typescript from '@rollup/plugin-typescript'
@@ -21,9 +22,9 @@ const config = (args: Record<string, unknown>): RollupOptions => {
 
     return {
         preserveEntrySignatures: false,
-        input: ['src/app.tsx'],
+        input: ['src/app.tsx', 'src/service-worker/sw.ts'],
         output: {
-            format: 'amd',
+            format: 'esm',
             dir: 'dist',
             entryFileNames: '[name]-[hash].js',
             chunkFileNames: '[name]-[hash].js',
@@ -62,7 +63,7 @@ const config = (args: Record<string, unknown>): RollupOptions => {
             commonjs({
                 include: 'node_modules/**', // Default: undefined
             }),
-            omt(),
+            // omt({ useEval: true }),
             createHTMLPlugin({
                 templatePath: 'src/index.html',
                 output: 'index.html',

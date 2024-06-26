@@ -14,8 +14,13 @@ func init() {
 
 }
 
-func Group(prefix string, handler func(*mux.Router)) {
-	sub := r.PathPrefix(prefix).Subrouter()
+func Group(r *mux.Router, prefix string, handler func(*mux.Router)) {
+	var sub *mux.Router
+	if prefix == "" {
+		sub = r.NewRoute().Subrouter()
+	} else {
+		sub = r.PathPrefix(prefix).Subrouter()
+	}
 
 	handler(sub)
 }

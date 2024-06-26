@@ -16,7 +16,7 @@ type JobQueue struct {
 	jobs          chan Job
 	close         chan struct{}
 	ticker        *time.Ticker
-	gron          gronx.Gronx
+	gron          *gronx.Gronx
 	scheduledJobs []*ScheduledJob
 	running       []string
 	runningMtx    *sync.Mutex

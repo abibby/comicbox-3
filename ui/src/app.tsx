@@ -1,5 +1,5 @@
 import EventTarget from 'event-target-shim'
-import serviceWorkerURL from 'omt:src/service-worker/sw'
+// import serviceWorkerURL from 'omt:src/service-worker/sw'
 import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
@@ -104,7 +104,7 @@ async function onUpdateFound(
 
 if ('serviceWorker' in navigator && __ENV !== 'development') {
     navigator.serviceWorker
-        .register(serviceWorkerURL, { scope: '/' })
+        .register('/sw.js', { scope: '/', type: 'module' })
         .then(reg => {
             onUpdateFound(reg)
             setSW(reg)
@@ -115,5 +115,6 @@ if ('serviceWorker' in navigator && __ENV !== 'development') {
 }
 
 if ('virtualKeyboard' in navigator) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(navigator as any).virtualKeyboard.overlaysContent = true
 }

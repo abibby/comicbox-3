@@ -10,8 +10,7 @@ import {
     STATIC_CACHE_NAME,
     THUMB_CACHE_NAME,
 } from 'src/caches'
-import { Message } from 'src/message'
-import { PageType } from 'src/models'
+import { type Message } from 'src/message'
 import { cacheBooks } from 'src/service-worker/cache'
 
 interface SyncEvent extends ExtendableEvent {
@@ -69,6 +68,7 @@ addAsyncEventListener('install', async () => {
         await fetch('/static-files').then(r => r.json()),
     )
     newCachedAssets.add('/')
+    newCachedAssets.delete('/sw.js')
 
     const staticCache = await openStaticCache()
     await staticCache.addAll(Array.from(newCachedAssets))
@@ -115,6 +115,16 @@ async function cacheThumbnail(
     if (r !== undefined) {
         return r
     }
+    const fetchPromise = fetch(event.request)
+    event.waitUntil(
+        (async () => {
+            const [thumbCache, response] = await Promise.all([
+                openThumbCache(),
+                fetchPromise,
+            ])
+            await thumbCache.put(event.request, response.clone())
+        })(),
+    )
     // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0/thumbnail
     const bookID = path.split('/')[3]
 
@@ -128,23 +138,8 @@ async function cacheThumbnail(
             return r
         }
     }
-    const response = await fetch(event.request)
 
-    event.waitUntil(
-        (async () => {
-            const books = await book.list({ id: bookID })
-            const b = books[0]
-            const page = b?.pages.find(p => {
-                const u = new URL(p.thumbnail_url, location.origin)
-                return u.pathname === path
-            })
-            if (page?.type === PageType.FrontCover) {
-                const thumbCache = await openThumbCache()
-                await thumbCache.put(event.request, response.clone())
-            }
-        })(),
-    )
-    return response.clone()
+    return (await fetchPromise).clone()
 }
 
 async function cachePage(event: FetchEvent, path: string): Promise<Response> {
@@ -190,8 +185,6 @@ addEventListener('fetch', event => {
         event.respondWith(cachePage(event, url.pathname))
         return
     }
-
-    event.respondWith(cachePage(event, '/'))
 })
 
 addAsyncEventListener('message', async function (event) {

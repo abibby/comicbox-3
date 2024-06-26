@@ -2,27 +2,30 @@ package router
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"path"
-	"sync"
 
 	"github.com/abibby/comicbox-3/config"
 )
 
 type cachedResponseWriter struct {
-	body io.Writer
-	rw   http.ResponseWriter
+	cachePath  string
+	cacheFile  *os.File
+	statusCode int
+	rw         http.ResponseWriter
 }
 
 var _ http.ResponseWriter = &cachedResponseWriter{}
 
-func newCachedResponseWriter(rw http.ResponseWriter, w io.Writer) *cachedResponseWriter {
+func newCachedResponseWriter(rw http.ResponseWriter, path string) *cachedResponseWriter {
 	return &cachedResponseWriter{
-		body: w,
-		rw:   rw,
+		cachePath:  path,
+		statusCode: 200,
+		rw:         rw,
 	}
 }
 
@@ -30,61 +33,71 @@ func (rw *cachedResponseWriter) Header() http.Header {
 	return rw.rw.Header()
 }
 func (rw *cachedResponseWriter) Write(b []byte) (int, error) {
-	return rw.body.Write(b)
+	_, err := rw.fileWrite(b)
+	if err != nil {
+		log.Printf("cache write error: %v", err)
+	}
+	return rw.rw.Write(b)
 }
 func (rw *cachedResponseWriter) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
 	rw.rw.WriteHeader(statusCode)
+}
+
+func (rw *cachedResponseWriter) fileWrite(b []byte) (int, error) {
+	f, err := rw.file()
+	if err != nil {
+		return 0, err
+	}
+	return f.Write(b)
+}
+
+func (rw *cachedResponseWriter) file() (*os.File, error) {
+	if rw.cacheFile != nil {
+		return rw.cacheFile, nil
+	}
+
+	if rw.statusCode != 200 {
+		return nil, fmt.Errorf("non 200 status: %d", rw.statusCode)
+	}
+
+	err := os.MkdirAll(path.Dir(rw.cachePath), 0777)
+	if err != nil {
+		return nil, err
+	}
+	cacheFile, err := os.OpenFile(rw.cachePath, os.O_CREATE|os.O_RDWR, 0644)
+	if err != nil {
+		return nil, err
+	}
+
+	rw.cacheFile = cacheFile
+
+	return cacheFile, nil
+}
+
+func (rw *cachedResponseWriter) Close() error {
+	if rw.cacheFile != nil {
+		return rw.cacheFile.Close()
+	}
+	return nil
 }
 
 func CacheMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		cachePath := path.Join(config.CachePath, r.URL.Path)
 		err := serveFromCache(rw, cachePath)
-		if errors.Is(err, os.ErrNotExist) {
-		} else if err == nil {
+		if err == nil {
 			return
-		} else if err != nil {
+		}
+		if !errors.Is(err, os.ErrNotExist) {
 			log.Print(err)
 			return
 		}
 
-		reader, writer := io.Pipe()
-		cacheRW := newCachedResponseWriter(rw, writer)
-
-		wg := &sync.WaitGroup{}
-		wg.Add(1)
-
-		var copyErr error
-		go func() {
-			defer wg.Done()
-			err := os.MkdirAll(path.Dir(cachePath), 0777)
-			if err != nil {
-				copyErr = err
-				return
-			}
-			f, err := os.OpenFile(cachePath, os.O_CREATE|os.O_RDWR, 0644)
-			if err != nil {
-				copyErr = err
-				return
-			}
-			_, err = io.Copy(rw, io.TeeReader(reader, f))
-			if err != nil {
-				copyErr = err
-				return
-			}
-		}()
+		cacheRW := newCachedResponseWriter(rw, cachePath)
+		defer cacheRW.Close()
 
 		next.ServeHTTP(cacheRW, r)
-
-		reader.Close()
-
-		wg.Wait()
-
-		if copyErr == io.ErrClosedPipe {
-		} else if copyErr != nil {
-			log.Print(copyErr)
-			return
-		}
 	})
 }
 

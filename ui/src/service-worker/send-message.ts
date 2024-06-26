@@ -1,4 +1,4 @@
-import { Message } from 'src/message'
+import { type Message } from 'src/message'
 
 export async function sendMessage(message: Message): Promise<void> {
     const windows = await clients.matchAll({

@@ -15,6 +15,6 @@ type Role struct {
 	Name string `json:"name" db:"name"`
 }
 
-func RoleQuery(ctx context.Context) *builder.Builder[*Role] {
+func RoleQuery(ctx context.Context) *builder.ModelBuilder[*Role] {
 	return builder.From[*Role]().WithContext(ctx)
 }

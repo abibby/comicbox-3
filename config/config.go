@@ -127,6 +127,7 @@ func (l *localLogger) Log(keyvals ...any) error {
 func (c *cfg) LoggerConfig() clog.Config {
 	switch Logger {
 	case "loki":
+		fmt.Println("using loki logging")
 		return &loki.Config{
 			URL:      LokiURL,
 			TenantID: LokiTenantID,

@@ -1,62 +1,125 @@
 package server
 
 import (
+	"context"
+	"log/slog"
+	"math/rand"
 	"net/http"
+	"time"
 
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
-	"github.com/abibby/comicbox-3/server/router"
+	"github.com/abibby/comicbox-3/server/middleware"
 	"github.com/abibby/comicbox-3/ui"
-	"github.com/gorilla/mux"
+	"github.com/abibby/salusa/clog"
+	"github.com/abibby/salusa/openapidoc"
+	"github.com/abibby/salusa/request"
+	"github.com/abibby/salusa/router"
 )
 
-func init() {
-	r := router.Router()
+const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const randOptsLen = len(randOpts)
 
-	router.Group(r, "/api/", func(r *mux.Router) {
-		router.Group(r, "", func(r *mux.Router) {
-			r.Use(controllers.AuthMiddleware(false, controllers.TokenAuthenticated))
-			r.HandleFunc("/series", controllers.SeriesIndex).Methods("GET").Name("series.index")
-			r.HandleFunc("/series/{name}", controllers.SeriesUpdate).Methods("POST").Name("series.update")
-			r.HandleFunc("/series/{name}/user-series", controllers.UserSeriesUpdate).Methods("POST").Name("user-series.update")
+func randStr(l int) string {
+	b := make([]byte, l)
+	for i := range l {
+		b[i] = byte(randOpts[rand.Intn(randOptsLen)])
+	}
+	return string(b)
+}
 
-			r.HandleFunc("/books", controllers.BookIndex).Methods("GET").Name("book.index")
-			r.HandleFunc("/books/{id}", controllers.BookUpdate).Methods("POST").Name("book.update")
-			r.HandleFunc("/books/{id}", controllers.BookDelete).Methods("DELETE").Name("book.delete")
-			r.HandleFunc("/books/{id}/user-book", controllers.UserBookUpdate).Methods("POST").Name("user-book.update")
+type responseRecorder struct {
+	http.ResponseWriter
+	StatusCode int
+}
 
-			r.HandleFunc("/sync", controllers.Sync).Methods("POST").Name("sync")
+func newResponseRecorder(w http.ResponseWriter) *responseRecorder {
+	return &responseRecorder{
+		ResponseWriter: w,
+		StatusCode:     200,
+	}
+}
 
-			r.HandleFunc("/anilist/update", controllers.AnilistUpdate).Methods("POST").Name("anilist.update")
-			r.HandleFunc("/anilist/login", controllers.AnilistLogin).Methods("POST").Name("anilist.login")
+func (r *responseRecorder) WriteHeader(statusCode int) {
+	r.StatusCode = statusCode
+	r.ResponseWriter.WriteHeader(statusCode)
+}
 
-			r.HandleFunc("/users/create-token", controllers.UserCreateToken).Methods("GET").Name("user-create-token")
+func InitRouter(r *router.Router) {
+	r.Use(controllers.AttachUserMiddleware())
+	r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		id := randStr(5)
+		ctx := clog.With(r.Context(), slog.String("id", id))
+		w.Header().Add("X-Request-Id", id)
+
+		c, ok := auth.GetClaims(r.Context())
+		if ok {
+			ctx = clog.With(ctx, slog.Any("user_id", c.ClientID))
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}))
+	r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		rr := newResponseRecorder(w)
+		start := time.Now()
+		defer func() {
+			u := *r.URL
+			q := u.Query()
+			q.Del("_token")
+			u.RawQuery = q.Encode()
+			clog.Use(r.Context()).Info("request", "url", &u, "status", rr.StatusCode, "duration", time.Since(start).Truncate(time.Millisecond))
+		}()
+		next.ServeHTTP(rr, r)
+	}))
+
+	r.Use(request.HandleErrors(func(ctx context.Context, err error) http.Handler {
+		clog.Use(ctx).Warn("request failed", "err", err)
+		return nil
+	}))
+
+	r.Group("/api", func(r *router.Router) {
+		r.Group("", func(r *router.Router) {
+			r.Use(controllers.AuthMiddleware(false, auth.TokenAuthenticated))
+
+			r.Get("/series", controllers.SeriesIndex).Name("series.index")
+			r.Post("/series/{name}", controllers.SeriesUpdate).Name("series.update")
+			r.PostFunc("/series/{name}/user-series", controllers.UserSeriesUpdate).Name("user-series.update")
+
+			r.Get("/books", controllers.BookIndex).Name("book.index")
+			r.Post("/books/{id}", controllers.BookUpdate).Name("book.update")
+			r.Delete("/books/{id}", controllers.BookDelete).Name("book.delete")
+			r.Post("/books/{id}/user-book", controllers.UserBookUpdate).Name("user-book.update")
+
+			r.Post("/sync", controllers.Sync).Name("sync")
+
+			r.PostFunc("/anilist/update", controllers.AnilistUpdate).Name("anilist.update")
+			r.PostFunc("/anilist/login", controllers.AnilistLogin).Name("anilist.login")
+
+			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
+		})
+		r.Group("", func(r *router.Router) {
+			r.Use(controllers.AuthMiddleware(true, auth.TokenImage))
+			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
+			r.Group("", func(r *router.Router) {
+				r.Use(middleware.CacheMiddleware())
+				r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("book.thumbnail")
+			})
+		})
+		r.PostFunc("/users", controllers.UserCreate).Name("user.create")
+
+		r.PostFunc("/login", controllers.Login).Name("login")
+
+		r.Group("", func(r *router.Router) {
+			r.Use(controllers.AuthMiddleware(false, auth.TokenRefresh))
+			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")
 		})
 
-		router.Group(r, "", func(r *mux.Router) {
-			r.Use(controllers.AuthMiddleware(true, controllers.TokenImage))
-			r.HandleFunc("/books/{id}/page/{page}", controllers.BookPage).Methods("GET").Name("book.page")
-			{
-				r := r.NewRoute().Subrouter()
-				r.Use(router.CacheMiddleware)
-				r.HandleFunc("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Methods("GET").Name("book.thumbnail")
-			}
-		})
+		r.Handle("/docs", openapidoc.SwaggerUI())
 
-		r.HandleFunc("/users", controllers.UserCreate).Methods("POST").Name("user.create")
-
-		r.HandleFunc("/login", controllers.Login).Methods("POST").Name("login")
-
-		router.Group(r, "", func(r *mux.Router) {
-			r.Use(controllers.AuthMiddleware(false, controllers.TokenRefresh))
-			r.HandleFunc("/login/refresh", controllers.Refresh).Methods("POST").Name("refresh")
-		})
-
-		r.NotFoundHandler = http.HandlerFunc(controllers.API404)
+		r.Handle("/", http.HandlerFunc(controllers.API404))
 	})
 
-	r.HandleFunc("/static-files", controllers.StaticFiles).Methods("GET")
+	r.GetFunc("/static-files", controllers.StaticFiles)
 
-	r.PathPrefix("/").
-		Handler(FileServerDefault(ui.Content, "dist", "index.html")).
-		Methods("GET")
+	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html"))
 }

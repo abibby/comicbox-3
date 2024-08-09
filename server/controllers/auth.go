@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -12,6 +13,9 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/abibby/salusa/openapidoc"
+	"github.com/abibby/salusa/router"
+	"github.com/go-openapi/spec"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -28,14 +32,6 @@ type LoginResponse struct {
 	ImageToken   string `json:"image_token"`
 	RefreshToken string `json:"refresh_token"`
 }
-
-type TokenPurpose string
-
-const (
-	TokenAuthenticated = TokenPurpose("authenticated")
-	TokenRefresh       = TokenPurpose("refresh")
-	TokenImage         = TokenPurpose("image")
-)
 
 func Login(rw http.ResponseWriter, r *http.Request) {
 	req := &LoginRequest{}
@@ -109,17 +105,17 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 
 func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 
-	token, err := generateToken(u, withPurpose(TokenAuthenticated))
+	token, err := generateToken(u, withPurpose(auth.TokenAuthenticated))
 	if err != nil {
 		return nil, err
 	}
 
-	imageToken, err := generateToken(u, withPurpose(TokenImage), allowQueryToken)
+	imageToken, err := generateToken(u, withPurpose(auth.TokenImage), allowQueryToken)
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := generateToken(u, withPurpose(TokenRefresh), withLifetime(time.Hour*24*30))
+	refreshToken, err := generateToken(u, withPurpose(auth.TokenRefresh), withLifetime(time.Hour*24*30))
 	if err != nil {
 		return nil, err
 	}
@@ -147,55 +143,80 @@ func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func AuthMiddleware(acceptQuery bool, purposes ...TokenPurpose) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			r, claims, ok := authenticate(acceptQuery, r)
-			if !ok {
-				sendError(rw, ErrUnauthorized)
+type authMiddleware struct {
+	acceptQuery bool
+	purposes    []auth.TokenPurpose
+}
+
+func AttachUserMiddleware() router.InlineMiddlewareFunc {
+	return func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		r = attachUser(r)
+		next.ServeHTTP(w, r)
+	}
+}
+
+func AuthMiddleware(acceptQuery bool, purposes ...auth.TokenPurpose) router.Middleware {
+	return &authMiddleware{
+		acceptQuery: acceptQuery,
+		purposes:    purposes,
+	}
+}
+
+var _ router.Middleware = (*authMiddleware)(nil)
+var _ openapidoc.OperationMiddleware = (*authMiddleware)(nil)
+
+func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := auth.GetClaims(r.Context())
+		if !ok {
+			sendError(w, ErrUnauthorized)
+			return
+		}
+
+		if len(m.purposes) > 0 {
+
+			if !ok || !slices.Contains(m.purposes, claims.Purpose) {
+				sendError(w, ErrUnauthorized)
 				return
 			}
-
-			if len(purposes) > 0 {
-				iPurpose, ok := claims["purpose"]
-				if !ok {
-					sendError(rw, ErrUnauthorized)
-					return
-				}
-				purpose, ok := iPurpose.(string)
-				if !ok || !hasPurpose(purposes, TokenPurpose(purpose)) {
-					sendError(rw, ErrUnauthorized)
-					return
-				}
-			}
-
-			next.ServeHTTP(rw, r)
-		})
-	}
-}
-
-func hasPurpose(haystack []TokenPurpose, needle TokenPurpose) bool {
-	for _, p := range haystack {
-		if needle == p {
-			return true
 		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation {
+	if s.Security == nil {
+		s.Security = []map[string][]string{}
 	}
-	return false
+	securityDefinitionName := openapidoc.DefaultSecurityDefinitionName
+	if m.acceptQuery {
+		securityDefinitionName = "Query"
+	}
+	s.Security = append(s.Security, map[string][]string{
+		securityDefinitionName: {},
+	})
+	return s
 }
 
-func authenticate(acceptQuery bool, r *http.Request) (*http.Request, jwt.MapClaims, bool) {
+func attachUser(r *http.Request) *http.Request {
 	tokenStr := ""
 	authHeader := r.Header.Get("Authorization")
+	usingQuery := false
 	if strings.HasPrefix(authHeader, "Bearer ") {
 		tokenStr = authHeader[7:]
-	}
-
-	usingQuery := acceptQuery && r.URL.Query().Has("_token")
-	if usingQuery {
+	} else {
 		tokenStr = r.URL.Query().Get("_token")
+		if tokenStr != "" {
+			usingQuery = true
+		}
 	}
 
-	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+	if tokenStr == "" {
+		return r
+	}
+
+	claims := &auth.Claims{}
+	_, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -204,31 +225,15 @@ func authenticate(acceptQuery bool, r *http.Request) (*http.Request, jwt.MapClai
 		return config.AppKey, nil
 	})
 	if err != nil {
-		log.Printf("failed to parse JWT: %v", err)
-		return r, nil, false
+		slog.Error("failed to parse JWT", "err", err)
+		return r
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return r, nil, false
+	if usingQuery != claims.Query {
+		return r
 	}
 
-	iQuery, _ := claims["query"]
-	shouldUseQuery, _ := iQuery.(bool)
-
-	if usingQuery != shouldUseQuery {
-		return r, nil, false
-	}
-
-	if uid, ok := claims["client_id"]; ok {
-		userID, err := uuid.Parse(uid.(string))
-		if err != nil {
-			log.Printf("failed to parse UID: %v", err)
-			return r, nil, false
-		}
-		r = auth.SetUserID(r, userID)
-	}
-	return r, claims, true
+	return auth.WithClaims(r, claims)
 }
 
 func generateToken(u *models.User, modifyClaims ...func(jwt.MapClaims) jwt.MapClaims) (string, error) {
@@ -255,7 +260,7 @@ func createsUser(id uuid.UUID) func(claims jwt.MapClaims) jwt.MapClaims {
 		return claims
 	}
 }
-func withPurpose(purpose TokenPurpose) func(claims jwt.MapClaims) jwt.MapClaims {
+func withPurpose(purpose auth.TokenPurpose) func(claims jwt.MapClaims) jwt.MapClaims {
 	return func(claims jwt.MapClaims) jwt.MapClaims {
 		claims["purpose"] = purpose
 		return claims

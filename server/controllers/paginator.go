@@ -1,13 +1,12 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"time"
 
-	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
@@ -18,6 +17,9 @@ type PaginatedRequest struct {
 	PageSize     *nulls.Int `query:"page_size"    validate:"min:1|max:100"`
 	WithDeleted  bool       `query:"with_deleted" validate:"boolean"`
 	UpdatedAfter *time.Time `query:"updated_after"`
+
+	Ctx  context.Context `inject:""`
+	Read salusadb.Read   `inject:""`
 }
 
 type PaginatedResponse[T any] struct {
@@ -27,13 +29,7 @@ type PaginatedResponse[T any] struct {
 	Data     []T `json:"data"`
 }
 
-func index[T model.Model](rw http.ResponseWriter, r *http.Request, query *builder.ModelBuilder[T], updatedAfter func(wl *builder.Conditions, updatedAfter *database.Time)) {
-	req := &PaginatedRequest{}
-	err := validate.Run(r, req)
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
+func paginatedList[T model.Model](req *PaginatedRequest, query *builder.ModelBuilder[T]) (*PaginatedResponse[T], error) {
 	pageSize := 100
 	page := 0
 
@@ -43,48 +39,30 @@ func index[T model.Model](rw http.ResponseWriter, r *http.Request, query *builde
 	if ps, ok := req.PageSize.Ok(); ok {
 		pageSize = ps
 	}
-	if req.UpdatedAfter != nil {
-		query = query.And(func(wl *builder.Conditions) {
-			t := (*database.Time)(req.UpdatedAfter)
-			// var m T
-			// wl.OrWhere(builder.GetTable(m)+".updated_at", ">=", t)
-			updatedAfter(wl, t)
-		})
-	}
 
 	if req.WithDeleted {
 		query = query.WithoutGlobalScope(builder.SoftDeletes)
 	}
 
-	var total int
-	var v []T
-	err = database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
-		var err error
-		v, err = query.
+	return salusadb.Value(req.Read, func(tx *sqlx.Tx) (*PaginatedResponse[T], error) {
+		models, err := query.
 			Limit(pageSize).
 			Offset(page * pageSize).
 			Get(tx)
 		if err != nil {
-			return fmt.Errorf("failed to fetch page: %w", err)
+			return nil, fmt.Errorf("failed to fetch page: %w", err)
 		}
-		err = query.
-			Unordered().
-			SelectFunction("count", "*").
-			LoadOne(tx, &total)
-		if err != nil {
-			return fmt.Errorf("failed to fetch total count: %w", err)
-		}
-		return nil
-	})
-	if err != nil {
-		sendError(rw, err)
-		return
-	}
 
-	sendJSON(rw, &PaginatedResponse[T]{
-		Page:     page + 1,
-		PageSize: pageSize,
-		Total:    total,
-		Data:     v,
+		total, err := query.Count(tx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch total count: %w", err)
+		}
+
+		return &PaginatedResponse[T]{
+			Page:     page + 1,
+			PageSize: pageSize,
+			Total:    total,
+			Data:     models,
+		}, nil
 	})
 }

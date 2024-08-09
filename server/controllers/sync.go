@@ -1,13 +1,25 @@
 package controllers
 
 import (
-	"net/http"
-
-	"github.com/abibby/comicbox-3/app"
-	"github.com/abibby/comicbox-3/queue"
+	"github.com/abibby/comicbox-3/app/events"
+	"github.com/abibby/salusa/event"
+	"github.com/abibby/salusa/request"
 )
 
-func Sync(w http.ResponseWriter, r *http.Request) {
-	queue.Default.EnqueueJob(queue.JobFunc(app.Sync))
-	w.WriteHeader(http.StatusNoContent)
+type SyncRequest struct {
+	Queue event.Queue `inject:""`
 }
+
+type SyncResponse struct {
+	Success bool `json:"success"`
+}
+
+var Sync = request.Handler(func(r *SyncRequest) (*SyncResponse, error) {
+	err := r.Queue.Push(&events.SyncEvent{})
+	if err != nil {
+		return nil, err
+	}
+	return &SyncResponse{
+		Success: true,
+	}, nil
+})

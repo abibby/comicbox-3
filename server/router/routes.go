@@ -1,46 +1,29 @@
 package router
 
 import (
-	"github.com/gorilla/mux"
+	"context"
+
+	"github.com/abibby/comicbox-3/app/deps"
+	"github.com/abibby/salusa/router"
 )
 
-var r *mux.Router
-
-func init() {
-	r = mux.NewRouter()
-
-	r.Use(loggingMiddleware)
-	r.Use(errorMiddleware)
-
-}
-
-func Group(r *mux.Router, prefix string, handler func(*mux.Router)) {
-	var sub *mux.Router
-	if prefix == "" {
-		sub = r.NewRoute().Subrouter()
-	} else {
-		sub = r.PathPrefix(prefix).Subrouter()
-	}
-
-	handler(sub)
-}
-
-func Router() *mux.Router {
-	return r
-}
-
-func URL(name string, pairs ...string) (string, error) {
-	u, err := r.Get(name).URL(pairs...)
+func URL(ctx context.Context, name string, pairs ...string) (string, error) {
+	var resolver router.URLResolver
+	err := deps.Provider.Fill(ctx, &resolver)
 	if err != nil {
 		return "", err
 	}
-	return u.String(), nil
+	params := make([]any, len(pairs))
+	for i, pair := range pairs {
+		params[i] = pair
+	}
+	return resolver.Resolve(name, params...), nil
 }
 
-func MustURL(name string, pairs ...string) string {
-	u, err := r.Get(name).URL(pairs...)
+func MustURL(ctx context.Context, name string, pairs ...string) string {
+	u, err := URL(ctx, name, pairs...)
 	if err != nil {
 		panic(err)
 	}
-	return u.String()
+	return u
 }

@@ -13,6 +13,9 @@ type Time time.Time
 func TimePtr(t time.Time) *Time {
 	return (*Time)(&t)
 }
+func TimeFrom(t time.Time) Time {
+	return Time(t)
+}
 
 // Scan implements the Scanner interface.
 func (nt *Time) Scan(value interface{}) error {

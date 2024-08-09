@@ -1,4 +1,4 @@
-package app
+package jobs
 
 import (
 	"archive/zip"
@@ -6,27 +6,40 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/event"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
-func Sync(ctx context.Context) error {
+var syncMtx = &sync.Mutex{}
+
+type SyncHandler struct{}
+
+var _ event.Handler[*events.SyncEvent] = (*SyncHandler)(nil)
+
+func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error {
+	syncMtx.Lock()
+	defer syncMtx.Unlock()
+
 	log.Print("Starting sync")
 
 	bookFiles, err := getBookFiles(ctx, config.LibraryPath)
@@ -123,53 +136,63 @@ func loadBookData(file string) (*models.Book, error) {
 		return nil, errors.Wrap(err, "could not list page images from zip file")
 	}
 
-	tmpPages := make([]*models.Page, len(imgs))
+	book.Pages = make([]*models.Page, len(imgs))
 	for i, img := range imgs {
-		f, err := img.Open()
+		p, err := buildPage(img, i)
 		if err != nil {
 			return nil, err
 		}
-		cfg, _, err := image.DecodeConfig(f)
-		if err != nil {
-			return nil, err
-		}
-
-		typ := models.PageTypeStory
-		if i == 0 {
-			typ = models.PageTypeFrontCover
-		} else {
-			if cfg.Height < cfg.Width {
-				typ = models.PageTypeSpread
-			}
-			f.Close()
-		}
-
-		tmpPages[i] = &models.Page{
-			BasePage: models.BasePage{
-				Type:   typ,
-				Width:  cfg.Width,
-				Height: cfg.Height,
-			},
-		}
+		book.Pages[i] = p
 	}
-	book.Pages = tmpPages
 
 	parseFileName(book, file)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not parese file name")
 	}
 
-	for _, f := range reader.File {
-		name := f.FileInfo().Name()
-		if name == "book.json" {
-			err = parseBookJSON(book, f)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not parse book.json")
-			}
+	f, err := reader.Open("book.json")
+	if err == nil {
+		err = parseBookJSON(book, f)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse book.json")
 		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return nil, err
 	}
+
 	book.File = file
 	return book, nil
+}
+
+func buildPage(img *zip.File, pageNumber int) (*models.Page, error) {
+
+	f, err := img.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	cfg, _, err := image.DecodeConfig(f)
+	if err != nil {
+		return nil, err
+	}
+
+	typ := models.PageTypeStory
+	if pageNumber == 0 {
+		typ = models.PageTypeFrontCover
+	} else {
+		if cfg.Height < cfg.Width {
+			typ = models.PageTypeSpread
+		}
+	}
+
+	return &models.Page{
+		BasePage: models.BasePage{
+			Type:   typ,
+			Width:  cfg.Width,
+			Height: cfg.Height,
+		},
+	}, nil
 }
 
 func parseFileName(book *models.Book, path string) *models.Book {
@@ -179,9 +202,7 @@ func parseFileName(book *models.Book, path string) *models.Book {
 
 	book.SeriesName = dir
 
-	if strings.HasPrefix(name, dir) {
-		name = name[len(dir):]
-	}
+	name = strings.TrimPrefix(name, dir)
 	exp := regexp.MustCompile(`^([vV](?P<volume>[\d]+))? *(#?(?P<chapter>[\d]+(\.[\d]+)?))? *(-)? *(?P<title>.*)$`)
 	matches := exp.FindStringSubmatch(strings.TrimSpace(strings.Replace(name, "_", " ", -1)))
 
@@ -206,7 +227,7 @@ func parseFileName(book *models.Book, path string) *models.Book {
 	return book
 }
 
-func parseBookJSON(book *models.Book, f *zip.File) error {
+func parseBookJSON(book *models.Book, f fs.File) error {
 	type comboBook struct {
 		*models.Book
 		Author string         `json:"author"`
@@ -236,14 +257,8 @@ func parseBookJSON(book *models.Book, f *zip.File) error {
 	return nil
 }
 
-func fileBytes(f *zip.File) ([]byte, error) {
-	reader, err := f.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer reader.Close()
-
-	b, err := ioutil.ReadAll(reader)
+func fileBytes(f fs.File) ([]byte, error) {
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +267,7 @@ func fileBytes(f *zip.File) ([]byte, error) {
 
 func removeBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	now := database.Time(time.Now())
-	_, err := tx.Query("update books set deleted_at = ?, updated_at = ? where file = ?", now, now, file)
+	_, err := tx.QueryContext(ctx, "update books set deleted_at = ?, updated_at = ? where file = ?", now, now, file)
 	if err != nil {
 		return errors.Wrapf(err, "failed to remove book with file %s", file)
 	}

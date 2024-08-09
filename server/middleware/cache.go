@@ -1,15 +1,19 @@
-package router
+package middleware
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"path"
 
 	"github.com/abibby/comicbox-3/config"
+	"github.com/abibby/salusa/clog"
+	"github.com/abibby/salusa/router"
 )
 
 type cachedResponseWriter struct {
@@ -17,15 +21,17 @@ type cachedResponseWriter struct {
 	cacheFile  *os.File
 	statusCode int
 	rw         http.ResponseWriter
+	logger     *slog.Logger
 }
 
 var _ http.ResponseWriter = &cachedResponseWriter{}
 
-func newCachedResponseWriter(rw http.ResponseWriter, path string) *cachedResponseWriter {
+func newCachedResponseWriter(ctx context.Context, rw http.ResponseWriter, path string) *cachedResponseWriter {
 	return &cachedResponseWriter{
 		cachePath:  path,
 		statusCode: 200,
 		rw:         rw,
+		logger:     clog.Use(ctx),
 	}
 }
 
@@ -35,7 +41,7 @@ func (rw *cachedResponseWriter) Header() http.Header {
 func (rw *cachedResponseWriter) Write(b []byte) (int, error) {
 	_, err := rw.fileWrite(b)
 	if err != nil {
-		log.Printf("cache write error: %v", err)
+		rw.logger.Warn("Could not write to cache file", "err", err, "file", rw.cachePathTmp())
 	}
 	return rw.rw.Write(b)
 }
@@ -52,6 +58,9 @@ func (rw *cachedResponseWriter) fileWrite(b []byte) (int, error) {
 	return f.Write(b)
 }
 
+func (rw *cachedResponseWriter) cachePathTmp() string {
+	return rw.cachePath + ".tmp"
+}
 func (rw *cachedResponseWriter) file() (*os.File, error) {
 	if rw.cacheFile != nil {
 		return rw.cacheFile, nil
@@ -65,7 +74,7 @@ func (rw *cachedResponseWriter) file() (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	cacheFile, err := os.OpenFile(rw.cachePath, os.O_CREATE|os.O_RDWR, 0644)
+	cacheFile, err := os.OpenFile(rw.cachePathTmp(), os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +88,14 @@ func (rw *cachedResponseWriter) Close() error {
 	if rw.cacheFile != nil {
 		return rw.cacheFile.Close()
 	}
-	return nil
+
+	return os.Rename(rw.cachePathTmp(), rw.cachePath)
 }
 
-func CacheMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+func CacheMiddleware() router.Middleware {
+	return router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
 		cachePath := path.Join(config.CachePath, r.URL.Path)
-		err := serveFromCache(rw, cachePath)
+		err := serveFromCache(w, cachePath)
 		if err == nil {
 			return
 		}
@@ -94,7 +104,7 @@ func CacheMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		cacheRW := newCachedResponseWriter(rw, cachePath)
+		cacheRW := newCachedResponseWriter(r.Context(), w, cachePath)
 		defer cacheRW.Close()
 
 		next.ServeHTTP(cacheRW, r)

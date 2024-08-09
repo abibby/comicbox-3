@@ -1,13 +1,21 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/abibby/salusa/clog"
+	"github.com/abibby/salusa/clog/loki"
+	"github.com/abibby/salusa/database"
+	"github.com/abibby/salusa/database/dialects/sqlite"
+	"github.com/abibby/salusa/salusaconfig"
+	"github.com/go-kit/kit/log"
 	"github.com/joho/godotenv"
 )
 
@@ -54,11 +62,14 @@ var (
 	AnilistClientSecret string
 	ScanOnStartup       bool
 	ScanInterval        string
+	Logger              string
+	LokiURL             string
+	LokiTenantID        string
 )
 
 var PublicConfig map[string]any
 
-func Init() error {
+func Init(ctx context.Context) error {
 	err := godotenv.Load("./.env")
 	if errors.Is(err, fs.ErrNotExist) {
 	} else if err != nil {
@@ -78,10 +89,64 @@ func Init() error {
 
 	Verbose = envBool("VERBOSE", false)
 
+	Logger = env("LOGGER", "")
+	LokiURL = env("LOKI_URL", "")
+	LokiTenantID = env("LOKI_TENANT_ID", "comicbox-3")
+
 	PublicConfig = map[string]any{
 		"ANILIST_CLIENT_ID":  AnilistClientID,
 		"PUBLIC_USER_CREATE": PublicUserCreate,
 	}
 
 	return nil
+}
+
+type Config interface {
+	salusaconfig.Config
+	database.DBConfiger
+	clog.LoggerConfiger
+}
+
+func Load() Config {
+	return &cfg{}
+}
+
+type cfg struct{}
+
+type localLogger struct{ logger *slog.Logger }
+
+var _ log.Logger = (*localLogger)(nil)
+
+// Log implements log.Logger.
+func (l *localLogger) Log(keyvals ...any) error {
+	l.logger.Log(context.Background(), slog.LevelInfo, "", keyvals...)
+	return nil
+}
+
+// LoggerConfig implements Config.
+func (c *cfg) LoggerConfig() clog.Config {
+	switch Logger {
+	case "loki":
+		return &loki.Config{
+			URL:      LokiURL,
+			TenantID: LokiTenantID,
+		}
+	default:
+		return clog.NewDefaultConfig()
+	}
+}
+
+// DBConfig implements Config.
+func (c *cfg) DBConfig() database.Config {
+	return sqlite.NewConfig(DBPath)
+}
+
+// GetBaseURL implements Config.
+func (c *cfg) GetBaseURL() string {
+	return ""
+}
+
+// GetHTTPPort implements Config.
+func (c *cfg) GetHTTPPort() int {
+	return Port
 }

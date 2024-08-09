@@ -7,6 +7,7 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
@@ -19,7 +20,7 @@ type UserCreateRequest struct {
 }
 
 func UserCreate(rw http.ResponseWriter, r *http.Request) {
-	r, claims, ok := authenticate(false, r)
+	claims, ok := auth.GetClaims(r.Context())
 	if !ok && !config.PublicUserCreate {
 		sendError(rw, ErrUnauthorized)
 		return
@@ -32,18 +33,11 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := uuid.New()
-	iID, ok := claims["new_client_id"]
-	if !ok && claims != nil {
-		sendError(rw, ErrUnauthorized)
-		return
-	} else if ok {
-		strID, _ := iID.(string)
-		id, err = uuid.Parse(strID)
-		if err != nil {
-			sendError(rw, err)
-			return
-		}
+	var id uuid.UUID
+	if (claims != nil && claims.NewClientID != uuid.UUID{}) {
+		id = claims.NewClientID
+	} else {
+		id = uuid.New()
 	}
 
 	u := &models.User{
@@ -57,7 +51,7 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 			SelectFunction("count", "*").
 			Where("username", "=", u.Username).
 			OrWhere("id", "=", u.ID).
-			LoadOne(tx, &count)
+			Load(tx, &count)
 		if err != nil {
 			return err
 		}

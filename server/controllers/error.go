@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,9 +20,12 @@ type HttpError struct {
 	status int
 }
 
-var Err404 = NewHttpError(404, fmt.Errorf("404 not found"))
-var ErrUnauthorized = NewHttpError(http.StatusUnauthorized, fmt.Errorf("401 Unauthorized"))
+var Err404 = NewDefaultHttpError(404)
+var ErrUnauthorized = NewDefaultHttpError(401)
 
+func NewDefaultHttpError(status int) *HttpError {
+	return NewHttpError(status, errors.New(http.StatusText(status)))
+}
 func NewHttpError(status int, err error) *HttpError {
 	return &HttpError{
 		err:    err,
@@ -39,6 +43,10 @@ func (e *HttpError) Send(rw http.ResponseWriter) error {
 }
 func (e *HttpError) Status() int {
 	return e.status
+}
+func (e *HttpError) Respond(rw http.ResponseWriter, r *http.Request) error {
+	rw.WriteHeader(e.Status())
+	return e.Send(rw)
 }
 
 type Sender interface {

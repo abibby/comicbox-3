@@ -25,7 +25,12 @@ func NewRequest(h http.HandlerFunc, method, target string, body io.Reader) *Requ
 }
 
 func (r *Request) ActingAs(u *models.User) *Request {
-	r.request = auth.SetUserID(r.request, u.ID)
+	c := auth.Claims{}
+	c.ClientID = u.ID
+	c.Purpose = auth.TokenAuthenticated
+
+	r.request = auth.WithClaims(r.request, c)
+
 	return r
 }
 func (r *Request) Buffer() *bytes.Buffer {

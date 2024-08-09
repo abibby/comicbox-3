@@ -74,8 +74,6 @@ type Book struct {
 	UserBook    *builder.HasOne[*UserBook]   `json:"user_book"  db:"-"`
 	UserSeries  *builder.HasOne[*UserSeries] `json:"-"          db:"-" local:"series" foreign:"series_name"`
 	Series      *builder.BelongsTo[*Series]  `json:"-"          db:"-" foreign:"series" owner:"name"`
-
-	zipReader *zip.ReadCloser
 }
 
 func BookQuery(ctx context.Context) *builder.ModelBuilder[*Book] {
@@ -171,11 +169,11 @@ func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
 	}
 
 	for i, page := range b.Pages {
-		page.URL = router.MustURL("book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
-		page.ThumbnailURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
+		page.URL = router.MustURL(ctx, "book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
+		page.ThumbnailURL = router.MustURL(ctx, "book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
 	}
 
-	b.CoverURL = router.MustURL("book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
+	b.CoverURL = router.MustURL(ctx, "book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
 	return nil
 }
 func (b *Book) CoverPage() int {

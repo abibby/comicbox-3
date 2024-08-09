@@ -10,7 +10,6 @@ import (
 )
 
 type SyncEvent struct {
-	event.EventLogger
 	cron.CronEvent
 }
 
@@ -23,7 +22,7 @@ func (s *SyncEvent) Type() event.EventType {
 
 func RegisterSync(ctx context.Context) error {
 	if config.ScanInterval != "" {
-		cronService, err := di.Resolve[cron.CronService](ctx)
+		cronService, err := di.Resolve[*cron.CronService](ctx)
 		if err != nil {
 			return err
 		}

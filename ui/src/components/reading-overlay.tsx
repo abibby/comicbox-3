@@ -60,6 +60,7 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                                 {b.series}
                             </Link>
                         </li>
+                        <li>{window.devicePixelRatio}</li>
                     </ul>
                 </div>
                 <div class={styles.slider}>

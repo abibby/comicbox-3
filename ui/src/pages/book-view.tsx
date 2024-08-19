@@ -17,7 +17,7 @@ import { Error404 } from 'src/pages/404'
 import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
-import { splitPages } from 'src/services/book-service'
+import { SplitPages, useSplitPages } from 'src/services/book-service'
 
 interface BookViewProps {
     matches?: {
@@ -55,15 +55,13 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const b = props.book
     const page = props.page
     const rtl = b.rtl
-    const landscape = useMediaQuery('(orientation: landscape)')
 
-    const pages = splitPages(b.pages, b.long_strip, landscape)
+    const landscape = useMediaQuery('(orientation: landscape)')
+    const pages = useSplitPages(b.pages, b.long_strip, landscape)
     const pagesIndex = getPagesIndex(pages, page)
 
-    const nextBook = useNextBook(`read:${b.id}:next`, b)
-    const previousBook = usePreviousBook(`read:${b.id}:previous`, b)
-
-    const [loaded, setLoaded] = useState(false)
+    const nextBook = useNextBook(b)
+    const previousBook = usePreviousBook(b)
 
     const bookID = b.id
     const nextBookID = nextBook?.id
@@ -91,8 +89,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         },
         [bookID],
     )
+
     const setCurrentIndex = useCallback(
         (newIndex: number | string) => {
+            if (newIndex === pagesIndex) {
+                return
+            }
             if (Number(newIndex) >= pages.length) {
                 updateAnilist(b)
                 if (nextBookID) {
@@ -117,12 +119,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             )
 
             setCurrentPage(newPage)
-
             navigate(route('book.view', { id: b.id, page: newPage }))
         },
-        [b, nextBookID, pages, previousBookID, setCurrentPage],
+        [b, nextBookID, pages, pagesIndex, previousBookID, setCurrentPage],
     )
-
     let leftOffset = -1
     let rightOffset = +1
 
@@ -132,6 +132,14 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     }
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)
+
+    const setPageLeft = useCallback(() => {
+        setCurrentIndex(pagesIndex + leftOffset)
+    }, [leftOffset, pagesIndex, setCurrentIndex])
+    const setPageRight = useCallback(() => {
+        setCurrentIndex(pagesIndex + rightOffset)
+    }, [pagesIndex, rightOffset, setCurrentIndex])
+
     const click = useCallback(
         (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
             if (menuOpen) {
@@ -147,17 +155,17 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             switch (section) {
                 case 'left':
-                    setCurrentIndex(pagesIndex + leftOffset)
+                    setPageLeft()
                     break
                 case 'right':
-                    setCurrentIndex(pagesIndex + rightOffset)
+                    setPageRight()
                     break
                 case 'center':
                     setMenuOpen(true)
                     return
             }
         },
-        [leftOffset, rightOffset, menuOpen, pagesIndex, setCurrentIndex],
+        [menuOpen, setPageLeft, setPageRight],
     )
 
     useWindowEvent(
@@ -166,45 +174,16 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             switch (e.key) {
                 case 'ArrowLeft':
                     e.preventDefault()
-                    setCurrentIndex(pagesIndex + leftOffset)
+                    setPageLeft()
                     break
                 case 'ArrowRight':
                     e.preventDefault()
-                    setCurrentIndex(pagesIndex + rightOffset)
+                    setPageRight()
                     break
             }
         },
-        [leftOffset, rightOffset, pagesIndex, setCurrentIndex],
+        [setPageLeft, setPageRight],
     )
-
-    const setCurrentPageLongStrip = useCallback(
-        (newPage: number) => {
-            if (!loaded) {
-                return
-            }
-            const index = pageIndex(b, newPage)
-            navigate(route('book.view', { id: bookID, page: index }))
-
-            setCurrentPage(index)
-        },
-        // `b` cant be part of the inputs because it leads to an infinite loop
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [bookID, loaded, setCurrentPage],
-    )
-    const longStrip = b.long_strip
-    useEffect(() => {
-        if (!longStrip) {
-            return
-        }
-        const img = document.querySelector<HTMLImageElement>(
-            `[data-page="${page}"]`,
-        )
-
-        if (img && !isInViewport(img)) {
-            img.scrollIntoView()
-            setLoaded(true)
-        }
-    }, [bookID, longStrip, page])
 
     return (
         <div
@@ -228,23 +207,194 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 open={menuOpen}
             />
             {b.long_strip ? (
-                <div className={styles.longStrip}>
-                    {b.pages
-                        .filter(p => p.type !== PageType.Deleted)
-                        .map((p, i) => (
-                            <PageImage
-                                class={styles.longStripPage}
-                                key={p.url}
-                                page={p}
-                                data-page={i}
-                                onPageVisible={bind(i, setCurrentPageLongStrip)}
-                            />
-                        ))}
-                </div>
+                <LongStripPages
+                    book={b}
+                    page={page}
+                    onPageChange={setCurrentIndex}
+                />
             ) : (
-                <div class={styles.pageList}>
-                    <PageView pages={pages[pagesIndex]} />
-                </div>
+                <CurrentPages
+                    book={b}
+                    pages={pages}
+                    pagesIndex={pagesIndex}
+                    onPageChangeLeft={setPageLeft}
+                    onPageChangeRight={setPageRight}
+                />
+            )}
+        </div>
+    )
+}
+
+interface LongStripPagesProps {
+    book: Book
+    page: number
+    onPageChange(page: number): void
+}
+
+function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
+    const [loaded, setLoaded] = useState(false)
+
+    useEffect(() => {
+        if (!book.long_strip) {
+            return
+        }
+        const img = document.querySelector<HTMLImageElement>(
+            `[data-page="${page}"]`,
+        )
+
+        if (img && !isInViewport(img)) {
+            img.scrollIntoView()
+            setLoaded(true)
+        }
+    }, [book.long_strip, page])
+
+    const setCurrentPageLongStrip = useCallback(
+        (newPage: number) => {
+            if (!loaded) {
+                return
+            }
+
+            onPageChange(newPage)
+        },
+        [loaded, onPageChange],
+    )
+    return (
+        <div className={styles.longStrip}>
+            {book.pages
+                .filter(p => p.type !== PageType.Deleted)
+                .map((p, i) => (
+                    <PageImage
+                        class={styles.longStripPage}
+                        key={p.url}
+                        page={p}
+                        data-page={i}
+                        onPageVisible={bind(i, setCurrentPageLongStrip)}
+                    />
+                ))}
+        </div>
+    )
+}
+
+interface CurrentPagesProps {
+    book: Book
+    pages: SplitPages
+    pagesIndex: number
+    onPageChangeRight(): void
+    onPageChangeLeft(): void
+}
+
+function CurrentPages({
+    book,
+    pages,
+    pagesIndex,
+    onPageChangeLeft,
+    onPageChangeRight,
+}: CurrentPagesProps) {
+    const root = useRef<HTMLDivElement>(null)
+    const swipeStart = useRef<{ x: number; y: number }>()
+    const swipeCurrent = useRef<{ x: number; y: number }>()
+    const swiped = useRef(false)
+
+    const down = useCallback((e: MouseEvent | TouchEvent) => {
+        swipeStart.current = getPoint(e)
+        root.current?.classList.remove(styles.turningLeft)
+        root.current?.classList.remove(styles.turningRight)
+    }, [])
+
+    const move = useCallback((e: MouseEvent | TouchEvent) => {
+        if (!swipeStart.current || !root.current) {
+            return
+        }
+
+        swipeCurrent.current = getPoint(e)
+        const dx = swipeCurrent.current.x - swipeStart.current.x
+
+        root.current.style.setProperty('--offset', dx + 'px')
+        root.current.classList.add(styles.moving)
+
+        if (dx > 0) {
+            root.current?.classList.add(styles.turningLeft)
+            root.current?.classList.remove(styles.turningRight)
+        } else {
+            root.current?.classList.add(styles.turningRight)
+            root.current?.classList.remove(styles.turningLeft)
+        }
+    }, [])
+
+    const up = useCallback(() => {
+        root.current?.style.removeProperty('--offset')
+        root.current?.classList.remove(styles.moving)
+
+        if (!swipeStart.current) {
+            return
+        }
+
+        const current = swipeCurrent.current ?? swipeStart.current
+        const dx = swipeStart.current.x - current.x
+
+        swipeStart.current = undefined
+        swipeCurrent.current = undefined
+
+        if (Math.abs(dx) < 20) {
+            swiped.current = false
+            return
+        }
+
+        swiped.current = true
+
+        if (Math.abs(dx) < 65) {
+            return
+        }
+        if (dx > 0) {
+            root.current?.style.setProperty('--offset', '-100%')
+        } else {
+            root.current?.style.setProperty('--offset', '100%')
+        }
+        root.current?.classList.remove(styles.moving)
+        setTimeout(() => {
+            root.current?.style.removeProperty('--offset')
+            root.current?.classList.add(styles.moving)
+            if (dx > 0) {
+                onPageChangeRight()
+            } else {
+                onPageChangeLeft()
+            }
+        }, 200)
+    }, [onPageChangeLeft, onPageChangeRight])
+
+    const click = useCallback((e: MouseEvent) => {
+        if (swiped.current) {
+            swiped.current = false
+            e.preventDefault()
+            e.stopPropagation()
+        }
+    }, [])
+
+    const prev = pages[pagesIndex - 1]
+    const curr = pages[pagesIndex]
+    const next = pages[pagesIndex + 1]
+    return (
+        <div
+            class={styles.pageList}
+            onMouseDown={down}
+            onTouchStart={down}
+            onMouseUp={up}
+            onTouchEnd={up}
+            onMouseMove={move}
+            onTouchMove={move}
+            onClick={click}
+            ref={root}
+        >
+            {prev && (
+                <PageView
+                    key={book.id + (pagesIndex - 1)}
+                    previous
+                    pages={prev}
+                />
+            )}
+            <PageView key={book.id + pagesIndex} current pages={curr} />
+            {next && (
+                <PageView key={book.id + (pagesIndex + 1)} next pages={next} />
             )}
         </div>
     )
@@ -252,6 +402,9 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
 interface PageProps {
     pages: [Page] | [Page, Page] | undefined
+    previous?: boolean
+    current?: boolean
+    next?: boolean
 }
 
 const PageView: FunctionalComponent<PageProps> = props => {
@@ -269,6 +422,9 @@ const PageView: FunctionalComponent<PageProps> = props => {
         <div
             class={classNames(styles.page, {
                 [styles.twoPage]: pages.length > 1,
+                [styles.previous]: props.previous,
+                [styles.current]: props.current,
+                [styles.next]: props.next,
             })}
         >
             {pages.map(p => (
@@ -377,4 +533,12 @@ function isInViewport(el: HTMLElement): boolean {
             (bottom > 0 && bottom <= innerHeight)) &&
         ((left > 0 && left <= innerWidth) || (right > 0 && right <= innerWidth))
     )
+}
+
+function getPoint(e: MouseEvent | TouchEvent): { x: number; y: number } {
+    if (e instanceof MouseEvent) {
+        return { x: e.x, y: e.y }
+    }
+    const touch = e.touches[0]
+    return { x: touch?.clientX ?? 0, y: touch?.clientY ?? 0 }
 }

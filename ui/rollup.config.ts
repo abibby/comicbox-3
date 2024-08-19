@@ -2,7 +2,6 @@
 import nodeResolve from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
 import typescript from '@rollup/plugin-typescript'
-import omt from '@surma/rollup-plugin-off-main-thread'
 import { RollupOptions } from 'rollup'
 import cleaner from 'rollup-plugin-cleaner'
 import commonjs from 'rollup-plugin-commonjs'
@@ -63,7 +62,6 @@ const config = (args: Record<string, unknown>): RollupOptions => {
             commonjs({
                 include: 'node_modules/**', // Default: undefined
             }),
-            // omt({ useEval: true }),
             createHTMLPlugin({
                 templatePath: 'src/index.html',
                 output: 'index.html',

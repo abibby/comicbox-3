@@ -1,15 +1,18 @@
+import { useMemo } from 'preact/hooks'
 import { Page, PageType } from 'src/models'
 
 export interface PageWithIndex extends Page {
     index: number
 }
 
+export type SplitPages = Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]>
+
 export function splitPages(
     p: Page[],
     longStrip: boolean,
     twoPage: boolean,
     withDeleted = false,
-): Array<[PageWithIndex] | [PageWithIndex, PageWithIndex]> {
+): SplitPages {
     if (!withDeleted) {
         p = p.filter(p => p.type !== PageType.Deleted)
     }
@@ -44,6 +47,17 @@ export function splitPages(
         }
     }
     return pages
+}
+
+export function useSplitPages(
+    pages: Page[],
+    longStrip: boolean,
+    twoPage: boolean,
+    withDeleted = false,
+): SplitPages {
+    return useMemo(() => {
+        return splitPages(pages, longStrip, twoPage, withDeleted)
+    }, [pages, longStrip, twoPage, withDeleted])
 }
 
 function showTwoPages(

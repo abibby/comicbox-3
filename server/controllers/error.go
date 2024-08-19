@@ -62,6 +62,7 @@ func sendError(rw http.ResponseWriter, err error) bool {
 		fmt.Printf("%+v\n", err)
 		debug.PrintStack()
 	}
+
 	rw.Header().Add("Content-Type", "application/json")
 	if err, ok := err.(Sender); ok {
 		rw.WriteHeader(err.Status())

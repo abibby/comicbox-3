@@ -125,15 +125,20 @@ func (l *localLogger) Log(keyvals ...any) error {
 
 // LoggerConfig implements Config.
 func (c *cfg) LoggerConfig() clog.Config {
+	level := slog.LevelInfo
+	if Verbose {
+		level = slog.LevelDebug - 4
+	}
 	switch Logger {
 	case "loki":
 		fmt.Println("using loki logging")
 		return &loki.Config{
 			URL:      LokiURL,
 			TenantID: LokiTenantID,
+			Level:    level,
 		}
 	default:
-		return clog.NewDefaultConfig()
+		return clog.NewDefaultConfig(level)
 	}
 }
 

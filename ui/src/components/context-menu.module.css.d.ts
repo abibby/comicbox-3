@@ -1,3 +1,5 @@
+/* prettier-ignore */
+
 declare const styles: {
   readonly "menu": string;
   readonly "screen": string;

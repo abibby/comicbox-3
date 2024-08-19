@@ -1,9 +1,11 @@
+/* prettier-ignore */
+
 declare const styles: {
-  readonly "tabContainer": string;
-  readonly "tabButtonList": string;
-  readonly "tabButton": string;
   readonly "active": string;
   readonly "activeTab": string;
+  readonly "tabButton": string;
+  readonly "tabButtonList": string;
+  readonly "tabContainer": string;
 };
 export = styles;
 

@@ -1,5 +1,5 @@
 import { BuildAsset } from 'build:assets'
-import { Plugin } from 'rollup'
+import { Plugin } from 'vite'
 const random = JSON.stringify(
     `4A4rwiR8VuNWLmjcaFQgP5ZqsP6nswBjUcs5fKtySldpYcfkoNOpafMSJ7p5VDp09iRcU2cRZ`,
 )
@@ -22,7 +22,7 @@ export default function buildAssetPlugin(replace = true): Plugin {
             return `export default ${random}`
         },
 
-        async generateBundle(options, bundle) {
+        async generateBundle(_options, bundle) {
             if (!replace) {
                 return
             }

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { Event, EventTarget } from 'event-target-shim'
 import { ComponentType, FunctionalComponent, h } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
@@ -29,7 +28,6 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
     private target = new EventTarget<EventMap<TProps>, 'strict'>()
     private id = 0
 
-    // eslint-disable-next-line no-useless-constructor
     public constructor(
         private subComponent: ComponentType<TProps>,
         private className?: string,

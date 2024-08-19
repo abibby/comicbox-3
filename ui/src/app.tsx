@@ -104,8 +104,8 @@ async function onUpdateFound(
 if ('serviceWorker' in navigator && __ENV !== 'development') {
     navigator.serviceWorker
         .register('/sw.js', { scope: '/', type: 'module' })
-        .then(reg => {
-            onUpdateFound(reg)
+        .then(async reg => {
+            await onUpdateFound(reg)
             setSW(reg)
         })
         .catch(err => {

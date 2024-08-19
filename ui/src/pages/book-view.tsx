@@ -96,7 +96,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
             if (Number(newIndex) >= pages.length) {
-                updateAnilist(b)
+                void updateAnilist(b)
                 if (nextBookID) {
                     navigate(route('book.view', { id: nextBookID }))
                 } else {
@@ -118,7 +118,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 pages.slice(0, Number(newIndex) + 1).flat().length - 1,
             )
 
-            setCurrentPage(newPage)
+            void setCurrentPage(newPage)
             navigate(route('book.view', { id: b.id, page: newPage }))
         },
         [b, nextBookID, pages, pagesIndex, previousBookID, setCurrentPage],

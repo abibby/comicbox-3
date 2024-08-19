@@ -78,7 +78,7 @@ addAsyncEventListener('install', async () => {
             !newCachedAssets.has(url.pathname) &&
             !cachedAssets.has(url.pathname)
         ) {
-            staticCache.delete(key)
+            await staticCache.delete(key)
         }
     }
 })

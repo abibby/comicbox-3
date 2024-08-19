@@ -70,7 +70,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             book.pages.length !==
                             data.getAll('page.type')?.length
                         ) {
-                            prompt('Invalid page count')
+                            await prompt('Invalid page count')
                             return
                         }
                         await DB.saveBook(book, {
@@ -90,8 +90,13 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         break
                 }
 
-                prompt('Chapter updating', {}, 5000, `chapter-save-${book.id}`)
-                persist(true).then(() =>
+                void prompt(
+                    'Chapter updating',
+                    {},
+                    5000,
+                    `chapter-save-${book.id}`,
+                )
+                void persist(true).then(() =>
                     prompt(
                         'Chapter updated',
                         {},
@@ -104,19 +109,19 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                     case 'next':
                         if (next) {
                             close(undefined)
-                            openModal(EditBook, { book: next })
+                            await openModal(EditBook, { book: next })
                         }
                         break
                     case 'previous':
                         if (previous) {
                             close(undefined)
-                            openModal(EditBook, { book: previous })
+                            await openModal(EditBook, { book: previous })
                         }
                         break
                 }
             } catch (e) {
                 if (e instanceof Error) {
-                    prompt(e.message)
+                    void prompt(e.message)
                 }
             }
         },

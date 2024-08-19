@@ -20,8 +20,8 @@ interface OverlayProps {
 
 export const Overlay: FunctionalComponent<OverlayProps> = props => {
     const b = props.book
-    const edit = useCallback(() => {
-        openModal(EditBook, { book: b })
+    const edit = useCallback(async () => {
+        await openModal(EditBook, { book: b })
     }, [b])
 
     const [page, setPage] = useState<number | null>(null)

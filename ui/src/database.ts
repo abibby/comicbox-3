@@ -90,11 +90,10 @@ export const emptyBook: Readonly<DBBook> = {
     completed: 0,
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 function objectEntries<T extends object>(o: T): [keyof T, T[keyof T]][] {
     return Object.entries(o) as [keyof T, T[keyof T]][]
 }
-// eslint-disable-next-line @typescript-eslint/ban-types
+
 function objectKeys<T extends object>(o: T): (keyof T)[] {
     return Object.keys(o) as (keyof T)[]
 }
@@ -125,7 +124,7 @@ class AppDatabase extends Dexie {
         this.series = this.table('series')
         this.lastUpdated = this.table('lastUpdated')
 
-        this.series.hook('creating', (id, s) => {
+        this.series.hook('creating', (_id, s) => {
             s.dirty = 0
             if (s.user_series) {
                 s.user_series.dirty = 0
@@ -133,7 +132,7 @@ class AppDatabase extends Dexie {
             return s
         })
 
-        this.books.hook('creating', (id, b) => {
+        this.books.hook('creating', (_id, b) => {
             b.completed = this.bookComplete(b, {})
             b.dirty = 0
             if (b.user_book) {
@@ -141,7 +140,7 @@ class AppDatabase extends Dexie {
             }
             return b
         })
-        this.books.hook('updating', (mod: Partial<DBBook>, id, b) => {
+        this.books.hook('updating', (mod: Partial<DBBook>, _id, b) => {
             return {
                 ...mod,
                 completed: this.bookComplete(b, mod),
@@ -326,7 +325,7 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
     return combinedValue
 }
 export function clearDatabase(): void {
-    DB.delete()
+    void DB.delete()
     DB = new AppDatabase()
 }
 function randomString(length: number): string {

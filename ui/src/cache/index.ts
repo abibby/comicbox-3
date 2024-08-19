@@ -115,8 +115,8 @@ export function useCached<
     )
 
     useEffect(() => {
-        cache(request).then(setItems)
-        updateList(listName, request, table, network)
+        void cache(request).then(setItems)
+        void updateList(listName, request, table, network)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setItems, listName, ...Object.values(request), table, network, cache])
     useEventListener(
@@ -124,7 +124,7 @@ export function useCached<
         'visibilitychange',
         () => {
             if (document.visibilityState === 'visible') {
-                updateList(listName, request, table, network)
+                void updateList(listName, request, table, network)
             }
         },
         [listName, ...Object.values(request), table, network],
@@ -202,7 +202,7 @@ export async function persist(
                     })
                     result.user_book.dirty = 0
                 }
-            } catch (e) {
+            } catch (_e) {
                 hasErrors = true
             }
             if (Object.keys(result).length > 0) {
@@ -225,11 +225,11 @@ export async function persist(
                             list: s.user_series.list,
                             update_map: s.user_series.update_map,
                         })
-                    } catch (e) {
+                    } catch (_e) {
                         hasErrors = true
                     }
                 }
-            } catch (e) {
+            } catch (_e) {
                 hasErrors = true
             }
             if (Object.keys(result).length > 0) {
@@ -243,7 +243,7 @@ export async function persist(
             try {
                 await registration.sync.register('persist')
             } catch {
-                prompt('There were some errors in syncing data')
+                void prompt('There were some errors in syncing data')
             }
         }
     })

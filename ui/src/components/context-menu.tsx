@@ -40,13 +40,13 @@ const Menu: FunctionalComponent<MenuProps> = props => {
         <div onClick={props.close}>
             <div class={styles.screen} />
             <ul class={styles.menu} style={listStyle} ref={menu}>
-                {props.items.map(([text, action]) => {
+                {props.items.map(([text, action], i) => {
                     if (typeof action === 'string') {
                         if (encodeURI(action) === location.pathname) {
                             return <li key={text}>{text}</li>
                         }
                         return (
-                            <li>
+                            <li key={text + i}>
                                 <Link key={text} href={action}>
                                     {text}
                                 </Link>

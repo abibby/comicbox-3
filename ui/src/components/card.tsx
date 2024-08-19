@@ -22,11 +22,11 @@ interface CardProps {
 
 export const Card: FunctionalComponent<CardProps> = props => {
     const open = useCallback(
-        (e: JSX.TargetedMouseEvent<HTMLElement>) => {
+        async (e: JSX.TargetedMouseEvent<HTMLElement>) => {
             e.preventDefault()
             e.stopPropagation()
             if (props.menu !== undefined) {
-                openContextMenu(e.target, props.menu)
+                await openContextMenu(e.target, props.menu)
             }
         },
         [props.menu],

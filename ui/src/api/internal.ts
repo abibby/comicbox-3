@@ -112,9 +112,11 @@ async function getTokens(): Promise<LoginResponse | undefined> {
 
                         if (resp.ok) {
                             tokens = await resp.json()
-                            setAuthToken(tokens)
+                            await setAuthToken(tokens)
                         }
-                    } catch {}
+                    } catch {
+                        // noop
+                    }
                 }
             })
         }

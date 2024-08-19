@@ -45,6 +45,7 @@ export function debounce<TArgs extends unknown[], TReturn, TThis>(
     }
 
     function debounced(this: TThis, ...a: TArgs) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         context = this
         args = a
         timestamp = Date.now()

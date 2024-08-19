@@ -1,3 +1,5 @@
+/* prettier-ignore */
+
 declare const styles: {
   readonly "input": string;
 };

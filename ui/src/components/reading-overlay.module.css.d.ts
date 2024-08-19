@@ -1,12 +1,14 @@
+/* prettier-ignore */
+
 declare const styles: {
-  readonly "overlay": string;
   readonly "content": string;
+  readonly "number": string;
   readonly "open": string;
-  readonly "sidebar": string;
-  readonly "slider": string;
+  readonly "overlay": string;
   readonly "range": string;
   readonly "rtl": string;
-  readonly "number": string;
+  readonly "sidebar": string;
+  readonly "slider": string;
 };
 export = styles;
 

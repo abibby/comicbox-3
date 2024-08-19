@@ -19,7 +19,7 @@ async function readingBooks(): Promise<Book[]> {
 
     await Promise.all(
         s.map(async readingSeries => {
-            let sort: string | void[][] = Dexie.maxKey
+            let sort = Dexie.maxKey
             if (readingSeries.latest_book !== null) {
                 sort = readingSeries.latest_book.sort
             }

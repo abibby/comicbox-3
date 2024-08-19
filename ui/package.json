@@ -20,7 +20,6 @@
         "@rollup/plugin-node-resolve": "^13.0.5",
         "@rollup/plugin-replace": "^3.0.0",
         "@rollup/plugin-typescript": "^8.2.5",
-        "@surma/rollup-plugin-off-main-thread": "^2.2.3",
         "@types/eslint": "^7.28.1",
         "@types/favicons": "^6.2.2",
         "@types/find": "^0.2.1",

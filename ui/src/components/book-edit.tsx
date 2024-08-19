@@ -47,8 +47,8 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
     book,
     close,
 }) => {
-    const previous = usePreviousBook(`edit:${book.id}:previous`, book)
-    const next = useNextBook(`edit:${book.id}:next`, book)
+    const previous = usePreviousBook(book)
+    const next = useNextBook(book)
     const submit = useCallback(
         async (data: Data) => {
             try {

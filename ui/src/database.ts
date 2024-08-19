@@ -91,8 +91,12 @@ export const emptyBook: Readonly<DBBook> = {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-function entries<T extends object>(o: T): [keyof T, T[keyof T]][] {
+function objectEntries<T extends object>(o: T): [keyof T, T[keyof T]][] {
     return Object.entries(o) as [keyof T, T[keyof T]][]
+}
+// eslint-disable-next-line @typescript-eslint/ban-types
+function objectKeys<T extends object>(o: T): (keyof T)[] {
+    return Object.keys(o) as (keyof T)[]
 }
 
 class AppDatabase extends Dexie {
@@ -195,7 +199,7 @@ class AppDatabase extends Dexie {
         const updateMap: UpdateMap<T> = { ...model.update_map }
         let dirty = model.dirty ?? 0
 
-        for (const [key] of entries(modification)) {
+        for (const key of objectKeys(modification)) {
             if (isDBModel(empty[key])) {
                 if (model[key] === null) {
                     model = {
@@ -289,7 +293,7 @@ function updateNewerFields<T extends DBModel>(oldValue: T, newValue: T): T {
     let dirty = 0
 
     const combinedValue: T = { ...newValue }
-    for (const [key, newV] of entries(newValue)) {
+    for (const [key, newV] of objectEntries(newValue)) {
         const oldV = oldValue[key]
 
         if (isDBModel(oldV) && isDBModel(newV)) {

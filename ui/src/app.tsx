@@ -1,5 +1,4 @@
 import EventTarget from 'event-target-shim'
-// import serviceWorkerURL from 'omt:src/service-worker/sw'
 import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'

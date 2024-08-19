@@ -13,8 +13,8 @@
 }
 
 .pageList {
-    overflow-x: auto;
-    overflow-y: hidden;
+    position: relative;
+    overflow: hidden;
     scroll-snap-type: x mandatory;
     white-space: nowrap;
     height: 100%;
@@ -31,14 +31,73 @@
     scroll-snap-align: center;
     text-align: center;
     height: 100%;
+    background-color: black;
 }
 .page img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    pointer-events: none;
 }
 .page.twoPage img {
     width: 50%;
+}
+
+.page.previous,
+.page.current,
+.page.next {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.page.previous {
+    clip-path: inset(0 50% 0 0);
+}
+.turningLeft .page.previous {
+    clip-path: none;
+}
+.turningRight .page.previous {
+    display: none;
+}
+.page.next {
+    clip-path: inset(0 0 0 50%);
+}
+.turningLeft .page.next {
+    display: none;
+}
+.turningRight .page.next {
+    clip-path: none;
+}
+
+.rtl .page.previous {
+    clip-path: inset(0 0 0 50%);
+}
+.rtl .turningLeft .page.previous {
+    display: none;
+}
+.rtl .turningRight .page.previous {
+    display: block;
+    clip-path: none;
+}
+.rtl .page.next {
+    clip-path: inset(0 50% 0 0);
+}
+.rtl .turningLeft .page.next {
+    display: block;
+    clip-path: none;
+}
+.rtl .turningRight .page.next {
+    display: none;
+}
+
+.page.current {
+    transform: translateX(calc(var(--offset, 0)));
+    transition: transform 200ms;
+    z-index: 1;
+}
+
+.moving .page.current {
+    transition: none;
 }
 
 .twoPage img:nth-child(1) {
@@ -61,6 +120,7 @@
     bottom: 2px;
     width: 30px;
     color: white;
+    z-index: 2;
 }
 .direction path {
     fill: black;

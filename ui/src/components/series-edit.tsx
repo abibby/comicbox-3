@@ -28,9 +28,7 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
     series,
     close,
 }) => {
-    const [anilistID, setAnilistID] = useState(
-        series.anilist_id !== null ? String(series.anilist_id) : '',
-    )
+    const [anilistID, setAnilistID] = useState(String(series.anilist_id ?? ''))
     const findAnilist = useCallback(async () => {
         if (series !== undefined) {
             const id = await openModal(AnilistMatch, { series: series })
@@ -50,7 +48,7 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
             }
 
             await DB.saveSeries(series, {
-                anilist_id: anilistID === '' ? null : Number(anilistID),
+                anilist_id: anilistID === '' ? -1 : Number(anilistID),
                 user_series: {
                     list: list,
                 },

@@ -21,32 +21,6 @@ declare module 'rollup-plugin-cleaner' {
     export default assets
 }
 
-declare module '@surma/rollup-plugin-off-main-thread' {
-    export interface Options {
-        // A string containing the EJS template for the amd loader. If
-        // undefined, OMT will use loader.ejs.
-        loader?: string
-        // Use fetch() + eval() to load dependencies instead of <script> tags
-        // and importScripts(). This is not CSP compliant, but is required if
-        // you want to use dynamic imports in ServiceWorker.
-        useEval?: boolean
-        // A RegExp to find new Workers() calls. The second capture group must
-        // capture the provided file name without the quotes.
-        workerRegexp?: RegExp
-        // Function name to use instead of AMD’s define.
-        amdFunctionName?: string
-        // A function that determines whether the loader code should be
-        // prepended to a certain chunk. Should return true if the load is
-        // suppsoed to be prepended.
-        prependLoader?: () => boolean
-        // Scheme to use when importing workers as URLs. If undefined, OMT will
-        // use "omt".
-        urlLoaderScheme?: string
-    }
-    const assets: (opt?: Options) => import('rollup').Plugin
-    export default assets
-}
-
 declare module 'rollup-plugin-includepaths' {
     // https://github.com/dot-build/rollup-plugin-includepaths
 
@@ -67,10 +41,5 @@ declare module 'rollup-plugin-includepaths' {
     const assets: (opt?: Partial<Options>) => import('rollup').Plugin
     export default assets
 }
-
-// declare module 'omt:*' {
-//     const url: string
-//     export default url
-// }
 
 declare const __ENV: 'production' | 'development'

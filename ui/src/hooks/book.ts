@@ -3,9 +3,9 @@ import { useCached } from 'src/cache'
 import { DB } from 'src/database'
 import { Book } from 'src/models'
 
-export function usePreviousBook(id: string, b: Book): Book | undefined {
+export function usePreviousBook(b: Book): Book | undefined {
     const previousResponse = useCached(
-        id,
+        `book:${b.id}:previous`,
         { series: b.series, before_id: b.id, limit: 1, order: 'desc' },
         DB.books,
         book.list,
@@ -14,9 +14,9 @@ export function usePreviousBook(id: string, b: Book): Book | undefined {
     return previous
 }
 
-export function useNextBook(id: string, b: Book): Book | undefined {
+export function useNextBook(b: Book): Book | undefined {
     const nextResponse = useCached(
-        id,
+        `book:${b.id}:next`,
         { series: b.series, after_id: b.id, limit: 1 },
         DB.books,
         book.list,

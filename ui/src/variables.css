@@ -17,10 +17,6 @@
 
     --reading-background: 0, 0, 0;
 
-    --alert-background: 51, 51, 51;
-    --alert-text: 238, 238, 238;
-    --alert-option: var(--primary);
-
     --error-text: 255, 0, 0;
 
     /* Buttons */
@@ -50,28 +46,26 @@
 
     --alert-background: 51, 51, 51;
     --alert-text: 238, 238, 238;
-    --alert-option: var(--primary);
 }
 
 @media (prefers-color-scheme: dark) {
     :root {
         --primary: 33, 150, 243;
         --text-on-primary: 255, 255, 255;
-    
+
         --surface: 60, 60, 60;
         --surface-hover: 200, 200, 200, 0.3;
         --text-on-surface: 255, 255, 255;
         --surface-box-shadow: none;
-    
+
         --background: 0, 0, 0;
         --text-on-background: 200, 200, 200;
         --light-text: 150, 150, 150;
-    
+
         --reading-background: 0, 0, 0;
-    
+
         --alert-background: 51, 51, 51;
         --alert-text: 238, 238, 238;
-        --alert-option: var(--primary);
     }
 }
 

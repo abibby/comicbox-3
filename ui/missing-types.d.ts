@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 declare module 'asset-url:*' {
     const fileName: string
     export default fileName
@@ -6,7 +8,7 @@ declare module 'asset-url:*' {
 declare module 'build:assets' {
     export interface BuildAsset {
         fileName: string
-        name?: string
+        name: string
     }
     const assets: BuildAsset[]
     export default assets

@@ -12,6 +12,7 @@ import {
 } from 'src/caches'
 import { type Message } from 'src/message'
 import { cacheBooks } from 'src/service-worker/cache'
+import { sendMessage } from 'src/service-worker/send-message'
 
 interface SyncEvent extends ExtendableEvent {
     readonly lastChance: boolean
@@ -78,7 +79,7 @@ addAsyncEventListener('install', async () => {
             !newCachedAssets.has(url.pathname) &&
             !cachedAssets.has(url.pathname)
         ) {
-            staticCache.delete(key)
+            await staticCache.delete(key)
         }
     }
 })
@@ -196,6 +197,13 @@ addAsyncEventListener('message', async function (event) {
             break
         case 'download-series':
             await cacheBooks(await book.list({ series: message.seriesName }))
+            break
+        case 'check-update':
+            await this.registration.update()
+            break
+        case 'skip-waiting':
+            await globalThis.skipWaiting()
+            await sendMessage({ type: 'reload' })
             break
     }
 })

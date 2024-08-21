@@ -15,6 +15,7 @@ export function Library(): JSX.Element {
             <h1>Library</h1>
             {listNames.map(([list, listName]) => (
                 <SeriesRow
+                    key={listName}
                     listName={listName}
                     href={route('list', { list: list })}
                     request={{
@@ -53,7 +54,7 @@ function SeriesRow(props: SeriesRowProps): JSX.Element {
             </a>
             <div class={styles.cards}>
                 {items?.map(s => (
-                    <SeriesCard series={s} />
+                    <SeriesCard key={s.name} series={s} />
                 ))}
             </div>
         </div>

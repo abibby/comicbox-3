@@ -1,11 +1,11 @@
 declare const styles: {
-  readonly "pageList": string;
-  readonly "longStrip": string;
-  readonly "spread": string;
-  readonly "rtl": string;
-  readonly "page": string;
   readonly "index": string;
+  readonly "longStrip": string;
+  readonly "page": string;
+  readonly "pageList": string;
   readonly "pageTypeSelect": string;
+  readonly "rtl": string;
+  readonly "spread": string;
 };
 export = styles;
 

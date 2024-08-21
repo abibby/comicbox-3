@@ -22,7 +22,7 @@ import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
-import { PageWithIndex, splitPages } from 'src/services/book-service'
+import { PageWithIndex, mergePages } from 'src/services/book-service'
 import { Select } from 'src/components/form/select'
 
 const pageTypeOptions: [PageType, string][] = [
@@ -70,7 +70,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             book.pages.length !==
                             data.getAll('page.type')?.length
                         ) {
-                            prompt('Invalid page count')
+                            await prompt('Invalid page count')
                             return
                         }
                         await DB.saveBook(book, {
@@ -90,8 +90,13 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         break
                 }
 
-                prompt('Chapter updating', {}, 5000, `chapter-save-${book.id}`)
-                persist(true).then(() =>
+                void prompt(
+                    'Chapter updating',
+                    {},
+                    5000,
+                    `chapter-save-${book.id}`,
+                )
+                void persist(true).then(() =>
                     prompt(
                         'Chapter updated',
                         {},
@@ -104,19 +109,19 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                     case 'next':
                         if (next) {
                             close(undefined)
-                            openModal(EditBook, { book: next })
+                            await openModal(EditBook, { book: next })
                         }
                         break
                     case 'previous':
                         if (previous) {
                             close(undefined)
-                            openModal(EditBook, { book: previous })
+                            await openModal(EditBook, { book: previous })
                         }
                         break
                 }
             } catch (e) {
                 if (e instanceof Error) {
-                    prompt(e.message)
+                    void prompt(e.message)
                 }
             }
         },
@@ -199,7 +204,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                     [styles.longStrip]: book.long_strip,
                                 })}
                             >
-                                {splitPages(
+                                {mergePages(
                                     editedPages,
                                     book.long_strip,
                                     true,

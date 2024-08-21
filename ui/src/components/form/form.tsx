@@ -2,7 +2,6 @@ import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useRef } from 'preact/hooks'
 
 export class Data {
-    // eslint-disable-next-line no-useless-constructor
     constructor(private data: FormData) {}
 
     public get(name: string): string | null {

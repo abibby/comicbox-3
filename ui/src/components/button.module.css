@@ -1,7 +1,7 @@
-.buttonGroup{
+.buttonGroup {
     margin: 5px 0;
 }
-.buttonGroup>.button:not(:first-child) {
+.buttonGroup > .button:not(:first-child) {
     margin-left: 5px;
 }
 

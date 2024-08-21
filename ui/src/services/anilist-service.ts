@@ -9,7 +9,7 @@ export async function updateAnilist(b: DBBook): Promise<void> {
         return
     }
 
-    anilist.updateManga({
+    await anilist.updateManga({
         mediaId: s.anilist_id,
         progress: b.chapter !== null ? Math.floor(b.chapter) : null,
         progressVolumes: b.volume,

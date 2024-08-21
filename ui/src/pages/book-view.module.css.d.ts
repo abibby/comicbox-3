@@ -1,19 +1,19 @@
 declare const styles: {
-  readonly "reader": string;
-  readonly "menuOpen": string;
-  readonly "pageList": string;
-  readonly "rtl": string;
-  readonly "page": string;
-  readonly "twoPage": string;
-  readonly "previous": string;
   readonly "current": string;
-  readonly "next": string;
-  readonly "turningLeft": string;
-  readonly "turningRight": string;
-  readonly "moving": string;
   readonly "direction": string;
   readonly "longStrip": string;
   readonly "longStripPage": string;
+  readonly "menuOpen": string;
+  readonly "moving": string;
+  readonly "next": string;
+  readonly "page": string;
+  readonly "pageList": string;
+  readonly "previous": string;
+  readonly "reader": string;
+  readonly "rtl": string;
+  readonly "turningLeft": string;
+  readonly "turningRight": string;
+  readonly "twoPage": string;
 };
 export = styles;
 

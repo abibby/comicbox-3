@@ -76,7 +76,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         if (series === undefined) {
             return
         }
-        openModal(EditSeries, {
+        void openModal(EditSeries, {
             series: series,
         })
     }, [series])
@@ -117,8 +117,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         }
     }, [seriesName])
 
-    const downloadSeries = useCallback(() => {
-        post({
+    const downloadSeries = useCallback(async () => {
+        await post({
             type: 'download-series',
             seriesName: name,
         })

@@ -8,7 +8,7 @@ async function cacheBook(b: Book): Promise<void> {
     await progressor.start()
 
     const thumbCache = await openThumbCache()
-    thumbCache.add(await pageURL(b))
+    await thumbCache.add(await pageURL(b))
     await progressor.next()
 
     const pageCache = await openPageCache(b.id)

@@ -1,5 +1,5 @@
 import { BuildAsset } from 'build:assets'
-import { Plugin } from 'rollup'
+import { Plugin } from 'vite'
 const random = JSON.stringify(
     `4A4rwiR8VuNWLmjcaFQgP5ZqsP6nswBjUcs5fKtySldpYcfkoNOpafMSJ7p5VDp09iRcU2cRZ`,
 )
@@ -22,7 +22,7 @@ export default function buildAssetPlugin(replace = true): Plugin {
             return `export default ${random}`
         },
 
-        async generateBundle(options, bundle) {
+        async generateBundle(_options, bundle) {
             if (!replace) {
                 return
             }
@@ -30,7 +30,7 @@ export default function buildAssetPlugin(replace = true): Plugin {
             const assets: BuildAsset[] = Array.from(Object.values(bundle)).map(
                 (b): BuildAsset => ({
                     fileName: b.fileName,
-                    name: b.name,
+                    name: b.name ?? b.fileName,
                 }),
             )
             for (const b of Object.values(bundle)) {
@@ -39,6 +39,15 @@ export default function buildAssetPlugin(replace = true): Plugin {
                 } else if (typeof b.source === 'string') {
                     b.source = b.source.replace(random, JSON.stringify(assets))
                 }
+            }
+
+            bundle.assets = {
+                type: 'asset',
+                name: 'assets',
+                originalFileName: null,
+                source: JSON.stringify(assets),
+                fileName: 'assets.json',
+                needsCodeReference: false,
             }
         },
     }

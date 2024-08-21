@@ -1,10 +1,11 @@
-let reg: ServiceWorkerRegistration | null = null
-
 export type Message =
     | DownloadBookMessage
     | DownloadSeriesMessage
     | DownloadMessage
     | BookUpdateMessage
+    | CheckUpdateMessage
+    | ReloadMessage
+
 export type MessageType = Message['type']
 
 export type DownloadBookMessage = {
@@ -22,6 +23,8 @@ export type DownloadMessage =
     | DownloadProgressMessage
     | DownloadCompleteMessage
     | DownloadRemovedMessage
+    | SkipWaitingMessage
+
 export type DownloadProgressMessage = {
     type: 'download'
     downloadType: 'progress'
@@ -41,14 +44,17 @@ export type DownloadRemovedMessage = {
     model: 'book' | 'series'
     id: string
 }
+export type CheckUpdateMessage = {
+    type: 'check-update'
+}
+export type SkipWaitingMessage = {
+    type: 'skip-waiting'
+}
+export type ReloadMessage = {
+    type: 'reload'
+}
 
 const receiveListeners = new Map<MessageType, Set<(message: Message) => void>>()
-
-export function setSW(
-    serviceWorkerRegistration: ServiceWorkerRegistration,
-): void {
-    reg = serviceWorkerRegistration
-}
 
 if (navigator.serviceWorker) {
     navigator.serviceWorker.addEventListener('message', event => {
@@ -60,9 +66,10 @@ if (navigator.serviceWorker) {
     })
 }
 
-export function post(message: Message): void {
+export async function post(message: Message): Promise<void> {
+    const reg = await navigator.serviceWorker.ready
     if (!reg?.active) {
-        throw new Error('No service worker set')
+        throw new Error('Service worker not registered')
     }
     reg.active.postMessage(message)
 }

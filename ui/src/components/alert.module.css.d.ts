@@ -1,8 +1,8 @@
 declare const styles: {
-  readonly "controller": string;
   readonly "alert": string;
-  readonly "options": string;
+  readonly "controller": string;
   readonly "option": string;
+  readonly "options": string;
 };
 export = styles;
 

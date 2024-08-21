@@ -54,7 +54,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
                         -1,
                     )
                     if (shouldDelete) {
-                        deleteBook(book, true)
+                        await deleteBook(book, true)
                     }
                 },
             ],

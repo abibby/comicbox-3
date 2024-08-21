@@ -1,8 +1,8 @@
 declare const styles: {
+  readonly "errors": string;
   readonly "formElement": string;
   readonly "hasErrors": string;
   readonly "title": string;
-  readonly "errors": string;
 };
 export = styles;
 

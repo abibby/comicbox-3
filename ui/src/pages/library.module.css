@@ -1,15 +1,15 @@
 .seriesRow {
     display: grid;
-    grid-template-areas: 
-        "title more"
-        "cards cards";
+    grid-template-areas:
+        'title more'
+        'cards cards';
     margin: 1em 0;
 }
 .title {
     grid-area: title;
     margin-top: 0;
 }
-.more{
+.more {
     grid-area: more;
     justify-self: end;
 }

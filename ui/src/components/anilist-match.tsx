@@ -53,6 +53,7 @@ export const AnilistMatch: ModalComponent<
                         }
                         return (
                             <Card
+                                key={r.id}
                                 title={
                                     r.title.userPreferred +
                                     (current ? ' (current)' : '')

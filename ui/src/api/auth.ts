@@ -18,7 +18,7 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
         body: JSON.stringify(req),
     })
 
-    setAuthToken(response)
+    await setAuthToken(response)
 
     return response
 }
@@ -53,7 +53,7 @@ export async function userCreateToken(): Promise<string> {
 export function useJWTClaims(): JWT | null {
     const [claims, setClaims] = useState<JWT | null>(null)
     useEffect(() => {
-        getAuthToken().then(t => {
+        void getAuthToken().then(t => {
             if (t === null) {
                 setClaims(null)
             } else {

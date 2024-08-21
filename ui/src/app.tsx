@@ -14,6 +14,7 @@ import { Error404 } from 'src/pages/404'
 import { routes } from 'src/routes'
 import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'
+import slog from './slog'
 
 function changePage(): void {
     clearAlerts()

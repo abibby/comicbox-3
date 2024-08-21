@@ -8,10 +8,9 @@ import (
 )
 
 type RumLoggingRequest struct {
-	Message  string         `json:"message"`
-	Level    slog.Level     `json:"level"`
-	ClientID string         `json:"client_id"`
-	Attrs    map[string]any `json:"attrs"`
+	Message string         `json:"message"`
+	Level   slog.Level     `json:"level"`
+	Attrs   map[string]any `json:"attrs"`
 
 	Logger *slog.Logger    `inject:""`
 	Ctx    context.Context `inject:""`
@@ -26,7 +25,6 @@ var RumLogging = request.Handler(func(r *RumLoggingRequest) (*RumLoggingResponse
 	}
 
 	args = append(args, slog.String("rum_msg", r.Message))
-	args = append(args, slog.String("rum_client_id", r.ClientID))
 	r.Logger.Log(r.Ctx, r.Level, "rum log", args...)
 	return &RumLoggingResponse{}, nil
 })

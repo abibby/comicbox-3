@@ -67,7 +67,12 @@ func InitRouter(r *router.Router) {
 			q := u.Query()
 			q.Del("_token")
 			u.RawQuery = q.Encode()
-			clog.Use(r.Context()).Info("request", "url", &u, "status", rr.StatusCode, "duration", time.Since(start).Truncate(time.Millisecond))
+			clog.Use(r.Context()).Info("request",
+				"url", &u,
+				"status", rr.StatusCode,
+				"user_agent", r.Header.Get("User-Agent"),
+				"duration", time.Since(start).Truncate(time.Millisecond),
+			)
 		}()
 		next.ServeHTTP(rr, r)
 	}))

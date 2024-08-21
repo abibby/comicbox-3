@@ -1,3 +1,5 @@
+import { rum } from 'src/api'
+
 interface Handler {
     /**
      * Enabled reports whether the handler handles records at the given level.
@@ -208,19 +210,6 @@ export class ConsoleHandler extends BaseHandler {
 }
 
 export class FetchHandler extends BaseHandler {
-    private readonly clientID: string
-
-    constructor(level?: number, attrs?: Record<string, unknown>) {
-        super(level, attrs)
-        this.clientID =
-            localStorage.getItem('client_id') ??
-            (() => {
-                const id = crypto.randomUUID()
-                localStorage.setItem('client_id', id)
-                return id
-            })()
-    }
-
     protected handle(
         _time: Date,
         level: number,
@@ -236,14 +225,10 @@ export class FetchHandler extends BaseHandler {
             }
         }
 
-        fetch('/api/rum', {
-            method: 'POST',
-            body: JSON.stringify({
-                message: message,
-                level: levelString(level),
-                client_id: this.clientID,
-                attrs: attrs,
-            }),
+        rum.log({
+            message: message,
+            level: levelString(level),
+            attrs: attrs,
         }).catch(e => {
             // eslint-disable-next-line no-console
             console.warn('rum log failed', e)

@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "vite build --mode development",
+        "prod": "vite build --mode production",
         "watch": "vite build --watch",
         "typecheck": "tsc --noEmit",
         "lint": "npm run eslint && npm run prettier",

@@ -107,6 +107,7 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
             if (id === undefined) {
                 this.id++
             }
+
             const id2 = id ?? this.id
 
             this.target.dispatchEvent(

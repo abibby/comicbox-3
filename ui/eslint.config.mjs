@@ -69,6 +69,7 @@ export default tseslint.config(
                     patterns: ['.*'],
                 },
             ],
+            'no-console': 'error',
         },
         languageOptions: {
             parserOptions: {

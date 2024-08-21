@@ -1,18 +1,23 @@
 .controller {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 10px;
     position: fixed;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 300px;
-    max-width: 100%;
+    left: 0;
+    right: 0;
     z-index: 400;
 }
 
 .alert {
-    background-color: rgb(var(--alert-background));
-    margin: 5px;
-    color: rgb(var(--alert-text));
-    padding: 2px;
+    padding: 5px 10px;
+
+    background-color: rgba(var(--surface), 0.75);
+    color: rgb(var(--text-on-surface));
+    box-shadow: var(--surface-box-shadow);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius-large);
 }
 
 .options {
@@ -21,7 +26,15 @@
 .option {
     background: none;
     border: none;
-    color: rgb(var(--alert-option));
+    color: rgba(var(--text-on-surface), 0.5);
+    padding: 0 0 0 1ch;
+    margin: 0;
+    font-size: inherit;
+}
+.option:last-child {
+    background: none;
+    border: none;
+    color: rgb(var(--primary));
     padding: 0 0 0 1ch;
     margin: 0;
     font-size: inherit;
@@ -29,6 +42,12 @@
 
 @media screen and (min-width: 500px) {
     .controller {
-        margin-top: 39px;
+        flex-direction: column-reverse;
+        top: unset;
+        bottom: 0;
+        left: unset;
+        right: 0;
+        width: 300px;
+        max-width: 100%;
     }
 }

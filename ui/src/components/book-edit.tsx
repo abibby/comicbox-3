@@ -22,7 +22,7 @@ import { DB } from 'src/database'
 import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
 import { Book, Page, PageType } from 'src/models'
-import { PageWithIndex, splitPages } from 'src/services/book-service'
+import { PageWithIndex, mergePages } from 'src/services/book-service'
 import { Select } from 'src/components/form/select'
 
 const pageTypeOptions: [PageType, string][] = [
@@ -204,7 +204,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                                     [styles.longStrip]: book.long_strip,
                                 })}
                             >
-                                {splitPages(
+                                {mergePages(
                                     editedPages,
                                     book.long_strip,
                                     true,

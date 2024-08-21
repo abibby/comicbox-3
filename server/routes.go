@@ -109,6 +109,8 @@ func InitRouter(r *router.Router) {
 
 		r.PostFunc("/login", controllers.Login).Name("login")
 
+		r.Post("/rum", controllers.RumLogging).Name("rum.logging")
+
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.AuthMiddleware(false, auth.TokenRefresh))
 			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")

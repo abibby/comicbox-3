@@ -117,8 +117,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         }
     }, [seriesName])
 
-    const downloadSeries = useCallback(() => {
-        post({
+    const downloadSeries = useCallback(async () => {
+        await post({
             type: 'download-series',
             seriesName: name,
         })

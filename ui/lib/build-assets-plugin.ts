@@ -40,6 +40,15 @@ export default function buildAssetPlugin(replace = true): Plugin {
                     b.source = b.source.replace(random, JSON.stringify(assets))
                 }
             }
+
+            bundle.assets = {
+                type: 'asset',
+                name: 'assets',
+                originalFileName: null,
+                source: JSON.stringify(assets),
+                fileName: 'assets.json',
+                needsCodeReference: false,
+            }
         },
     }
 }

@@ -19,12 +19,8 @@
     "license": "ISC",
     "devDependencies": {
         "@preact/preset-vite": "^2.9.0",
-        "@types/eslint": "^7.28.1",
-        "@types/favicons": "^6.2.2",
         "@types/serviceworker": "^0.0.53",
         "eslint": "^9.9.0",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-react": "^7.35.0",
         "eslint-plugin-react-hooks": "^5.1.0-rc-d48603a5-20240813",
         "preact-render-to-string": "^5.1.19",
@@ -45,11 +41,6 @@
         "idb-keyval": "^6.0.3",
         "preact": "^10.5.14",
         "preact-async-route": "^2.2.1",
-        "preact-router": "^3.2.1",
-        "workbox-cacheable-response": "^6.4.1",
-        "workbox-expiration": "^6.4.1",
-        "workbox-precaching": "^6.4.1",
-        "workbox-routing": "^6.4.1",
-        "workbox-strategies": "^6.4.1"
+        "preact-router": "^3.2.1"
     }
 }

@@ -1,4 +1,5 @@
 import { apiFetch } from 'src/api/internal'
+import slog from 'src/slog'
 
 export interface GraphQLResponseError {
     message: string
@@ -38,8 +39,8 @@ async function gql(
     const response = await fetch(url, options)
     const json: GraphQlResponse = await response.json()
     if (!response.ok) {
-        console.error(json)
-        throw new Error('bad')
+        slog.Warn('anilist api failed', { query: query })
+        throw new Error('anilist api failed')
     }
     return json.data
 }

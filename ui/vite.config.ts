@@ -31,6 +31,7 @@ export default defineConfig({
         alias: {
             src: path.resolve(__dirname, './src'),
             res: path.resolve(__dirname, './res'),
+            helpers: path.resolve(__dirname, './helpers'),
         },
     },
     server: {

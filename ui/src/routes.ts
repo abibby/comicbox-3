@@ -1,5 +1,7 @@
-function handleError() {
-    location.reload()
+import slog from 'src/slog'
+
+function handleError(err: unknown) {
+    slog.Error('failed to import page', { err: err })
 }
 
 export const routes = {

@@ -17,7 +17,11 @@ import { Error404 } from 'src/pages/404'
 import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
 import { updateAnilist } from 'src/services/anilist-service'
-import { SplitPages, useSplitPages } from 'src/services/book-service'
+import {
+    MergedPages,
+    translate,
+    useMergedPages,
+} from 'src/services/book-service'
 
 interface BookViewProps {
     matches?: {
@@ -35,30 +39,34 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
     if (b === undefined) {
         return <Error404 />
     }
-    let page = 0
+    let sourcePage = 0
 
     if (props.matches?.page) {
-        page = Number(props.matches.page)
+        sourcePage = Number(props.matches.page)
     } else if (b.user_book?.current_page) {
-        page = b.user_book.current_page
+        sourcePage = b.user_book.current_page
     }
 
-    return <Reader book={b} page={pageUnindex(b, page)} />
+    return <Reader book={b} sourcePage={sourcePage} />
 }
 
 interface ReaderProps {
     book: Book
-    page: number
+    sourcePage: number
 }
 
 const Reader: FunctionalComponent<ReaderProps> = props => {
     const b = props.book
-    const page = props.page
+    const activePage = translate(b, props.sourcePage)
+        .from('sourcePage')
+        .to('activePage')
     const rtl = b.rtl
 
     const landscape = useMediaQuery('(orientation: landscape)')
-    const pages = useSplitPages(b.pages, b.long_strip, landscape)
-    const pagesIndex = getPagesIndex(pages, page)
+    const pages = useMergedPages(b.pages, b.long_strip, landscape)
+    const mergedPage = translate(b, props.sourcePage)
+        .from('sourcePage')
+        .toMerged(pages)
 
     const nextBook = useNextBook(b)
     const previousBook = usePreviousBook(b)
@@ -66,8 +74,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const bookID = b.id
     const nextBookID = nextBook?.id
     const previousBookID = previousBook?.id
-    const setCurrentPage = useCallback(
+    const setSourcePage = useCallback(
         async (newPage: number) => {
+            navigate(route('book.view', { id: bookID, page: newPage }))
+
             const b = await DB.books.where('id').equals(bookID).first()
             if (b === undefined) {
                 return
@@ -90,12 +100,12 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         [bookID],
     )
 
-    const setCurrentIndex = useCallback(
-        (newIndex: number | string) => {
-            if (newIndex === pagesIndex) {
+    const setMergedPage = useCallback(
+        async (newMergedPage: number) => {
+            if (newMergedPage === mergedPage) {
                 return
             }
-            if (Number(newIndex) >= pages.length) {
+            if (Number(newMergedPage) >= pages.length) {
                 void updateAnilist(b)
                 if (nextBookID) {
                     navigate(route('book.view', { id: nextBookID }))
@@ -104,7 +114,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 }
                 return
             }
-            if (Number(newIndex) < 0) {
+            if (Number(newMergedPage) < 0) {
                 if (previousBookID) {
                     navigate(route('book.view', { id: previousBookID }))
                 } else {
@@ -113,15 +123,13 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
 
-            const newPage = pageIndex(
-                b,
-                pages.slice(0, Number(newIndex) + 1).flat().length - 1,
-            )
+            const newPage = translate(b, newMergedPage)
+                .fromMerged(pages)
+                .to('sourcePage')
 
-            void setCurrentPage(newPage)
-            navigate(route('book.view', { id: b.id, page: newPage }))
+            await setSourcePage(newPage)
         },
-        [b, nextBookID, pages, pagesIndex, previousBookID, setCurrentPage],
+        [b, nextBookID, pages, mergedPage, previousBookID, setSourcePage],
     )
     let leftOffset = -1
     let rightOffset = +1
@@ -133,15 +141,15 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const [menuOpen, setMenuOpen] = useState(false)
     const overlay = useRef<HTMLDivElement>(null)
 
-    const setPageLeft = useCallback(() => {
-        setCurrentIndex(pagesIndex + leftOffset)
-    }, [leftOffset, pagesIndex, setCurrentIndex])
-    const setPageRight = useCallback(() => {
-        setCurrentIndex(pagesIndex + rightOffset)
-    }, [pagesIndex, rightOffset, setCurrentIndex])
+    const setPageLeft = useCallback(async () => {
+        await setMergedPage(mergedPage + leftOffset)
+    }, [leftOffset, mergedPage, setMergedPage])
+    const setPageRight = useCallback(async () => {
+        await setMergedPage(mergedPage + rightOffset)
+    }, [mergedPage, rightOffset, setMergedPage])
 
     const click = useCallback(
-        (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+        async (event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
             if (menuOpen) {
                 if (event.target === overlay.current) {
                     setMenuOpen(false)
@@ -155,10 +163,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             switch (section) {
                 case 'left':
-                    setPageLeft()
+                    await setPageLeft()
                     break
                 case 'right':
-                    setPageRight()
+                    await setPageRight()
                     break
                 case 'center':
                     setMenuOpen(true)
@@ -170,15 +178,15 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     useWindowEvent(
         'keydown',
-        e => {
+        async e => {
             switch (e.key) {
                 case 'ArrowLeft':
                     e.preventDefault()
-                    setPageLeft()
+                    await setPageLeft()
                     break
                 case 'ArrowRight':
                     e.preventDefault()
-                    setPageRight()
+                    await setPageRight()
                     break
             }
         },
@@ -200,23 +208,23 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             </div>
             <Overlay
                 book={b}
-                page={pagesIndex}
-                pageCount={pages.length}
+                sourcePage={props.sourcePage}
                 baseRef={overlay}
-                changePage={setCurrentIndex}
+                onPageChange={setSourcePage}
                 open={menuOpen}
+                landscape={landscape}
             />
             {b.long_strip ? (
                 <LongStripPages
                     book={b}
-                    page={page}
-                    onPageChange={setCurrentIndex}
+                    page={activePage}
+                    onPageChange={setMergedPage}
                 />
             ) : (
                 <CurrentPages
                     book={b}
                     pages={pages}
-                    pagesIndex={pagesIndex}
+                    pagesIndex={mergedPage}
                     onPageChangeLeft={setPageLeft}
                     onPageChangeRight={setPageRight}
                 />
@@ -277,7 +285,7 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
 
 interface CurrentPagesProps {
     book: Book
-    pages: SplitPages
+    pages: MergedPages
     pagesIndex: number
     onPageChangeRight(): void
     onPageChangeLeft(): void
@@ -294,6 +302,7 @@ function CurrentPages({
     const swipeStart = useRef<{ x: number; y: number }>()
     const swipeCurrent = useRef<{ x: number; y: number }>()
     const swiped = useRef(false)
+    const action = useRef<'left' | 'right' | 'none'>('none')
 
     const down = useCallback((e: MouseEvent | TouchEvent) => {
         swipeStart.current = getPoint(e)
@@ -347,20 +356,13 @@ function CurrentPages({
         }
         if (dx > 0) {
             root.current?.style.setProperty('--offset', '-100%')
+            action.current = 'right'
         } else {
             root.current?.style.setProperty('--offset', '100%')
+            action.current = 'left'
         }
         root.current?.classList.remove(styles.moving)
-        setTimeout(() => {
-            root.current?.style.removeProperty('--offset')
-            root.current?.classList.add(styles.moving)
-            if (dx > 0) {
-                onPageChangeRight()
-            } else {
-                onPageChangeLeft()
-            }
-        }, 200)
-    }, [onPageChangeLeft, onPageChangeRight])
+    }, [])
 
     const click = useCallback((e: MouseEvent) => {
         if (swiped.current) {
@@ -369,6 +371,23 @@ function CurrentPages({
             e.stopPropagation()
         }
     }, [])
+
+    const transitionEnd = useCallback(() => {
+        const act = action.current
+        root.current?.style.removeProperty('--offset')
+        action.current = 'none'
+        root.current?.classList.add(styles.moving)
+        switch (act) {
+            case 'left':
+                onPageChangeLeft()
+                break
+            case 'right':
+                onPageChangeRight()
+                break
+            case 'none':
+                break
+        }
+    }, [onPageChangeLeft, onPageChangeRight])
 
     const prev = pages[pagesIndex - 1]
     const curr = pages[pagesIndex]
@@ -392,7 +411,12 @@ function CurrentPages({
                     pages={prev}
                 />
             )}
-            <PageView key={book.id + pagesIndex} current pages={curr} />
+            <PageView
+                key={book.id + pagesIndex}
+                current
+                pages={curr}
+                onTransitionEnd={transitionEnd}
+            />
             {next && (
                 <PageView key={book.id + (pagesIndex + 1)} next pages={next} />
             )}
@@ -405,6 +429,7 @@ interface PageProps {
     previous?: boolean
     current?: boolean
     next?: boolean
+    onTransitionEnd?: () => void
 }
 
 const PageView: FunctionalComponent<PageProps> = props => {
@@ -426,6 +451,7 @@ const PageView: FunctionalComponent<PageProps> = props => {
                 [styles.current]: props.current,
                 [styles.next]: props.next,
             })}
+            onTransitionEnd={props.onTransitionEnd}
         >
             {pages.map(p => (
                 <PageImage key={p.url} page={p} />
@@ -478,50 +504,6 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             loading='lazy'
         />
     )
-}
-
-function pageIndex(book: Book, page: number): number {
-    const p = book.pages.filter(p => p.type !== 'Deleted')[page]
-    if (p === undefined) {
-        return -1
-    }
-    let currentPage = book.pages.indexOf(p)
-    for (
-        let i = Math.min(currentPage + 1, book.pages.length);
-        i < book.pages.length;
-        i++
-    ) {
-        if (book.pages[i]?.type === 'Deleted') {
-            currentPage = i
-        } else {
-            break
-        }
-    }
-    return currentPage
-}
-
-function pageUnindex(book: Book, page: number): number {
-    let out = -1
-    for (let i = 0; i < page + 1; i++) {
-        if (book.pages[i]?.type !== 'Deleted') {
-            out++
-        }
-    }
-    return out
-}
-
-function getPagesIndex(
-    pages: Array<[Page] | [Page, Page]>,
-    page: number,
-): number {
-    let current = 0
-    for (const [i, p] of pages.entries()) {
-        current += p.length
-        if (current > page) {
-            return i
-        }
-    }
-    return -1
 }
 
 function isInViewport(el: HTMLElement): boolean {

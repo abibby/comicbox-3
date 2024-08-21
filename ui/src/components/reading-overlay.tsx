@@ -1,21 +1,22 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
 import { Link } from 'preact-router'
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { EditBook } from 'src/components/book-edit'
 import { openModal } from 'src/components/modal'
 import styles from 'src/components/reading-overlay.module.css'
 import { Book } from 'src/models'
 import { route } from 'src/routes'
+import { translate } from 'src/services/book-service'
 
 interface OverlayProps {
     book: Book
-    page: number
-    pageCount: number
+    sourcePage: number
     baseRef: RefObject<HTMLDivElement>
     open: boolean
-    changePage: (page: number | string) => void
+    landscape: boolean
+    onPageChange: (page: number) => void | Promise<void>
 }
 
 export const Overlay: FunctionalComponent<OverlayProps> = props => {
@@ -24,18 +25,36 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
         await openModal(EditBook, { book: b })
     }, [b])
 
-    const [page, setPage] = useState<number | null>(null)
+    const [displayPage, setDisplayPage] = useState(0)
     const sliderInput = useCallback((p: string) => {
-        setPage(Number(p))
+        setDisplayPage(Number(p))
     }, [])
-    const changePage = props.changePage
-    const sliderChange = useCallback(
-        (p: string) => {
-            setPage(null)
-            changePage(p)
+
+    const changePage = props.onPageChange
+    const updateDisplayPage = useCallback(
+        async (newDisplayPage: string) => {
+            const newSourcePage = translate(b, Number(newDisplayPage))
+                .from('displayPage')
+                .to('sourcePage')
+
+            if (newSourcePage === props.sourcePage) {
+                return
+            }
+
+            await changePage(newSourcePage)
         },
-        [changePage],
+        [b, changePage, props.sourcePage],
     )
+
+    useEffect(() => {
+        setDisplayPage(
+            translate(b, props.sourcePage).from('sourcePage').to('displayPage'),
+        )
+    }, [b, props.sourcePage])
+
+    const maxDisplayPage = translate(b, b.pages.length - 1)
+        .from('sourcePage')
+        .to('displayPage')
 
     return (
         <div
@@ -60,26 +79,25 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                                 {b.series}
                             </Link>
                         </li>
-                        <li>{window.devicePixelRatio}</li>
                     </ul>
                 </div>
                 <div class={styles.slider}>
                     <input
                         class={styles.range}
                         type='range'
-                        value={props.page}
+                        value={displayPage}
                         min={0}
-                        max={props.pageCount - 1}
-                        onChange={bindValue(sliderChange)}
+                        max={maxDisplayPage}
+                        onChange={bindValue(updateDisplayPage)}
                         onInput={bindValue(sliderInput)}
                     />
                     <input
                         class={styles.number}
                         type='number'
-                        value={page ?? props.page}
+                        value={displayPage}
                         min={0}
-                        max={props.pageCount - 1}
-                        onChange={bindValue(props.changePage)}
+                        max={maxDisplayPage}
+                        onChange={bindValue(updateDisplayPage)}
                     />
                 </div>
             </div>

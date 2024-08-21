@@ -9,5 +9,5 @@ jobs:
         with:
           node-version: 22
       - run: npm --prefix ui ci
-      - run: npm --prefix ui lint
-      - run: npm --prefix ui typecheck
+      - run: npm --prefix ui run lint
+      - run: npm --prefix ui run typecheck

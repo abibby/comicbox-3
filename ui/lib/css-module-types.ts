@@ -13,7 +13,7 @@ export default function cssModuleTypes(
     })
     async function writeTypes(file: string) {
         const content = await creator.create(file)
-        await content.writeFile(src => '/* prettier-ignore */\n\n' + src)
+        await content.writeFile()
     }
 
     const suffix = '.module.css'

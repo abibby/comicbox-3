@@ -1,5 +1,3 @@
-/* prettier-ignore */
-
 declare const styles: {
   readonly "alert": string;
   readonly "controller": string;

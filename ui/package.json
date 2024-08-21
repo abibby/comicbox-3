@@ -7,6 +7,7 @@
         "dev": "vite",
         "build": "vite build",
         "watch": "vite build --watch",
+        "typecheck": "tsc --noEmit",
         "lint": "npm run eslint && npm run prettier",
         "eslint": "eslint ./src ./lib",
         "prettier": "prettier ./src ./lib --check",

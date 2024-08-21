@@ -1,5 +1,3 @@
-/* prettier-ignore */
-
 declare const styles: {
   readonly "current": string;
   readonly "direction": string;

@@ -17,9 +17,12 @@ export function useEventListener<
     const cb = useCallback(callback, inputs)
 
     useEffect(() => {
-        target.addEventListener(type, callback as never)
+        ;(target as EventTarget).addEventListener(type, callback as never)
         return () => {
-            target.removeEventListener(type, callback as never)
+            ;(target as EventTarget).removeEventListener(
+                type,
+                callback as never,
+            )
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cb, target, type])

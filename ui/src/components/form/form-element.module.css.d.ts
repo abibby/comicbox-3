@@ -1,5 +1,3 @@
-/* prettier-ignore */
-
 declare const styles: {
   readonly "errors": string;
   readonly "formElement": string;

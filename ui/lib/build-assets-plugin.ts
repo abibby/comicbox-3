@@ -30,7 +30,7 @@ export default function buildAssetPlugin(replace = true): Plugin {
             const assets: BuildAsset[] = Array.from(Object.values(bundle)).map(
                 (b): BuildAsset => ({
                     fileName: b.fileName,
-                    name: b.name,
+                    name: b.name ?? b.fileName,
                 }),
             )
             for (const b of Object.values(bundle)) {

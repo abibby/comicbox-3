@@ -1,5 +1,3 @@
-/* prettier-ignore */
-
 declare const styles: {
   readonly "empty": string;
   readonly "icon": string;

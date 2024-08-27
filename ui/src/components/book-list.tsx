@@ -1,27 +1,32 @@
 import { FunctionalComponent, h } from 'preact'
 import { BookCard } from 'src/components/book-card'
-import styles from 'src/components/book-list.module.css'
-import { Card } from 'src/components/card'
+import { Card, CardList } from 'src/components/card'
 import { Book } from 'src/models'
 
+const scrollOptions: ScrollIntoViewOptions = {
+    inline: 'center',
+    block: 'center',
+}
+
 interface BookListProps {
+    title?: string
     books: Book[] | null
+    scrollTo?: Book | null
+    scroll?: 'auto' | 'horizontal' | 'vertical'
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
-    if (props.books === null) {
-        return (
-            <div class={styles.bookList}>
-                <Card title='title' subtitle='subtitle' placeholder />
-            </div>
-        )
-    }
-
     return (
-        <div class={styles.bookList}>
-            {props.books.map(b => (
-                <BookCard key={b.id} book={b} />
-            ))}
-        </div>
+        <CardList title={props.title} scroll={props.scroll}>
+            {props.books?.map(b => (
+                <BookCard
+                    key={b.id}
+                    book={b}
+                    scrollIntoView={
+                        b === props.scrollTo ? scrollOptions : false
+                    }
+                />
+            )) ?? <Card title='title' subtitle='subtitle' placeholder />}
+        </CardList>
     )
 }

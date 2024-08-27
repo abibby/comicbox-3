@@ -5,7 +5,7 @@ html {
 }
 
 body {
-    margin: 10px;
+    margin: var(--body-margins);
     margin-bottom: 55px;
     min-height: calc(100vh - 150px);
     display: flex;
@@ -59,6 +59,7 @@ body {
 
 .icon {
     height: 2.4em;
+    width: 100%;
     padding: 0.2em 0;
 }
 :global(.dark) .icon {
@@ -115,6 +116,7 @@ body {
         padding: 0;
     }
     .logo img {
+        aspect-ratio: 1;
         height: 100%;
     }
 

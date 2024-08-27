@@ -1,25 +1,27 @@
 import { bind } from '@zwzn/spicy'
 import { h } from 'preact'
 import { useEffect } from 'preact/hooks'
-import styles from 'src/components/alert.module.css'
+import styles from 'src/components/toast.module.css'
 import { Factory, SubComponentProps } from 'src/components/factory'
 
-interface AlertProps<T = unknown> extends SubComponentProps {
+interface ToastProps<T = unknown> extends SubComponentProps {
     message: string
     timeout: number
     options: Record<string, T>
 }
 
-function Alert<T>(props: AlertProps<T>) {
-    const buttons = Object.entries(props.options).map(([name, result]) => (
-        <button
-            key={name}
-            class={styles.option}
-            onClick={bind(result, props.close)}
-        >
-            {name}
-        </button>
-    ))
+function Toast<T>(props: ToastProps<T>) {
+    const buttons = Object.entries(props.options)
+        .map(([name, result]) => (
+            <button
+                key={name}
+                class={styles.option}
+                onClick={bind(result, props.close)}
+            >
+                {name}
+            </button>
+        ))
+        .reverse()
 
     const { timeout, close } = props
     useEffect(() => {
@@ -37,17 +39,17 @@ function Alert<T>(props: AlertProps<T>) {
     )
 }
 
-const alerts = new Factory(Alert, styles.controller)
+const toasts = new Factory(Toast, styles.controller)
 
-export const AlertController = alerts.Controller
+export const ToastController = toasts.Controller
 
-export async function prompt<T>(
+export async function openToast<T>(
     message: string,
     options: Record<string, T> = {},
     timeout = 5000,
     key?: string,
 ): Promise<T | undefined> {
-    return alerts.open<T>(
+    return toasts.open<T>(
         {
             message: message,
             options: options,
@@ -57,6 +59,6 @@ export async function prompt<T>(
     )
 }
 
-export function clearAlerts(): void {
-    alerts.clear()
+export function clearToasts(): void {
+    toasts.clear()
 }

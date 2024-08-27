@@ -23,7 +23,7 @@ export const List: FunctionalComponent<ListsProps> = props => {
     return (
         <div>
             <h1>{listNamesMap.get(list)}</h1>
-            <SeriesList series={s ?? []} />
+            <SeriesList scroll='vertical' series={s ?? []} />
         </div>
     )
 }

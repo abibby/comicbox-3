@@ -1,18 +1,17 @@
-import { h, JSX } from 'preact'
+import { Fragment, h, JSX } from 'preact'
 import { series } from 'src/api'
 import { AllPagesRequest } from 'src/api/internal'
 import { listNames, SeriesListRequest } from 'src/api/series'
 import { useCached } from 'src/cache'
+import { CardList } from 'src/components/card'
 import { SeriesCard } from 'src/components/series-card'
 import { DB } from 'src/database'
 import { SeriesOrder } from 'src/models'
-import styles from 'src/pages/library.module.css'
 import { route } from 'src/routes'
 
 export function Library(): JSX.Element {
     return (
-        <div>
-            <h1>Library</h1>
+        <Fragment>
             {listNames.map(([list, listName]) => (
                 <SeriesRow
                     key={listName}
@@ -30,7 +29,7 @@ export function Library(): JSX.Element {
                 href={route('series.index', {})}
                 request={{ limit: 10, order: SeriesOrder.LastRead }}
             />
-        </div>
+        </Fragment>
     )
 }
 
@@ -47,16 +46,10 @@ function SeriesRow(props: SeriesRowProps): JSX.Element {
         series.list,
     )
     return (
-        <div class={styles.seriesRow}>
-            <h3 class={styles.title}>{props.listName}</h3>
-            <a class={styles.more} href={props.href}>
-                see all
-            </a>
-            <div class={styles.cards}>
-                {items?.map(s => (
-                    <SeriesCard key={s.name} series={s} />
-                ))}
-            </div>
-        </div>
+        <CardList title={props.listName} link={props.href} scroll='horizontal'>
+            {items?.map(s => (
+                <SeriesCard key={s.name} series={s} />
+            ))}
+        </CardList>
     )
 }

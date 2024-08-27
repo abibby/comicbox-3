@@ -50,7 +50,7 @@ export function Search(): JSX.Element {
                 value={query}
             />
 
-            <SeriesList series={foundSeries} />
+            <SeriesList series={foundSeries} scroll='vertical' />
         </div>
     )
 }

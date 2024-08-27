@@ -1,16 +1,19 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
+import { Edit, MoreHorizontal } from 'preact-feather'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { book, series } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
-import { Button, ButtonGroup } from 'src/components/button'
+import { ButtonGroup, IconButton } from 'src/components/button'
+import { openContextMenu } from 'src/components/context-menu'
 import { openModal } from 'src/components/modal'
 import { EditSeries } from 'src/components/series-edit'
 import { DB } from 'src/database'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/404'
+import styles from 'src/pages/series-view.module.css'
 
 interface SeriesViewProps {
     matches?: {
@@ -50,6 +53,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
 
     const books = useCached(listName, { series: name }, DB.books, book.list)
     const [currentBooks, setCurrentBooks] = useState<Book[] | null>(null)
+    const [currentBook, setCurrentBook] = useState<Book | null>(null)
     useEffect(() => {
         if (books === null) return
         const count = 7
@@ -58,6 +62,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
             return
         }
         const current = books.findIndex(b => b.completed === 0)
+        setCurrentBook(books[current] ?? null)
         let start = current - Math.floor(count / 2)
         let end = current + Math.ceil(count / 2)
         if (start < 0) {
@@ -124,26 +129,45 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         })
     }, [name])
 
+    const contextMenu = useCallback(
+        async (e: Event) => {
+            await openContextMenu(e.target, [
+                ['Download', downloadSeries],
+                ['Mark All Read', markAllRead],
+                ['Mark All Unread', markAllUnread],
+            ])
+        },
+        [downloadSeries, markAllRead, markAllUnread],
+    )
+
+    const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
+
     return (
-        <div>
-            <h1>{name}</h1>
-            <section>
-                List: {series?.user_series?.list ?? 'none'}
+        <>
+            <section class={styles.header}>
+                <h2>{name}</h2>
                 <ButtonGroup>
-                    <Button onClick={downloadSeries}>Download</Button>
-                    <Button onClick={editSeries}>Edit</Button>
-                    <Button onClick={markAllRead}>Mark All Read</Button>
-                    <Button onClick={markAllUnread}>Mark All Unread</Button>
+                    <IconButton
+                        color='clear'
+                        icon={Edit}
+                        onClick={editSeries}
+                    />
+                    <IconButton
+                        color='clear'
+                        icon={MoreHorizontal}
+                        onClick={contextMenu}
+                    />
                 </ButtonGroup>
             </section>
-            {(currentBooks?.length ?? 0) > 0 && (
-                <>
-                    <BookList books={currentBooks} />
-                    <h2>All Books</h2>
-                </>
+            {hasCurrentBooks && (
+                <BookList books={currentBooks} scrollTo={currentBook} />
             )}
-            <BookList books={reverse(books)} />
-        </div>
+            <BookList
+                title={hasCurrentBooks ? 'All Books' : undefined}
+                scroll='vertical'
+                books={reverse(books)}
+            />
+        </>
     )
 }
 

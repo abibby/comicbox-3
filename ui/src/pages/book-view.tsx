@@ -1,5 +1,5 @@
 import { bind } from '@zwzn/spicy'
-import noCover from 'asset-url:res/images/no-cover.svg'
+import noCover from 'res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
 import { route as navigate } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'

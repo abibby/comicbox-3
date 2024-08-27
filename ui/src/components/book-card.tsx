@@ -1,7 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { deleteBook, useOnline } from 'src/cache'
 import { removeBookCache, useBookCached } from 'src/caches'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import { EditBook } from 'src/components/book-edit'
 import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
@@ -14,9 +14,13 @@ import { route } from 'src/routes'
 
 interface BookProps {
     book: DBBook
+    scrollIntoView?: boolean | ScrollIntoViewOptions
 }
 
-export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
+export const BookCard: FunctionalComponent<BookProps> = ({
+    book,
+    scrollIntoView,
+}) => {
     const [downloaded, downloadProgress] = useBookCached(book)
     const menu = useComputed<ContextMenuItems>(() => {
         let downloadOrRemove: [string, () => void] = [
@@ -45,11 +49,11 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
             [
                 'delete file',
                 async () => {
-                    const shouldDelete = await prompt(
+                    const shouldDelete = await openToast(
                         `Are you sure you want to delete ${book.file}?`,
                         {
-                            Yes: true,
                             No: false,
+                            Yes: true,
                         },
                         -1,
                     )
@@ -95,6 +99,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({ book }) => {
             progress={progress}
             downloaded={downloaded}
             downloadProgress={downloadProgress}
+            scrollIntoView={scrollIntoView}
         />
     )
 }

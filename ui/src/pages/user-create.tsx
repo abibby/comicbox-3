@@ -2,7 +2,7 @@ import { FunctionalComponent, h } from 'preact'
 import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { FetchError, user } from 'src/api'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import { Data, Form } from 'src/components/form/form'
 import { Errors } from 'src/components/form/form-element'
 import { Input } from 'src/components/form/input'
@@ -36,14 +36,14 @@ export const UserCreate: FunctionalComponent = () => {
             } catch (e) {
                 if (e instanceof FetchError) {
                     if (e.status === 401) {
-                        await prompt('invalid username or password')
+                        await openToast('invalid username or password')
                         return
                     } else if (e.status === 422) {
                         setErrors(e.body)
                         return
                     }
                 }
-                await prompt('error logging in')
+                await openToast('error logging in')
                 return
             }
             route('/login')

@@ -3,7 +3,7 @@ import { Fragment, h, render } from 'preact'
 import AsyncRoute from 'preact-async-route'
 import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
-import { AlertController, clearAlerts } from 'src/components/alert'
+import { ToastController, clearToasts } from 'src/components/toast'
 import {
     clearContextMenus,
     ContextMenuController,
@@ -16,7 +16,7 @@ import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'
 
 function changePage(): void {
-    clearAlerts()
+    clearToasts()
     clearContextMenus()
     clearModals()
 }
@@ -25,7 +25,7 @@ function Main() {
     useRef(new EventTarget())
     return (
         <Fragment>
-            <AlertController />
+            <ToastController />
             <ContextMenuController />
             <ModalController />
             <Shell>

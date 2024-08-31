@@ -1,4 +1,4 @@
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { book } from 'src/api'
 import { useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
@@ -7,10 +7,10 @@ import { useReading } from 'src/hooks/reading'
 
 export const Home: FunctionalComponent = () => {
     return (
-        <div>
+        <Fragment>
             <Reading />
             <Latest />
-        </div>
+        </Fragment>
     )
 }
 
@@ -18,19 +18,14 @@ export const Reading: FunctionalComponent = () => {
     const books = useReading()
     if (books?.length === 0) {
         return (
-            <div>
-                <h1>Reading</h1>
+            <Fragment>
+                <h3>Reading</h3>
                 <div>Your all caught up</div>
-            </div>
+            </Fragment>
         )
     }
 
-    return (
-        <div>
-            <h1>Reading</h1>
-            <BookList books={books} />
-        </div>
-    )
+    return <BookList title='Reading' books={books} />
 }
 
 export const Latest: FunctionalComponent = () => {
@@ -41,10 +36,5 @@ export const Latest: FunctionalComponent = () => {
         book.list,
     )
 
-    return (
-        <div>
-            <h1>Latest Books</h1>
-            <BookList books={books} />
-        </div>
-    )
+    return <BookList title='Latest Books' books={books} />
 }

@@ -1,26 +1,27 @@
 import { FunctionalComponent, h } from 'preact'
-import styles from 'src/components/book-list.module.css'
-import { Card } from 'src/components/card'
+import { Card, CardList } from 'src/components/card'
 import { SeriesCard } from 'src/components/series-card'
 import { Series } from 'src/models'
 
 interface SeriesListProps {
+    title?: string
     series: Series[] | null
+    scroll?: 'auto' | 'horizontal' | 'vertical'
 }
 
 export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
     if (props.series === null) {
         return (
-            <div class={styles.bookList}>
+            <CardList title={props.title} scroll={props.scroll}>
                 <Card title='title' placeholder />
-            </div>
+            </CardList>
         )
     }
     return (
-        <div class={styles.bookList}>
+        <CardList title={props.title} scroll={props.scroll}>
             {props.series.map(s => (
                 <SeriesCard key={s.name} series={s} />
             ))}
-        </div>
+        </CardList>
     )
 }

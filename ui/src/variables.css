@@ -27,6 +27,9 @@
 
     --border-radius-small: 4px;
     --border-radius-large: 6px;
+
+    --transition-time: 200ms;
+    --body-margins: 10px;
 }
 
 .dark {

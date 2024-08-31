@@ -104,3 +104,96 @@
 
     transition: --download-progress 1s;
 }
+
+.cardList {
+    --padding: var(--body-margins);
+    overflow: hidden;
+    position: relative;
+    margin: 0 calc(var(--padding) * -1);
+}
+
+.scroller {
+    padding: 0 var(--padding);
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    overflow-y: hidden;
+    overflow-x: auto;
+    min-height: 300px;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+/* Hide scrollbar for Chrome, Safari and Opera */
+.example::-webkit-scrollbar {
+    display: none;
+}
+
+.scroller > * {
+    width: 180px;
+    flex-shrink: 0;
+}
+.next,
+.previous {
+    background: none;
+    border: none;
+}
+.end .next {
+    opacity: 0.5;
+}
+.start .previous {
+    opacity: 0.5;
+}
+
+.header {
+    margin: 0 var(--padding);
+    display: flex;
+}
+
+.title {
+    flex-grow: 1;
+}
+.title a {
+    all: unset;
+    display: flex;
+    align-self: center;
+    cursor: pointer;
+}
+.titleLinkIcon {
+    color: rgb(var(--light-text));
+}
+
+.vertical .scroller {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    overflow-x: hidden;
+}
+.vertical .scroller > * {
+    width: unset;
+    flex-shrink: unset;
+}
+.vertical .next,
+.vertical .previous {
+    display: none;
+}
+
+@media screen and (min-width: 1000px) {
+    .cardList:not(.horizontal) .scroller {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        overflow-x: hidden;
+    }
+    .cardList:not(.horizontal) .scroller > * {
+        width: unset;
+        flex-shrink: unset;
+    }
+    .cardList:not(.horizontal) .next,
+    .cardList:not(.horizontal) .previous {
+        display: none;
+    }
+}
+@media (pointer: coarse) {
+    .next,
+    .previous {
+        display: none;
+    }
+}

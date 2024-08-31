@@ -1,6 +1,6 @@
 import { bind } from '@zwzn/spicy'
-import close from 'asset-url:res/icons/x.svg'
 import { ComponentType, FunctionalComponent, h } from 'preact'
+import { X } from 'preact-feather'
 import { Factory, SubComponentProps } from 'src/components/factory'
 import styles from 'src/components/modal.module.css'
 
@@ -69,7 +69,7 @@ export const ModalHead: FunctionalComponent<{
                 type='button'
                 onClick={bind(undefined, props.close)}
             >
-                <img src={close} alt='close' />
+                <X />
             </button>
         </h2>
     )

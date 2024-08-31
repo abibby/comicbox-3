@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 
-declare module 'asset-url:*' {
-    const fileName: string
-    export default fileName
+declare module '*.svg' {
+    const url: string
+    export default url
 }
 
 declare module 'build:assets' {

@@ -1,42 +1,68 @@
 /* eslint-disable no-restricted-imports */
-import path from 'path'
-import { defineConfig } from 'vite'
+import { resolve } from 'path'
+import { defineConfig, loadEnv, UserConfig } from 'vite'
 import preact from '@preact/preset-vite'
-import assetPlugin from './lib/asset-plugin'
 import buildAssetPlugin from './lib/build-assets-plugin'
 import cssModuleTypes from './lib/css-module-types'
+import manifestPlugin from './lib/manifest-plugin'
+import staticOutputPlugin from './lib/static-output-plugin'
+import constantsPlugin from './lib/constants-plugin'
 
-// https://vitejs.dev/config/
-export default defineConfig({
-    plugins: [assetPlugin(), preact(), buildAssetPlugin(), cssModuleTypes()],
-    build: {
-        rollupOptions: {
-            input: {
-                main: path.resolve(__dirname, './index.html'),
-                sw: path.resolve(__dirname, './src/service-worker/sw.ts'),
-            },
-            output: {
-                entryFileNames(file) {
-                    if (file.name == 'sw') {
-                        return '[name].js'
-                    }
-                    return '[name]-[hash].js'
+export default defineConfig(({ mode }): UserConfig => {
+    const env = {
+        ...process.env,
+        ...loadEnv(mode, resolve(__dirname, '..')),
+    }
+
+    return {
+        envPrefix: 'COMICBOX_',
+        plugins: [
+            manifestPlugin({
+                appName: 'ComicBox',
+                source: resolve(__dirname, './res/images/logo.svg'),
+                maskableSource: resolve(
+                    __dirname,
+                    './res/images/logo-maskable.svg',
+                ),
+                appShortName: 'ComicBox',
+                appDescription:
+                    'ComicBox allows you to read your digital comic collection where ever you are',
+                display: 'standalone',
+                start_url: '/',
+                theme_color: '#2196F3',
+                background: '#F0F0F0',
+                dir: undefined,
+                orientation: undefined,
+            }),
+            constantsPlugin({
+                ANILIST_CLIENT_ID: '',
+                PUBLIC_USER_CREATE: true,
+                __ENV: 'development',
+            }),
+            staticOutputPlugin(['sw', 'manifest.json']),
+            preact(),
+            buildAssetPlugin(),
+            cssModuleTypes(),
+        ],
+        build: {
+            rollupOptions: {
+                input: {
+                    main: resolve(__dirname, './index.html'),
+                    sw: resolve(__dirname, './src/service-worker/sw.ts'),
                 },
-                chunkFileNames: '[name]-[hash].js',
-                assetFileNames: '[name]-[hash].[ext]',
             },
         },
-    },
-    resolve: {
-        alias: {
-            src: path.resolve(__dirname, './src'),
-            res: path.resolve(__dirname, './res'),
-            helpers: path.resolve(__dirname, './helpers'),
+        resolve: {
+            alias: {
+                src: resolve(__dirname, './src'),
+                res: resolve(__dirname, './res'),
+                helpers: resolve(__dirname, './helpers'),
+            },
         },
-    },
-    server: {
-        proxy: {
-            '/api': 'http://localhost:9074',
+        server: {
+            proxy: {
+                '/api': env.VITE_PROXY_HOST ?? 'http://localhost:9074',
+            },
         },
-    },
+    }
 })

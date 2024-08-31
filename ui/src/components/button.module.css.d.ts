@@ -1,6 +1,7 @@
 declare const styles: {
   readonly "button": string;
   readonly "buttonGroup": string;
+  readonly "clear": string;
   readonly "disabled": string;
   readonly "primary": string;
 };

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { book, series, userBook, userSeries } from 'src/api'
 import { PaginatedRequest } from 'src/api/internal'
 import { getCacheHandler } from 'src/cache/internal'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import { DB, DBBook, DBSeries } from 'src/database'
 import { useEventListener } from 'src/hooks/event-listener'
 import { addRespondListener } from 'src/message'
@@ -99,7 +99,7 @@ export function useCached<
                     shouldPrompt(items, newItems))
             ) {
                 reload =
-                    (await prompt(
+                    (await openToast(
                         'New ' + table.name,
                         { reload: true },
                         0,
@@ -243,7 +243,7 @@ export async function persist(
             try {
                 await registration.sync.register('persist')
             } catch {
-                void prompt('There were some errors in syncing data')
+                void openToast('There were some errors in syncing data')
             }
         }
     })

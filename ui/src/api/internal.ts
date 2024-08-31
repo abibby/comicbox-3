@@ -1,4 +1,4 @@
-import noImage from 'asset-url:res/images/no-cover.svg'
+import noImage from 'res/images/no-cover.svg'
 import { Mutex } from 'async-mutex'
 import { del, get, set } from 'idb-keyval'
 import { route } from 'preact-router'

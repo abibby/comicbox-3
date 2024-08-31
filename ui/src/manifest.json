@@ -1,9 +1,14 @@
 {
     "name": "ComicBox",
     "short_name": "ComicBox",
-    "description": "ComicBox is a web server that allows you to read your digital comic collection where ever you are",
+    "description": "ComicBox is a web app that allows you to read your digital comic collection where ever you are",
     "display": "standalone",
+    "id": "ca.comicbox",
     "start_url": "/",
     "theme_color": "#2196F3",
-    "background_color": "#F0F0F0"
+    "background_color": "#F0F0F0",
+    "icons": [
+        { "src": "../res/images/logo.svg" },
+        { "src": "../res/images/logo-full.svg", "purpose": "maskable" }
+    ]
 }

@@ -1,5 +1,5 @@
 import { sleep } from 'helpers/sleep'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import { Message, post } from 'src/message'
 import slog from 'src/slog'
 
@@ -10,7 +10,7 @@ export function initServiceWorker() {
         await sleep(500)
         const promptKey = 'update'
         // otherwise, show the user an alert
-        const doUpdate = await prompt(
+        const doUpdate = await openToast(
             'Update available',
             {
                 update: true,
@@ -25,9 +25,9 @@ export function initServiceWorker() {
             if (registration.waiting) {
                 const m: Message = { type: 'skip-waiting' }
                 registration.waiting.postMessage(m)
-                await prompt('Updating', {}, -1, promptKey)
+                await openToast('Updating', {}, -1, promptKey)
             } else {
-                await prompt('Could not finish update', {}, 5000, promptKey)
+                await openToast('Could not finish update', {}, 5000, promptKey)
             }
         }
     }
@@ -50,7 +50,7 @@ export function initServiceWorker() {
                             registration.installing?.state === 'activated' &&
                             !navigator.serviceWorker.controller
                         ) {
-                            await prompt('Ready to work offline')
+                            await openToast('Ready to work offline')
                             return
                         }
                         if (registration.active && !reloading) {
@@ -62,7 +62,10 @@ export function initServiceWorker() {
         })
     }
 
-    if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    if (
+        'serviceWorker' in navigator &&
+        import.meta.env.MODE !== 'development'
+    ) {
         navigator.serviceWorker
             .register('/sw.js', { scope: '/', type: 'module' })
             .then(initializeRegistration)

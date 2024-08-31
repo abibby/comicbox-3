@@ -3,16 +3,16 @@ import { route as preactRoute } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { logout, userCreateToken } from 'src/api/auth'
 import { bookSync } from 'src/api/sync'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import { Button, ButtonGroup } from 'src/components/button'
 import { clearDatabase } from 'src/database'
 
 async function logoutAndRoute() {
-    const accepted = await prompt(
+    const accepted = await openToast(
         'Logging out will remove all local storage. Are you sure?',
         {
-            yes: true,
             no: false,
+            yes: true,
         },
     )
     if (accepted) {

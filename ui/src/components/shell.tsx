@@ -1,12 +1,10 @@
-import library from 'asset-url:res/icons/book.svg'
-import home from 'asset-url:res/icons/home.svg'
-import search from 'asset-url:res/icons/search.svg'
-import settings from 'asset-url:res/icons/settings.svg'
-import logo from 'asset-url:res/images/logo.svg'
+import logo from 'res/images/logo.svg'
 import { FunctionalComponent, h } from 'preact'
 import styles from 'src/components/shell.module.css'
 import { route } from 'src/routes'
+import { Book, Home, Search, Settings } from 'preact-feather'
 import 'src/variables.css'
+import { FeatherProps } from 'preact-feather/dist/types'
 
 export const Shell: FunctionalComponent = props => {
     return (
@@ -20,22 +18,22 @@ export const Shell: FunctionalComponent = props => {
                     </li>
                     <MenuItem
                         title='Home'
-                        img={home}
+                        icon={Home}
                         link={route('home', {})}
                     />
                     <MenuItem
                         title='Search'
-                        img={search}
+                        icon={Search}
                         link={route('search', {})}
                     />
                     <MenuItem
                         title='Library'
-                        img={library}
+                        icon={Book}
                         link={route('library', {})}
                     />
                     <MenuItem
                         title='Settings'
-                        img={settings}
+                        icon={Settings}
                         link={route('settings', {})}
                     />
                 </ul>
@@ -47,15 +45,16 @@ export const Shell: FunctionalComponent = props => {
 
 interface MenuItemProps {
     title: string
-    img: string
+    icon: FunctionalComponent<FeatherProps>
     link: string
 }
 
 const MenuItem: FunctionalComponent<MenuItemProps> = props => {
+    const Icon = props.icon
     return (
         <li>
             <a href={props.link}>
-                <img class={styles.icon} src={props.img} />
+                <Icon class={styles.icon} />
                 <span class={styles.label}>{props.title}</span>
             </a>
         </li>

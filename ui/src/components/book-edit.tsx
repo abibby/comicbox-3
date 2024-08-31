@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
-import { prompt } from 'src/components/alert'
+import { openToast } from 'src/components/toast'
 import styles from 'src/components/book-edit.module.css'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
@@ -70,7 +70,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                             book.pages.length !==
                             data.getAll('page.type')?.length
                         ) {
-                            await prompt('Invalid page count')
+                            await openToast('Invalid page count')
                             return
                         }
                         await DB.saveBook(book, {
@@ -90,14 +90,14 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         break
                 }
 
-                void prompt(
+                void openToast(
                     'Chapter updating',
                     {},
                     5000,
                     `chapter-save-${book.id}`,
                 )
                 void persist(true).then(() =>
-                    prompt(
+                    openToast(
                         'Chapter updated',
                         {},
                         5000,
@@ -121,7 +121,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                 }
             } catch (e) {
                 if (e instanceof Error) {
-                    void prompt(e.message)
+                    void openToast(e.message)
                 }
             }
         },

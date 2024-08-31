@@ -1,8 +1,7 @@
 .buttonGroup {
+    display: flex;
     margin: 5px 0;
-}
-.buttonGroup > .button:not(:first-child) {
-    margin-left: 5px;
+    gap: 5px;
 }
 
 .button {
@@ -33,4 +32,12 @@
 
 .button.primary:hover:not(.disabled) {
     color: rgba(var(--primary-button-text), 1);
+}
+
+.button.clear {
+    background: none;
+}
+
+.button.clear:hover:not(.disabled) {
+    background-color: rgba(var(--default-button), 0.5);
 }

@@ -1,11 +1,13 @@
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, JSX } from 'preact'
+import { FeatherProps } from 'preact-feather/dist/types'
 import { Link } from 'preact-router'
 import classNames from 'src/classnames'
 import styles from 'src/components/button.module.css'
 
 type ButtonProps = {
     disabled?: boolean
-    color?: 'primary'
+    color?: 'primary' | 'clear'
+    class?: string
 } & (
     | {
           href: string
@@ -14,7 +16,7 @@ type ButtonProps = {
           type?: 'submit' | 'button'
           name?: string
           value?: string
-          onClick?: () => void
+          onClick?: (e: JSX.TargetedMouseEvent<HTMLButtonElement>) => void
       }
 )
 
@@ -23,14 +25,13 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
     if (props.color !== undefined) {
         colorClass = styles[props.color]
     }
+    const className = classNames(styles.button, colorClass, props.class, {
+        [styles.disabled]: props.disabled,
+    })
+
     if ('href' in props) {
         return (
-            <Link
-                class={classNames(styles.button, colorClass, {
-                    [styles.disabled]: props.disabled,
-                })}
-                href={props.href}
-            >
+            <Link class={className} href={props.href}>
                 {props.children}
             </Link>
         )
@@ -38,9 +39,7 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
     return (
         <button
             type={props.type ?? 'button'}
-            class={classNames(styles.button, colorClass, {
-                [styles.disabled]: props.disabled,
-            })}
+            class={className}
             onClick={props.onClick}
             name={props.name}
             value={props.value}
@@ -50,7 +49,34 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
         </button>
     )
 }
+type IconButtonProps = ButtonProps & {
+    icon: FunctionalComponent<FeatherProps>
+    size?: string | number
+}
+export const IconButton: FunctionalComponent<IconButtonProps> = ({
+    icon: Icon,
+    size,
+    ...props
+}) => {
+    if (size === undefined) {
+        size = '1em'
+    }
+    return (
+        <Button {...props}>
+            <Icon width={size} height={size} />
+            {props.children}
+        </Button>
+    )
+}
 
-export const ButtonGroup: FunctionalComponent = props => {
-    return <div class={styles.buttonGroup}>{props.children}</div>
+export interface ButtonGroupProps {
+    class?: string
+}
+
+export const ButtonGroup: FunctionalComponent<ButtonGroupProps> = props => {
+    return (
+        <div class={classNames(styles.buttonGroup, props.class)}>
+            {props.children}
+        </div>
+    )
 }

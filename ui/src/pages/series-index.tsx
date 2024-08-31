@@ -10,7 +10,7 @@ export const SeriesIndex: FunctionalComponent = () => {
     return (
         <div>
             <h1>Series</h1>
-            <SeriesList series={s} />
+            <SeriesList scroll='vertical' series={s} />
         </div>
     )
 }

@@ -64,9 +64,3 @@
         border-radius: var(--border-radius-small);
     }
 }
-
-@media (prefers-color-scheme: dark) {
-    .close {
-        filter: invert(1);
-    }
-}

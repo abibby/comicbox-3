@@ -107,60 +107,59 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
     let masked = await maskedPromise
     const maskable = await maskablePromise
 
-    if (maskable) {
-        const files: FaviconFile[] = []
+    if (!maskable) {
+        return masked
+    }
 
-        const maskedImages = new Set(masked.images.map(f => f.name))
+    const files: FaviconFile[] = []
 
-        const maskedFiles = new Map(masked.files.map(f => [f.name, f.contents]))
-        const maskableFiles = new Map(
-            maskable.files.map(f => [f.name, f.contents]),
-        )
-        const names = new Set([...maskableFiles.keys(), ...maskedFiles.keys()])
+    const maskedImages = new Set(masked.images.map(f => f.name))
 
-        for (const name of names) {
-            if (name === 'manifest.webmanifest') {
-                const manifest: WebManifest = JSON.parse(
-                    maskedFiles.get(name) ?? '',
-                )
-                const maskableManifest: WebManifest = JSON.parse(
-                    maskableFiles.get(name) ?? '',
-                )
+    const maskedFiles = new Map(masked.files.map(f => [f.name, f.contents]))
+    const maskableFiles = new Map(maskable.files.map(f => [f.name, f.contents]))
+    const names = new Set([...maskableFiles.keys(), ...maskedFiles.keys()])
 
-                manifest.icons = [
-                    ...(manifest.icons ?? []),
-                    ...(maskableManifest.icons ?? []).map(icon => ({
-                        ...icon,
-                        src: icon.src.replace('.', '-maskable.'),
-                    })),
-                ]
+    for (const name of names) {
+        if (name === 'manifest.webmanifest') {
+            const manifest: WebManifest = JSON.parse(
+                maskedFiles.get(name) ?? '',
+            )
+            const maskableManifest: WebManifest = JSON.parse(
+                maskableFiles.get(name) ?? '',
+            )
 
-                files.push({
-                    name: name,
-                    contents: JSON.stringify(manifest, undefined, '    '),
-                })
-            } else {
-                files.push({
-                    name: name,
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    contents: maskedFiles.get(name) ?? maskableFiles.get(name)!,
-                })
-            }
-        }
-
-        masked = {
-            ...masked,
-            files: files,
-            images: masked.images.concat(
-                maskable.images.map(f => ({
-                    name: maskedImages.has(f.name)
-                        ? f.name.replace('.', '-maskable.')
-                        : f.name,
-                    contents: f.contents,
+            manifest.icons = [
+                ...(manifest.icons ?? []),
+                ...(maskableManifest.icons ?? []).map(icon => ({
+                    ...icon,
+                    src: icon.src.replace('.', '-maskable.'),
+                    purpose: 'maskable',
                 })),
-            ),
+            ]
+
+            files.push({
+                name: name,
+                contents: JSON.stringify(manifest, undefined, '    '),
+            })
+        } else {
+            files.push({
+                name: name,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                contents: maskedFiles.get(name) ?? maskableFiles.get(name)!,
+            })
         }
     }
 
-    return masked
+    return {
+        html: Array.from(new Set(masked.html.concat(maskable.html))),
+        files: files,
+        images: masked.images.concat(
+            maskable.images.map(f => ({
+                name: maskedImages.has(f.name)
+                    ? f.name.replace('.', '-maskable.')
+                    : f.name,
+                contents: f.contents,
+            })),
+        ),
+    }
 }

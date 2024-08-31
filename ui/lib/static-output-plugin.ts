@@ -30,7 +30,7 @@ export default function staticOutputPlugin(staticAssets: string[]): Plugin {
             },
             assetFileNames: (f: PreRenderedAsset): string => {
                 if (f.name && staticAssets.includes(f.name)) {
-                    return '[name].js'
+                    return '[name].[ext]'
                 }
                 if (o?.assetFileNames instanceof Function) {
                     return o.assetFileNames(f)

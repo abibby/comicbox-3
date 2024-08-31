@@ -91,7 +91,6 @@ export const BookCard: FunctionalComponent<BookProps> = ({
         <Card
             image={coverURL}
             link={route('book.view', { id: book.id })}
-            // link={`/book/${encodeURIComponent(book.id)}`}
             title={book.series}
             subtitle={title}
             menu={menu}

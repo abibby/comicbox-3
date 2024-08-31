@@ -12,7 +12,7 @@ import { EditSeries } from 'src/components/series-edit'
 import { DB } from 'src/database'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
-import { Error404 } from 'src/pages/404'
+import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 
 interface SeriesViewProps {

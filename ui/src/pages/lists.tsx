@@ -5,7 +5,7 @@ import { useCached } from 'src/cache'
 import { SeriesList } from 'src/components/series-list'
 import { DB } from 'src/database'
 import { List as LList } from 'src/models'
-import { Error404 } from 'src/pages/404'
+import { Error404 } from 'src/pages/errors'
 
 interface ListsProps {
     matches: {

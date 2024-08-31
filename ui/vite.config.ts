@@ -6,7 +6,6 @@ import buildAssetPlugin from './lib/build-assets-plugin'
 import cssModuleTypes from './lib/css-module-types'
 import manifestPlugin from './lib/manifest-plugin'
 import staticOutputPlugin from './lib/static-output-plugin'
-// import{PreRenderedChunk} from'rollup'
 
 export default defineConfig(({ mode }): UserConfig => {
     const env = {
@@ -17,7 +16,23 @@ export default defineConfig(({ mode }): UserConfig => {
     return {
         envPrefix: 'COMICBOX_',
         plugins: [
-            manifestPlugin(),
+            manifestPlugin({
+                appName: 'ComicBox',
+                source: resolve(__dirname, './res/images/logo.svg'),
+                maskableSource: resolve(
+                    __dirname,
+                    './res/images/logo-maskable.svg',
+                ),
+                appShortName: 'ComicBox',
+                appDescription:
+                    'ComicBox allows you to read your digital comic collection where ever you are',
+                display: 'standalone',
+                start_url: '/',
+                theme_color: '#2196F3',
+                background: '#F0F0F0',
+                dir: undefined,
+                orientation: undefined,
+            }),
             staticOutputPlugin(['sw', 'manifest.json']),
             preact(),
             buildAssetPlugin(),

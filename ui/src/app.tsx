@@ -10,7 +10,7 @@ import {
 } from 'src/components/context-menu'
 import { clearModals, ModalController } from 'src/components/modal'
 import { Shell } from 'src/components/shell'
-import { Error404 } from 'src/pages/404'
+import { Error404 } from 'src/pages/errors'
 import { routes } from 'src/routes'
 import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'

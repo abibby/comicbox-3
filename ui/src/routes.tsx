@@ -1,7 +1,10 @@
 import slog from 'src/slog'
+import { Error500 } from 'src/pages/errors'
+import { h } from 'preact'
 
 function handleError(err: unknown) {
     slog.Error('failed to import page', { err: err })
+    return <Error500 error={err} />
 }
 
 export const routes = {

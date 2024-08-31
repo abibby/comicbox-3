@@ -2,4 +2,10 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.actions {
+    flex-grow: 1;
+    justify-content: end;
 }

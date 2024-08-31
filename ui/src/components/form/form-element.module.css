@@ -9,11 +9,24 @@
 
 .title {
     display: block;
+    color: rgba(var(--text-on-background), 0.75);
+    font-size: 0.9em;
 }
 
 .formElement > :last-child {
     display: block;
     width: 100%;
+    color: rgb(var(--text-on-background));
+    background-color: rgba(var(--text-on-background), 0);
+    border: none;
+    padding: 10px;
+    font-size: inherit;
+    border-bottom: solid 1px rgba(var(--text-on-background), 0.8);
+}
+
+.formElement > :last-child:focus {
+    outline: none;
+    background-color: rgba(var(--text-on-background), 0.1);
 }
 
 .errors {

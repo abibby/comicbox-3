@@ -36,6 +36,7 @@
 
 .button.clear {
     background: none;
+    color: inherit;
 }
 
 .button.clear:hover:not(.disabled) {

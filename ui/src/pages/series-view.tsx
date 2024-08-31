@@ -146,7 +146,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         <>
             <section class={styles.header}>
                 <h2>{name}</h2>
-                <ButtonGroup>
+                <ButtonGroup class={styles.actions}>
                     <IconButton
                         color='clear'
                         icon={Edit}

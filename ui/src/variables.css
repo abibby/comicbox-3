@@ -72,6 +72,7 @@
     }
 }
 
+button,
 a {
-    color: rgb(var(--text-on-background));
+    color: inherit;
 }

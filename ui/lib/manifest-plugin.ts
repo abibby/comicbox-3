@@ -104,7 +104,7 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
         })
     }
 
-    let masked = await maskedPromise
+    const masked = await maskedPromise
     const maskable = await maskablePromise
 
     if (!maskable) {

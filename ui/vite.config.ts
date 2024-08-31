@@ -6,6 +6,7 @@ import buildAssetPlugin from './lib/build-assets-plugin'
 import cssModuleTypes from './lib/css-module-types'
 import manifestPlugin from './lib/manifest-plugin'
 import staticOutputPlugin from './lib/static-output-plugin'
+import constantsPlugin from './lib/constants-plugin'
 
 export default defineConfig(({ mode }): UserConfig => {
     const env = {
@@ -32,6 +33,11 @@ export default defineConfig(({ mode }): UserConfig => {
                 background: '#F0F0F0',
                 dir: undefined,
                 orientation: undefined,
+            }),
+            constantsPlugin({
+                ANILIST_CLIENT_ID: '',
+                PUBLIC_USER_CREATE: true,
+                __ENV: 'development',
             }),
             staticOutputPlugin(['sw', 'manifest.json']),
             preact(),

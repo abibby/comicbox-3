@@ -3,23 +3,32 @@
     overflow: hidden;
     contain: strict;
     width: 100%;
-    height: 300px;
+    height: 100%;
 }
 .book a {
+    display: grid;
+    grid-template-areas:
+        'cover    cover'
+        'title    menu'
+        'subtitle menu';
+    grid-template-rows: auto 1.2em 1.2em;
     color: inherit;
     text-decoration: inherit;
+    height: 100%;
 }
 
 .cover {
+    grid-area: cover;
     display: flex;
     width: 100%;
-    height: 250px;
+    height: 100%;
     object-fit: cover;
     background-color: lightgrey;
     font-size: 20px;
     text-align: center;
     justify-content: center;
     align-items: center;
+    contain: size;
 }
 
 .title,
@@ -28,11 +37,16 @@
     text-overflow: ellipsis;
     overflow: hidden;
 }
+.title {
+    grid-area: title;
+}
 .subtitle {
+    grid-area: subtitle;
     color: rgb(var(--light-text));
 }
 
 .menu {
+    grid-area: menu;
     float: right;
     background: none;
     border: none;
@@ -63,7 +77,7 @@
 
 .progress {
     position: absolute;
-    top: 243px;
+    bottom: 2.4em;
     left: 0px;
     right: 0px;
     height: 7px;
@@ -110,7 +124,8 @@
     gap: 15px;
     overflow-y: hidden;
     overflow-x: auto;
-    min-height: 300px;
+    /* height: 300px; */
+    height: calc((100vh - 52.391px) / 2 - (3.17em + 15px));
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
@@ -168,18 +183,19 @@
 }
 
 @media screen and (min-width: 1000px) {
-    .cardList:not(.horizontal) .scroller {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        overflow-x: hidden;
+    .scroller {
+        height: unset;
     }
-    .cardList:not(.horizontal) .scroller > * {
-        width: unset;
-        flex-shrink: unset;
+    .book {
+        height: 300px;
     }
-    .cardList:not(.horizontal) .next,
-    .cardList:not(.horizontal) .previous {
-        display: none;
+    .cardList:not(.horizontal) {
+        @extend .vertical;
+    }
+}
+@media screen and (min-height: 785px) and (max-width: 500px) {
+    .scroller {
+        height: 300px;
     }
 }
 @media (pointer: coarse) {

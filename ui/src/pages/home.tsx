@@ -1,4 +1,5 @@
 import { Fragment, FunctionalComponent, h } from 'preact'
+import { useMemo } from 'preact/hooks'
 import { book } from 'src/api'
 import { useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
@@ -16,6 +17,21 @@ export const Home: FunctionalComponent = () => {
 
 export const Reading: FunctionalComponent = () => {
     const books = useReading()
+    const orderedBooks = useMemo(
+        () =>
+            books?.sort((a, b) => {
+                let aUpdated = a.updated_at
+                if (a.user_book && a.user_book.updated_at > a.updated_at) {
+                    aUpdated = a.user_book?.updated_at
+                }
+                let bUpdated = b.updated_at
+                if (b.user_book && b.user_book.updated_at > b.updated_at) {
+                    bUpdated = b.user_book?.updated_at
+                }
+                return bUpdated.localeCompare(aUpdated)
+            }) ?? null,
+        [books],
+    )
     if (books?.length === 0) {
         return (
             <Fragment>
@@ -25,7 +41,7 @@ export const Reading: FunctionalComponent = () => {
         )
     }
 
-    return <BookList title='Reading' books={books} />
+    return <BookList title='Reading' books={orderedBooks} />
 }
 
 export const Latest: FunctionalComponent = () => {

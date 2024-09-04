@@ -141,7 +141,7 @@ export async function getAuthImageToken(): Promise<string | null> {
 export async function pageURL(
     model: Book | Series | Page,
     page?: number,
-    thumbnail = false,
+    { thumbnail = false, encode = false } = {},
 ): Promise<string> {
     let u: URL
     if ('url' in model) {
@@ -170,6 +170,10 @@ export async function pageURL(
     const token = await getAuthImageToken()
     if (token !== null) {
         u.searchParams.set('_token', token)
+    }
+
+    if (encode) {
+        u.searchParams.set('encode', 'true')
     }
 
     return u.toString()

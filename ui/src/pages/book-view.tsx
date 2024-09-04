@@ -469,7 +469,8 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
     onPageVisible,
     ...props
 }) => {
-    const url = usePageURL(page)
+    const [encode, setEncode] = useState(false)
+    const url = usePageURL(page, undefined, { encode })
     const img = useRef<HTMLImageElement>(null)
     useEffect(() => {
         if (onPageVisible === undefined) {
@@ -492,6 +493,9 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             }
         }
     }, [img, onPageVisible])
+    const imageError = useCallback(() => {
+        setEncode(true)
+    }, [])
     return (
         <img
             {...props}
@@ -502,6 +506,7 @@ const PageImage: FunctionalComponent<PageImageProps> = ({
             ref={img}
             src={url}
             loading='lazy'
+            onError={imageError}
         />
     )
 }

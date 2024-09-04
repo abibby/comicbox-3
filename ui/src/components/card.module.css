@@ -193,7 +193,7 @@
         @extend .vertical;
     }
 }
-@media screen and (min-height: 785px) and (max-width: 500px) {
+@media screen and (min-height: 785px) and (max-width: 1000px) {
     .scroller {
         height: 300px;
     }

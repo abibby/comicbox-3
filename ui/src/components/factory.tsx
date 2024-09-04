@@ -24,15 +24,18 @@ type EventMap<TProps extends SubComponentProps> = {
     clear: Event
 }
 
-export class Factory<TProps extends SubComponentProps = SubComponentProps> {
-    private target = new EventTarget<EventMap<TProps>, 'strict'>()
+export class Factory<
+    TProps extends SubComponentProps = SubComponentProps,
+> extends EventTarget<EventMap<TProps>, 'strict'> {
     private id = 0
 
     public constructor(
         private subComponent: ComponentType<TProps>,
         private className?: string,
         private onUpdate?: (state: TProps[]) => void,
-    ) {}
+    ) {
+        super()
+    }
 
     public Controller: FunctionalComponent = () => {
         const [alerts, setAlerts] = useState(new Map<string | number, TProps>())
@@ -79,13 +82,13 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
         }, [setAlerts2])
 
         useEffect(() => {
-            this.target.addEventListener('open', onOpen)
-            this.target.addEventListener('close', onClose)
-            this.target.addEventListener('clear', onClear)
+            this.addEventListener('open', onOpen)
+            this.addEventListener('close', onClose)
+            this.addEventListener('clear', onClear)
             return () => {
-                this.target.removeEventListener('open', onOpen)
-                this.target.removeEventListener('close', onClose)
-                this.target.removeEventListener('clear', onClear)
+                this.removeEventListener('open', onOpen)
+                this.removeEventListener('close', onClose)
+                this.removeEventListener('clear', onClear)
             }
         }, [onClear, onClose, onOpen])
 
@@ -110,25 +113,25 @@ export class Factory<TProps extends SubComponentProps = SubComponentProps> {
 
             const id2 = id ?? this.id
 
-            this.target.dispatchEvent(
+            this.dispatchEvent(
                 new OpenEvent<TProps>({
                     ...props,
                     id: id2,
                     close: (result: unknown) =>
-                        this.target.dispatchEvent(new CloseEvent(id2, result)),
+                        this.dispatchEvent(new CloseEvent(id2, result)),
                 } as unknown as TProps),
             )
             const cb = (e: CloseEvent<unknown>) => {
                 if (e.id === id2) {
                     resolve(e.result as T)
-                    this.target.removeEventListener('close', cb)
+                    this.removeEventListener('close', cb)
                 }
             }
-            this.target.addEventListener('close', cb)
+            this.addEventListener('close', cb)
         })
     }
 
     public clear = (): void => {
-        this.target.dispatchEvent(new Event('clear'))
+        this.dispatchEvent(new Event('clear'))
     }
 }

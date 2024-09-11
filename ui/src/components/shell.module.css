@@ -92,11 +92,11 @@ body {
     text-decoration: none;
     top: 5px;
     right: 0;
-    z-index: 99;
     float: right;
+    z-index: 1;
 }
 
-@media screen and (min-width: 500px) {
+@media (min-width: 500px) or (pointer: fine) {
     body {
         margin-top: 48px;
         margin-bottom: 0;

@@ -118,14 +118,17 @@
 }
 
 .scroller {
+    --card-height: 300px;
+    --card-aspect-ratio: calc(3 / 5);
+
     padding: 0 var(--padding);
     display: flex;
     flex-direction: row;
     gap: 15px;
     overflow-y: hidden;
     overflow-x: auto;
-    /* height: 300px; */
-    height: calc((100vh - 52.391px) / 2 - (3.17em + 15px));
+    height: var(--card-height);
+    min-height: 208px;
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
@@ -135,7 +138,8 @@
 }
 
 .scroller > * {
-    width: 180px;
+    min-width: 125px;
+    width: calc(var(--card-height) * var(--card-aspect-ratio));
     flex-shrink: 0;
 }
 .next,
@@ -169,6 +173,7 @@
 }
 
 .vertical .scroller {
+    height: unset;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     overflow-x: hidden;
@@ -177,25 +182,22 @@
     width: unset;
     flex-shrink: unset;
 }
+.vertical .book {
+    height: 300px;
+}
 .vertical .next,
 .vertical .previous {
     display: none;
 }
 
-@media screen and (min-width: 1000px) {
-    .scroller {
-        height: unset;
-    }
-    .book {
-        height: 300px;
-    }
+@media (min-width: 1000px) {
     .cardList:not(.horizontal) {
         @extend .vertical;
     }
 }
-@media screen and (min-height: 785px) and (max-width: 1000px) {
+@media (max-height: 785px) and (max-width: 1000px) {
     .scroller {
-        height: 300px;
+        --card-height: calc((100vh - 52.391px) / 2 - (3.17em + 17px));
     }
 }
 @media (pointer: coarse) {

@@ -3,9 +3,6 @@
 }
 
 .light {
-    --primary: 33, 150, 243;
-    --text-on-primary: 255, 255, 255;
-
     --surface: 255, 255, 255;
     --surface-hover: 34, 34, 34, 0.3;
     --text-on-surface: 34, 34, 34;
@@ -14,12 +11,13 @@
     --background: 240, 240, 240;
     --text-on-background: 0, 0, 0;
     --light-text: 170, 170, 170;
+
+    /* Buttons */
+    --default-button: 200, 200, 200;
+    --default-button-text: 0, 0, 0;
 }
 
 .dark {
-    --primary: 33, 150, 243;
-    --text-on-primary: 255, 255, 255;
-
     --surface: 60, 60, 60;
     --surface-hover: 200, 200, 200, 0.3;
     --text-on-surface: 255, 255, 255;
@@ -28,18 +26,22 @@
     --background: 0, 0, 0;
     --text-on-background: 200, 200, 200;
     --light-text: 150, 150, 150;
+
+    /* Buttons */
+    --default-button: 100, 100, 100;
+    --default-button-text: 255, 255, 255;
 }
 
 :root {
     @extend .light;
 
+    --primary: 33, 150, 243;
+    --text-on-primary: 255, 255, 255;
+
     --error-text: 255, 0, 0;
 
     --reading-background: 0, 0, 0;
 
-    /* Buttons */
-    --default-button: 200, 200, 200;
-    --default-button-text: 0, 0, 0;
     --primary-button: var(--primary);
     --primary-button-text: var(--text-on-primary);
 

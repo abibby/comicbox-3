@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { route as preactRoute } from 'preact-router'
+import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { logout, userCreateToken } from 'src/api/auth'
 import { bookSync } from 'src/api/sync'
@@ -17,8 +17,9 @@ import { Input } from 'src/components/form/input'
 import { Form } from 'src/components/form/form'
 import { Errors } from 'src/components/form/form-element'
 import { useValue } from 'src/hooks/persistent-state'
-import { bind } from '@zwzn/spicy'
-import state, { Theme } from 'src/state'
+import state from 'src/state'
+import styles from 'src/pages/settings.module.css'
+import { RadioButton, RadioButtonGroup } from 'src/components/form/radio-button'
 
 async function logoutAndRoute() {
     const accepted = await openToast(
@@ -30,7 +31,7 @@ async function logoutAndRoute() {
     )
     if (accepted) {
         await logout()
-        preactRoute('/login')
+        route('/login')
     }
 }
 
@@ -112,31 +113,35 @@ export const Settings: FunctionalComponent = () => {
      anilist login
 
      */
-    const _theme = useValue(state.theme)
+    const theme = useValue(state.theme)
     return (
-        <div>
+        <div class={styles.settings}>
             <section>
                 <h3>Account</h3>
                 <Button onClick={changePassword}>Change Password</Button>
                 <Button onClick={changeName}>Change Name</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
             </section>
+
+            <section>
+                <h3>Device Settings</h3>
+                <RadioButtonGroup
+                    name='theme'
+                    value={theme ?? ''}
+                    onInput={setTheme}
+                >
+                    <RadioButton value=''>System</RadioButton>
+                    <RadioButton value='light'>Light</RadioButton>
+                    <RadioButton value='dark'>Dark</RadioButton>
+                </RadioButtonGroup>
+                <Button onClick={clearDatabase}>Clear Database</Button>
+            </section>
             <section>
                 <h3>Admin</h3>
-                <Button onClick={clearDatabase}>Clear Database</Button>
                 <Button onClick={bookSync}>Start Scan</Button>
                 {!PUBLIC_USER_CREATE && (
                     <Button onClick={generateToken}>Invite User</Button>
                 )}
-            </section>
-
-            <section>
-                <h3>Settings</h3>
-                <ButtonGroup>
-                    <Button onClick={bind(null, setTheme)}>System</Button>
-                    <Button onClick={bind('light', setTheme)}>Light</Button>
-                    <Button onClick={bind('dark', setTheme)}>Dark</Button>
-                </ButtonGroup>
             </section>
             <section>
                 <h3>Anilist</h3>
@@ -152,6 +157,10 @@ export const Settings: FunctionalComponent = () => {
     )
 }
 
-function setTheme(theme: Theme) {
-    state.theme.value = theme
+function setTheme(theme: string) {
+    if (theme === 'light' || theme === 'dark') {
+        state.theme.value = theme
+    } else {
+        state.theme.value = null
+    }
 }

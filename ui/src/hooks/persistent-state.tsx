@@ -20,8 +20,6 @@ export class PersistentState<T> extends EventTarget implements State<T> {
     public constructor(private id: string, private _value: T) {
         super()
         void get(id, store).then(v => {
-            console.log('load', v)
-
             this._value = v
             this.dispatchEvent(new Event('change'))
         })

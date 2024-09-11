@@ -1,0 +1,31 @@
+.radioButtonGroup {
+    display: flex;
+}
+.radioButton {
+    background-color: rgb(var(--default-button));
+    color: rgba(var(--default-button-text), 0.85);
+    font-size: inherit;
+    padding: 5px 10px;
+    border: none;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    flex-grow: 1;
+    flex-basis: 0px;
+    text-align: center;
+}
+.radioButton:first-child {
+    border-start-start-radius: var(--border-radius-small);
+    border-end-start-radius: var(--border-radius-small);
+}
+.radioButton:last-child {
+    border-start-end-radius: var(--border-radius-small);
+    border-end-end-radius: var(--border-radius-small);
+}
+.radioButton input {
+    display: none;
+}
+.radioButton.active {
+    background-color: rgb(var(--primary));
+    color: rgb(var(--text-on-primary));
+}

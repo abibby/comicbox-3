@@ -157,7 +157,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
             <Form onSubmit={submit}>
                 <ModalHead close={close}>Edit Book</ModalHead>
                 <ModalBody>
-                    <TabContainer>
+                    <TabContainer class={styles.tabs}>
                         <Tab title='meta'>
                             <input type='hidden' name='tab' value='meta' />
                             <Input
@@ -275,7 +275,7 @@ interface PageThumbProps {
     onPageTypeChange: (page: number, type: string) => void
 }
 const PageThumb: FunctionalComponent<PageThumbProps> = props => {
-    const url = usePageURL(props.page, undefined, true)
+    const url = usePageURL(props.page, undefined, { thumbnail: true })
 
     return (
         <div class={styles.page}>

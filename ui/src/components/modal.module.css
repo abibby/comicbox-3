@@ -49,13 +49,14 @@
     overflow: hidden;
 }
 
-@media screen and (min-width: 500px) {
+@media (min-width: 500px) {
     .popup {
         left: 50%;
         transform: translate(-50%, 0);
         overflow: hidden;
         width: 90%;
         max-height: 100%;
+        max-width: 750px;
         margin-top: 58px;
         margin-bottom: 10px;
     }

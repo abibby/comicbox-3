@@ -69,3 +69,6 @@
 .pageTypeSelect {
     width: 100%;
 }
+.tabs {
+    max-height: calc(100vh - 290px);
+}

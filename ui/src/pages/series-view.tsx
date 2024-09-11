@@ -1,6 +1,7 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
 import { Edit, MoreHorizontal } from 'preact-feather'
+import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { book, series } from 'src/api'
 import { persist, useCached } from 'src/cache'
@@ -15,14 +16,9 @@ import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 
-interface SeriesViewProps {
-    matches?: {
-        series: string
-    }
-}
-
-export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
-    const name = props.matches?.series ?? ''
+export const SeriesView: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const name = params.series ?? ''
     const listName = `series:${name}`
     const seriesList = useCached(
         listName,

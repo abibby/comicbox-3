@@ -1,3 +1,6 @@
 {
-    "plugins": { "postcss-extend": {} }
+    "plugins": {
+        "postcss-extend-rule": {},
+        "autoprefixer": {}
+    }
 }

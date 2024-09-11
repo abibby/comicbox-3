@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { useRoute } from 'preact-iso'
 import { series } from 'src/api'
 import { listNamesMap } from 'src/api/series'
 import { useCached } from 'src/cache'
@@ -7,13 +8,9 @@ import { DB } from 'src/database'
 import { List as LList } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 
-interface ListsProps {
-    matches: {
-        list: string
-    }
-}
-export const List: FunctionalComponent<ListsProps> = props => {
-    const list = props.matches.list
+export const List: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const list = params.list ?? ''
     const s = useCached(list, { list: list }, DB.series, series.list)
 
     if (!isList(list)) {

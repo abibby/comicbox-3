@@ -1,7 +1,6 @@
 import { bind } from '@zwzn/spicy'
 import noCover from 'res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
-import { route as navigate } from 'preact-router'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { book } from 'src/api'
 import { persist, useCached } from 'src/cache'
@@ -22,16 +21,11 @@ import {
     translate,
     useMergedPages,
 } from 'src/services/book-service'
+import { useLocation, useRoute } from 'preact-iso'
 
-interface BookViewProps {
-    matches?: {
-        id: string
-        page: string
-    }
-}
-
-export const BookView: FunctionalComponent<BookViewProps> = props => {
-    const id = props.matches?.id ?? ''
+export const BookView: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const id = params.id
 
     const books = useCached(`page:${id}`, { id: id }, DB.books, book.list)
     const b = books?.[0]
@@ -41,8 +35,8 @@ export const BookView: FunctionalComponent<BookViewProps> = props => {
     }
     let sourcePage = 0
 
-    if (props.matches?.page) {
-        sourcePage = Number(props.matches.page)
+    if (params.page) {
+        sourcePage = Number(params.page)
     } else if (b.user_book?.current_page) {
         sourcePage = b.user_book.current_page
     }
@@ -56,6 +50,7 @@ interface ReaderProps {
 }
 
 const Reader: FunctionalComponent<ReaderProps> = props => {
+    const { route: navigate } = useLocation()
     const b = props.book
     const activePage = translate(b, props.sourcePage)
         .from('sourcePage')
@@ -97,7 +92,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             }
             await persist(true)
         },
-        [bookID],
+        [bookID, navigate],
     )
 
     const setMergedPage = useCallback(
@@ -129,7 +124,15 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
             await setSourcePage(newPage)
         },
-        [b, nextBookID, pages, mergedPage, previousBookID, setSourcePage],
+        [
+            mergedPage,
+            pages,
+            b,
+            setSourcePage,
+            nextBookID,
+            navigate,
+            previousBookID,
+        ],
     )
     let leftOffset = -1
     let rightOffset = +1

@@ -22,7 +22,6 @@ import {
     MoreVertical,
     CheckCircle,
 } from 'preact-feather'
-import { Link } from 'preact-router'
 
 interface CardProps {
     title: string
@@ -238,14 +237,14 @@ export const CardList: FunctionalComponent<CardListProps> = ({
             <div class={styles.header}>
                 <h3 class={styles.title}>
                     {link ? (
-                        <Link href={link}>
+                        <a href={link}>
                             {title}{' '}
                             <ChevronRight
                                 class={styles.titleLinkIcon}
                                 width='1em'
                                 height='1em'
                             />
-                        </Link>
+                        </a>
                     ) : (
                         title
                     )}

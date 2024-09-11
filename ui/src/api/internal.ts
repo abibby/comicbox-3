@@ -1,7 +1,6 @@
 import noImage from 'res/images/no-cover.svg'
 import { Mutex } from 'async-mutex'
 import { del, get, set } from 'idb-keyval'
-import { route } from 'preact-router'
 import { LoginResponse } from 'src/api/auth'
 import jwt, { JWT } from 'src/jwt'
 import { Book, Page, Series } from 'src/models'
@@ -197,7 +196,8 @@ export async function apiFetch<T>(
     const body = await response.json()
 
     if (redirectOn401 && response.status === 401) {
-        route('/login')
+        // route('/login')
+        location.href = '/login'
     }
     if (!response.ok) {
         let message = response.statusText

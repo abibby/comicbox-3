@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { route as preactRoute } from 'preact-router'
+import { useLocation } from 'preact-iso'
 import { useEffect, useState } from 'preact/hooks'
 import { anilist } from 'src/api'
 import { route } from 'src/routes'
@@ -9,6 +9,7 @@ export interface AnilistLoginProps {
 }
 
 export const AnilistLogin: FunctionalComponent<AnilistLoginProps> = props => {
+    const { route: navigate } = useLocation()
     const [err, setErr] = useState<string>()
     const code = props.code
     useEffect(() => {
@@ -19,7 +20,7 @@ export const AnilistLogin: FunctionalComponent<AnilistLoginProps> = props => {
             .login({
                 grant: code,
             })
-            .then(() => preactRoute(route('settings', {})))
+            .then(() => navigate(route('settings', {})))
             .catch(err => {
                 if (err instanceof Error) {
                     setErr(err.message)
@@ -27,6 +28,6 @@ export const AnilistLogin: FunctionalComponent<AnilistLoginProps> = props => {
                     setErr('unknown error')
                 }
             })
-    }, [code])
+    }, [code, navigate])
     return <div>{err}</div>
 }

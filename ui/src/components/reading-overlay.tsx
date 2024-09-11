@@ -1,6 +1,5 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
-import { Link } from 'preact-router'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import { EditBook } from 'src/components/book-edit'
@@ -71,13 +70,13 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                             <a onClick={edit}>Edit</a>
                         </li>
                         <li>
-                            <Link
+                            <a
                                 href={route('series.view', {
                                     series: b.series,
                                 })}
                             >
                                 {b.series}
-                            </Link>
+                            </a>
                         </li>
                     </ul>
                 </div>

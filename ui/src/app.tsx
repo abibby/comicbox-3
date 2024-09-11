@@ -1,7 +1,5 @@
 import EventTarget from 'event-target-shim'
 import { Fragment, h, render } from 'preact'
-import AsyncRoute from 'preact-async-route'
-import Router from 'preact-router'
 import { useRef } from 'preact/hooks'
 import { ToastController, clearToasts } from 'src/components/toast'
 import {
@@ -14,7 +12,8 @@ import { Error404 } from 'src/pages/errors'
 import { routes } from 'src/routes'
 import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'
-import state from './state'
+import state from 'src/state'
+import { LocationProvider, ErrorBoundary, Router, Route } from 'preact-iso'
 
 function changePage(): void {
     clearToasts()
@@ -29,20 +28,23 @@ function Main() {
             <ToastController />
             <ContextMenuController />
             <ModalController />
-            <Shell>
-                <Router onChange={changePage}>
-                    {Object.values(routes).map(r => {
-                        return (
-                            <AsyncRoute
-                                key={r.path}
-                                path={r.path}
-                                getComponent={r.component}
-                            />
-                        )
-                    })}
-                    <Error404 default />
-                </Router>
-            </Shell>
+            <LocationProvider>
+                <ErrorBoundary>
+                    <Shell>
+                        <Router onRouteChange={changePage}>
+                            {Object.values(routes)
+                                .map(r => (
+                                    <Route
+                                        key={r.path}
+                                        path={r.path}
+                                        component={r.component}
+                                    />
+                                ))
+                                .concat(<Error404 default />)}
+                        </Router>
+                    </Shell>
+                </ErrorBoundary>
+            </LocationProvider>
         </Fragment>
     )
 }

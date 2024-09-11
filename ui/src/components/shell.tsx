@@ -16,25 +16,20 @@ export const Shell: FunctionalComponent = props => {
                             <img src={logo} alt='ComicBox' />
                         </a>
                     </li>
-                    <MenuItem
-                        class={styles.home}
-                        title='Home'
-                        icon={Home}
-                        link={route('home', {})}
-                    />
+                    <MenuItem title='Home' icon={Home} link={route('home')} />
                     <MenuItem
                         title='Search'
                         icon={Search}
-                        link={route('search', {})}
+                        link={route('search')}
                     />
                     <MenuItem
                         title='Library'
                         icon={Book}
-                        link={route('library', {})}
+                        link={route('library')}
                     />
                 </ul>
             </nav>
-            <a class={styles.user} href={route('settings', {})}>
+            <a class={styles.user} href={route('settings')}>
                 AB
             </a>
             {props.children ?? <div class={styles.empty} />}

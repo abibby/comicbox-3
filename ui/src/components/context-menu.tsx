@@ -1,5 +1,4 @@
 import { FunctionalComponent, h, JSX } from 'preact'
-import { Link } from 'preact-router'
 import { useRef, useState } from 'preact/hooks'
 import styles from 'src/components/context-menu.module.css'
 import { Factory, SubComponentProps } from 'src/components/factory'
@@ -47,9 +46,9 @@ const Menu: FunctionalComponent<MenuProps> = props => {
                         }
                         return (
                             <li key={text + i}>
-                                <Link key={text} href={action}>
+                                <a key={text} href={action}>
                                     {text}
-                                </Link>
+                                </a>
                             </li>
                         )
                     }

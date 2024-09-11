@@ -1,13 +1,14 @@
 import { FunctionalComponent, h } from 'preact'
-import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { FetchError, user } from 'src/api'
 import { openToast } from 'src/components/toast'
 import { Data, Form } from 'src/components/form/form'
 import { Errors } from 'src/components/form/form-element'
 import { Input } from 'src/components/form/input'
+import { useLocation } from 'preact-iso'
 
 export const UserCreate: FunctionalComponent = () => {
+    const { route } = useLocation()
     const [errors, setErrors] = useState<Errors | undefined>(undefined)
     const submit = useCallback(
         async (data: Data) => {
@@ -48,7 +49,7 @@ export const UserCreate: FunctionalComponent = () => {
             }
             route('/login')
         },
-        [setErrors],
+        [route],
     )
 
     return (

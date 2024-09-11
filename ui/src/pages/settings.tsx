@@ -1,5 +1,4 @@
 import { FunctionalComponent, h } from 'preact'
-import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
 import { logout, userCreateToken } from 'src/api/auth'
 import { bookSync } from 'src/api/sync'
@@ -20,19 +19,23 @@ import { useValue } from 'src/hooks/persistent-state'
 import state from 'src/state'
 import styles from 'src/pages/settings.module.css'
 import { RadioButton, RadioButtonGroup } from 'src/components/form/radio-button'
+import { useLocation } from 'preact-iso'
 
-async function logoutAndRoute() {
-    const accepted = await openToast(
-        'Logging out will remove all local storage. Are you sure?',
-        {
-            no: false,
-            yes: true,
-        },
-    )
-    if (accepted) {
-        await logout()
-        route('/login')
-    }
+function useLogoutAndRoute() {
+    const { route } = useLocation()
+    return useCallback(async () => {
+        const accepted = await openToast(
+            'Logging out will remove all local storage. Are you sure?',
+            {
+                no: false,
+                yes: true,
+            },
+        )
+        if (accepted) {
+            await logout()
+            route('/login')
+        }
+    }, [route])
 }
 
 async function changePassword() {
@@ -114,6 +117,7 @@ export const Settings: FunctionalComponent = () => {
 
      */
     const theme = useValue(state.theme)
+    const logoutAndRoute = useLogoutAndRoute()
     return (
         <div class={styles.settings}>
             <section>

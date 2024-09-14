@@ -1,7 +1,7 @@
 import { Table } from 'dexie'
 import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
-import { book, series, userBook, userSeries } from 'src/api'
+import { bookAPI, seriesAPI, userBookAPI, userSeriesAPI } from 'src/api'
 import { PaginatedRequest } from 'src/api/internal'
 import { getCacheHandler } from 'src/cache/internal'
 import { openToast } from 'src/components/toast'
@@ -72,16 +72,29 @@ export async function updateList<
     invalidateCache(false)
 }
 
+export type CacheOptions<
+    T extends DBSeries | DBBook,
+    TRequest extends PaginatedRequest,
+> = {
+    listName: string
+    request: TRequest
+    table: Table<T>
+    network: (req: TRequest) => Promise<T[]>
+    promptReload?: 'always' | 'never' | 'auto'
+    wait?: boolean
+}
+
 export function useCached<
     T extends DBSeries | DBBook,
     TRequest extends PaginatedRequest,
->(
-    listName: string,
-    request: TRequest,
-    table: Table<T>,
-    network: (req: TRequest) => Promise<T[]>,
-    promptReload: 'always' | 'never' | 'auto' = 'auto',
-): T[] | null {
+>({
+    listName,
+    request,
+    table,
+    network,
+    promptReload = 'auto',
+    wait = false,
+}: CacheOptions<T, TRequest>): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
     const cache = getCacheHandler(network)
     useEventListener(
@@ -115,8 +128,10 @@ export function useCached<
     )
 
     useEffect(() => {
-        void cache(request).then(setItems)
-        void updateList(listName, request, table, network)
+        if (!wait) {
+            void cache(request).then(setItems)
+            void updateList(listName, request, table, network)
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setItems, listName, ...Object.values(request), table, network, cache])
     useEventListener(
@@ -180,7 +195,7 @@ export async function persist(
             let result: Partial<DBBook> = {}
             try {
                 if (b.update_map !== undefined) {
-                    result = await book.update(b.id, {
+                    result = await bookAPI.update(b.id, {
                         title: b.title,
                         series: b.series,
                         chapter: b.chapter,
@@ -196,7 +211,7 @@ export async function persist(
                 }
 
                 if (b.user_book?.update_map !== undefined) {
-                    result.user_book = await userBook.update(b.id, {
+                    result.user_book = await userBookAPI.update(b.id, {
                         current_page: b.user_book.current_page,
                         update_map: b.user_book.update_map,
                     })
@@ -214,17 +229,20 @@ export async function persist(
         for (const s of dirtySeries) {
             let result: Partial<DBSeries> = {}
             try {
-                result = await series.update(s.name, {
+                result = await seriesAPI.update(s.name, {
                     anilist_id: s.anilist_id,
                     update_map: s.update_map,
                 })
                 result.dirty = 0
                 if (s.user_series !== null) {
                     try {
-                        result.user_series = await userSeries.update(s.name, {
-                            list: s.user_series.list,
-                            update_map: s.user_series.update_map,
-                        })
+                        result.user_series = await userSeriesAPI.update(
+                            s.name,
+                            {
+                                list: s.user_series.list,
+                                update_map: s.user_series.update_map,
+                            },
+                        )
                     } catch (_e) {
                         hasErrors = true
                     }
@@ -271,7 +289,7 @@ export async function deleteBook(
     deleteFile = false,
     fromUserInteraction = false,
 ): Promise<void> {
-    await book.remove(b.id, { file: deleteFile })
+    await bookAPI.remove(b.id, { file: deleteFile })
     await DB.books.delete(b.id)
     invalidateCache(fromUserInteraction)
 }

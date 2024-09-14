@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useRoute } from 'preact-iso'
-import { series } from 'src/api'
+import { seriesAPI } from 'src/api'
 import { listNamesMap } from 'src/api/series'
 import { useCached } from 'src/cache'
 import { SeriesList } from 'src/components/series-list'
@@ -11,7 +11,12 @@ import { Error404 } from 'src/pages/errors'
 export const List: FunctionalComponent = () => {
     const { params } = useRoute()
     const list = params.list ?? ''
-    const s = useCached(list, { list: list }, DB.series, series.list)
+    const s = useCached({
+        listName: list,
+        request: { list: list },
+        table: DB.series,
+        network: seriesAPI.list,
+    })
 
     if (!isList(list)) {
         return <Error404 />

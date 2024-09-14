@@ -23,6 +23,22 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
     return response
 }
 
+export interface ChangePasswordRequest {
+    old_password: string
+    new_password: string
+}
+export interface ChangePasswordResponse {
+    success: boolean
+}
+export async function changePassword(
+    req: ChangePasswordRequest,
+): Promise<ChangePasswordResponse> {
+    return apiFetch<ChangePasswordResponse>('/api/user/password', {
+        method: 'POST',
+        body: JSON.stringify(req),
+    })
+}
+
 export async function logout(): Promise<void> {
     clearDatabase()
     await setAuthToken(null)

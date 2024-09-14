@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { auth, FetchError } from 'src/api'
+import { authAPI, FetchError } from 'src/api'
 import { openToast } from 'src/components/toast'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
@@ -14,7 +14,7 @@ export const Login: FunctionalComponent = () => {
     const submit = useCallback(
         async (data: Data) => {
             try {
-                await auth.login({
+                await authAPI.login({
                     username: data.get('username') ?? '',
                     password: data.get('password') ?? '',
                 })

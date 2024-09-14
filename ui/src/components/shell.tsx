@@ -12,7 +12,7 @@ export const Shell: FunctionalComponent = props => {
             <nav class={styles.nav}>
                 <ul>
                     <li class={styles.logo}>
-                        <a href={route('home', {})}>
+                        <a href={route('home')}>
                             <img src={logo} alt='ComicBox' />
                         </a>
                     </li>
@@ -32,7 +32,7 @@ export const Shell: FunctionalComponent = props => {
             <a class={styles.user} href={route('settings')}>
                 AB
             </a>
-            {props.children ?? <div class={styles.empty} />}
+            {props.children}
         </div>
     )
 }

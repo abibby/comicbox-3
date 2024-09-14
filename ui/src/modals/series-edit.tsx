@@ -1,46 +1,47 @@
-import { h } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
+import { FunctionalComponent, h } from 'preact'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
-import { AnilistMatch } from 'src/components/anilist-match'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import { Select } from 'src/components/form/select'
-import {
-    Modal,
-    ModalBody,
-    ModalComponent,
-    ModalFoot,
-    ModalHead,
-    openModal,
-} from 'src/components/modal'
+import { Modal, ModalBody, ModalFoot, ModalHead } from 'src/components/modal'
 import { DB } from 'src/database'
-import { List, Series } from 'src/models'
+import { List } from 'src/models'
+import { useModal, openModal } from 'src/components/modal-controller'
+import { useRoute } from 'preact-iso'
+import { useSeries } from 'src/hooks/series'
 
 const listOptions = [['', 'None'], ...listNames] as const
 
-type EditSeriesProps = {
-    series: Series
-}
+export const EditSeries: FunctionalComponent = () => {
+    const { close } = useModal()
 
-export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
-    series,
-    close,
-}) => {
-    const [anilistID, setAnilistID] = useState(String(series.anilist_id ?? ''))
+    const { params } = useRoute()
+    const seriesName = params.series ?? ''
+    const [series, seriesLoading] = useSeries(seriesName)
+
+    const [anilistID, setAnilistID] = useState(String(series?.anilist_id ?? ''))
     const findAnilist = useCallback(async () => {
-        if (series !== undefined) {
-            const id = await openModal(AnilistMatch, { series: series })
-            if (id === undefined) {
-                return
-            }
-            setAnilistID(String(id))
+        const modal = openModal(`/anilist-match/${seriesName}`)
+        const id = await modal.result()
+        if (id === undefined) {
+            return
         }
-    }, [series])
+
+        setAnilistID(String(id))
+    }, [seriesName])
+
+    useEffect(() => {
+        setAnilistID(String(series?.anilist_id ?? ''))
+    }, [series?.anilist_id])
 
     const submit = useCallback(
         async (data: Data) => {
+            if (!series) {
+                return
+            }
             let list: List = List.None
             const rawList = data.get('list')
             if (inEnum(List, rawList)) {
@@ -54,13 +55,29 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                 },
             })
             await persist(true)
-            close(undefined)
+            close()
         },
         [series, anilistID, close],
     )
+    if (seriesLoading) {
+        return (
+            <Modal>
+                <ModalHead>Edit Series</ModalHead>
+                <ModalBody>Loading</ModalBody>
+            </Modal>
+        )
+    }
+    if (series === null) {
+        return (
+            <Modal>
+                <ModalHead>Edit Series</ModalHead>
+                <ModalBody>Not Found</ModalBody>
+            </Modal>
+        )
+    }
     return (
         <Modal>
-            <ModalHead close={close}>Edit Book</ModalHead>
+            <ModalHead>Edit Series</ModalHead>
             <Form onSubmit={submit}>
                 <ModalBody>
                     <Select
@@ -69,15 +86,13 @@ export const EditSeries: ModalComponent<undefined, EditSeriesProps> = ({
                         value={series.user_series?.list ?? ''}
                         options={listOptions}
                     />
-                    <div class='row'>
-                        <Input
-                            title='Anilist ID'
-                            name='anilist_id'
-                            value={anilistID}
-                            onInput={setAnilistID}
-                        />
-                        <Button onClick={findAnilist}>Find Anilist ID</Button>
-                    </div>
+                    <Input
+                        title='Anilist ID'
+                        name='anilist_id'
+                        value={anilistID}
+                        onInput={setAnilistID}
+                    />
+                    <Button onClick={findAnilist}>Find Anilist ID</Button>
                 </ModalBody>
                 <ModalFoot>
                     <ButtonGroup>

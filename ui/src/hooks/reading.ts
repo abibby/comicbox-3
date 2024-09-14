@@ -1,13 +1,14 @@
 import Dexie from 'dexie'
-import { series } from 'src/api'
+import { seriesAPI } from 'src/api'
 import { useCached } from 'src/cache'
 import { setCacheHandler } from 'src/cache/internal'
 import { DB } from 'src/database'
-import { Book } from 'src/models'
+import { Book, SeriesOrder } from 'src/models'
 import { notNullish } from 'src/util'
 
 async function readingBooks(): Promise<Book[]> {
-    const s = await series.list({
+    const s = await seriesAPI.list({
+        order: SeriesOrder.LastRead,
         with_latest_book: true,
     })
     const books = s.map(s => s.latest_book).filter(notNullish)
@@ -54,6 +55,21 @@ setCacheHandler(readingBooks, async (): Promise<Book[]> => {
         .equals('reading')
         .toArray()
 
+    s.sort((a, b) => {
+        if (!a.user_series && !b.user_series) {
+            return 0
+        }
+        if (!a.user_series) {
+            return 1
+        }
+        if (!b.user_series) {
+            return -1
+        }
+        return b.user_series.last_read_at.localeCompare(
+            a.user_series.last_read_at,
+        )
+    })
+
     const bookPromises = s.map(s =>
         DB.books
             .where(['series', 'completed', 'sort'])
@@ -67,5 +83,10 @@ setCacheHandler(readingBooks, async (): Promise<Book[]> => {
 })
 
 export function useReading(): Book[] | null {
-    return useCached('reading', {}, DB.books, readingBooks)
+    return useCached({
+        listName: 'reading',
+        request: {},
+        table: DB.books,
+        network: readingBooks,
+    })
 }

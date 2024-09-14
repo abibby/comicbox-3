@@ -1,29 +1,24 @@
 import { bind, bindValue } from '@zwzn/spicy'
 import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { openToast } from 'src/components/toast'
-import styles from 'src/components/book-edit.module.css'
+import styles from 'src/modals/book-edit.module.css'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import { LazyImg } from 'src/components/lazy-img'
-import {
-    Modal,
-    ModalBody,
-    ModalComponent,
-    ModalFoot,
-    ModalHead,
-    openModal,
-} from 'src/components/modal'
+import { Modal, ModalBody, ModalFoot, ModalHead } from 'src/components/modal'
 import { Tab, TabContainer } from 'src/components/tab'
 import { DB } from 'src/database'
-import { useNextBook, usePreviousBook } from 'src/hooks/book'
+import { useBook, useNextBook, usePreviousBook } from 'src/hooks/book'
 import { usePageURL } from 'src/hooks/page'
-import { Book, Page, PageType } from 'src/models'
+import { Page, PageType } from 'src/models'
 import { PageWithIndex, mergePages } from 'src/services/book-service'
 import { Select } from 'src/components/form/select'
+import { useModal, openModal } from 'src/components/modal-controller'
+import { useRoute } from 'preact-iso'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -32,9 +27,6 @@ const pageTypeOptions: [PageType, string][] = [
     [PageType.SpreadSplit, 'Split Spread'],
     [PageType.Deleted, 'Deleted'],
 ]
-type EditBookProps = {
-    book: Book
-}
 
 const viewOptions = [
     ['ltr', 'Left to Right →'],
@@ -43,14 +35,20 @@ const viewOptions = [
     ['long_strip_rtl', 'Long Strip, Right to Left ↓ ←'],
 ] as const
 
-export const EditBook: ModalComponent<undefined, EditBookProps> = ({
-    book,
-    close,
-}) => {
+export const EditBook: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const id = params.book
+
+    const [book] = useBook(id ?? '')
+
+    const { close } = useModal()
     const previous = usePreviousBook(book)
     const next = useNextBook(book)
     const submit = useCallback(
         async (data: Data) => {
+            if (!book) {
+                return
+            }
             try {
                 switch (data.get('tab')) {
                     case 'meta':
@@ -108,14 +106,14 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                 switch (data.get('submit')) {
                     case 'next':
                         if (next) {
-                            close(undefined)
-                            await openModal(EditBook, { book: next })
+                            close()
+                            openModal(`/book/${next.id}`)
                         }
                         break
                     case 'previous':
                         if (previous) {
-                            close(undefined)
-                            await openModal(EditBook, { book: previous })
+                            close()
+                            openModal(`/book/${previous.id}`)
                         }
                         break
                 }
@@ -128,7 +126,10 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
         [book, close, next, previous],
     )
 
-    const [editedPages, setEditedPages] = useState(book.pages)
+    const [editedPages, setEditedPages] = useState(book?.pages ?? [])
+    useEffect(() => {
+        setEditedPages(book?.pages ?? [])
+    }, [book?.pages])
 
     const changePageType = useCallback(
         (page: number, type: string) => {
@@ -147,6 +148,15 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
         [setEditedPages],
     )
 
+    if (!book) {
+        return (
+            <Modal>
+                <ModalHead>Edit Book</ModalHead>
+                <ModalBody>Loading</ModalBody>
+            </Modal>
+        )
+    }
+
     let view = book.rtl ? 'rtl' : 'ltr'
     if (book.long_strip) {
         view = 'long_strip_' + view
@@ -155,7 +165,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
     return (
         <Modal>
             <Form onSubmit={submit}>
-                <ModalHead close={close}>Edit Book</ModalHead>
+                <ModalHead>Edit Book</ModalHead>
                 <ModalBody>
                     <TabContainer class={styles.tabs}>
                         <Tab title='meta'>
@@ -228,7 +238,7 @@ export const EditBook: ModalComponent<undefined, EditBookProps> = ({
                         <Button
                             type='submit'
                             name='submit'
-                            value='next'
+                            value='previous'
                             disabled={previous === undefined}
                         >
                             Previous

@@ -1,10 +1,10 @@
 import Dexie, { Collection } from 'dexie'
-import { book } from 'src/api'
+import { bookAPI } from 'src/api'
 import { setCacheHandler } from 'src/cache/internal'
 import { DB } from 'src/database'
 import { Book } from 'src/models'
 
-setCacheHandler(book.list, async (req): Promise<Book[]> => {
+setCacheHandler(bookAPI.list, async (req): Promise<Book[]> => {
     if (req.id !== undefined) {
         return DB.books.where('id').equals(req.id).toArray()
     }

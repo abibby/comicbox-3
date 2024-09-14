@@ -39,13 +39,13 @@ const Menu: FunctionalComponent<MenuProps> = props => {
         <div onClick={props.close}>
             <div class={styles.screen} />
             <ul class={styles.menu} style={listStyle} ref={menu}>
-                {props.items.map(([text, action], i) => {
+                {props.items.map(([text, action]) => {
                     if (typeof action === 'string') {
                         if (encodeURI(action) === location.pathname) {
                             return <li key={text}>{text}</li>
                         }
                         return (
-                            <li key={text + i}>
+                            <li key={text + 'link'}>
                                 <a key={text} href={action}>
                                     {text}
                                 </a>
@@ -53,7 +53,7 @@ const Menu: FunctionalComponent<MenuProps> = props => {
                         )
                     }
                     return (
-                        <li key={text} onClick={action}>
+                        <li key={text + 'click'} onClick={action}>
                             {text}
                         </li>
                     )
@@ -84,8 +84,8 @@ function getPosition(elem: Element) {
     const body = document.body
     const docEl = document.documentElement
 
-    const scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
-    const scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
+    const scrollTop = window.scrollY || docEl.scrollTop || body.scrollTop
+    const scrollLeft = window.scrollX || docEl.scrollLeft || body.scrollLeft
 
     const clientTop = docEl.clientTop || body.clientTop || 0
     const clientLeft = docEl.clientLeft || body.clientLeft || 0

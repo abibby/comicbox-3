@@ -2,7 +2,7 @@ import { bind } from '@zwzn/spicy'
 import noCover from 'res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { book } from 'src/api'
+import { bookAPI } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import classNames from 'src/classnames'
 import { Overlay } from 'src/components/reading-overlay'
@@ -27,7 +27,12 @@ export const BookView: FunctionalComponent = () => {
     const { params } = useRoute()
     const id = params.id
 
-    const books = useCached(`page:${id}`, { id: id }, DB.books, book.list)
+    const books = useCached({
+        listName: `page:${id}`,
+        request: { id: id },
+        table: DB.books,
+        network: bookAPI.list,
+    })
     const b = books?.[0]
 
     if (b === undefined) {

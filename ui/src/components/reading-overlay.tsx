@@ -1,13 +1,12 @@
-import { bindValue } from '@zwzn/spicy'
+import { bind, bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h, RefObject } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
-import { EditBook } from 'src/components/book-edit'
-import { openModal } from 'src/components/modal'
 import styles from 'src/components/reading-overlay.module.css'
 import { Book } from 'src/models'
 import { route } from 'src/routes'
 import { translate } from 'src/services/book-service'
+import { openModal } from 'src/components/modal-controller'
 
 interface OverlayProps {
     book: Book
@@ -20,9 +19,6 @@ interface OverlayProps {
 
 export const Overlay: FunctionalComponent<OverlayProps> = props => {
     const b = props.book
-    const edit = useCallback(async () => {
-        await openModal(EditBook, { book: b })
-    }, [b])
 
     const [displayPage, setDisplayPage] = useState(0)
     const sliderInput = useCallback((p: string) => {
@@ -67,7 +63,9 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                 <div class={styles.sidebar}>
                     <ul>
                         <li>
-                            <a onClick={edit}>Edit</a>
+                            <a onClick={bind(`/book/${b.id}`, openModal)}>
+                                Edit
+                            </a>
                         </li>
                         <li>
                             <a

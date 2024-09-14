@@ -1,32 +1,25 @@
 import { bind } from '@zwzn/spicy'
-import { h } from 'preact'
+import { FunctionalComponent, h } from 'preact'
+import { useRoute } from 'preact-iso'
 import { useState } from 'preact/hooks'
 import { searchManga, SearchMangaResponse } from 'src/api/anilist'
-import styles from 'src/components/anilist-match.module.css'
-import { Card } from 'src/components/card'
+import { Card, CardList } from 'src/components/card'
 import { Input } from 'src/components/form/input'
-import {
-    Modal,
-    ModalBody,
-    ModalComponent,
-    ModalHead,
-} from 'src/components/modal'
+import { Modal, ModalBody, ModalHead } from 'src/components/modal'
 import { useAsyncCallback } from 'src/hooks/async'
-import { Series } from 'src/models'
+import { useModal } from 'src/components/modal-controller'
+import { useSeries } from 'src/hooks/series'
 
-type AnilistMatchProps = {
-    series: Series
-}
-
-export const AnilistMatch: ModalComponent<
-    number | undefined,
-    AnilistMatchProps
-> = props => {
-    const seriesName = props.series.name
+export const AnilistMatch: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const { close } = useModal()
+    const seriesName = params.name ?? ''
     const [search, setSearch] = useState(seriesName)
     const result = useAsyncCallback(async () => {
         return searchManga(search)
     }, [search])
+
+    const [series] = useSeries(seriesName)
 
     let data: SearchMangaResponse[] = []
 
@@ -36,7 +29,7 @@ export const AnilistMatch: ModalComponent<
 
     return (
         <Modal>
-            <ModalHead close={props.close}>Anilist Match</ModalHead>
+            <ModalHead>Anilist Match</ModalHead>
             <ModalBody>
                 <Input
                     title='Search'
@@ -44,9 +37,9 @@ export const AnilistMatch: ModalComponent<
                     value={search}
                     onInput={setSearch}
                 />
-                <div class={styles.bookList}>
+                <CardList scroll='vertical'>
                     {data.map(r => {
-                        const current = props.series.anilist_id === r.id
+                        const current = series?.anilist_id === r.id
                         let subtitle: string = r.format
                         if (r.title.english) {
                             subtitle += ' • ' + r.title.english
@@ -60,12 +53,12 @@ export const AnilistMatch: ModalComponent<
                                 }
                                 subtitle={subtitle}
                                 image={r.coverImage.large}
-                                link={bind(r.id, props.close)}
+                                link={bind(r.id, close)}
                                 progress={current ? 1 : 0}
                             />
                         )
                     })}
-                </div>
+                </CardList>
             </ModalBody>
         </Modal>
     )

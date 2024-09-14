@@ -1,22 +1,20 @@
 import { FunctionalComponent, h } from 'preact'
 import classNames from 'src/classnames'
 import styles from 'src/components/form/form-element.module.css'
-
-export type Errors = {
-    [key: string]: string[]
-}
+import { useErrors } from 'src/components/form/form'
 
 export interface FormElementProps {
     title: string
-    errors?: Errors
     name: string
 }
 
 export const FormElement: FunctionalComponent<FormElementProps> = props => {
+    const allErrors = useErrors()
     let errors: string[] | undefined
-    if (props.errors && props.name in props.errors) {
-        errors = props.errors[props.name]
+    if (allErrors && props.name in allErrors) {
+        errors = allErrors[props.name]
     }
+
     return (
         <label
             class={classNames(styles.formElement, {

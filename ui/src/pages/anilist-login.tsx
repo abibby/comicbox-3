@@ -1,7 +1,7 @@
 import { FunctionalComponent, h } from 'preact'
 import { useLocation } from 'preact-iso'
 import { useEffect, useState } from 'preact/hooks'
-import { anilist } from 'src/api'
+import { anilistAPI } from 'src/api'
 import { route } from 'src/routes'
 
 export interface AnilistLoginProps {
@@ -16,7 +16,7 @@ export const AnilistLogin: FunctionalComponent<AnilistLoginProps> = props => {
         if (code === undefined) {
             return
         }
-        anilist
+        anilistAPI
             .login({
                 grant: code,
             })

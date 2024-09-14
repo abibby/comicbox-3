@@ -6,6 +6,15 @@
     z-index: 171;
     margin-bottom: 65px;
     max-height: calc(100dvh - env(keyboard-inset-height, 0));
+    animation: fade-in var(--transition-time);
+}
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .modal {
@@ -43,10 +52,16 @@
     right: 0;
     z-index: 170;
     background-color: rgba(0, 0, 0, 0.5);
+    animation: fade-in var(--transition-time) forwards;
 }
 
 .modalOpen {
     overflow: hidden;
+}
+
+.closing {
+    opacity: 0;
+    transition: opacity var(--transition-time);
 }
 
 @media (min-width: 500px) {

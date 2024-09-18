@@ -60,8 +60,9 @@ export default defineConfig(({ mode }): UserConfig => {
             },
         },
         server: {
+            port: env.VITE_PORT,
             proxy: {
-                '/api': env.VITE_PROXY_HOST ?? 'http://localhost:9074',
+                '/api': env.VITE_PROXY_HOST ?? 'http://localhost:8080',
             },
         },
     }

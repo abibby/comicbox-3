@@ -8,6 +8,7 @@ declare const styles: {
   readonly "example": string;
   readonly "header": string;
   readonly "horizontal": string;
+  readonly "listTitle": string;
   readonly "menu": string;
   readonly "next": string;
   readonly "placeholder": string;

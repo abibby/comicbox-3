@@ -30,7 +30,6 @@ function useLogoutAndRoute() {
     }, [route])
 }
 
-async function changeName() {}
 export const Settings: FunctionalComponent = () => {
     const generateToken = useCallback(async () => {
         const token = await userCreateToken()
@@ -62,7 +61,6 @@ export const Settings: FunctionalComponent = () => {
                 <Button onClick={bind('/change-password', openModal)}>
                     Change Password
                 </Button>
-                <Button onClick={changeName}>Change Name</Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
             </section>
 

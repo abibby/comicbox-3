@@ -55,11 +55,11 @@ a {
 .dark {
     --surface: 60, 60, 60;
     --surface-hover: 200, 200, 200, 0.3;
-    --text-on-surface: 255, 255, 255;
+    --text-on-surface: 230, 230, 230;
     --surface-box-shadow: none;
 
     --background: 0, 0, 0;
-    --text-on-background: 200, 200, 200;
+    --text-on-background: 230, 230, 230;
     --light-text: 150, 150, 150;
 
     /* Buttons */

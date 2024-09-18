@@ -13,7 +13,7 @@
     padding: 10px 20px;
 }
 .menu li:hover {
-    background-color: rgb(var(--surface-hover));
+    background-color: rgba(var(--surface-hover));
 }
 .menu li a {
     color: inherit;

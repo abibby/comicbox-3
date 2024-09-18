@@ -33,7 +33,7 @@ export interface ChangePasswordResponse {
 export async function changePassword(
     req: ChangePasswordRequest,
 ): Promise<ChangePasswordResponse> {
-    return apiFetch<ChangePasswordResponse>('/api/user/password', {
+    return apiFetch<ChangePasswordResponse>('/api/users/password', {
         method: 'POST',
         body: JSON.stringify(req),
     })

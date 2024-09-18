@@ -78,8 +78,8 @@ body {
     background-color: rgb(var(--light-text));
 }
 
-.user {
-    --size: 33px;
+.settings {
+    --size: 32px;
     display: block;
     position: absolute;
     width: var(--size);
@@ -92,8 +92,14 @@ body {
     text-decoration: none;
     top: 5px;
     right: 0;
-    float: right;
     z-index: 1;
+}
+
+.settings > svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 @media (min-width: 500px) or (pointer: fine) {
@@ -140,8 +146,10 @@ body {
         display: block;
         font-size: 1em;
     }
-    .user {
+    .settings {
         position: fixed;
+        color: inherit;
+        background: none;
         top: 10px;
         right: 10px;
         z-index: 101;

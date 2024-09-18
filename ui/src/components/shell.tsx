@@ -5,6 +5,7 @@ import { route } from 'src/routes'
 import { Book, Home, Search } from 'preact-feather'
 import 'src/variables.css'
 import { FeatherProps } from 'preact-feather/dist/types'
+import { Settings } from 'preact-feather'
 
 export const Shell: FunctionalComponent = props => {
     return (
@@ -29,8 +30,8 @@ export const Shell: FunctionalComponent = props => {
                     />
                 </ul>
             </nav>
-            <a class={styles.user} href={route('settings')}>
-                AB
+            <a class={styles.settings} href={route('settings')}>
+                <Settings />
             </a>
             {props.children}
         </div>

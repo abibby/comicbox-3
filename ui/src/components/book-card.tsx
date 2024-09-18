@@ -10,6 +10,7 @@ import { post } from 'src/message'
 import { route } from 'src/routes'
 import { openModal } from 'src/components/modal-controller'
 import { useMemo } from 'preact/hooks'
+import { encode } from 'src/util'
 
 interface BookProps {
     book: DBBook
@@ -36,7 +37,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
 
         return [
             ['view series', route('series.view', { series: book.series })],
-            ['edit', () => openModal(`/book/${book.id}`)],
+            ['edit', () => openModal(encode`/book/${book.id}`)],
             downloadOrRemove,
             ['delete', () => deleteBook(book)],
             [

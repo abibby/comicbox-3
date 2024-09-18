@@ -193,7 +193,6 @@ export async function apiFetch<T>(
     const body = await response.json()
 
     if (redirectOn401 && response.status === 401) {
-        // route('/login')
         location.href = '/login'
     }
     if (!response.ok) {

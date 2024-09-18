@@ -7,6 +7,7 @@ import { Series } from 'src/models'
 import { route } from 'src/routes'
 import { openModal } from 'src/components/modal-controller'
 import { useMemo } from 'preact/hooks'
+import { encode } from 'src/util'
 
 interface SeriesCardProps {
     series: Series
@@ -15,7 +16,7 @@ interface SeriesCardProps {
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     const menu = useMemo<ContextMenuItems>(() => {
         return [
-            ['edit', () => openModal(`/series/${props.series.name}`)],
+            ['edit', () => openModal(encode`/series/${props.series.name}`)],
             [
                 'download',
                 () =>

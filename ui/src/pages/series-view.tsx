@@ -14,6 +14,7 @@ import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
+import { encode } from 'src/util'
 
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
@@ -80,7 +81,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         if (series === undefined) {
             return
         }
-        void openModal(`/series/${series.name}`)
+        void openModal(encode`/series/${series.name}`)
     }, [series])
     const seriesName = series?.name
     const markAllRead = useCallback(async () => {

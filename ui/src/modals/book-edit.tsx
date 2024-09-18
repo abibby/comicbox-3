@@ -19,6 +19,7 @@ import { PageWithIndex, mergePages } from 'src/services/book-service'
 import { Select } from 'src/components/form/select'
 import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
+import { encode } from 'src/util'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -107,13 +108,13 @@ export const EditBook: FunctionalComponent = () => {
                     case 'next':
                         if (next) {
                             close()
-                            openModal(`/book/${next.id}`)
+                            openModal(encode`/book/${next.id}`)
                         }
                         break
                     case 'previous':
                         if (previous) {
                             close()
-                            openModal(`/book/${previous.id}`)
+                            openModal(encode`/book/${previous.id}`)
                         }
                         break
                 }

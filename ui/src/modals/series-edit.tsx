@@ -12,6 +12,7 @@ import { List } from 'src/models'
 import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { useSeries } from 'src/hooks/series'
+import { encode } from 'src/util'
 
 const listOptions = [['', 'None'], ...listNames] as const
 
@@ -24,7 +25,7 @@ export const EditSeries: FunctionalComponent = () => {
 
     const [anilistID, setAnilistID] = useState(String(series?.anilist_id ?? ''))
     const findAnilist = useCallback(async () => {
-        const modal = openModal(`/anilist-match/${seriesName}`)
+        const modal = openModal(encode`/anilist-match/${seriesName}`)
         const id = await modal.result()
         if (id === undefined) {
             return

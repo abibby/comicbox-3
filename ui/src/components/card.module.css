@@ -169,10 +169,10 @@
     display: flex;
 }
 
-.list_title {
+.listTitle {
     flex-grow: 1;
 }
-.list_title a {
+.listTitle a {
     all: unset;
     display: flex;
     align-self: center;

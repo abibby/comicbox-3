@@ -237,7 +237,7 @@ export const CardList: FunctionalComponent<CardListProps> = ({
             })}
         >
             <div class={styles.header}>
-                <h3 class={styles.list_title}>
+                <h3 class={styles.listTitle}>
                     {link ? (
                         <a href={link}>
                             {title}{' '}

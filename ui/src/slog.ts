@@ -1,4 +1,4 @@
-import { rum } from 'src/api'
+import { rumAPI } from 'src/api'
 
 interface Handler {
     /**
@@ -225,14 +225,16 @@ export class FetchHandler extends BaseHandler {
             }
         }
 
-        rum.log({
-            message: message,
-            level: levelString(level),
-            attrs: attrs,
-        }).catch(e => {
-            // eslint-disable-next-line no-console
-            console.warn('rum log failed', e)
-        })
+        rumAPI
+            .log({
+                message: message,
+                level: levelString(level),
+                attrs: attrs,
+            })
+            .catch(e => {
+                // eslint-disable-next-line no-console
+                console.warn('rum log failed', e)
+            })
     }
 }
 

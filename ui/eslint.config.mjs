@@ -56,8 +56,7 @@ export default tseslint.config(
             'react-hooks/exhaustive-deps': [
                 'warn',
                 {
-                    additionalHooks:
-                        '(useComputed|useResizeEffect|useAsyncCallback)',
+                    additionalHooks: '(useResizeEffect|useAsyncCallback)',
                 },
             ],
             'no-undef': 0,

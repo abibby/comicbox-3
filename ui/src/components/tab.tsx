@@ -6,13 +6,14 @@ import styles from 'src/components/tab.module.css'
 
 export interface TabContainerProps {
     children: VNode<TabProps>[]
+    class?: string
 }
 
 export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
     const [activeTab, setActiveTab] = useState(0)
     const tabs = props.children
     return (
-        <div class={styles.tabContainer}>
+        <div class={classNames(styles.tabContainer, props.class)}>
             <div class={styles.tabButtonList}>
                 {tabs.map((t, i) => (
                     <button
@@ -27,7 +28,7 @@ export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
                     </button>
                 ))}
             </div>
-            <div class={styles.activeTab}>{tabs[activeTab]}</div>
+            <div class={styles.body}>{tabs[activeTab]}</div>
         </div>
     )
 }

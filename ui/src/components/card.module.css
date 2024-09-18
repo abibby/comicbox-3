@@ -3,23 +3,40 @@
     overflow: hidden;
     contain: strict;
     width: 100%;
-    height: 300px;
+    height: 100%;
 }
 .book a {
+    display: grid;
+    grid-template-areas:
+        'cover    cover'
+        'title    menu'
+        'subtitle menu';
+    grid-template-rows: 1fr auto auto;
     color: inherit;
     text-decoration: inherit;
+    height: 100%;
 }
 
 .cover {
+    grid-area: cover;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius-large);
+    overflow: hidden;
+}
+
+.cover > img {
     display: flex;
     width: 100%;
-    height: 250px;
+    height: 100%;
     object-fit: cover;
     background-color: lightgrey;
     font-size: 20px;
     text-align: center;
     justify-content: center;
     align-items: center;
+    contain: size;
 }
 
 .title,
@@ -28,11 +45,18 @@
     text-overflow: ellipsis;
     overflow: hidden;
 }
+.title {
+    grid-area: title;
+    margin-top: 4px;
+}
 .subtitle {
+    grid-area: subtitle;
     color: rgb(var(--light-text));
+    margin-top: 8px;
 }
 
 .menu {
+    grid-area: menu;
     float: right;
     background: none;
     border: none;
@@ -63,9 +87,9 @@
 
 .progress {
     position: absolute;
-    top: 243px;
-    left: 0px;
-    right: 0px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 7px;
     background-color: rgb(var(--primary));
     transform: translate(calc(-100% + var(--progress) * 100%));
@@ -104,13 +128,17 @@
 }
 
 .scroller {
+    --card-height: 300px;
+    --card-aspect-ratio: calc(3 / 5);
+
     padding: 0 var(--padding);
     display: flex;
     flex-direction: row;
     gap: 15px;
     overflow-y: hidden;
     overflow-x: auto;
-    min-height: 300px;
+    height: var(--card-height);
+    min-height: 208px;
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
@@ -120,7 +148,8 @@
 }
 
 .scroller > * {
-    width: 180px;
+    min-width: 125px;
+    width: calc(var(--card-height) * var(--card-aspect-ratio));
     flex-shrink: 0;
 }
 .next,
@@ -140,10 +169,10 @@
     display: flex;
 }
 
-.title {
+.listTitle {
     flex-grow: 1;
 }
-.title a {
+.listTitle a {
     all: unset;
     display: flex;
     align-self: center;
@@ -154,6 +183,7 @@
 }
 
 .vertical .scroller {
+    height: unset;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     overflow-x: hidden;
@@ -162,24 +192,22 @@
     width: unset;
     flex-shrink: unset;
 }
+.vertical .book {
+    height: 300px;
+}
 .vertical .next,
 .vertical .previous {
     display: none;
 }
 
-@media screen and (min-width: 1000px) {
-    .cardList:not(.horizontal) .scroller {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        overflow-x: hidden;
+@media (min-width: 1000px) {
+    .cardList:not(.horizontal) {
+        @extend .vertical;
     }
-    .cardList:not(.horizontal) .scroller > * {
-        width: unset;
-        flex-shrink: unset;
-    }
-    .cardList:not(.horizontal) .next,
-    .cardList:not(.horizontal) .previous {
-        display: none;
+}
+@media (max-height: 785px) and (max-width: 1000px) {
+    .scroller {
+        --card-height: calc((100vh - 52.391px) / 2 - (3.17em + 17px));
     }
 }
 @media (pointer: coarse) {

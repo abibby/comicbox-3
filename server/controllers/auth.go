@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,7 +14,9 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/openapidoc"
+	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
 	"github.com/go-openapi/spec"
 	"github.com/golang-jwt/jwt/v4"
@@ -272,3 +275,41 @@ func withLifetime(duration time.Duration) func(claims jwt.MapClaims) jwt.MapClai
 		return claims
 	}
 }
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+
+	Ctx context.Context `inject:""`
+}
+type ChangePasswordResponse struct{}
+
+var ChangePassword = request.Handler(func(r *ChangePasswordRequest) (*ChangePasswordResponse, error) {
+	uid, ok := auth.UserID(r.Ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
+		u, err := models.UserQuery(r.Ctx).Find(tx, uid)
+		if err != nil {
+			return err
+		}
+
+		err = bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(r.OldPassword))
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return ErrUnauthorized
+		} else if err != nil {
+			return err
+		}
+
+		u.Password = []byte(r.NewPassword)
+
+		return model.SaveContext(r.Ctx, tx, u)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChangePasswordResponse{}, nil
+})

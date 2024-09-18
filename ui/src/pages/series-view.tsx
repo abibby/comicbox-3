@@ -1,35 +1,30 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
 import { Edit, MoreHorizontal } from 'preact-feather'
+import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
-import { book, series } from 'src/api'
+import { bookAPI, seriesAPI } from 'src/api'
 import { persist, useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { ButtonGroup, IconButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
-import { openModal } from 'src/components/modal'
-import { EditSeries } from 'src/components/series-edit'
+import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
+import { encode } from 'src/util'
 
-interface SeriesViewProps {
-    matches?: {
-        series: string
-    }
-}
-
-export const SeriesView: FunctionalComponent<SeriesViewProps> = props => {
-    const name = props.matches?.series ?? ''
-    const listName = `series:${name}`
-    const seriesList = useCached(
-        listName,
-        { name: name },
-        DB.series,
-        series.list,
-    )
+export const SeriesView: FunctionalComponent = () => {
+    const { params } = useRoute()
+    const name = params.series ?? ''
+    const seriesList = useCached({
+        listName: `series:${name}`,
+        request: { name: name },
+        table: DB.series,
+        network: seriesAPI.list,
+    })
 
     if (seriesList === null) {
         return <SeriesList name={name} />
@@ -51,7 +46,12 @@ interface SeriesListProps {
 const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     const listName = `series:${name}`
 
-    const books = useCached(listName, { series: name }, DB.books, book.list)
+    const books = useCached({
+        listName,
+        request: { series: name },
+        table: DB.books,
+        network: bookAPI.list,
+    })
     const [currentBooks, setCurrentBooks] = useState<Book[] | null>(null)
     const [currentBook, setCurrentBook] = useState<Book | null>(null)
     useEffect(() => {
@@ -81,9 +81,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         if (series === undefined) {
             return
         }
-        void openModal(EditSeries, {
-            series: series,
-        })
+        void openModal(encode`/series/${series.name}`)
     }, [series])
     const seriesName = series?.name
     const markAllRead = useCallback(async () => {

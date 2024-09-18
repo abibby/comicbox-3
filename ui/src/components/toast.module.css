@@ -40,14 +40,14 @@
     font-size: inherit;
 }
 
-@media screen and (min-width: 500px) {
+@media (min-width: 500px) or (pointer: fine) {
     .controller {
         flex-direction: column-reverse;
         top: unset;
-        bottom: 0;
+        top: 50px;
         left: unset;
         right: 0;
         width: 300px;
-        max-width: 100%;
+        max-width: calc(100vw - 35px);
     }
 }

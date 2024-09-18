@@ -1,10 +1,10 @@
 import Dexie, { Collection } from 'dexie'
-import { series } from 'src/api'
+import { seriesAPI } from 'src/api'
 import { setCacheHandler } from 'src/cache/internal'
 import { DB } from 'src/database'
 import { Series, SeriesOrder } from 'src/models'
 
-setCacheHandler(series.list, async (req): Promise<Series[]> => {
+setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
     let query: Collection<Series>
 
     if (req.name !== undefined) {

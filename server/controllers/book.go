@@ -100,21 +100,29 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 })
 
 type BookPageRequest struct {
-	ID   string `path:"id"   validate:"uuid"`
-	Page int    `path:"page" validate:"min:0"`
+	ID     string `path:"id"   validate:"uuid"`
+	Page   int    `path:"page" validate:"min:0"`
+	Encode bool   `query:"encode"`
 
 	Ctx context.Context `inject:""`
 }
 
-var BookPage = request.Handler(func(r *BookPageRequest) (*http.Response, error) {
+var BookPage = request.Handler(func(r *BookPageRequest) (http.Handler, error) {
 	f, err := bookPageFile(r.Ctx, r.ID, r.Page)
 	if err != nil {
 		return nil, err
 	}
 
-	return request.NewResponse(f).
-		AddHeader("Cache-Control", "max-age=3600").
-		Response, nil
+	if r.Encode {
+		defer f.Close()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			return nil, err
+		}
+		return NewJpegHandler(img, time.Hour), nil
+	}
+
+	return NewReaderHandler(f).AddHeaderCacheMaxAge(time.Hour), nil
 }).Docs(&spec.OperationProps{
 	Produces: []string{"image/jpeg", "image/png", "image/webp", "image/gif"},
 	Responses: &spec.Responses{ResponsesProps: spec.ResponsesProps{

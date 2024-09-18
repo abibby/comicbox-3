@@ -22,7 +22,6 @@ import {
     MoreVertical,
     CheckCircle,
 } from 'preact-feather'
-import { Link } from 'preact-router'
 
 interface CardProps {
     title: string
@@ -80,8 +79,10 @@ export const Card: FunctionalComponent<CardProps> = props => {
             })}
         >
             <a href={props.disabled ? undefined : href} onClick={click}>
-                <Progress progress={props.progress ?? 0} />
-                <LazyImg class={styles.cover} src={props.image} alt={alt} />
+                <div class={styles.cover}>
+                    <Progress progress={props.progress ?? 0} />
+                    <LazyImg src={props.image} alt={alt} />
+                </div>
                 <Download
                     progress={props.downloadProgress}
                     completed={props.downloaded}
@@ -236,16 +237,16 @@ export const CardList: FunctionalComponent<CardListProps> = ({
             })}
         >
             <div class={styles.header}>
-                <h3 class={styles.title}>
+                <h3 class={styles.listTitle}>
                     {link ? (
-                        <Link href={link}>
+                        <a href={link}>
                             {title}{' '}
                             <ChevronRight
                                 class={styles.titleLinkIcon}
                                 width='1em'
                                 height='1em'
                             />
-                        </Link>
+                        </a>
                     ) : (
                         title
                     )}

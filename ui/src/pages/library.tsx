@@ -1,5 +1,5 @@
 import { Fragment, h, JSX } from 'preact'
-import { series } from 'src/api'
+import { seriesAPI } from 'src/api'
 import { AllPagesRequest } from 'src/api/internal'
 import { listNames, SeriesListRequest } from 'src/api/series'
 import { useCached } from 'src/cache'
@@ -39,12 +39,12 @@ interface SeriesRowProps {
     request: AllPagesRequest<SeriesListRequest>
 }
 function SeriesRow(props: SeriesRowProps): JSX.Element {
-    const items = useCached(
-        props.listName,
-        props.request,
-        DB.series,
-        series.list,
-    )
+    const items = useCached({
+        listName: props.listName,
+        request: props.request,
+        table: DB.series,
+        network: seriesAPI.list,
+    })
     return (
         <CardList title={props.listName} link={props.href} scroll='horizontal'>
             {items?.map(s => (

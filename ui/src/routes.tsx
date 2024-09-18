@@ -1,77 +1,77 @@
 import slog from 'src/slog'
 import { Error500 } from 'src/pages/errors'
-import { h } from 'preact'
+import { AnyComponent, h } from 'preact'
+import { lazy } from 'preact-iso'
 
-function handleError(err: unknown) {
+function handleError(err: unknown): AnyComponent {
     slog.Error('failed to import page', { err: err })
-    return <Error500 error={err} />
+    // eslint-disable-next-line react/display-name
+    return () => <Error500 error={err} />
+}
+function lazyPage<T extends AnyComponent>(
+    load: () => Promise<{ default: T } | T>,
+): AnyComponent {
+    return lazy(() => load().catch(handleError))
 }
 
 export const routes = {
     home: {
         path: '/',
-        component: () =>
-            import('./pages/home').then(p => p.Home).catch(handleError),
+        component: lazyPage(() => import('./pages/home').then(p => p.Home)),
     },
     'book.view': {
         path: '/book/:id/:page?',
-        component: () =>
-            import('./pages/book-view')
-                .then(p => p.BookView)
-                .catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/book-view').then(p => p.BookView),
+        ),
     },
     list: {
         path: '/list/:list',
-        component: () =>
-            import('./pages/lists').then(p => p.List).catch(handleError),
+        component: lazyPage(() => import('./pages/lists').then(p => p.List)),
     },
     search: {
         path: '/search',
-        component: () =>
-            import('./pages/search').then(p => p.Search).catch(handleError),
+        component: lazyPage(() => import('./pages/search').then(p => p.Search)),
     },
     library: {
         path: '/library',
-        component: () =>
-            import('./pages/library').then(p => p.Library).catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/library').then(p => p.Library),
+        ),
     },
     'series.index': {
         path: '/series',
-        component: () =>
-            import('./pages/series-index')
-                .then(p => p.SeriesIndex)
-                .catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/series-index').then(p => p.SeriesIndex),
+        ),
     },
     'series.view': {
         path: '/series/:series',
-        component: () =>
-            import('./pages/series-view')
-                .then(p => p.SeriesView)
-                .catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/series-view').then(p => p.SeriesView),
+        ),
     },
     settings: {
         path: '/settings',
-        component: () =>
-            import('./pages/settings').then(p => p.Settings).catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/settings').then(p => p.Settings),
+        ),
     },
     'user.create': {
         path: '/users/create',
-        component: () =>
-            import('./pages/user-create')
-                .then(p => p.UserCreate)
-                .catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/user-create').then(p => p.UserCreate),
+        ),
     },
     'anilist.login': {
         path: '/anilist/login',
-        component: () =>
-            import('./pages/anilist-login')
-                .then(p => p.AnilistLogin)
-                .catch(handleError),
+        component: lazyPage(() =>
+            import('./pages/anilist-login').then(p => p.AnilistLogin),
+        ),
     },
     login: {
         path: '/login',
-        component: () =>
-            import('./pages/login').then(p => p.Login).catch(handleError),
+        component: lazyPage(() => import('./pages/login').then(p => p.Login)),
     },
 } as const
 
@@ -91,15 +91,26 @@ type RequiredArg<T extends string> = T extends `:${infer _Key}?`
     ? Key
     : never
 
-type RouteArgs<T extends string> = {
+type RouteParams<T extends string> = {
     [P in RequiredArg<RouteParts<T>>]: string | number
 } & {
     [P in OptionalArg<RouteParts<T>>]?: string | number
 }
 
-export function route<T extends keyof typeof routes>(
+type Routes = typeof routes
+
+type RouteName = keyof Routes
+
+type RouteArgs<T extends RouteName> = keyof RouteParams<
+    Routes[T]['path']
+> extends never
+    ? [name: T, params?: RouteParams<Routes[T]['path']>]
+    : [name: T, params: RouteParams<Routes[T]['path']>]
+
+export function route<T extends RouteName>(...args: RouteArgs<T>): string
+export function route<T extends RouteName>(
     name: T,
-    args: RouteArgs<(typeof routes)[T]['path']>,
+    args?: RouteParams<Routes[T]['path']>,
 ): string {
     const route = routes[name]
     let path: string = route.path

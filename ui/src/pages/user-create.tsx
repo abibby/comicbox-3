@@ -1,14 +1,14 @@
 import { FunctionalComponent, h } from 'preact'
-import { route } from 'preact-router'
 import { useCallback, useState } from 'preact/hooks'
-import { FetchError, user } from 'src/api'
+import { FetchError, userAPI } from 'src/api'
 import { openToast } from 'src/components/toast'
-import { Data, Form } from 'src/components/form/form'
-import { Errors } from 'src/components/form/form-element'
+import { Data, Errors, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
+import { useLocation } from 'preact-iso'
 
 export const UserCreate: FunctionalComponent = () => {
-    const [errors, setErrors] = useState<Errors | undefined>(undefined)
+    const { route } = useLocation()
+    const [errors, setErrors] = useState<Errors>()
     const submit = useCallback(
         async (data: Data) => {
             setErrors({})
@@ -26,7 +26,7 @@ export const UserCreate: FunctionalComponent = () => {
             )
 
             try {
-                await user.create(
+                await userAPI.create(
                     {
                         username: data.get('username') ?? '',
                         password: password,
@@ -48,31 +48,19 @@ export const UserCreate: FunctionalComponent = () => {
             }
             route('/login')
         },
-        [setErrors],
+        [route],
     )
 
     return (
         <div>
             <h1>Create User</h1>
-            <Form onSubmit={submit}>
-                <Input
-                    title='Username'
-                    type='text'
-                    name='username'
-                    errors={errors}
-                    focused
-                />
-                <Input
-                    title='Password'
-                    type='text'
-                    name='password'
-                    errors={errors}
-                />
+            <Form onSubmit={submit} errors={errors}>
+                <Input title='Username' type='text' name='username' focused />
+                <Input title='Password' type='text' name='password' />
                 <Input
                     title='Repeat Password'
                     type='text'
                     name='password_rep'
-                    errors={errors}
                 />
                 <button type='submit'>Create</button>
             </Form>

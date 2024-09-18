@@ -9,11 +9,7 @@ export interface SelectProps extends FormElementProps {
 
 export const Select: FunctionalComponent<SelectProps> = props => {
     return (
-        <FormElement
-            title={props.title}
-            name={props.name}
-            errors={props.errors}
-        >
+        <FormElement title={props.title} name={props.name}>
             <select name={props.name} value={props.value}>
                 {props.options.map(([value, title]) => (
                     <option key={value} value={value}>

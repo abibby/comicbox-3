@@ -4,6 +4,7 @@ declare const styles: {
   readonly "label": string;
   readonly "logo": string;
   readonly "nav": string;
+  readonly "settings": string;
   readonly "shell": string;
 };
 export = styles;

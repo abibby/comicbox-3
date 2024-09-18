@@ -80,7 +80,7 @@
     width: 75px;
 }
 
-@media screen and (min-width: 500px) {
+@media (min-width: 500px) or (pointer: fine) {
     .content {
         margin-top: 48px;
         margin-bottom: 0;

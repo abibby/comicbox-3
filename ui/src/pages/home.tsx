@@ -1,5 +1,5 @@
 import { Fragment, FunctionalComponent, h } from 'preact'
-import { book } from 'src/api'
+import { bookAPI } from 'src/api'
 import { useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { DB } from 'src/database'
@@ -16,6 +16,7 @@ export const Home: FunctionalComponent = () => {
 
 export const Reading: FunctionalComponent = () => {
     const books = useReading()
+
     if (books?.length === 0) {
         return (
             <Fragment>
@@ -29,12 +30,12 @@ export const Reading: FunctionalComponent = () => {
 }
 
 export const Latest: FunctionalComponent = () => {
-    const books = useCached(
-        'latest',
-        { limit: 15, order_by: 'created_at', order: 'desc' },
-        DB.books,
-        book.list,
-    )
+    const books = useCached({
+        listName: 'latest',
+        request: { limit: 15, order_by: 'created_at', order: 'desc' },
+        table: DB.books,
+        network: bookAPI.list,
+    })
 
     return <BookList title='Latest Books' books={books} />
 }

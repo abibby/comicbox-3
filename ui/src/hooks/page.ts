@@ -5,11 +5,13 @@ import { Book, Page, Series } from 'src/models'
 export function usePageURL(
     model: Book | Series | Page,
     page?: number,
-    thumbnail = false,
+    { thumbnail = false, encode = false } = {},
 ): string | undefined {
     const [url, setURL] = useState<string | undefined>(undefined)
     useEffect(() => {
-        void pageURL(model, page, thumbnail).then(pURL => setURL(pURL))
-    }, [model, page, thumbnail])
+        void pageURL(model, page, { thumbnail, encode }).then(pURL =>
+            setURL(pURL),
+        )
+    }, [model, page, thumbnail, encode])
     return url
 }

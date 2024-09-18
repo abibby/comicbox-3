@@ -6,6 +6,7 @@ declare const styles: {
   readonly "pageTypeSelect": string;
   readonly "rtl": string;
   readonly "spread": string;
+  readonly "tabs": string;
 };
 export = styles;
 

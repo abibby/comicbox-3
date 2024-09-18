@@ -1,7 +1,6 @@
 import noImage from 'res/images/no-cover.svg'
 import { Mutex } from 'async-mutex'
 import { del, get, set } from 'idb-keyval'
-import { route } from 'preact-router'
 import { LoginResponse } from 'src/api/auth'
 import jwt, { JWT } from 'src/jwt'
 import { Book, Page, Series } from 'src/models'
@@ -141,7 +140,7 @@ export async function getAuthImageToken(): Promise<string | null> {
 export async function pageURL(
     model: Book | Series | Page,
     page?: number,
-    thumbnail = false,
+    { thumbnail = false, encode = false } = {},
 ): Promise<string> {
     let u: URL
     if ('url' in model) {
@@ -172,6 +171,10 @@ export async function pageURL(
         u.searchParams.set('_token', token)
     }
 
+    if (encode) {
+        u.searchParams.set('encode', 'true')
+    }
+
     return u.toString()
 }
 
@@ -180,20 +183,17 @@ export async function apiFetch<T>(
     init?: RequestInit,
     redirectOn401 = true,
 ): Promise<T> {
+    init = addHeader(init, 'Accept', 'application/json')
+    init = addHeader(init, 'Content-Type', 'application/json')
     const token = await getAuthToken()
     if (token !== null) {
-        init = {
-            ...init,
-            headers: {
-                Authorization: 'Bearer ' + token,
-            },
-        }
+        init = addHeader(init, 'Authorization', 'Bearer ' + token)
     }
     const response = await fetch(input, init)
     const body = await response.json()
 
     if (redirectOn401 && response.status === 401) {
-        route('/login')
+        location.href = '/login'
     }
     if (!response.ok) {
         let message = response.statusText
@@ -203,4 +203,28 @@ export async function apiFetch<T>(
         throw new FetchError(message, response.status, body)
     }
     return body
+}
+
+function addHeader(
+    init: RequestInit | undefined,
+    name: string,
+    value: string,
+): RequestInit {
+    if (init === undefined) {
+        init = {}
+    }
+    let headers = init.headers
+    if (headers === undefined) {
+        headers = {}
+    }
+    if (headers instanceof Array) {
+        headers.push([name, value])
+    } else if (headers instanceof Headers) {
+        headers.append(name, value)
+    } else {
+        headers[name] = value
+    }
+    init.headers = headers
+
+    return init
 }

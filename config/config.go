@@ -52,6 +52,7 @@ func envInt(key string, def int) int {
 
 var (
 	AppKey              []byte
+	BaseURL             string
 	DBPath              string
 	CachePath           string
 	LibraryPath         string
@@ -76,6 +77,7 @@ func Init(ctx context.Context) error {
 		return err
 	}
 	AppKey = []byte(mustEnv("APP_KEY"))
+	BaseURL = env("BASE_URL", "")
 	DBPath = env("DB_PATH", "./db.sqlite")
 	CachePath = env("CACHE_PATH", "./cache")
 	LibraryPath = mustEnv("LIBRARY_PATH")
@@ -149,7 +151,7 @@ func (c *cfg) DBConfig() database.Config {
 
 // GetBaseURL implements Config.
 func (c *cfg) GetBaseURL() string {
-	return ""
+	return BaseURL
 }
 
 // GetHTTPPort implements Config.

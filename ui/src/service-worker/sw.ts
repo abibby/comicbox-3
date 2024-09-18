@@ -1,7 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../node_modules/@types/serviceworker/index.d.ts" />
 import assets from 'build:assets'
-import { book } from 'src/api'
+import { bookAPI } from 'src/api'
 import { persist } from 'src/cache'
 import {
     openStaticCache,
@@ -193,10 +193,10 @@ addAsyncEventListener('message', async function (event) {
 
     switch (message.type) {
         case 'download-book':
-            await cacheBooks(await book.list({ id: message.bookID }))
+            await cacheBooks(await bookAPI.list({ id: message.bookID }))
             break
         case 'download-series':
-            await cacheBooks(await book.list({ series: message.seriesName }))
+            await cacheBooks(await bookAPI.list({ series: message.seriesName }))
             break
         case 'check-update':
             await this.registration.update()

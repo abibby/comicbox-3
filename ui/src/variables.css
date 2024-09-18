@@ -2,10 +2,42 @@
     box-sizing: border-box;
 }
 
+button,
+a {
+    color: inherit;
+}
+
 :root {
+    @extend .light;
+
     --primary: 33, 150, 243;
     --text-on-primary: 255, 255, 255;
 
+    --error-text: 255, 0, 0;
+
+    --reading-background: 0, 0, 0;
+
+    --primary-button: var(--primary);
+    --primary-button-text: var(--text-on-primary);
+
+    --border-radius-small: 4px;
+    --border-radius-large: 6px;
+
+    --transition-time: 200ms;
+    --body-margins: 10px;
+
+    --bp-small: 500px;
+    --bp-medium: 1000px;
+    --bp-large: 1500px;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        @extend .dark;
+    }
+}
+
+.light {
     --surface: 255, 255, 255;
     --surface-hover: 34, 34, 34, 0.3;
     --text-on-surface: 34, 34, 34;
@@ -15,64 +47,22 @@
     --text-on-background: 0, 0, 0;
     --light-text: 170, 170, 170;
 
-    --reading-background: 0, 0, 0;
-
-    --error-text: 255, 0, 0;
-
     /* Buttons */
     --default-button: 200, 200, 200;
     --default-button-text: 0, 0, 0;
-    --primary-button: var(--primary);
-    --primary-button-text: var(--text-on-primary);
-
-    --border-radius-small: 4px;
-    --border-radius-large: 6px;
-
-    --transition-time: 200ms;
-    --body-margins: 10px;
 }
 
 .dark {
-    --primary: 33, 150, 243;
-    --text-on-primary: 255, 255, 255;
-
     --surface: 60, 60, 60;
     --surface-hover: 200, 200, 200, 0.3;
-    --text-on-surface: 255, 255, 255;
+    --text-on-surface: 230, 230, 230;
     --surface-box-shadow: none;
 
     --background: 0, 0, 0;
-    --text-on-background: 200, 200, 200;
+    --text-on-background: 230, 230, 230;
     --light-text: 150, 150, 150;
 
-    --reading-background: 0, 0, 0;
-
-    --alert-background: 51, 51, 51;
-    --alert-text: 238, 238, 238;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary: 33, 150, 243;
-        --text-on-primary: 255, 255, 255;
-
-        --surface: 60, 60, 60;
-        --surface-hover: 200, 200, 200, 0.3;
-        --text-on-surface: 255, 255, 255;
-        --surface-box-shadow: none;
-
-        --background: 0, 0, 0;
-        --text-on-background: 200, 200, 200;
-        --light-text: 150, 150, 150;
-
-        --reading-background: 0, 0, 0;
-
-        --alert-background: 51, 51, 51;
-        --alert-text: 238, 238, 238;
-    }
-}
-
-button,
-a {
-    color: inherit;
+    /* Buttons */
+    --default-button: 100, 100, 100;
+    --default-button-text: 255, 255, 255;
 }

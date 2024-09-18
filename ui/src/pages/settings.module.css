@@ -1,0 +1,12 @@
+.settings {
+    display: flex;
+    flex-direction: column;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.settings > section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}

@@ -1,6 +1,5 @@
 import { FunctionalComponent, h, JSX } from 'preact'
 import { FeatherProps } from 'preact-feather/dist/types'
-import { Link } from 'preact-router'
 import classNames from 'src/classnames'
 import styles from 'src/components/button.module.css'
 
@@ -31,9 +30,9 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
 
     if ('href' in props) {
         return (
-            <Link class={className} href={props.href}>
+            <a class={className} href={props.href}>
                 {props.children}
-            </Link>
+            </a>
         )
     }
     return (

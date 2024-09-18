@@ -21,11 +21,7 @@ export const Input: FunctionalComponent<InputProps> = props => {
     }, [props.focused])
 
     return (
-        <FormElement
-            title={props.title}
-            name={props.name}
-            errors={props.errors}
-        >
+        <FormElement title={props.title} name={props.name}>
             <input
                 type={props.type}
                 name={props.name}

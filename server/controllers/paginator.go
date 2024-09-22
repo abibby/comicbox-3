@@ -9,6 +9,7 @@ import (
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/database/model/mixins"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -41,7 +42,7 @@ func paginatedList[T model.Model](req *PaginatedRequest, query *builder.ModelBui
 	}
 
 	if req.WithDeleted {
-		query = query.WithoutGlobalScope(builder.SoftDeletes)
+		query = query.WithoutGlobalScope(mixins.SoftDeleteScope)
 	}
 
 	return salusadb.Value(req.Read, func(tx *sqlx.Tx) (*PaginatedResponse[T], error) {

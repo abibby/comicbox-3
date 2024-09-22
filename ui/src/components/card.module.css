@@ -12,6 +12,7 @@
         'title    menu'
         'subtitle menu';
     grid-template-rows: 1fr auto auto;
+    grid-template-columns: 1fr auto;
     color: inherit;
     text-decoration: inherit;
     height: 100%;
@@ -32,7 +33,7 @@
     height: 100%;
     object-fit: cover;
     background-color: lightgrey;
-    font-size: 20px;
+    font-size: 1.25rem;
     text-align: center;
     justify-content: center;
     align-items: center;
@@ -47,21 +48,22 @@
 }
 .title {
     grid-area: title;
-    margin-top: 4px;
+    margin-top: 0.25rem;
 }
 .subtitle {
     grid-area: subtitle;
     color: rgb(var(--light-text));
-    margin-top: 8px;
+    margin-top: 0.5rem;
 }
 
 .menu {
     grid-area: menu;
-    float: right;
     background: none;
     border: none;
     cursor: pointer;
-    height: 45px;
+    height: 2.5rem;
+    text-align: right;
+    padding: 0;
 }
 
 .placeholder * {
@@ -71,7 +73,7 @@
 .placeholder .title,
 .placeholder .subtitle {
     background-color: lightgrey;
-    margin-top: 3px;
+    margin-top: 0.25rem;
 }
 .placeholder .title {
     margin-right: 30%;
@@ -90,7 +92,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 7px;
+    height: 0.5rem;
     background-color: rgb(var(--primary));
     transform: translate(calc(-100% + var(--progress) * 100%));
 }
@@ -103,12 +105,12 @@
 
 .downloaded {
     position: absolute;
-    top: calc(250px - 25px - 10px);
-    right: 10px;
-    height: 25px;
-    width: 25px;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    height: 1.75rem;
+    width: 1.75rem;
     border-radius: 50%;
-    padding: 2px;
+    padding: 0.125rem;
 
     background: conic-gradient(
         white 0deg,
@@ -124,31 +126,35 @@
     --padding: var(--body-margins);
     overflow: hidden;
     position: relative;
-    margin: 0 calc(var(--padding) * -1);
+    margin: 2rem calc(var(--padding) * -1);
+}
+
+.cardList .listTitle {
+    margin: 0;
 }
 
 .scroller {
-    --card-height: 300px;
+    --card-height: 18.75rem;
     --card-aspect-ratio: calc(3 / 5);
 
     padding: 0 var(--padding);
     display: flex;
     flex-direction: row;
-    gap: 15px;
+    gap: 1rem;
     overflow-y: hidden;
     overflow-x: auto;
     height: var(--card-height);
-    min-height: 208px;
+    min-height: 13rem;
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
 }
 /* Hide scrollbar for Chrome, Safari and Opera */
-.example::-webkit-scrollbar {
+.scroller::-webkit-scrollbar {
     display: none;
 }
 
 .scroller > * {
-    min-width: 125px;
+    min-width: 7.8125rem;
     width: calc(var(--card-height) * var(--card-aspect-ratio));
     flex-shrink: 0;
 }
@@ -165,7 +171,7 @@
 }
 
 .header {
-    margin: 0 var(--padding);
+    margin: 0 var(--padding) 1rem var(--padding);
     display: flex;
 }
 
@@ -185,7 +191,7 @@
 .vertical .scroller {
     height: unset;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
     overflow-x: hidden;
 }
 .vertical .scroller > * {
@@ -193,7 +199,7 @@
     flex-shrink: unset;
 }
 .vertical .book {
-    height: 300px;
+    height: 18.75rem;
 }
 .vertical .next,
 .vertical .previous {
@@ -205,11 +211,7 @@
         @extend .vertical;
     }
 }
-@media (max-height: 785px) and (max-width: 1000px) {
-    .scroller {
-        --card-height: calc((100vh - 52.391px) / 2 - (3.17em + 17px));
-    }
-}
+
 @media (pointer: coarse) {
     .next,
     .previous {

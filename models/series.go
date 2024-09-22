@@ -33,12 +33,6 @@ var _ hooks.BeforeSaver = &Series{}
 var _ hooks.AfterLoader = &Series{}
 var _ builder.Scoper = &Series{}
 
-func (b *Series) Scopes() []*builder.Scope {
-	return []*builder.Scope{
-		builder.SoftDeletes,
-	}
-}
-
 func (s *Series) Model() *BaseModel {
 	return &s.BaseModel
 }

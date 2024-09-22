@@ -14,6 +14,7 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	salusaauth "github.com/abibby/salusa/auth"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/abibby/salusa/request"
@@ -108,12 +109,12 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 
 func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 
-	token, err := generateToken(u, withPurpose(auth.TokenAuthenticated))
+	token, err := generateToken(u, withPurpose(auth.TokenAPI))
 	if err != nil {
 		return nil, err
 	}
 
-	imageToken, err := generateToken(u, withPurpose(auth.TokenImage), allowQueryToken)
+	imageToken, err := generateToken(u, withPurpose(auth.TokenImage))
 	if err != nil {
 		return nil, err
 	}
@@ -144,136 +145,6 @@ func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, &UserCreateTokenResponse{
 		Token: token,
 	})
-}
-
-type authMiddleware struct {
-	acceptQuery bool
-	purposes    []auth.TokenPurpose
-}
-
-func AttachUserMiddleware() router.InlineMiddlewareFunc {
-	return func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-		r = attachUser(r)
-		next.ServeHTTP(w, r)
-	}
-}
-
-func AuthMiddleware(acceptQuery bool, purposes ...auth.TokenPurpose) router.Middleware {
-	return &authMiddleware{
-		acceptQuery: acceptQuery,
-		purposes:    purposes,
-	}
-}
-
-var _ router.Middleware = (*authMiddleware)(nil)
-var _ openapidoc.OperationMiddleware = (*authMiddleware)(nil)
-
-func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims, ok := auth.GetClaims(r.Context())
-		if !ok {
-			sendError(w, ErrUnauthorized)
-			return
-		}
-
-		if len(m.purposes) > 0 {
-
-			if !ok || !slices.Contains(m.purposes, claims.Purpose) {
-				sendError(w, ErrUnauthorized)
-				return
-			}
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation {
-	if s.Security == nil {
-		s.Security = []map[string][]string{}
-	}
-	securityDefinitionName := openapidoc.DefaultSecurityDefinitionName
-	if m.acceptQuery {
-		securityDefinitionName = "Query"
-	}
-	s.Security = append(s.Security, map[string][]string{
-		securityDefinitionName: {},
-	})
-	return s
-}
-
-func attachUser(r *http.Request) *http.Request {
-	tokenStr := ""
-	authHeader := r.Header.Get("Authorization")
-	usingQuery := false
-	if strings.HasPrefix(authHeader, "Bearer ") {
-		tokenStr = authHeader[7:]
-	} else {
-		tokenStr = r.URL.Query().Get("_token")
-		if tokenStr != "" {
-			usingQuery = true
-		}
-	}
-
-	if tokenStr == "" {
-		return r
-	}
-
-	claims := &auth.Claims{}
-	_, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return config.AppKey, nil
-	})
-	if err != nil {
-		slog.Error("failed to parse JWT", "err", err)
-		return r
-	}
-
-	if usingQuery != claims.Query {
-		return r
-	}
-
-	return auth.WithClaims(r, claims)
-}
-
-func generateToken(u *models.User, modifyClaims ...func(jwt.MapClaims) jwt.MapClaims) (string, error) {
-	claims := jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
-	}
-	if u != nil {
-		claims["client_id"] = u.ID
-	}
-	for _, m := range modifyClaims {
-		claims = m(claims)
-	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(config.AppKey)
-}
-
-func allowQueryToken(claims jwt.MapClaims) jwt.MapClaims {
-	claims["query"] = true
-	return claims
-}
-
-func createsUser(id uuid.UUID) func(claims jwt.MapClaims) jwt.MapClaims {
-	return func(claims jwt.MapClaims) jwt.MapClaims {
-		claims["new_client_id"] = id
-		return claims
-	}
-}
-func withPurpose(purpose auth.TokenPurpose) func(claims jwt.MapClaims) jwt.MapClaims {
-	return func(claims jwt.MapClaims) jwt.MapClaims {
-		claims["purpose"] = purpose
-		return claims
-	}
-}
-func withLifetime(duration time.Duration) func(claims jwt.MapClaims) jwt.MapClaims {
-	return func(claims jwt.MapClaims) jwt.MapClaims {
-		claims["exp"] = time.Now().Add(duration).Unix()
-		return claims
-	}
 }
 
 type ChangePasswordRequest struct {
@@ -313,3 +184,142 @@ var ChangePassword = request.Handler(func(r *ChangePasswordRequest) (*ChangePass
 
 	return &ChangePasswordResponse{}, nil
 })
+
+type authMiddleware struct {
+	acceptQuery bool
+	purposes    []auth.TokenScope
+}
+
+func AttachUserMiddleware() router.InlineMiddlewareFunc {
+	return func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		r = attachUser(r)
+		next.ServeHTTP(w, r)
+	}
+}
+
+func AuthMiddleware(acceptQuery bool, purposes ...auth.TokenScope) router.Middleware {
+	return &authMiddleware{
+		acceptQuery: acceptQuery,
+		purposes:    purposes,
+	}
+}
+
+var _ router.Middleware = (*authMiddleware)(nil)
+var _ openapidoc.OperationMiddleware = (*authMiddleware)(nil)
+
+func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := auth.GetClaims(r.Context())
+		if !ok {
+			sendError(w, ErrUnauthorized)
+			return
+		}
+
+		if len(m.purposes) > 0 {
+			for _, scope := range claims.Scope {
+				if !ok || !slices.Contains(m.purposes, auth.TokenScope(scope)) {
+					sendError(w, ErrUnauthorized)
+					return
+				}
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation {
+	if s.Security == nil {
+		s.Security = []map[string][]string{}
+	}
+	securityDefinitionName := openapidoc.DefaultSecurityDefinitionName
+	if m.acceptQuery {
+		securityDefinitionName = "Query"
+	}
+	s.Security = append(s.Security, map[string][]string{
+		securityDefinitionName: {},
+	})
+	return s
+}
+
+func attachUser(r *http.Request) *http.Request {
+	tokenStr := ""
+	authHeader := r.Header.Get("Authorization")
+	usingQuery := false
+	prefix := "Bearer "
+	if strings.HasPrefix(authHeader, prefix) {
+		tokenStr = authHeader[len(prefix):]
+	} else {
+		tokenStr = r.URL.Query().Get("_token")
+		if tokenStr != "" {
+			usingQuery = true
+		}
+	}
+
+	if tokenStr == "" {
+		return r
+	}
+
+	claims := &auth.Claims{}
+	_, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return config.AppKey, nil
+	})
+	if err != nil {
+		slog.Error("failed to parse JWT", "err", err)
+		return r
+	}
+	hasQueryScope := false
+	for _, s := range claims.Scope {
+		if auth.QueryScopes.Has(auth.TokenScope(s)) {
+			hasQueryScope = true
+		}
+	}
+	if usingQuery && !hasQueryScope {
+		return r
+	}
+
+	return auth.WithClaims(r, claims)
+}
+
+// https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+func generateToken(u *models.User, modifyClaims ...func(*auth.Claims) *auth.Claims) (string, error) {
+	now := time.Now()
+	claims := &auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject:   u.ID.String(),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
+		},
+	}
+	for _, m := range modifyClaims {
+		claims = m(claims)
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(config.AppKey)
+}
+
+func createsUser(id uuid.UUID) func(claims *auth.Claims) *auth.Claims {
+	return func(claims *auth.Claims) *auth.Claims {
+		claims.NewClientID = id
+		return claims
+	}
+}
+func withPurpose(purpose ...auth.TokenScope) func(claims *auth.Claims) *auth.Claims {
+	scopes := make(salusaauth.ScopeStrings, len(purpose))
+	for i, v := range purpose {
+		scopes[i] = string(v)
+	}
+	return func(claims *auth.Claims) *auth.Claims {
+		claims.Scope = scopes
+		return claims
+	}
+}
+func withLifetime(duration time.Duration) func(claims *auth.Claims) *auth.Claims {
+	return func(claims *auth.Claims) *auth.Claims {
+		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(duration))
+		return claims
+	}
+}

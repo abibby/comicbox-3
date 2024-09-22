@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
@@ -68,3 +70,59 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 
 	sendJSON(rw, u)
 }
+
+type UserCurrentRequest struct {
+	Ctx context.Context `inject:""`
+}
+type UserCurrentResponse struct {
+	User *models.User `json:"user"`
+}
+
+var UserCurrent = request.Handler(func(r *UserCurrentRequest) (*UserCurrentResponse, error) {
+	uid, ok := auth.UserID(r.Ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	var u *models.User
+	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
+		var err error
+		u, err = models.UserQuery(r.Ctx).Find(tx, uid)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserCurrentResponse{
+		User: u,
+	}, nil
+})
+
+type UserUpdateRequest struct {
+	Ctx context.Context `inject:""`
+}
+type UserUpdateResponse struct {
+	User *models.User `json:"user"`
+}
+
+var UserUpdate = request.Handler(func(r *UserUpdateRequest) (*UserUpdateResponse, error) {
+	uid, ok := auth.UserID(r.Ctx)
+	if !ok {
+		return nil, ErrUnauthorized
+	}
+
+	var u *models.User
+	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
+		var err error
+		u, err = models.UserQuery(r.Ctx).Find(tx, uid)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserUpdateResponse{
+		User: u,
+	}, nil
+})

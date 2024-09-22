@@ -5,7 +5,6 @@ declare const styles: {
   readonly "disabled": string;
   readonly "downloaded": string;
   readonly "end": string;
-  readonly "example": string;
   readonly "header": string;
   readonly "horizontal": string;
   readonly "listTitle": string;

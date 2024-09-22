@@ -22,6 +22,7 @@ import {
     MoreVertical,
     CheckCircle,
 } from 'preact-feather'
+import { useResizeEffect } from 'src/hooks/resize-effect'
 
 interface CardProps {
     title: string
@@ -44,7 +45,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
             e.preventDefault()
             e.stopPropagation()
             if (props.menu !== undefined) {
-                await openContextMenu(e.target, props.menu)
+                await openContextMenu(e, props.menu)
             }
         },
         [props.menu],
@@ -80,13 +81,13 @@ export const Card: FunctionalComponent<CardProps> = props => {
         >
             <a href={props.disabled ? undefined : href} onClick={click}>
                 <div class={styles.cover}>
+                    <Download
+                        progress={props.downloadProgress}
+                        completed={props.downloaded}
+                    />
                     <Progress progress={props.progress ?? 0} />
                     <LazyImg src={props.image} alt={alt} />
                 </div>
-                <Download
-                    progress={props.downloadProgress}
-                    completed={props.downloaded}
-                />
                 {props.menu && (
                     <button class={styles.menu} onClick={open}>
                         <MoreVertical />
@@ -182,6 +183,7 @@ export const CardList: FunctionalComponent<CardListProps> = ({
         if (scroller.current === null) {
             return
         }
+
         const rect = scroller.current.getBoundingClientRect()
         if (scroller.current.scrollWidth === rect.width) {
             setAtStart(true)
@@ -212,20 +214,10 @@ export const CardList: FunctionalComponent<CardListProps> = ({
     const previous = useCallback(() => {
         scrollPercent(-0.75)
     }, [scrollPercent])
-    useEffect(() => {
-        if (scroller.current === null) {
-            return
-        }
 
-        const observer = new MutationObserver(() => {
-            onScroll()
-        })
+    useResizeEffect(() => {
         onScroll()
-        observer.observe(scroller.current, { childList: true })
-        return () => {
-            observer.disconnect()
-        }
-    }, [onScroll])
+    }, [children])
 
     return (
         <div

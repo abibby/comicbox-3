@@ -128,8 +128,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     }, [name])
 
     const contextMenu = useCallback(
-        async (e: Event) => {
-            await openContextMenu(e.target, [
+        async (e: MouseEvent) => {
+            await openContextMenu(e, [
                 ['Download', downloadSeries],
                 ['Mark All Read', markAllRead],
                 ['Mark All Unread', markAllUnread],

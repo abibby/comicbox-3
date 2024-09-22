@@ -26,7 +26,6 @@ var _ builder.Scoper = &UserBook{}
 
 func (b *UserBook) Scopes() []*builder.Scope {
 	return []*builder.Scope{
-		builder.SoftDeletes,
 		UserScoped,
 	}
 }

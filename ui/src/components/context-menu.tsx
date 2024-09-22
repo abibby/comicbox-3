@@ -1,22 +1,27 @@
-import { FunctionalComponent, h, JSX } from 'preact'
+import { Fragment, FunctionalComponent, h, JSX } from 'preact'
+import { useLocation } from 'preact-iso'
 import { useRef, useState } from 'preact/hooks'
 import styles from 'src/components/context-menu.module.css'
 import { Factory, SubComponentProps } from 'src/components/factory'
 import { useResizeEffect } from 'src/hooks/resize-effect'
+import { notNullish, truthy } from 'src/util'
 
-export type ContextMenuItems = Array<[string, (() => void) | string]>
+export type ContextMenuItems = Array<
+    [string, (() => void) | string] | undefined | null | false
+>
 
 export interface MenuProps extends SubComponentProps {
     items: ContextMenuItems
-    target: Element
+    event: MouseEvent
 }
 
 const Menu: FunctionalComponent<MenuProps> = props => {
+    const loc = useLocation()
     const [listStyle, setListStyle] = useState<JSX.CSSProperties>({})
     const menu = useRef<HTMLUListElement>(null)
     useResizeEffect(() => {
         const style: JSX.CSSProperties = {}
-        const box = getPosition(props.target)
+        const box = getPosition(props.event)
         const menuWidth = menu.current?.clientWidth ?? 0
         const menuHeight = menu.current?.clientHeight ?? 0
 
@@ -34,15 +39,15 @@ const Menu: FunctionalComponent<MenuProps> = props => {
             style.top = box.top - menuHeight
         }
         setListStyle(style)
-    }, [props.target, setListStyle])
+    }, [props.event, setListStyle])
     return (
         <div onClick={props.close}>
             <div class={styles.screen} />
             <ul class={styles.menu} style={listStyle} ref={menu}>
-                {props.items.map(([text, action]) => {
+                {props.items.filter(truthy).map(([text, action]) => {
                     if (typeof action === 'string') {
-                        if (encodeURI(action) === location.pathname) {
-                            return <li key={text}>{text}</li>
+                        if (encodeURI(action) === loc.path) {
+                            return <Fragment key={text + 'matching link'} />
                         }
                         return (
                             <li key={text + 'link'}>
@@ -68,17 +73,18 @@ const contextMenu = new Factory(Menu)
 export const ContextMenuController = contextMenu.Controller
 
 export async function openContextMenu(
-    target: EventTarget | null,
+    e: MouseEvent,
     items: ContextMenuItems,
 ): Promise<void> {
     await contextMenu.open({
         items: items,
-        target: target as Element,
+        event: e,
     })
 }
 export const clearContextMenus = contextMenu.clear
 
-function getPosition(elem: Element) {
+function getPosition(e: MouseEvent) {
+    const elem = e.target as Element
     const box = elem.getBoundingClientRect()
 
     const body = document.body

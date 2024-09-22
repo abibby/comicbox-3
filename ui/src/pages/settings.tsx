@@ -5,7 +5,7 @@ import { bookSync } from 'src/api/sync'
 import { openToast } from 'src/components/toast'
 import { Button } from 'src/components/button'
 import { clearDatabase } from 'src/database'
-import { useValue } from 'src/hooks/persistent-state'
+import { useSignal } from 'src/hooks/signals'
 import state from 'src/state'
 import styles from 'src/pages/settings.module.css'
 import { RadioButton, RadioButtonGroup } from 'src/components/form/radio-button'
@@ -52,7 +52,7 @@ export const Settings: FunctionalComponent = () => {
      anilist login
 
      */
-    const theme = useValue(state.theme)
+    const theme = useSignal(state.theme)
     const logoutAndRoute = useLogoutAndRoute()
     return (
         <div class={styles.settings}>

@@ -5,6 +5,11 @@
 
 .tabButtonList {
     display: flex;
+    background-color: rgba(var(--text-on-surface), 10%);
+    padding: 100px;
+    margin: -100px;
+    padding-bottom: 0;
+    margin-bottom: 0;
 }
 .tabButton {
     border: none;
@@ -17,7 +22,7 @@
     color: inherit;
 }
 .active {
-    background-color: rgba(var(--text-on-surface), 10%);
+    background-color: rgb(var(--background));
     /* background-color: rgb(var(--default-button)); */
     /* color: rgb(var(--default-button-text)); */
     position: relative;
@@ -26,7 +31,7 @@
 .body {
     margin: 0 -10px;
     padding: 10px;
-    background-color: rgba(var(--text-on-surface), 10%);
+    /* background-color: rgba(var(--text-on-surface), 10%); */
     overflow: auto;
     border-radius: var(--border-radius-small);
 }

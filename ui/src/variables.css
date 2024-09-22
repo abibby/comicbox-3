@@ -20,11 +20,11 @@ a {
     --primary-button: var(--primary);
     --primary-button-text: var(--text-on-primary);
 
-    --border-radius-small: 4px;
-    --border-radius-large: 6px;
+    --border-radius-small: 0.25rem;
+    --border-radius-large: 0.5rem;
 
     --transition-time: 200ms;
-    --body-margins: 10px;
+    --body-margins: 0.75rem;
 
     --bp-small: 500px;
     --bp-medium: 1000px;
@@ -41,7 +41,7 @@ a {
     --surface: 255, 255, 255;
     --surface-hover: 34, 34, 34, 0.3;
     --text-on-surface: 34, 34, 34;
-    --surface-box-shadow: 0px 0px 5px #00000050;
+    --surface-box-shadow: 0 0 0.25rem #00000050;
 
     --background: 240, 240, 240;
     --text-on-background: 0, 0, 0;

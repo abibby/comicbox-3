@@ -1,6 +1,5 @@
 import { bind } from '@zwzn/spicy'
 import { Fragment, FunctionalComponent, h } from 'preact'
-import { X } from 'preact-feather'
 import styles from 'src/components/modal.module.css'
 import { useModal } from 'src/components/modal-controller'
 import classNames from 'src/classnames'
@@ -36,7 +35,7 @@ export const ModalHead: FunctionalComponent = props => {
                 type='button'
                 onClick={bind(undefined, close)}
             >
-                <X />
+                close
             </button>
         </h2>
     )

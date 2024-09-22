@@ -1,14 +1,14 @@
 .buttonGroup {
     display: flex;
-    margin: 5px 0;
-    gap: 5px;
+    margin: 0.25rem 0;
+    gap: 0.25rem;
 }
 
 .button {
     background-color: rgb(var(--default-button));
     color: rgba(var(--default-button-text), 0.85);
     font-size: inherit;
-    padding: 5px 10px;
+    padding: 0.25rem 0.75rem;
     border: none;
     font: inherit;
     text-decoration: none;
@@ -42,4 +42,8 @@
 
 .button.clear:hover:not(.disabled) {
     background-color: rgba(var(--default-button), 0.5);
+}
+
+.alignRight {
+    justify-content: end;
 }

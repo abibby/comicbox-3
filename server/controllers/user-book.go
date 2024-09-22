@@ -8,8 +8,8 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/database/model/mixins"
 	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -36,7 +36,7 @@ var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.Use
 		var err error
 		ub, err = models.UserBookQuery(r.Ctx).
 			Where("book_id", "=", r.BookID).
-			WithoutGlobalScope(builder.SoftDeletes).
+			WithoutGlobalScope(mixins.SoftDeleteScope).
 			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")

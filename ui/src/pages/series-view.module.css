@@ -3,6 +3,10 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    margin: 1rem 0;
+}
+.header > * {
+    margin: 0;
 }
 
 .actions {

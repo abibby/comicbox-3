@@ -1,5 +1,5 @@
 import { Event, EventTarget } from 'event-target-shim'
-import { ComponentType, FunctionalComponent, h } from 'preact'
+import { ComponentType, Fragment, FunctionalComponent, h } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 
 export interface SubComponentProps {
@@ -31,7 +31,6 @@ export class Factory<
 
     public constructor(
         private subComponent: ComponentType<TProps>,
-        private className?: string,
         private onUpdate?: (state: TProps[]) => void,
     ) {
         super()
@@ -94,11 +93,11 @@ export class Factory<
 
         const SubComponents = this.subComponent
         return (
-            <div class={this.className}>
+            <Fragment>
                 {Array.from(alerts).map(([key, alert]) => (
                     <SubComponents key={key} {...alert} />
                 ))}
-            </div>
+            </Fragment>
         )
     }
 

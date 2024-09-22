@@ -1,77 +1,60 @@
-import slog from 'src/slog'
-import { Error500 } from 'src/pages/errors'
-import { AnyComponent, h } from 'preact'
-import { lazy } from 'preact-iso'
-
-function handleError(err: unknown): AnyComponent {
-    slog.Error('failed to import page', { err: err })
-    // eslint-disable-next-line react/display-name
-    return () => <Error500 error={err} />
-}
-function lazyPage<T extends AnyComponent>(
-    load: () => Promise<{ default: T } | T>,
-): AnyComponent {
-    return lazy(() => load().catch(handleError))
-}
+import { Home } from './pages/home'
+import { BookView } from './pages/book-view'
+import { Library } from './pages/library'
+import { SeriesIndex } from './pages/series-index'
+import { SeriesView } from './pages/series-view'
+import { UserCreate } from './pages/user-create'
+import { AnilistLogin } from './pages/anilist-login'
+import { Login } from './pages/login'
+import { List } from './pages/lists'
+import { Search } from './pages/search'
+import { Settings } from './pages/settings'
 
 export const routes = {
     home: {
         path: '/',
-        component: lazyPage(() => import('./pages/home').then(p => p.Home)),
+        component: Home,
     },
     'book.view': {
         path: '/book/:id/:page?',
-        component: lazyPage(() =>
-            import('./pages/book-view').then(p => p.BookView),
-        ),
+        component: BookView,
     },
     list: {
         path: '/list/:list',
-        component: lazyPage(() => import('./pages/lists').then(p => p.List)),
+        component: List,
     },
     search: {
         path: '/search',
-        component: lazyPage(() => import('./pages/search').then(p => p.Search)),
+        component: Search,
     },
     library: {
-        path: '/library',
-        component: lazyPage(() =>
-            import('./pages/library').then(p => p.Library),
-        ),
+        path: '/profile',
+        component: Library,
     },
     'series.index': {
         path: '/series',
-        component: lazyPage(() =>
-            import('./pages/series-index').then(p => p.SeriesIndex),
-        ),
+        component: SeriesIndex,
     },
     'series.view': {
         path: '/series/:series',
-        component: lazyPage(() =>
-            import('./pages/series-view').then(p => p.SeriesView),
-        ),
+        component: SeriesView,
     },
     settings: {
         path: '/settings',
-        component: lazyPage(() =>
-            import('./pages/settings').then(p => p.Settings),
-        ),
+        component: Settings,
     },
     'user.create': {
         path: '/users/create',
-        component: lazyPage(() =>
-            import('./pages/user-create').then(p => p.UserCreate),
-        ),
+        component: UserCreate,
     },
     'anilist.login': {
         path: '/anilist/login',
-        component: lazyPage(() =>
-            import('./pages/anilist-login').then(p => p.AnilistLogin),
-        ),
+        component: AnilistLogin,
     },
     login: {
         path: '/login',
-        component: lazyPage(() => import('./pages/login').then(p => p.Login)),
+        noshell: true,
+        component: Login,
     },
 } as const
 
@@ -97,9 +80,9 @@ type RouteParams<T extends string> = {
     [P in OptionalArg<RouteParts<T>>]?: string | number
 }
 
-type Routes = typeof routes
-
-type RouteName = keyof Routes
+export type Routes = typeof routes
+export type RouteName = keyof Routes
+export type Route = Routes[RouteName]
 
 type RouteArgs<T extends RouteName> = keyof RouteParams<
     Routes[T]['path']

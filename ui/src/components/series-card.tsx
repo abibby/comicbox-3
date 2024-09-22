@@ -16,9 +16,9 @@ interface SeriesCardProps {
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     const menu = useMemo<ContextMenuItems>(() => {
         return [
-            ['edit', () => openModal(encode`/series/${props.series.name}`)],
+            ['Edit', () => openModal(encode`/series/${props.series.name}`)],
             [
-                'download',
+                'Download',
                 () =>
                     post({
                         type: 'download-series',

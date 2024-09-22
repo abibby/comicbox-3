@@ -1,10 +1,10 @@
 import { FunctionalComponent, h } from 'preact'
-import { deleteBook, useOnline } from 'src/cache'
+import { deleteBook, persist, useOnline } from 'src/cache'
 import { removeBookCache, useBookCached } from 'src/caches'
 import { openToast } from 'src/components/toast'
 import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
-import { DBBook } from 'src/database'
+import { DB, DBBook } from 'src/database'
 import { usePageURL } from 'src/hooks/page'
 import { post } from 'src/message'
 import { route } from 'src/routes'
@@ -22,26 +22,45 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     scrollIntoView,
 }) => {
     const [downloaded, downloadProgress] = useBookCached(book)
-    const menu = useMemo<ContextMenuItems>(() => {
-        let downloadOrRemove: [string, () => void] = [
-            'download',
-            () =>
-                post({
-                    type: 'download-book',
-                    bookID: book.id,
-                }),
-        ]
-        if (downloaded) {
-            downloadOrRemove = ['remove', () => removeBookCache(book.id)]
-        }
-
+    const menu = useMemo((): ContextMenuItems => {
+        const currentPage = book.user_book?.current_page ?? 0
         return [
-            ['view series', route('series.view', { series: book.series })],
-            ['edit', () => openModal(encode`/book/${book.id}`)],
-            downloadOrRemove,
-            ['delete', () => deleteBook(book)],
+            ['View series', route('series.view', { series: book.series })],
+            ['Edit', () => openModal(encode`/book/${book.id}/meta`)],
+            currentPage < book.page_count - 1 && [
+                'Mark as read',
+                async () => {
+                    await DB.saveBook(book, {
+                        user_book: {
+                            current_page: book.page_count - 1,
+                        },
+                    })
+                    await persist(true)
+                },
+            ],
+            currentPage > 0 && [
+                'Mark as unread',
+                async () => {
+                    await DB.saveBook(book, {
+                        user_book: {
+                            current_page: 0,
+                        },
+                    })
+                    await persist(true)
+                },
+            ],
+            !downloaded && [
+                'Download',
+                () =>
+                    post({
+                        type: 'download-book',
+                        bookID: book.id,
+                    }),
+            ],
+            downloaded && ['Remove', () => removeBookCache(book.id)],
+            ['Delete', () => deleteBook(book)],
             [
-                'delete file',
+                'Delete file',
                 async () => {
                     const shouldDelete = await openToast(
                         `Are you sure you want to delete ${book.file}?`,

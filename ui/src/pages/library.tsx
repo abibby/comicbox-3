@@ -8,10 +8,22 @@ import { SeriesCard } from 'src/components/series-card'
 import { DB } from 'src/database'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
+import styles from './library.module.css'
+import { useUser } from 'src/api/auth'
 
 export function Library(): JSX.Element {
+    const user = useUser()
+
     return (
         <Fragment>
+            <section class={styles.profile}>
+                <img
+                    class={styles.avatar}
+                    src={user?.avatar_url}
+                    alt='profile image'
+                />
+                {user?.username}
+            </section>
             {listNames.map(([list, listName]) => (
                 <SeriesRow
                     key={listName}

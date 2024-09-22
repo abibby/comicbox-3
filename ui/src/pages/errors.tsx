@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { useMemo } from 'preact/hooks'
 
 export const Error404: FunctionalComponent = () => {
     return (
@@ -16,7 +17,7 @@ export const Error500: FunctionalComponent<Error500Props> = ({ error }) => {
     return (
         <div>
             <h1>Error</h1>
-            {error}
+            {String(error)}
         </div>
     )
 }

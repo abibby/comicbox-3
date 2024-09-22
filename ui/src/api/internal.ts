@@ -1,9 +1,10 @@
 import noImage from 'res/images/no-cover.svg'
-import { Mutex } from 'async-mutex'
 import { del, get, set } from 'idb-keyval'
 import { LoginResponse } from 'src/api/auth'
-import jwt, { JWT } from 'src/jwt'
+import jwt, { Claims, JWT } from 'src/jwt'
 import { Book, Page, Series } from 'src/models'
+import { computed, signal } from '@preact/signals-core'
+import { Mutex } from 'async-mutex'
 
 export type PaginatedRequest = {
     page?: number
@@ -18,6 +19,15 @@ export interface PaginatedResponse<T> {
     page_size: number
     data: T[]
 }
+
+const tokens = signal<LoginResponse>()
+
+export const claims = computed((): Claims | undefined => {
+    if (!tokens.value) {
+        return undefined
+    }
+    return jwt.parse(tokens.value.token).claims
+})
 
 export function encodeParams(
     req: Record<string, string | number | boolean | undefined>,
@@ -75,12 +85,9 @@ export class FetchError<T> extends Error {
     }
 }
 
-let tokens: LoginResponse | undefined
-
 export async function setAuthToken(
     resp: LoginResponse | null | undefined,
 ): Promise<void> {
-    tokens = resp ?? undefined
     if (resp === null || resp === undefined) {
         await del('tokens')
     } else {
@@ -91,37 +98,40 @@ export async function setAuthToken(
 const refreshTokenMutex = new Mutex()
 
 async function getTokens(): Promise<LoginResponse | undefined> {
-    if (tokens === undefined) {
-        tokens = await get<LoginResponse>('tokens')
+    if (tokens.value === undefined) {
+        tokens.value = await get<LoginResponse>('tokens')
     }
-    if (tokens) {
+    if (tokens.value) {
         if (
-            isExpired(jwt.parse(tokens.token)) &&
-            !isExpired(jwt.parse(tokens.refresh_token))
+            isExpired(jwt.parse(tokens.value.token)) &&
+            !isExpired(jwt.parse(tokens.value.refresh_token))
         ) {
             await refreshTokenMutex.runExclusive(async () => {
-                if (tokens && isExpired(jwt.parse(tokens.token))) {
+                if (tokens.value && isExpired(jwt.parse(tokens.value.token))) {
                     try {
                         const resp = await fetch('/api/login/refresh', {
                             method: 'POST',
                             headers: {
-                                Authorization: 'Bearer ' + tokens.refresh_token,
+                                Authorization:
+                                    'Bearer ' + tokens.value.refresh_token,
                             },
                         })
 
-                        if (resp.ok) {
-                            tokens = await resp.json()
-                            await setAuthToken(tokens)
+                        if (!resp.ok) {
+                            console.warn('failed to refresh auth tokens')
+                            return
                         }
-                    } catch {
-                        // noop
+                        tokens.value = await resp.json()
+                        await setAuthToken(tokens.value)
+                    } catch (e) {
+                        console.warn(e)
                     }
                 }
             })
         }
     }
 
-    return tokens
+    return tokens.value
 }
 
 function isExpired(token: JWT): boolean {

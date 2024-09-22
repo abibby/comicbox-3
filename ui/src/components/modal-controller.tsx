@@ -1,4 +1,4 @@
-import { createContext, h, Provider, RenderableProps } from 'preact'
+import { createContext, Fragment, h, Provider, RenderableProps } from 'preact'
 import { useContext, useEffect, useRef, useState } from 'preact/hooks'
 import { LocationHook, LocationProvider, useLocation } from 'preact-iso'
 import { Modal, ModalHead } from 'src/components/modal'
@@ -128,13 +128,13 @@ export function ModalController({ children }: RenderableProps<unknown>) {
 
     const Provider = modalContext.Provider
     return (
-        <div>
+        <Fragment>
             {modals.map(value => (
                 <ModifiedLocationProvider key={value.id} value={value.location}>
                     <Provider value={value.modal}>{children}</Provider>
                 </ModifiedLocationProvider>
             ))}
-        </div>
+        </Fragment>
     )
 }
 

@@ -83,13 +83,6 @@ func BookQuery(ctx context.Context) *builder.ModelBuilder[*Book] {
 var _ hooks.BeforeSaver = &Book{}
 
 var _ hooks.AfterLoader = &Book{}
-var _ builder.Scoper = &Book{}
-
-func (b *Book) Scopes() []*builder.Scope {
-	return []*builder.Scope{
-		builder.SoftDeletes,
-	}
-}
 
 func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 	err := b.updateSeries(ctx, tx)

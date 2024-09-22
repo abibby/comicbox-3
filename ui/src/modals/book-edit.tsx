@@ -232,10 +232,7 @@ export const EditBook: FunctionalComponent = () => {
                     </TabContainer>
                 </ModalBody>
                 <ModalFoot>
-                    <ButtonGroup>
-                        <Button type='submit' color='primary'>
-                            Save
-                        </Button>
+                    <ButtonGroup alignRight>
                         <Button
                             type='submit'
                             name='submit'
@@ -251,6 +248,9 @@ export const EditBook: FunctionalComponent = () => {
                             disabled={next === undefined}
                         >
                             Next
+                        </Button>
+                        <Button type='submit' color='primary'>
+                            Save
                         </Button>
                     </ButtonGroup>
                 </ModalFoot>

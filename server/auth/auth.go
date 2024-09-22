@@ -4,25 +4,30 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/abibby/salusa/auth"
+	"github.com/abibby/salusa/clog"
+	"github.com/abibby/salusa/set"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
 
 type Claims struct {
 	jwt.RegisteredClaims
-	ClientID    uuid.UUID    `json:"client_id,omitempty"`
-	Query       bool         `json:"query,omitempty"`
-	Purpose     TokenPurpose `json:"purpose,omitempty"`
-	NewClientID uuid.UUID    `json:"new_client_id,omitempty"`
+	Scope       auth.ScopeStrings `json:"scope,omitempty"`
+	NewClientID uuid.UUID         `json:"new_client_id,omitempty"`
 }
 
-type TokenPurpose string
+type TokenScope string
 
 const (
-	TokenAuthenticated = TokenPurpose("authenticated")
-	TokenRefresh       = TokenPurpose("refresh")
-	TokenImage         = TokenPurpose("image")
+	TokenAPI     = TokenScope("api")
+	TokenRefresh = TokenScope("refresh")
+	TokenImage   = TokenScope("image")
 )
+
+var QueryScopes = set.Set[TokenScope]{
+	TokenImage: struct{}{},
+}
 
 type contextKey uint8
 
@@ -35,7 +40,12 @@ func UserID(ctx context.Context) (uuid.UUID, bool) {
 	if !ok {
 		return uuid.UUID{}, false
 	}
-	return c.ClientID, true
+	id, err := uuid.Parse(c.Subject)
+	if err != nil {
+		clog.Use(ctx).Warn("Failed to parse JWT subject", "err", err)
+		return uuid.UUID{}, false
+	}
+	return id, true
 }
 func GetClaims(ctx context.Context) (*Claims, bool) {
 	iClaims := ctx.Value(claimsKey)

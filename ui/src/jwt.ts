@@ -4,14 +4,14 @@ export interface Headers {
 }
 
 export interface Claims {
-    client_id: string
     iss?: string // Issuer Claim
-    sub?: string // Subject Claim
+    sub: string // Subject Claim
     aud?: string // Audience Claim
-    exp?: string // Expiration Time Claim
+    exp: string // Expiration Time Claim
     nbf?: string // Not Before Claim
-    iat?: string // Issued At Claim
+    iat: string // Issued At Claim
     jti?: string // JWT ID Claim
+    scope: string
 }
 
 export interface JWT {

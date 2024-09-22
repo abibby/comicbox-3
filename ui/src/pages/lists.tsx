@@ -1,4 +1,4 @@
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { useRoute } from 'preact-iso'
 import { seriesAPI } from 'src/api'
 import { listNamesMap } from 'src/api/series'
@@ -23,10 +23,10 @@ export const List: FunctionalComponent = () => {
     }
 
     return (
-        <div>
+        <Fragment>
             <h1>{listNamesMap.get(list)}</h1>
             <SeriesList scroll='vertical' series={s ?? []} />
-        </div>
+        </Fragment>
     )
 }
 

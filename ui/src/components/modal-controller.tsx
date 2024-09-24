@@ -2,6 +2,7 @@ import { createContext, Fragment, h, Provider, RenderableProps } from 'preact'
 import { useContext, useEffect, useRef, useState } from 'preact/hooks'
 import { LocationHook, LocationProvider, useLocation } from 'preact-iso'
 import { Modal, ModalHead } from 'src/components/modal'
+import styles from './modal.module.css'
 
 const MODAL_QUERY = 'm'
 
@@ -91,19 +92,12 @@ export function ModalController({ children }: RenderableProps<unknown>) {
                     }),
                 )
 
+                let transitionDuration = getTransitionTime()
+
+                // CSSStyleValue.parse('transition-duration', tt)
                 setTimeout(() => {
-                    setModals(m => {
-                        const url = new URL(location.href)
-                        url.searchParams.getAll(MODAL_QUERY)
-                        url.searchParams.delete(MODAL_QUERY)
-                        const final = m.filter(m => m.id !== e.id)
-                        for (const m of final) {
-                            url.searchParams.append(MODAL_QUERY, m.modal.path)
-                        }
-                        history.replaceState(null, '', url.href)
-                        return final
-                    })
-                }, 250)
+                    setModals(m => m.filter(m => m.id !== e.id))
+                }, transitionDuration + 50)
             }
         }
 
@@ -119,7 +113,24 @@ export function ModalController({ children }: RenderableProps<unknown>) {
         for (const path of paths) {
             void openModalWithoutPath(path)
         }
+        return () => {
+            setModals([])
+        }
     }, [])
+
+    useEffect(() => {
+        if (modals.length > 0) {
+            document.body.classList.add(styles.modalOpen)
+        } else {
+            document.body.classList.remove(styles.modalOpen)
+        }
+        const url = new URL(location.href)
+        url.searchParams.delete(MODAL_QUERY)
+        for (const m of modals) {
+            url.searchParams.append(MODAL_QUERY, m.modal.path)
+        }
+        history.replaceState(null, '', url.href)
+    }, [modals])
 
     const ModifiedLocationProvider: Provider<LocationHook> =
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -179,4 +190,13 @@ export function DefaultModal() {
             <ModalHead>Not Found</ModalHead>
         </Modal>
     )
+}
+
+function getTransitionTime() {
+    const tt = CSSStyleValue.parse(
+        'transition-duration',
+        getComputedStyle(document.body).getPropertyValue('--transition-time'),
+    ) as CSSUnitValue
+
+    return tt.to('ms').value
 }

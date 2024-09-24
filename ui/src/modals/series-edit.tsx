@@ -6,7 +6,12 @@ import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import { Select } from 'src/components/form/select'
-import { Modal, ModalBody, ModalFoot, ModalHead } from 'src/components/modal'
+import {
+    Modal,
+    ModalBody,
+    ModalHead,
+    ModalHeadActions,
+} from 'src/components/modal'
 import { DB } from 'src/database'
 import { List } from 'src/models'
 import { useModal, openModal } from 'src/components/modal-controller'
@@ -78,8 +83,13 @@ export const EditSeries: FunctionalComponent = () => {
     }
     return (
         <Modal>
-            <ModalHead>Edit Series</ModalHead>
             <Form onSubmit={submit}>
+                <ModalHead>
+                    Edit Series
+                    <ModalHeadActions>
+                        <button type='submit'>save</button>
+                    </ModalHeadActions>
+                </ModalHead>
                 <ModalBody>
                     <Select
                         title='List'
@@ -95,13 +105,6 @@ export const EditSeries: FunctionalComponent = () => {
                     />
                     <Button onClick={findAnilist}>Find Anilist ID</Button>
                 </ModalBody>
-                <ModalFoot>
-                    <ButtonGroup>
-                        <Button type='submit' color='primary'>
-                            Save
-                        </Button>
-                    </ButtonGroup>
-                </ModalFoot>
             </Form>
         </Modal>
     )

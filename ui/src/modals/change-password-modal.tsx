@@ -4,7 +4,12 @@ import { changePassword } from 'src/api/auth'
 import { Button, ButtonGroup } from 'src/components/button'
 import { Errors, Form, GlobalErrors } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
-import { Modal, ModalBody, ModalFoot, ModalHead } from 'src/components/modal'
+import {
+    Modal,
+    ModalBody,
+    ModalHead,
+    ModalHeadActions,
+} from 'src/components/modal'
 import { useModal } from 'src/components/modal-controller'
 
 export function ChangePasswordModal() {
@@ -36,7 +41,12 @@ export function ChangePasswordModal() {
     return (
         <Modal>
             <Form onSubmit={save} errors={errors}>
-                <ModalHead>Change Password</ModalHead>
+                <ModalHead>
+                    Change Password
+                    <ModalHeadActions>
+                        <button type='submit'>save</button>
+                    </ModalHeadActions>
+                </ModalHead>
                 <ModalBody>
                     <GlobalErrors />
                     <Input
@@ -61,11 +71,6 @@ export function ChangePasswordModal() {
                         onInput={setNewPassword2}
                     />
                 </ModalBody>
-                <ModalFoot>
-                    <ButtonGroup>
-                        <Button type='submit'>Save</Button>
-                    </ButtonGroup>
-                </ModalFoot>
             </Form>
         </Modal>
     )

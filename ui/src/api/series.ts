@@ -21,7 +21,8 @@ export type SeriesListRequest = PaginatedRequest & {
     name?: string
     list?: string
     with_latest_book?: boolean
-    order?: SeriesOrder
+    order_by?: SeriesOrder
+    order?: 'asc' | 'desc'
 }
 
 export async function listPaged(

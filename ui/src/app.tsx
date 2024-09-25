@@ -1,4 +1,4 @@
-import { h, render } from 'preact'
+import { Component, ErrorInfo, h, render } from 'preact'
 import { ToastController, clearToasts } from 'src/components/toast'
 import {
     clearContextMenus,
@@ -11,15 +11,14 @@ import { Route as RouteDef, routes } from 'src/routes'
 import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'
 import state from 'src/state'
-import { LocationProvider, Router, Route, ErrorBoundary } from 'preact-iso'
+import { LocationProvider, Router, Route } from 'preact-iso'
 import { ChangePasswordModal } from 'src/modals/change-password-modal'
 import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
 import { AnilistMatch } from 'src/modals/anilist-match'
+import { ErrorBoundary } from './components/error-boundry'
 
 function changePage(): void {
-    console.log('changePath', arguments)
-
     clearToasts()
     clearContextMenus()
 }

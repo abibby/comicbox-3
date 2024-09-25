@@ -24,14 +24,12 @@ type User struct {
 	AnilistGrant     *nulls.String  `json:"-"          db:"anilist_grant"`
 	AnilistToken     *nulls.String  `json:"-"          db:"anilist_token"`
 	AnilistExpiresAt *database.Time `json:"-"          db:"anilist_expires_at"`
-	AvatarURL        string         `json:"avatar_url" db:"-"`
 	// RoleID           *nulls.Int     `json:"-"        db:"role_id"`
 
 	// Role *builder.BelongsTo[*Role] `json:"role"`
 }
 
 var _ hooks.BeforeSaver = &User{}
-var _ hooks.AfterLoader = &User{}
 
 type UserList []*User
 
@@ -49,13 +47,6 @@ func (u *User) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	}
 
 	u.Username = strings.ToLower(u.Username)
-
-	return nil
-}
-
-func (u *User) AfterLoad(ctx context.Context, tx salusadb.DB) error {
-	// u.AvatarURL = router.MustURL(ctx, "user.avatar", "id", u.ID.String())
-	u.AvatarURL = "https://gravatar.com/avatar/27205e5c51cb03f862138b22bcb5dc20f94a342e744ff6df1b8dc8af3c865109?default=identicon&f=y&s=200"
 
 	return nil
 }

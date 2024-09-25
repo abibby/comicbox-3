@@ -1,15 +1,18 @@
 import { Fragment, FunctionalComponent, h } from 'preact'
-import { bookAPI } from 'src/api'
+import { bookAPI, seriesAPI } from 'src/api'
 import { useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
+import { SeriesList } from 'src/components/series-list'
 import { DB } from 'src/database'
 import { useReading } from 'src/hooks/reading'
+import { SeriesOrder } from 'src/models'
 
 export const Home: FunctionalComponent = () => {
     return (
         <Fragment>
             <Reading />
             <Latest />
+            <NewSeries />
         </Fragment>
     )
 }
@@ -38,4 +41,15 @@ export const Latest: FunctionalComponent = () => {
     })
 
     return <BookList title='Latest Books' books={books} />
+}
+
+export const NewSeries: FunctionalComponent = () => {
+    const series = useCached({
+        listName: 'latest',
+        request: { limit: 15, order_by: SeriesOrder.CreatedAt, order: 'desc' },
+        table: DB.series,
+        network: seriesAPI.list,
+    })
+
+    return <SeriesList title='Latest Series' series={series} />
 }

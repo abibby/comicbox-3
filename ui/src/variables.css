@@ -1,10 +1,23 @@
+:where(:not(svg):not(svg *)) {
+    all: unset;
+    display: revert;
+}
 * {
     box-sizing: border-box;
 }
 
+head,
+link,
+meta,
+script,
+style,
+title {
+    display: none;
+}
+
 button,
 a {
-    color: inherit;
+    cursor: pointer;
 }
 
 :root {
@@ -24,11 +37,16 @@ a {
     --border-radius-large: 0.5rem;
 
     --transition-time: 200ms;
-    --body-margins: 0.75rem;
+    --body-margins: 0.5rem;
+    --nav-height: 2.75rem;
 
     --bp-small: 500px;
     --bp-medium: 1000px;
     --bp-large: 1500px;
+
+    --font-size-regular: 1rem;
+    --font-size-medium: 1.125rem;
+    --font-size-large: 1.25rem;
 }
 
 @media (prefers-color-scheme: dark) {

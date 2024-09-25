@@ -10,9 +10,9 @@
 
 .spread {
     display: flex;
-    background-color: rgb(var(--surface));
-    color: rgb(var(--text-on-surface));
-    box-shadow: var(--surface-box-shadow);
+    background-color: rgb(var(--background));
+    color: rgb(var(--text-on-background));
+    box-shadow: var(--background-box-shadow);
     border-radius: var(--border-radius-small);
     padding: 5px;
 }

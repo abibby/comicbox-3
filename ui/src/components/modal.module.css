@@ -110,7 +110,7 @@
 
 .bodyTitle {
     all: unset;
-    font-size: 1.5rem;
+    font-size: var(--font-size-large);
     padding: 0.5rem 1.25rem;
 }
 

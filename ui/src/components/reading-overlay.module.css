@@ -55,9 +55,7 @@
     overflow: hidden;
 }
 .sidebar li a {
-    color: inherit;
-    text-decoration: none;
-    cursor: pointer;
+    display: inline;
 }
 
 .slider {

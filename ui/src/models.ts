@@ -48,7 +48,6 @@ export interface User {
     update_map: Record<string, string>
     id: string
     username: string
-    avatar_url: string
 }
 export interface UserBook {
     created_at: string
@@ -81,6 +80,7 @@ export enum List {
     Reading = "reading",
 }
 export enum SeriesOrder {
+    CreatedAt = "created_at",
     LastRead = "last-read",
     Name = "name",
 }

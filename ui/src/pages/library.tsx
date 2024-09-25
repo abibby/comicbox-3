@@ -10,19 +10,14 @@ import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
 import styles from './library.module.css'
 import { useUser } from 'src/api/auth'
+import { Button } from 'src/components/button'
 
 export function Library(): JSX.Element {
-    const user = useUser()
-
     return (
         <Fragment>
             <section class={styles.profile}>
-                <img
-                    class={styles.avatar}
-                    src={user?.avatar_url}
-                    alt='profile image'
-                />
-                {user?.username}
+                <h1>My Profile</h1>
+                <Button href={route('settings')}>Settings</Button>
             </section>
             {listNames.map(([list, listName]) => (
                 <SeriesRow
@@ -32,14 +27,14 @@ export function Library(): JSX.Element {
                     request={{
                         list: list,
                         limit: 10,
-                        order: SeriesOrder.LastRead,
+                        order_by: SeriesOrder.LastRead,
                     }}
                 />
             ))}
             <SeriesRow
                 listName='All Series'
-                href={route('series.index', {})}
-                request={{ limit: 10, order: SeriesOrder.LastRead }}
+                href={route('series.index')}
+                request={{ limit: 10, order_by: SeriesOrder.LastRead }}
             />
         </Fragment>
     )

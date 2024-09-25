@@ -173,10 +173,13 @@
 .header {
     margin: 0 var(--padding) 1rem var(--padding);
     display: flex;
+    align-items: center;
 }
 
 .listTitle {
     flex-grow: 1;
+    font-size: var(--font-size-medium);
+    align-items: center;
 }
 .listTitle a {
     all: unset;

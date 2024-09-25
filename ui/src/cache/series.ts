@@ -10,7 +10,7 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
     if (req.name !== undefined) {
         query = DB.series.where('name').equals(req.name)
     } else if (req.list !== undefined) {
-        if (req.order == SeriesOrder.LastRead) {
+        if (req.order_by == SeriesOrder.LastRead) {
             query = DB.series
                 .where(['user_series.list', 'user_series.last_read_at'])
                 .between([req.list, Dexie.minKey], [req.list, Dexie.maxKey])
@@ -19,7 +19,18 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
             query = DB.series.where('user_series.list').equals(req.list)
         }
     } else {
-        query = DB.series.orderBy('name')
+        let orderColumn = 'name'
+        switch (req.order_by) {
+            case SeriesOrder.LastRead:
+                orderColumn = 'user_series.last_read_at'
+            case SeriesOrder.CreatedAt:
+                orderColumn = 'created_at'
+        }
+        if (req.order === 'desc') {
+            query = DB.series.orderBy(orderColumn).reverse()
+        } else {
+            query = DB.series.orderBy(orderColumn)
+        }
     }
 
     if (req.limit !== undefined) {

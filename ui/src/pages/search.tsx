@@ -4,6 +4,7 @@ import { Fragment, h, JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { seriesAPI } from 'src/api'
 import { useCached } from 'src/cache'
+import { Input } from 'src/components/form/input'
 import { SeriesList } from 'src/components/series-list'
 import { DB, DBSeries } from 'src/database'
 import { useQueryState } from 'src/hooks/query-state'
@@ -47,7 +48,7 @@ export function Search(): JSX.Element {
 
     return (
         <Fragment>
-            <h1>Search</h1>
+            <h1 class={styles.title}>Search</h1>
             <input
                 class={styles.input}
                 type='text'

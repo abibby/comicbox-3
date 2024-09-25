@@ -8,8 +8,9 @@ import { notNullish } from 'src/util'
 
 async function readingBooks(): Promise<Book[]> {
     const s = await seriesAPI.list({
-        order: SeriesOrder.LastRead,
+        order_by: SeriesOrder.LastRead,
         with_latest_book: true,
+        list: 'reading',
     })
     const books = s.map(s => s.latest_book).filter(notNullish)
 

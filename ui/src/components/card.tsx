@@ -220,7 +220,7 @@ export const CardList: FunctionalComponent<CardListProps> = ({
     }, [children])
 
     return (
-        <div
+        <section
             class={classNames(styles.cardList, className, {
                 [styles.start]: atStart,
                 [styles.end]: atEnd,
@@ -253,6 +253,6 @@ export const CardList: FunctionalComponent<CardListProps> = ({
             <div class={styles.scroller} ref={scroller} onScroll={onScroll}>
                 {children}
             </div>
-        </div>
+        </section>
     )
 }

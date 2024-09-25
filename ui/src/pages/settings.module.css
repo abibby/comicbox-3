@@ -1,12 +1,20 @@
 .settings {
-    display: flex;
-    flex-direction: column;
+    display: block;
     max-width: 400px;
     margin: 0 auto;
 }
 
-.settings > section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+.settings > section > h3 {
+    font-size: var(--font-size-medium);
+    margin: 1rem 0;
+}
+
+.settings > section > :not(h3) {
+    margin: 0.5rem 0;
+    width: 100%;
+}
+
+.settings > section > button,
+.settings > section > a {
+    display: block;
 }

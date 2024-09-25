@@ -158,7 +158,11 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                 </ButtonGroup>
             </section>
             {hasCurrentBooks && (
-                <BookList books={currentBooks} scrollTo={currentBook} />
+                <BookList
+                    title='Bookmark'
+                    books={currentBooks}
+                    scrollTo={currentBook}
+                />
             )}
             <BookList
                 title={hasCurrentBooks ? 'All Books' : undefined}

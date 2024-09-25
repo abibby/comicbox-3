@@ -9,15 +9,19 @@ import { DB } from 'src/database'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
 import styles from './library.module.css'
-import { useUser } from 'src/api/auth'
-import { Button } from 'src/components/button'
+import { IconButton } from 'src/components/button'
+import { Settings } from 'preact-feather'
 
 export function Library(): JSX.Element {
     return (
         <Fragment>
             <section class={styles.profile}>
                 <h1>My Profile</h1>
-                <Button href={route('settings')}>Settings</Button>
+                <IconButton
+                    color='clear'
+                    icon={Settings}
+                    href={route('settings')}
+                />
             </section>
             {listNames.map(([list, listName]) => (
                 <SeriesRow

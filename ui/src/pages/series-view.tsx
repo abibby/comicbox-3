@@ -143,7 +143,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     return (
         <>
             <section class={styles.header}>
-                <h2>{name}</h2>
+                <h1>{name}</h1>
                 <ButtonGroup class={styles.actions}>
                     <IconButton
                         color='clear'

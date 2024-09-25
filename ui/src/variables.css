@@ -15,6 +15,12 @@ title {
     display: none;
 }
 
+img,
+video,
+canvas {
+    overflow: clip;
+}
+
 button,
 a {
     cursor: pointer;

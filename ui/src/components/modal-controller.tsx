@@ -108,7 +108,7 @@ export function ModalController({ children }: RenderableProps<unknown>) {
     }, [])
 
     useEffect(() => {
-        const url = new URL(location.href)
+        const url = new URL(loc.url, location.origin)
         const paths = url.searchParams.getAll(MODAL_QUERY)
         for (const path of paths) {
             void openModalWithoutPath(path)
@@ -116,7 +116,7 @@ export function ModalController({ children }: RenderableProps<unknown>) {
         return () => {
             setModals([])
         }
-    }, [])
+    }, [loc.url])
 
     useEffect(() => {
         if (modals.length > 0) {

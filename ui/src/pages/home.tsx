@@ -21,15 +21,10 @@ export const Reading: FunctionalComponent = () => {
     const books = useReading()
 
     if (books?.length === 0) {
-        return (
-            <Fragment>
-                <h3>Reading</h3>
-                <div>Your all caught up</div>
-            </Fragment>
-        )
+        return <Fragment></Fragment>
     }
 
-    return <BookList title='Reading' books={books} />
+    return <BookList title='Comtinue Reading' books={books} />
 }
 
 export const Latest: FunctionalComponent = () => {

@@ -74,6 +74,8 @@ a {
     /* Buttons */
     --default-button: 200, 200, 200;
     --default-button-text: 0, 0, 0;
+
+    --screen-color: 0, 0, 0, 0.5;
 }
 
 .dark {
@@ -89,4 +91,6 @@ a {
     /* Buttons */
     --default-button: 100, 100, 100;
     --default-button-text: 255, 255, 255;
+
+    --screen-color: 255, 255, 255, 0.5;
 }

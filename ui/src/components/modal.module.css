@@ -134,7 +134,7 @@
     left: 0;
     right: 0;
     z-index: 170;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(var(--screen-color));
     animation: fade-in var(--transition-time);
 }
 

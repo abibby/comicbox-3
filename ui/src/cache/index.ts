@@ -35,7 +35,7 @@ type CacheEventMap = {
 
 const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
-export function invalidateCache(fromUserInteraction: boolean): void {
+function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
 }
 

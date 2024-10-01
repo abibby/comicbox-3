@@ -1,4 +1,4 @@
-import { effect, signal, Signal } from '@preact/signals-core'
+import { signal, Signal } from '@preact/signals-core'
 import { createStore, get, set } from 'idb-keyval'
 import { useEffect, useState } from 'preact/hooks'
 

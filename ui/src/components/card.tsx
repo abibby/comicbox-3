@@ -5,13 +5,7 @@ import {
     JSX,
     ComponentChildren,
 } from 'preact'
-import {
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useRef,
-    useState,
-} from 'preact/hooks'
+import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
 import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
@@ -217,7 +211,7 @@ export const CardList: FunctionalComponent<CardListProps> = ({
 
     useResizeEffect(() => {
         onScroll()
-    }, [children])
+    }, [children, onScroll])
 
     return (
         <section

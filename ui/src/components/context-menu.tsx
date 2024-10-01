@@ -4,7 +4,7 @@ import { useRef, useState } from 'preact/hooks'
 import styles from 'src/components/context-menu.module.css'
 import { Factory, SubComponentProps } from 'src/components/factory'
 import { useResizeEffect } from 'src/hooks/resize-effect'
-import { notNullish, truthy } from 'src/util'
+import { truthy } from 'src/util'
 
 export type ContextMenuItems = Array<
     [string, (() => void) | string] | undefined | null | false

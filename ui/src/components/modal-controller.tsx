@@ -2,7 +2,7 @@ import { createContext, Fragment, h, Provider, RenderableProps } from 'preact'
 import { useContext, useEffect, useRef, useState } from 'preact/hooks'
 import { LocationHook, LocationProvider, useLocation } from 'preact-iso'
 import { Modal, ModalHead } from 'src/components/modal'
-import styles from './modal.module.css'
+import styles from 'src/components/modal.module.css'
 
 const MODAL_QUERY = 'm'
 
@@ -92,7 +92,7 @@ export function ModalController({ children }: RenderableProps<unknown>) {
                     }),
                 )
 
-                let transitionDuration = getTransitionTime()
+                const transitionDuration = getTransitionTime()
 
                 // CSSStyleValue.parse('transition-duration', tt)
                 setTimeout(() => {

@@ -8,7 +8,7 @@ import { SeriesCard } from 'src/components/series-card'
 import { DB } from 'src/database'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
-import styles from './library.module.css'
+import styles from 'src/pages/library.module.css'
 import { IconButton } from 'src/components/button'
 import { Settings } from 'preact-feather'
 

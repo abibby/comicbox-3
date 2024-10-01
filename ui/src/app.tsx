@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, h, render } from 'preact'
+import { h, render } from 'preact'
 import { ToastController, clearToasts } from 'src/components/toast'
 import {
     clearContextMenus,
@@ -16,7 +16,7 @@ import { ChangePasswordModal } from 'src/modals/change-password-modal'
 import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
 import { AnilistMatch } from 'src/modals/anilist-match'
-import { ErrorBoundary } from './components/error-boundry'
+import { ErrorBoundary } from 'src/components/error-boundry'
 
 function changePage(): void {
     clearToasts()

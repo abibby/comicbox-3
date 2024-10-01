@@ -1,7 +1,6 @@
 import { h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
 import { changePassword } from 'src/api/auth'
-import { Button, ButtonGroup } from 'src/components/button'
 import { Errors, Form, GlobalErrors } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import {

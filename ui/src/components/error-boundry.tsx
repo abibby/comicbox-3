@@ -1,7 +1,15 @@
 import { Component, h } from 'preact'
 
-export class ErrorBoundary extends Component<{}, { error?: unknown }> {
-    constructor(props: {}) {
+export type ErrorBoundaryProps = Record<string, never>
+export type ErrorBoundaryState = {
+    error?: unknown
+}
+
+export class ErrorBoundary extends Component<
+    ErrorBoundaryProps,
+    ErrorBoundaryState
+> {
+    constructor(props: ErrorBoundaryProps) {
         super(props)
         this.state = {}
     }

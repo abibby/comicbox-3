@@ -23,8 +23,10 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
         switch (req.order_by) {
             case SeriesOrder.LastRead:
                 orderColumn = 'user_series.last_read_at'
+                break
             case SeriesOrder.CreatedAt:
                 orderColumn = 'created_at'
+                break
         }
         if (req.order === 'desc') {
             query = DB.series.orderBy(orderColumn).reverse()

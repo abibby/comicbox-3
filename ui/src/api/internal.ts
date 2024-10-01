@@ -5,6 +5,7 @@ import jwt, { Claims, JWT } from 'src/jwt'
 import { Book, Page, Series } from 'src/models'
 import { computed, signal } from '@preact/signals-core'
 import { Mutex } from 'async-mutex'
+import slog from 'src/slog'
 
 export type PaginatedRequest = {
     page?: number
@@ -118,13 +119,17 @@ async function getTokens(): Promise<LoginResponse | undefined> {
                         })
 
                         if (!resp.ok) {
-                            console.warn('failed to refresh auth tokens')
+                            slog.Warn('failed to refresh auth tokens', {
+                                response: await resp.json(),
+                            })
                             return
                         }
                         tokens.value = await resp.json()
                         await setAuthToken(tokens.value)
                     } catch (e) {
-                        console.warn(e)
+                        slog.Warn('failed to refresh auth tokens', {
+                            err: e,
+                        })
                     }
                 }
             })

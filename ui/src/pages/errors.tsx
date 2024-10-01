@@ -1,5 +1,4 @@
 import { FunctionalComponent, h } from 'preact'
-import { useMemo } from 'preact/hooks'
 
 export const Error404: FunctionalComponent = () => {
     return (

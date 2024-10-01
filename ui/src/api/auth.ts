@@ -2,7 +2,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { apiFetch, claims, getAuthToken, setAuthToken } from 'src/api/internal'
 import { clearDatabase } from 'src/database'
 import { useSignal } from 'src/hooks/signals'
-import jwt, { Claims, JWT } from 'src/jwt'
+import jwt, { Claims } from 'src/jwt'
 import { User } from 'src/models'
 
 export interface LoginRequest {
@@ -88,9 +88,9 @@ export function useUser(): User | undefined {
             setUser(undefined)
             return
         }
-        userCurrent().then(u => setUser(u.user))
+        void userCurrent().then(u => setUser(u.user))
     }, [claims])
     return user
 }
 
-getAuthToken()
+void getAuthToken()

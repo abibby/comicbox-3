@@ -1,4 +1,4 @@
-import { Fragment, FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h } from 'preact'
 import { useRoute } from 'preact-iso'
 import { seriesAPI } from 'src/api'
 import { listNamesMap } from 'src/api/series'

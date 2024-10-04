@@ -39,9 +39,16 @@ function Toast<T>(props: ToastProps<T>) {
     )
 }
 
-const toasts = new Factory(Toast, styles.controller)
+const toasts = new Factory(Toast)
 
-export const ToastController = toasts.Controller
+export function ToastController() {
+    const Controller = toasts.Controller
+    return (
+        <div class={styles.controller}>
+            <Controller />
+        </div>
+    )
+}
 
 export async function openToast<T>(
     message: string,

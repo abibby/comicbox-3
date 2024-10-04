@@ -15,7 +15,13 @@ import eslintPluginReact from 'eslint-plugin-react'
 export default tseslint.config(
     {
         files: ['**/*.{ts,tsx}'],
-        ignores: ['dist/*', 'node_modules/*', 'src/event.js', '*.css.d.ts'],
+        ignores: [
+            'dist/*',
+            'node_modules/*',
+            'src/event.js',
+            '*.css.d.ts',
+            'src/models.ts',
+        ],
         languageOptions: {
             parserOptions: {
                 project: './tsconfig.lint.json',

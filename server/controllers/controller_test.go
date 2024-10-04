@@ -10,6 +10,7 @@ import (
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
+	salusaauth "github.com/abibby/salusa/auth"
 )
 
 type Request struct {
@@ -26,8 +27,8 @@ func NewRequest(h http.HandlerFunc, method, target string, body io.Reader) *Requ
 
 func (r *Request) ActingAs(u *models.User) *Request {
 	c := auth.Claims{}
-	c.ClientID = u.ID
-	c.Purpose = auth.TokenAuthenticated
+	c.Subject = u.ID.String()
+	c.Scope = salusaauth.ScopeStrings{string(auth.TokenAPI)}
 
 	r.request = auth.WithClaims(r.request, c)
 

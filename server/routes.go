@@ -54,7 +54,7 @@ func InitRouter(r *router.Router) {
 
 		c, ok := auth.GetClaims(r.Context())
 		if ok {
-			ctx = clog.With(ctx, slog.Any("user_id", c.ClientID))
+			ctx = clog.With(ctx, slog.Any("user_id", c.Subject))
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -84,7 +84,7 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(false, auth.TokenAuthenticated))
+			r.Use(controllers.AuthMiddleware(false, auth.TokenAPI))
 
 			r.Get("/series", controllers.SeriesIndex).Name("series.index")
 			r.Post("/series/{name}", controllers.SeriesUpdate).Name("series.update")
@@ -101,6 +101,7 @@ func InitRouter(r *router.Router) {
 			r.PostFunc("/anilist/login", controllers.AnilistLogin).Name("anilist.login")
 
 			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
+			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
 		})
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.AuthMiddleware(true, auth.TokenImage))

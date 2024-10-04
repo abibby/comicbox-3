@@ -80,6 +80,10 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                 </div>
                 <div class={styles.slider}>
                     <input
+                        style={{
+                            '--value': displayPage,
+                            '--max': maxDisplayPage,
+                        }}
                         class={styles.range}
                         type='range'
                         value={displayPage}

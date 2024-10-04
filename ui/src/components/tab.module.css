@@ -8,25 +8,22 @@
 }
 .tabButton {
     border: none;
-    z-index: 2;
+    /* z-index: 2; */
     padding: 4px 10px;
-    border-top-left-radius: var(--border-radius-small);
-    border-top-right-radius: var(--border-radius-small);
+    border-radius: var(--border-radius-small);
     margin-right: 4px;
     background: none;
     color: inherit;
 }
 .active {
-    background-color: rgba(var(--text-on-surface), 10%);
-    /* background-color: rgb(var(--default-button)); */
-    /* color: rgb(var(--default-button-text)); */
+    background-color: rgb(var(--default-button));
+    color: rgb(var(--default-button-text));
     position: relative;
 }
 
 .body {
     margin: 0 -10px;
     padding: 10px;
-    background-color: rgba(var(--text-on-surface), 10%);
     overflow: auto;
     border-radius: var(--border-radius-small);
 }

@@ -11,8 +11,10 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
 	salusadb "github.com/abibby/salusa/database"
+	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/database/model/mixins"
 	"github.com/google/uuid"
 )
 
@@ -23,6 +25,12 @@ type BaseModel struct {
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
 	UpdateMap    map[string]string `json:"update_map" db:"-"`
 	RawUpdateMap []byte            `json:"-"          db:"update_map,type:json"`
+}
+
+func (*BaseModel) Scopes() []*builder.Scope {
+	return []*builder.Scope{
+		mixins.SoftDeleteScope,
+	}
 }
 
 type Model interface {

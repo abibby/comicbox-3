@@ -16,7 +16,7 @@ export const Error500: FunctionalComponent<Error500Props> = ({ error }) => {
     return (
         <div>
             <h1>Error</h1>
-            {error}
+            {String(error)}
         </div>
     )
 }

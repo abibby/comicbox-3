@@ -17,13 +17,13 @@ import (
 //go:generate spice generate:migration
 type User struct {
 	BaseModel
-	ID               uuid.UUID      `json:"id"       db:"id,primary"`
-	Username         string         `json:"username" db:"username"`
-	Password         []byte         `json:"-"        db:"-"`
-	PasswordHash     []byte         `json:"-"        db:"password"`
-	AnilistGrant     *nulls.String  `json:"-"        db:"anilist_grant"`
-	AnilistToken     *nulls.String  `json:"-"        db:"anilist_token"`
-	AnilistExpiresAt *database.Time `json:"-"        db:"anilist_expires_at"`
+	ID               uuid.UUID      `json:"id"         db:"id,primary"`
+	Username         string         `json:"username"   db:"username"`
+	Password         []byte         `json:"-"          db:"-"`
+	PasswordHash     []byte         `json:"-"          db:"password"`
+	AnilistGrant     *nulls.String  `json:"-"          db:"anilist_grant"`
+	AnilistToken     *nulls.String  `json:"-"          db:"anilist_token"`
+	AnilistExpiresAt *database.Time `json:"-"          db:"anilist_expires_at"`
 	// RoleID           *nulls.Int     `json:"-"        db:"role_id"`
 
 	// Role *builder.BelongsTo[*Role] `json:"role"`

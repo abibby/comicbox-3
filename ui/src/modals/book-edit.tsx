@@ -5,11 +5,15 @@ import { useCallback, useEffect, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { openToast } from 'src/components/toast'
 import styles from 'src/modals/book-edit.module.css'
-import { Button, ButtonGroup } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
 import { LazyImg } from 'src/components/lazy-img'
-import { Modal, ModalBody, ModalFoot, ModalHead } from 'src/components/modal'
+import {
+    Modal,
+    ModalBody,
+    ModalHead,
+    ModalHeadActions,
+} from 'src/components/modal'
 import { Tab, TabContainer } from 'src/components/tab'
 import { DB } from 'src/database'
 import { useBook, useNextBook, usePreviousBook } from 'src/hooks/book'
@@ -152,7 +156,7 @@ export const EditBook: FunctionalComponent = () => {
     if (!book) {
         return (
             <Modal>
-                <ModalHead>Edit Book</ModalHead>
+                <ModalHead>Update Book</ModalHead>
                 <ModalBody>Loading</ModalBody>
             </Modal>
         )
@@ -166,7 +170,28 @@ export const EditBook: FunctionalComponent = () => {
     return (
         <Modal>
             <Form onSubmit={submit}>
-                <ModalHead>Edit Book</ModalHead>
+                <ModalHead>
+                    Update Book
+                    <ModalHeadActions>
+                        <button
+                            type='submit'
+                            name='submit'
+                            value='previous'
+                            disabled={previous === undefined}
+                        >
+                            previous
+                        </button>
+                        <button
+                            type='submit'
+                            name='submit'
+                            value='next'
+                            disabled={next === undefined}
+                        >
+                            next
+                        </button>
+                        <button type='submit'>save</button>
+                    </ModalHeadActions>
+                </ModalHead>
                 <ModalBody>
                     <TabContainer class={styles.tabs}>
                         <Tab title='meta'>
@@ -231,11 +256,8 @@ export const EditBook: FunctionalComponent = () => {
                         </Tab>
                     </TabContainer>
                 </ModalBody>
-                <ModalFoot>
-                    <ButtonGroup>
-                        <Button type='submit' color='primary'>
-                            Save
-                        </Button>
+                {/* <ModalFoot>
+                    <ButtonGroup alignRight>
                         <Button
                             type='submit'
                             name='submit'
@@ -252,8 +274,11 @@ export const EditBook: FunctionalComponent = () => {
                         >
                             Next
                         </Button>
+                        <Button type='submit' color='primary'>
+                            Save
+                        </Button>
                     </ButtonGroup>
-                </ModalFoot>
+                </ModalFoot> */}
             </Form>
         </Modal>
     )

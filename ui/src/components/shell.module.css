@@ -6,16 +6,8 @@ html {
 
 body {
     margin: var(--body-margins);
-    margin-bottom: 55px;
+    margin-bottom: calc(var(--nav-height) + var(--body-margins) * 2);
     min-height: calc(100vh - 150px);
-    display: flex;
-    flex-direction: column;
-}
-
-.shell {
-    position: relative;
-    display: inline-block;
-    width: 100%;
 }
 
 .nav {
@@ -28,18 +20,21 @@ body {
     box-shadow: var(--surface-box-shadow);
     z-index: 100;
     backdrop-filter: blur(10px);
-    margin: 5px;
+    margin: var(--body-margins);
     padding: 2px;
     border-radius: var(--border-radius-large);
+    height: var(--nav-height);
 }
 
 .nav ul {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
+    align-items: center;
     list-style-type: none;
     padding: 0;
     margin: 0;
+    height: 100%;
 }
 
 .nav li {
@@ -60,9 +55,8 @@ body {
 }
 
 .icon {
-    height: 2.4em;
+    height: 2rem;
     width: 100%;
-    padding: 0.2em 0;
 }
 
 .label {
@@ -79,32 +73,12 @@ body {
 }
 
 .settings {
-    --size: 32px;
-    display: block;
-    position: absolute;
-    width: var(--size);
-    height: var(--size);
-    line-height: var(--size);
-    text-align: center;
-    background-color: rgb(var(--text-on-background));
-    color: rgb(var(--background));
-    border-radius: 9999px;
-    text-decoration: none;
-    top: 5px;
-    right: 0;
-    z-index: 1;
-}
-
-.settings > svg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    display: none;
 }
 
 @media (min-width: 500px) or (pointer: fine) {
     body {
-        margin-top: 48px;
+        margin-top: calc(var(--nav-height) + var(--body-margins) * 2);
         margin-bottom: 0;
     }
 
@@ -126,8 +100,9 @@ body {
 
     .logo {
         display: block;
-        height: 39px;
+        height: 100%;
         padding: 3px;
+        aspect-ratio: 1;
     }
     .logo a {
         height: 100%;
@@ -147,11 +122,6 @@ body {
         font-size: 1em;
     }
     .settings {
-        position: fixed;
-        color: inherit;
-        background: none;
-        top: 10px;
-        right: 10px;
-        z-index: 101;
+        display: block;
     }
 }

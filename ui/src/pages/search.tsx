@@ -1,6 +1,6 @@
 import { bindValue } from '@zwzn/spicy'
 import Fuse from 'fuse.js'
-import { h, JSX } from 'preact'
+import { Fragment, h, JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { seriesAPI } from 'src/api'
 import { useCached } from 'src/cache'
@@ -46,8 +46,8 @@ export function Search(): JSX.Element {
     }, [])
 
     return (
-        <div>
-            <h1>Search</h1>
+        <Fragment>
+            <h1 class={styles.title}>Search</h1>
             <input
                 class={styles.input}
                 type='text'
@@ -57,6 +57,6 @@ export function Search(): JSX.Element {
             />
 
             <SeriesList series={foundSeries} scroll='vertical' />
-        </div>
+        </Fragment>
     )
 }

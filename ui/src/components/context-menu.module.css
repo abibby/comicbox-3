@@ -5,12 +5,13 @@
     z-index: 50;
     cursor: pointer;
     list-style-type: none;
-    padding: 10px 0;
+    padding: 0.5rem 0;
     margin: 0;
     box-shadow: var(--surface-box-shadow);
 }
 .menu li {
-    padding: 10px 20px;
+    display: block;
+    padding: 0.5rem 1.25rem;
 }
 .menu li:hover {
     background-color: rgba(var(--surface-hover));

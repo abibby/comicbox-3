@@ -128,8 +128,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     }, [name])
 
     const contextMenu = useCallback(
-        async (e: Event) => {
-            await openContextMenu(e.target, [
+        async (e: MouseEvent) => {
+            await openContextMenu(e, [
                 ['Download', downloadSeries],
                 ['Mark All Read', markAllRead],
                 ['Mark All Unread', markAllUnread],
@@ -143,7 +143,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     return (
         <>
             <section class={styles.header}>
-                <h2>{name}</h2>
+                <h1>{name}</h1>
                 <ButtonGroup class={styles.actions}>
                     <IconButton
                         color='clear'
@@ -158,7 +158,11 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                 </ButtonGroup>
             </section>
             {hasCurrentBooks && (
-                <BookList books={currentBooks} scrollTo={currentBook} />
+                <BookList
+                    title='Bookmark'
+                    books={currentBooks}
+                    scrollTo={currentBook}
+                />
             )}
             <BookList
                 title={hasCurrentBooks ? 'All Books' : undefined}

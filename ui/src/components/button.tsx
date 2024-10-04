@@ -70,11 +70,16 @@ export const IconButton: FunctionalComponent<IconButtonProps> = ({
 
 export interface ButtonGroupProps {
     class?: string
+    alignRight?: boolean
 }
 
 export const ButtonGroup: FunctionalComponent<ButtonGroupProps> = props => {
     return (
-        <div class={classNames(styles.buttonGroup, props.class)}>
+        <div
+            class={classNames(styles.buttonGroup, props.class, {
+                [styles.alignRight]: props.alignRight,
+            })}
+        >
             {props.children}
         </div>
     )

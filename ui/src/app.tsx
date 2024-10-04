@@ -7,7 +7,7 @@ import {
 import { ModalController } from 'src/components/modal-controller'
 import { Shell } from 'src/components/shell'
 import { Error404 } from 'src/pages/errors'
-import { routes } from 'src/routes'
+import { Route as RouteDef, routes } from 'src/routes'
 import { initServiceWorker } from 'src/init-service-worker'
 import 'src/error'
 import state from 'src/state'
@@ -16,28 +16,33 @@ import { ChangePasswordModal } from 'src/modals/change-password-modal'
 import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
 import { AnilistMatch } from 'src/modals/anilist-match'
+import { ErrorBoundary } from 'src/components/error-boundry'
 
 function changePage(): void {
     clearToasts()
     clearContextMenus()
 }
 
+function hideShell(route: RouteDef): boolean {
+    return 'noshell' in route && route.noshell
+}
+function showShell(route: RouteDef): boolean {
+    return !hideShell(route)
+}
+
+const routeList = Object.values(routes)
+const nonShellRoutes = routeList.filter(hideShell)
+const shellRoutes = routeList.filter(showShell)
+const indexRoute = routeList.find(r => r.path === '/')
+
 function Main() {
+    const IndexComponent = indexRoute?.component ?? Error404
+
     return (
         <LocationProvider>
-            <ToastController />
-            <ContextMenuController />
-            <ModalController>
-                <Router>
-                    <ChangePasswordModal path='/change-password' />
-                    <EditSeries path='/series/:series' />
-                    <EditBook path='/book/:book' />
-                    <AnilistMatch path='/anilist-match/:name' />
-                </Router>
-            </ModalController>
-            <Shell>
+            <ErrorBoundary>
                 <Router onRouteChange={changePage}>
-                    {Object.values(routes)
+                    {nonShellRoutes
                         .map(r => (
                             <Route
                                 key={r.path}
@@ -45,18 +50,46 @@ function Main() {
                                 component={r.component}
                             />
                         ))
-                        .concat(<Error404 default />)}
+                        .concat(
+                            <Shell path='/'>
+                                <IndexComponent />
+                            </Shell>,
+                            <Shell path='/*'>
+                                <Router>
+                                    {shellRoutes
+                                        .map(r => (
+                                            <Route
+                                                key={r.path}
+                                                path={r.path}
+                                                component={r.component}
+                                            />
+                                        ))
+                                        .concat(<Error404 default />)}
+                                </Router>
+                            </Shell>,
+                        )}
                 </Router>
-            </Shell>
+                <ToastController />
+                <ContextMenuController />
+                <ModalController>
+                    <Router>
+                        <ChangePasswordModal path='/change-password' />
+                        <EditSeries path='/series/:series' />
+                        <EditBook path='/book/:book' />
+                        <EditBook path='/book/:book/*' />
+                        <AnilistMatch path='/anilist-match/:name' />
+                    </Router>
+                </ModalController>
+            </ErrorBoundary>
         </LocationProvider>
     )
 }
 
-state.theme.addEventListener('change', () => {
+state.theme.subscribe(theme => {
     document.documentElement.classList.remove('light')
     document.documentElement.classList.remove('dark')
-    if (state.theme.value) {
-        document.documentElement.classList.add(state.theme.value)
+    if (theme) {
+        document.documentElement.classList.add(theme)
     }
 })
 

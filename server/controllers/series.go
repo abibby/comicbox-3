@@ -18,14 +18,16 @@ type SeriesOrder string
 
 func (l SeriesOrder) Options() map[string]string {
 	return map[string]string{
-		"Name":     string(SeriesOrderName),
-		"LastRead": string(SeriesOrderLastRead),
+		"Name":      string(SeriesOrderName),
+		"LastRead":  string(SeriesOrderLastRead),
+		"CreatedAt": string(SeriesOrderCreatedAt),
 	}
 }
 
 const (
-	SeriesOrderName     = SeriesOrder("name")
-	SeriesOrderLastRead = SeriesOrder("last-read")
+	SeriesOrderName      = SeriesOrder("name")
+	SeriesOrderLastRead  = SeriesOrder("last-read")
+	SeriesOrderCreatedAt = SeriesOrder("created_at")
 )
 
 type SeriesIndexRequest struct {
@@ -34,7 +36,8 @@ type SeriesIndexRequest struct {
 	Name           *nulls.String `query:"name"`
 	List           *nulls.String `query:"list"`
 	WithLatestBook bool          `query:"with_latest_book"`
-	Order          *SeriesOrder  `query:"order"`
+	OrderBy        *SeriesOrder  `query:"order_by"`
+	Order          *nulls.String `query:"order" validate:"in:asc,desc"`
 
 	Ctx context.Context `inject:""`
 }
@@ -44,8 +47,9 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 	query := models.SeriesQuery(req.Ctx).
 		With("UserSeries")
 
-	if req.Order != nil {
-		switch *req.Order {
+	orderColumn := "name"
+	if req.OrderBy != nil {
+		switch *req.OrderBy {
 		case SeriesOrderLastRead:
 			uid, ok := auth.UserID(req.Ctx)
 			if ok {
@@ -54,8 +58,18 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 						Where("user_series.user_id", "=", uid)
 				}).OrderByDesc("user_series.last_read_at")
 			}
+			orderColumn = "name"
+		case SeriesOrderCreatedAt:
+			orderColumn = "created_at"
 		}
 	}
+
+	if req.Order.Value() == "desc" {
+		query = query.OrderByDesc(orderColumn)
+	} else {
+		query = query.OrderBy(orderColumn)
+	}
+
 	query = query.OrderBy("name")
 
 	if name, ok := req.Name.Ok(); ok {

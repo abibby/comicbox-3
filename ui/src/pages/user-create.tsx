@@ -1,4 +1,4 @@
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
 import { FetchError, userAPI } from 'src/api'
 import { openToast } from 'src/components/toast'
@@ -52,7 +52,7 @@ export const UserCreate: FunctionalComponent = () => {
     )
 
     return (
-        <div>
+        <Fragment>
             <h1>Create User</h1>
             <Form onSubmit={submit} errors={errors}>
                 <Input title='Username' type='text' name='username' focused />
@@ -64,6 +64,6 @@ export const UserCreate: FunctionalComponent = () => {
                 />
                 <button type='submit'>Create</button>
             </Form>
-        </div>
+        </Fragment>
     )
 }

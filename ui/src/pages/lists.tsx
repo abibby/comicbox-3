@@ -23,10 +23,11 @@ export const List: FunctionalComponent = () => {
     }
 
     return (
-        <div>
-            <h1>{listNamesMap.get(list)}</h1>
-            <SeriesList scroll='vertical' series={s ?? []} />
-        </div>
+        <SeriesList
+            title={listNamesMap.get(list)}
+            scroll='vertical'
+            series={s ?? []}
+        />
     )
 }
 

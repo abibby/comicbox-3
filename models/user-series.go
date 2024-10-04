@@ -63,7 +63,6 @@ var _ builder.Scoper = &UserSeries{}
 
 func (b *UserSeries) Scopes() []*builder.Scope {
 	return []*builder.Scope{
-		builder.SoftDeletes,
 		UserScoped,
 	}
 }

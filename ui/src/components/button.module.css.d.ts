@@ -1,4 +1,5 @@
 declare const styles: {
+  readonly "alignRight": string;
   readonly "button": string;
   readonly "buttonGroup": string;
   readonly "clear": string;

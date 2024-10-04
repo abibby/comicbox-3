@@ -1,6 +1,9 @@
 export function notNullish<T>(v: T | null | undefined): v is T {
     return v !== null && v !== undefined
 }
+export function truthy<T>(v: T | null | undefined | false): v is T {
+    return !!v
+}
 
 export function encode(
     fixed: TemplateStringsArray,

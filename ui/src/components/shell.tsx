@@ -1,15 +1,15 @@
 import logo from 'res/images/logo.svg'
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import styles from 'src/components/shell.module.css'
 import { route } from 'src/routes'
-import { Book, Home, Search } from 'preact-feather'
+import { Home, Search, Settings, User } from 'preact-feather'
 import 'src/variables.css'
 import { FeatherProps } from 'preact-feather/dist/types'
-import { Settings } from 'preact-feather'
+import { ErrorBoundary } from 'src/components/error-boundry'
 
 export const Shell: FunctionalComponent = props => {
     return (
-        <div class={styles.shell}>
+        <Fragment>
             <nav class={styles.nav}>
                 <ul>
                     <li class={styles.logo}>
@@ -24,17 +24,20 @@ export const Shell: FunctionalComponent = props => {
                         link={route('search')}
                     />
                     <MenuItem
-                        title='Library'
-                        icon={Book}
+                        title='Profile'
+                        icon={User}
                         link={route('library')}
+                    />
+                    <MenuItem
+                        title='Settings'
+                        class={styles.settings}
+                        icon={Settings}
+                        link={route('settings')}
                     />
                 </ul>
             </nav>
-            <a class={styles.settings} href={route('settings')}>
-                <Settings />
-            </a>
-            {props.children}
-        </div>
+            <ErrorBoundary>{props.children}</ErrorBoundary>
+        </Fragment>
     )
 }
 

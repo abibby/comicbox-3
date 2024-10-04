@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'preact/hooks'
-import { apiFetch, getAuthToken, setAuthToken } from 'src/api/internal'
+import { apiFetch, claims, getAuthToken, setAuthToken } from 'src/api/internal'
 import { clearDatabase } from 'src/database'
-import jwt, { JWT } from 'src/jwt'
+import { useSignal } from 'src/hooks/signals'
+import jwt, { Claims } from 'src/jwt'
+import { User } from 'src/models'
 
 export interface LoginRequest {
     username: string
@@ -21,6 +23,13 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
     await setAuthToken(response)
 
     return response
+}
+
+export interface UserCurrentResponse {
+    user: User
+}
+export async function userCurrent(): Promise<UserCurrentResponse> {
+    return await apiFetch('/api/users/current')
 }
 
 export interface ChangePasswordRequest {
@@ -51,7 +60,7 @@ export async function currentID(): Promise<string | null> {
     }
     const a = jwt.parse(token)
 
-    return a.claims.client_id
+    return a.claims.sub
 }
 
 interface UserCreateTokenResponse {
@@ -66,16 +75,22 @@ export async function userCreateToken(): Promise<string> {
     return response.token
 }
 
-export function useJWTClaims(): JWT | null {
-    const [claims, setClaims] = useState<JWT | null>(null)
-    useEffect(() => {
-        void getAuthToken().then(t => {
-            if (t === null) {
-                setClaims(null)
-            } else {
-                setClaims(jwt.parse(t))
-            }
-        })
-    }, [])
-    return claims
+export function useJWTClaims(): Claims | undefined {
+    return useSignal(claims)
 }
+
+export function useUser(): User | undefined {
+    const claims = useJWTClaims()
+    const [user, setUser] = useState<User>()
+
+    useEffect(() => {
+        if (!claims) {
+            setUser(undefined)
+            return
+        }
+        void userCurrent().then(u => setUser(u.user))
+    }, [claims])
+    return user
+}
+
+void getAuthToken()

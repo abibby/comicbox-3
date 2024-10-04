@@ -1,4 +1,4 @@
-import { FunctionalComponent, h } from 'preact'
+import { Fragment, FunctionalComponent, h } from 'preact'
 import { seriesAPI } from 'src/api'
 import { useCached } from 'src/cache'
 import { SeriesList } from 'src/components/series-list'
@@ -13,9 +13,9 @@ export const SeriesIndex: FunctionalComponent = () => {
     })
 
     return (
-        <div>
+        <Fragment>
             <h1>Series</h1>
             <SeriesList scroll='vertical' series={s} />
-        </div>
+        </Fragment>
     )
 }

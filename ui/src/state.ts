@@ -1,7 +1,7 @@
-import { PersistentState } from 'src/hooks/persistent-state'
+import { persistentSignal } from 'src/hooks/signals'
 
 export type Theme = null | 'dark' | 'light'
 
 export default {
-    theme: new PersistentState<Theme>('theme', null),
+    theme: persistentSignal<Theme>('theme', null),
 }

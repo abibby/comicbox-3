@@ -1,15 +1,10 @@
-.header {
+.profile {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     margin: 1rem 0;
 }
-.header > h1 {
+.profile > h1 {
     font-size: var(--font-size-large);
-}
-
-.actions {
-    flex-grow: 1;
-    justify-content: end;
 }

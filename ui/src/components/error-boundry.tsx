@@ -1,6 +1,7 @@
 import { Component, h } from 'preact'
 
-export type ErrorBoundaryProps = Record<string, never>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type ErrorBoundaryProps = {}
 export type ErrorBoundaryState = {
     error?: unknown
 }

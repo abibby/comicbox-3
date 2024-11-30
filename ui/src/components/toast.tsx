@@ -32,7 +32,7 @@ function Toast<T>(props: ToastProps<T>) {
         }
     }, [close, timeout])
     return (
-        <div class={styles.alert}>
+        <div class={styles.alert} onClick={close}>
             {props.message}
             <div class={styles.options}>{buttons}</div>
         </div>

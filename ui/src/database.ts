@@ -187,16 +187,14 @@ class AppDatabase extends Dexie {
         mod: Modification<DBSeries>,
         setDirty = true,
     ): Promise<void> {
-        await this.series.update(
+        const mod2 = this.modelModification(
             s,
-            this.modelModification(
-                s,
-                mod,
-                emptySeries,
-                updatedTimestamp(),
-                setDirty,
-            ),
+            mod,
+            emptySeries,
+            updatedTimestamp(),
+            setDirty,
         )
+        await this.series.update(s, mod2)
     }
 
     private modelModification<T extends DBModel>(

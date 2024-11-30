@@ -1,8 +1,11 @@
 import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useState } from 'preact/hooks'
-import { FormElement, FormElementProps } from 'src/components/form/form-element'
+import {
+    FormElement,
+    FormElementOptions,
+} from 'src/components/form/form-element'
 
-export interface ToggleProps extends FormElementProps {
+export interface ToggleProps extends FormElementOptions {
     name: string
     value: boolean
 }
@@ -16,7 +19,7 @@ export const Toggle: FunctionalComponent<ToggleProps> = props => {
         [setValue],
     )
     return (
-        <FormElement title={props.title} name={props.name}>
+        <FormElement props={props}>
             <input type='hidden' name={props.name} value={value ? 1 : 0} />
             <input type='checkbox' checked={value} onInput={checkUpdate} />
         </FormElement>

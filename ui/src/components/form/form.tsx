@@ -9,6 +9,8 @@ import {
 import { FetchError } from 'src/api'
 import { notNullish } from 'src/util'
 import styles from 'src/components/form/form.module.css'
+import formElementStyles from 'src/components/form/form-element.module.css'
+import classNames from 'src/classnames'
 
 export type Errors = {
     [key: string]: string[]
@@ -71,14 +73,16 @@ const submittableElements = [
 ] as const
 
 interface FormProps {
+    loading?: boolean
     onSubmit(data: Data): void | Promise<void>
     errors?: Errors
 }
 
 export const Form: FunctionalComponent<FormProps> = ({
-    children,
+    loading,
     onSubmit,
     errors,
+    children,
 }) => {
     const form = useRef<HTMLFormElement>(null)
     const [fetchErrors, setFetchErrors] = useState<Errors>({})
@@ -126,7 +130,11 @@ export const Form: FunctionalComponent<FormProps> = ({
 
     const Provider = errorsContext.Provider
     return (
-        <form onSubmit={submit} ref={form}>
+        <form
+            onSubmit={submit}
+            ref={form}
+            class={classNames({ [formElementStyles.loading]: loading })}
+        >
             <Provider value={contextValue}>{children}</Provider>
         </form>
     )

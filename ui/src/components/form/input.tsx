@@ -1,9 +1,13 @@
 import { bindValue } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
-import { FormElement, FormElementProps } from 'src/components/form/form-element'
+import {
+    FormElement,
+    FormElementOptions,
+} from 'src/components/form/form-element'
+import styles from 'src/components/form/form-element.module.css'
 
-export interface InputProps extends FormElementProps {
+export interface InputProps extends FormElementOptions {
     type?: 'number' | 'text' | 'password'
     value?: string | number
     focused?: boolean
@@ -21,8 +25,9 @@ export const Input: FunctionalComponent<InputProps> = props => {
     }, [props.focused])
 
     return (
-        <FormElement title={props.title} name={props.name}>
+        <FormElement props={props}>
             <input
+                class={styles.input}
                 type={props.type}
                 name={props.name}
                 value={props.value}

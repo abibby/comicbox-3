@@ -25,7 +25,7 @@ func userContext(u *models.User) context.Context {
 
 func FromSeries(s *models.Series) func(us *models.UserSeries) *models.UserSeries {
 	return func(us *models.UserSeries) *models.UserSeries {
-		us.SeriesName = s.Name
+		us.SeriesName = s.Slug
 		return us
 	}
 }
@@ -66,4 +66,27 @@ func TestSeries(t *testing.T) {
 		assert.Equal(t, models.ListDropped, us.List)
 		// SeriesQuery(userContext()).Find()
 	})
+}
+
+func TestSlug(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"no-change", args{"no-change"}, "no-change"},
+		{"to-lower", args{"To-Lower"}, "to-lower"},
+		{"spaces", args{"has spaces"}, "has-spaces"},
+		{"collapse-dashes", args{"collapse - dashes"}, "collapse-dashes"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := models.Slug(tt.args.s); got != tt.want {
+				t.Errorf("Slug() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

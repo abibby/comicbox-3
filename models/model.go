@@ -33,6 +33,10 @@ func (*BaseModel) Scopes() []*builder.Scope {
 	}
 }
 
+func (b *BaseModel) Model() *BaseModel {
+	return b
+}
+
 type Model interface {
 	Model() *BaseModel
 	Table() string

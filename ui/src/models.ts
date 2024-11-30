@@ -10,7 +10,7 @@ export interface Book {
     title: string
     chapter: number | null
     volume: number | null
-    series: string
+    series_slug: string
     authors: Array<string>
     pages: Array<Page>
     page_count: number
@@ -20,6 +20,7 @@ export interface Book {
     file: string
     cover_url: string
     user_book: UserBook | null
+    series: Series | null
 }
 export interface Page {
     type: PageType
@@ -33,6 +34,7 @@ export interface Series {
     updated_at: string
     deleted_at: string | null
     update_map: Record<string, string>
+    slug: string
     name: string
     cover_url: string
     first_book_id: string | null

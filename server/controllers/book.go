@@ -96,6 +96,7 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 			})
 		})
 	}
+
 	return paginatedList(&req.PaginatedRequest, query)
 })
 
@@ -246,7 +247,7 @@ var BookUpdate = request.Handler(func(r *BookUpdateRequest) (*models.Book, error
 			book.Title = r.Title
 		}
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "series") {
-			book.SeriesName = r.Series
+			book.SeriesSlug = r.Series
 		}
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "volume") {
 			book.Volume = r.Volume

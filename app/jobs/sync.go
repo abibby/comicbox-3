@@ -32,13 +32,17 @@ import (
 
 var syncMtx = &sync.Mutex{}
 
-type SyncHandler struct{}
+type SyncHandler struct {
+	seriesCache map[string]*models.Series
+}
 
 var _ event.Handler[*events.SyncEvent] = (*SyncHandler)(nil)
 
 func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error {
 	syncMtx.Lock()
 	defer syncMtx.Unlock()
+
+	h.seriesCache = map[string]*models.Series{}
 
 	log.Print("Starting sync")
 
@@ -78,7 +82,7 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 	for file := range bookFiles {
 		count++
 		err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
-			return addBook(ctx, tx, file)
+			return h.addBook(ctx, tx, file)
 		})
 		if err != nil {
 			log.Printf("failed to add %s to the library: %v", file, err)
@@ -91,12 +95,41 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 	return nil
 }
 
+func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string) (*models.Series, error) {
+	series, ok := h.seriesCache[name]
+
+	if !ok {
+		var err error
+		series, err = models.SeriesQuery(ctx).Where("display_name", "=", name).First(tx)
+		if err != nil {
+			return nil, err
+		}
+		if series == nil {
+			series = &models.Series{
+				Slug: models.Slug(name),
+				Name: name,
+			}
+
+			err = model.SaveContext(ctx, tx, series)
+			if err != nil {
+				return nil, err
+			}
+		}
+		h.seriesCache[name] = series
+	}
+
+	return series, nil
+}
+
 func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error) {
 	bookFiles := map[string]struct{}{}
 
 	err := symwalk.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
 
 		if filepath.Ext(path) == ".cbz" {
@@ -111,8 +144,8 @@ func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error)
 	return bookFiles, nil
 }
 
-func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
-	book, err := loadBookData(file)
+func (h *SyncHandler) addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
+	book, err := h.loadBookData(ctx, tx, file)
 	if errors.Is(err, zip.ErrFormat) {
 		return nil
 	} else if err != nil {
@@ -123,7 +156,7 @@ func addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
 	return model.SaveContext(ctx, tx, book)
 }
 
-func loadBookData(file string) (*models.Book, error) {
+func (h *SyncHandler) loadBookData(ctx context.Context, tx *sqlx.Tx, file string) (*models.Book, error) {
 	book := &models.Book{}
 
 	reader, err := zip.OpenReader(file)
@@ -146,9 +179,6 @@ func loadBookData(file string) (*models.Book, error) {
 	}
 
 	parseFileName(book, file)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not parese file name")
-	}
 
 	f, err := reader.Open("book.json")
 	if err == nil {
@@ -161,6 +191,14 @@ func loadBookData(file string) (*models.Book, error) {
 	}
 
 	book.File = file
+
+	s, err := h.createSeries(ctx, tx, book.SeriesSlug)
+	if err != nil {
+		return nil, fmt.Errorf("could not create series: %w", err)
+	}
+
+	book.SeriesSlug = s.Slug
+
 	return book, nil
 }
 
@@ -195,12 +233,12 @@ func buildPage(img *zip.File, pageNumber int) (*models.Page, error) {
 	}, nil
 }
 
-func parseFileName(book *models.Book, path string) *models.Book {
+func parseFileName(book *models.Book, path string) {
 	extension := filepath.Ext(path)
 	name := filepath.Base(path[:len(path)-len(extension)])
 	dir := filepath.Base(filepath.Dir(path))
 
-	book.SeriesName = dir
+	book.SeriesSlug = dir
 
 	name = strings.TrimPrefix(name, dir)
 	exp := regexp.MustCompile(`^([vV](?P<volume>[\d]+))? *(#?(?P<chapter>[\d]+(\.[\d]+)?))? *(-)? *(?P<title>.*)$`)
@@ -224,12 +262,12 @@ func parseFileName(book *models.Book, path string) *models.Book {
 	if result["title"] != "" {
 		book.Title = result["title"]
 	}
-	return book
 }
 
 func parseBookJSON(book *models.Book, f fs.File) error {
 	type comboBook struct {
 		*models.Book
+		Series string         `json:"series"`
 		Author string         `json:"author"`
 		Number *nulls.Float64 `json:"number"`
 	}

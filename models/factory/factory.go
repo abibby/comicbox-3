@@ -10,7 +10,7 @@ import (
 var (
 	Series = dbtest.NewFactory(func() *models.Series {
 		return &models.Series{
-			Name: faker.Word(),
+			Slug: faker.Word(),
 		}
 	})
 	User = dbtest.NewFactory(func() *models.User {

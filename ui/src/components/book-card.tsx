@@ -4,7 +4,7 @@ import { removeBookCache, useBookCached } from 'src/caches'
 import { openToast } from 'src/components/toast'
 import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
-import { DB, DBBook } from 'src/database'
+import { DB, DBBook, DBSeries } from 'src/database'
 import { usePageURL } from 'src/hooks/page'
 import { post } from 'src/message'
 import { route } from 'src/routes'
@@ -14,11 +14,13 @@ import { encode } from 'src/util'
 
 interface BookProps {
     book: DBBook
+    series?: DBSeries
     scrollIntoView?: boolean | ScrollIntoViewOptions
 }
 
 export const BookCard: FunctionalComponent<BookProps> = ({
     book,
+    series,
     scrollIntoView,
 }) => {
     const [downloaded, downloadProgress] = useBookCached(book)
@@ -104,7 +106,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
         <Card
             image={coverURL}
             link={route('book.view', { id: book.id })}
-            title={book.series_slug}
+            title={series?.name ?? book.series?.name ?? book.series_slug}
             subtitle={title}
             menu={menu}
             disabled={!online && !downloaded}

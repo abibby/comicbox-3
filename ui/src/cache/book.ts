@@ -50,5 +50,25 @@ setCacheHandler(bookAPI.list, async (req): Promise<Book[]> => {
         collection = collection.reverse()
     }
 
-    return collection.toArray()
+    const books = await collection.toArray()
+
+    if (req.with_series) {
+        const seriesSlugs = Array.from(new Set(books.map(b => b.series_slug)))
+        const series = new Map(
+            await Promise.all(
+                seriesSlugs.map(
+                    async slug =>
+                        [
+                            slug,
+                            await DB.series.where('slug').equals(slug).first(),
+                        ] as const,
+                ),
+            ),
+        )
+        for (const book of books) {
+            book.series = series.get(book.series_slug) ?? null
+        }
+    }
+
+    return books
 })

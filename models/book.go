@@ -72,7 +72,7 @@ type Book struct {
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
-	Series     *builder.BelongsTo[*Series]  `json:"-"         db:"-" foreign:"series" owner:"name"`
+	Series     *builder.BelongsTo[*Series]  `json:"series"    db:"-" foreign:"series" owner:"name"`
 }
 
 func BookQuery(ctx context.Context) *builder.ModelBuilder[*Book] {

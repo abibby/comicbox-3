@@ -3,13 +3,7 @@
 import assets from 'build:assets'
 import { bookAPI } from 'src/api'
 import { persist } from 'src/cache'
-import {
-    openStaticCache,
-    openThumbCache,
-    pageCacheID,
-    STATIC_CACHE_NAME,
-    THUMB_CACHE_NAME,
-} from 'src/caches'
+import { openStaticCache, pageCacheID, STATIC_CACHE_NAME } from 'src/caches'
 import { type Message } from 'src/message'
 import { cacheBooks } from 'src/service-worker/cache'
 import { sendMessage } from 'src/service-worker/send-message'
@@ -104,44 +98,44 @@ async function cacheStatic(event: FetchEvent, path: string): Promise<Response> {
     // })
 }
 
-async function cacheThumbnail(
-    event: FetchEvent,
-    path: string,
-): Promise<Response> {
-    const r = await caches.match(path, {
-        ignoreSearch: true,
-        cacheName: THUMB_CACHE_NAME,
-    })
+// async function cacheThumbnail(
+//     event: FetchEvent,
+//     path: string,
+// ): Promise<Response> {
+//     const r = await caches.match(path, {
+//         ignoreSearch: true,
+//         cacheName: THUMB_CACHE_NAME,
+//     })
 
-    if (r !== undefined) {
-        return r
-    }
-    const fetchPromise = fetch(event.request)
-    event.waitUntil(
-        (async () => {
-            const [thumbCache, response] = await Promise.all([
-                openThumbCache(),
-                fetchPromise,
-            ])
-            await thumbCache.put(event.request, response.clone())
-        })(),
-    )
-    // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0/thumbnail
-    const bookID = path.split('/')[3]
+//     if (r !== undefined) {
+//         return r
+//     }
+//     const fetchPromise = fetch(event.request)
+//     event.waitUntil(
+//         (async () => {
+//             const [thumbCache, response] = await Promise.all([
+//                 openThumbCache(),
+//                 fetchPromise,
+//             ])
+//             await thumbCache.put(event.request, response.clone())
+//         })(),
+//     )
+//     // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0/thumbnail
+//     const bookID = path.split('/')[3]
 
-    if (bookID !== undefined) {
-        const r = await caches.match(path.replace('/thumbnail', ''), {
-            ignoreSearch: true,
-            cacheName: pageCacheID(bookID),
-        })
+//     if (bookID !== undefined) {
+//         const r = await caches.match(path.replace('/thumbnail', ''), {
+//             ignoreSearch: true,
+//             cacheName: pageCacheID(bookID),
+//         })
 
-        if (r !== undefined) {
-            return r
-        }
-    }
+//         if (r !== undefined) {
+//             return r
+//         }
+//     }
 
-    return (await fetchPromise).clone()
-}
+//     return (await fetchPromise).clone()
+// }
 
 async function cachePage(event: FetchEvent, path: string): Promise<Response> {
     // /api/books/1ae1a596-e781-4793-9d68-8e1857a8142b/page/0
@@ -178,7 +172,7 @@ addEventListener('fetch', event => {
     }
 
     if (globToRegex('/api/books/*/page/*/thumbnail').test(url.pathname)) {
-        event.respondWith(cacheThumbnail(event, url.pathname))
+        // event.respondWith(cacheThumbnail(event, url.pathname))
         return
     }
 

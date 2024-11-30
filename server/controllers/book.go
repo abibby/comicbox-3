@@ -40,6 +40,7 @@ type BookIndexRequest struct {
 	AfterID    *uuid.UUID    `query:"after_id"  validate:"uuid"`
 	Order      *nulls.String `query:"order"     validate:"in:asc,desc"`
 	OrderBy    *nulls.String `query:"order_by"  validate:"in:default,created_at"`
+	WithSeries bool          `query:"with_series"`
 }
 
 var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[*models.Book], error) {
@@ -62,6 +63,10 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 		query = query.OrderByDesc(orderColumn)
 	} else {
 		query = query.OrderBy(orderColumn)
+	}
+
+	if req.WithSeries {
+		query = query.With(("Series"))
 	}
 
 	if req.AfterID != nil {

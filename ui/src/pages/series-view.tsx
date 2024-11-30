@@ -161,6 +161,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                 <BookList
                     title='Bookmark'
                     books={currentBooks}
+                    series={series ? [series] : null}
                     scrollTo={currentBook}
                 />
             )}
@@ -168,6 +169,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                 title={hasCurrentBooks ? 'All Books' : undefined}
                 scroll='vertical'
                 books={reverse(books)}
+                series={series ? [series] : null}
             />
         </>
     )

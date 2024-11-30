@@ -16,6 +16,7 @@ export type BookListRequest = PaginatedRequest & {
     after_id?: string
     order_by?: 'default' | 'created_at'
     order?: 'asc' | 'desc'
+    with_series?: boolean
 }
 
 export async function listPaged(

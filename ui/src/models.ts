@@ -20,6 +20,7 @@ export interface Book {
     file: string
     cover_url: string
     user_book: UserBook | null
+    series: Series | null
 }
 export interface Page {
     type: PageType

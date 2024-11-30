@@ -25,7 +25,7 @@ func userContext(u *models.User) context.Context {
 
 func FromSeries(s *models.Series) func(us *models.UserSeries) *models.UserSeries {
 	return func(us *models.UserSeries) *models.UserSeries {
-		us.SeriesName = s.Slug
+		us.SeriesSlug = s.Slug
 		return us
 	}
 }

@@ -196,7 +196,9 @@ addAsyncEventListener('message', async function (event) {
             await cacheBooks(await bookAPI.list({ id: message.bookID }))
             break
         case 'download-series':
-            await cacheBooks(await bookAPI.list({ series: message.seriesName }))
+            await cacheBooks(
+                await bookAPI.list({ series_slug: message.seriesSlug }),
+            )
             break
         case 'check-update':
             await this.registration.update()

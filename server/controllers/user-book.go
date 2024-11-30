@@ -60,7 +60,7 @@ var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.Use
 				uid, _ := auth.UserID(r.Ctx)
 				us = &models.UserSeries{
 					UserID:     uid,
-					SeriesName: b.SeriesSlug,
+					SeriesSlug: b.SeriesSlug,
 				}
 			}
 			us.LastReadAt = database.Time(time.Now())

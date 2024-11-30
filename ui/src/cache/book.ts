@@ -28,12 +28,12 @@ setCacheHandler(bookAPI.list, async (req): Promise<Book[]> => {
     }
     if (req.order_by === 'created_at') {
         collection = DB.books.orderBy('created_at')
-    } else if (req.series !== undefined) {
+    } else if (req.series_slug !== undefined) {
         collection = DB.books
-            .where(['series', 'sort'])
+            .where(['series_slug', 'sort'])
             .between(
-                [req.series, afterSort],
-                [req.series, beforeSort],
+                [req.series_slug, afterSort],
+                [req.series_slug, beforeSort],
                 false,
                 false,
             )

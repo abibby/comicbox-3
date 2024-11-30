@@ -13,7 +13,7 @@ import (
 //go:generate spice generate:migration
 type UserSeries struct {
 	BaseModel
-	SeriesName string        `json:"-"            db:"series_name,primary"`
+	SeriesSlug string        `json:"-"            db:"series_name,primary"`
 	UserID     uuid.UUID     `json:"-"            db:"user_id,primary"`
 	List       List          `json:"list"         db:"list"`
 	LastReadAt database.Time `json:"last_read_at" db:"last_read_at"`

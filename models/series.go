@@ -17,7 +17,7 @@ import (
 type Series struct {
 	BaseModel
 	Slug               string                       `json:"slug"             db:"name,primary"`
-	Name               string                       `json:"name"             db:"display_name,primary"`
+	Name               string                       `json:"name"             db:"display_name"`
 	CoverURL           string                       `json:"cover_url"        db:"-"`
 	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
 	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`

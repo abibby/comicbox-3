@@ -16,24 +16,24 @@ interface SeriesCardProps {
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
     const menu = useMemo<ContextMenuItems>(() => {
         return [
-            ['Edit', () => openModal(encode`/series/${props.series.name}`)],
+            ['Edit', () => openModal(encode`/series/${props.series.slug}`)],
             [
                 'Download',
                 () =>
                     post({
                         type: 'download-series',
-                        seriesName: props.series.name,
+                        seriesSlug: props.series.name,
                     }),
             ],
         ]
-    }, [props.series.name])
+    }, [props.series.name, props.series.slug])
 
     const coverURL = usePageURL(props.series)
 
     return (
         <Card
             image={coverURL}
-            link={route('series.view', { series: props.series.name })}
+            link={route('series.view', { series: props.series.slug })}
             title={props.series.name}
             menu={menu}
         />

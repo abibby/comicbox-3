@@ -7,8 +7,8 @@ import { Series, SeriesOrder } from 'src/models'
 setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
     let query: Collection<Series>
 
-    if (req.name !== undefined) {
-        query = DB.series.where('name').equals(req.name)
+    if (req.slug !== undefined) {
+        query = DB.series.where('slug').equals(req.slug)
     } else if (req.list !== undefined) {
         if (req.order_by == SeriesOrder.LastRead) {
             query = DB.series

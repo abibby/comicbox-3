@@ -18,7 +18,7 @@ export const listNames: [List, string][] = [
 export const listNamesMap = new Map<List, string>(listNames)
 
 export type SeriesListRequest = PaginatedRequest & {
-    name?: string
+    slug?: string
     list?: string
     with_latest_book?: boolean
     order_by?: SeriesOrder
@@ -34,15 +34,16 @@ export async function listPaged(
 export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
 
 interface SeriesUpdateRequest {
+    name: string | null
     anilist_id: number | null
     update_map: Record<string, string>
 }
 
 export async function update(
-    name: string,
+    slug: string,
     req: SeriesUpdateRequest,
 ): Promise<Series> {
-    return await apiFetch(`/api/series/${encodeURIComponent(name)}`, {
+    return await apiFetch(`/api/series/${encodeURIComponent(slug)}`, {
         method: 'POST',
         body: JSON.stringify(req),
     })

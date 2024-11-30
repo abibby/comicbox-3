@@ -7,11 +7,11 @@ interface UserSeriesUpdateRequest {
 }
 
 export async function update(
-    name: string,
+    slug: string,
     req: UserSeriesUpdateRequest,
 ): Promise<UserSeries> {
     return await apiFetch(
-        `/api/series/${encodeURIComponent(name)}/user-series`,
+        `/api/series/${encodeURIComponent(slug)}/user-series`,
         {
             method: 'POST',
             body: JSON.stringify(req),

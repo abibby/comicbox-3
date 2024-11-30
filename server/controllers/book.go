@@ -33,13 +33,13 @@ import (
 type BookIndexRequest struct {
 	PaginatedRequest
 
-	ID       *uuid.UUID    `query:"id"        validate:"uuid"`
-	Series   *nulls.String `query:"series"`
-	List     *models.List  `query:"list"`
-	BeforeID *uuid.UUID    `query:"before_id" validate:"uuid"`
-	AfterID  *uuid.UUID    `query:"after_id"  validate:"uuid"`
-	Order    *nulls.String `query:"order"     validate:"in:asc,desc"`
-	OrderBy  *nulls.String `query:"order_by"  validate:"in:default,created_at"`
+	ID         *uuid.UUID    `query:"id"        validate:"uuid"`
+	SeriesSlug *nulls.String `query:"series_slug"`
+	List       *models.List  `query:"list"`
+	BeforeID   *uuid.UUID    `query:"before_id" validate:"uuid"`
+	AfterID    *uuid.UUID    `query:"after_id"  validate:"uuid"`
+	Order      *nulls.String `query:"order"     validate:"in:asc,desc"`
+	OrderBy    *nulls.String `query:"order_by"  validate:"in:default,created_at"`
 }
 
 var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[*models.Book], error) {
@@ -48,7 +48,7 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 	if req.ID != nil {
 		query = query.Where("id", "=", req.ID)
 	}
-	if series, ok := req.Series.Ok(); ok {
+	if series, ok := req.SeriesSlug.Ok(); ok {
 		query = query.Where("series", "=", series)
 	}
 
@@ -219,7 +219,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 type BookUpdateRequest struct {
 	ID          string            `path:"id"          validate:"require|uuid"`
 	Title       string            `json:"title"`
-	Series      string            `json:"series"     validate:"require"`
+	SeriesSlug  string            `json:"series_slug" validate:"require"`
 	Volume      *nulls.Float64    `json:"volume"`
 	Chapter     *nulls.Float64    `json:"chapter"`
 	RightToLeft bool              `json:"rtl"        validate:"require"`
@@ -247,7 +247,7 @@ var BookUpdate = request.Handler(func(r *BookUpdateRequest) (*models.Book, error
 			book.Title = r.Title
 		}
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "series") {
-			book.SeriesSlug = r.Series
+			book.SeriesSlug = r.SeriesSlug
 		}
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "volume") {
 			book.Volume = r.Volume

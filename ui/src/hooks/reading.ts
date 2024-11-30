@@ -26,7 +26,7 @@ async function readingBooks(): Promise<Book[]> {
                 sort = readingSeries.latest_book.sort
             }
             const seriesBooks = await DB.books
-                .where(['series', 'completed', 'sort'])
+                .where(['series_slug', 'completed', 'sort'])
                 .between(
                     [readingSeries.name, 0, Dexie.minKey],
                     [readingSeries.name, 0, sort],
@@ -73,8 +73,8 @@ setCacheHandler(readingBooks, async (): Promise<Book[]> => {
 
     const bookPromises = s.map(s =>
         DB.books
-            .where(['series', 'completed', 'sort'])
-            .between([s.name, 0, Dexie.minKey], [s.name, 0, Dexie.maxKey])
+            .where(['series_slug', 'completed', 'sort'])
+            .between([s.slug, 0, Dexie.minKey], [s.slug, 0, Dexie.maxKey])
             .first(),
     )
 

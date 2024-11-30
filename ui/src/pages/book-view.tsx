@@ -87,7 +87,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                     current_page: newPage,
                 },
             })
-            const s = await DB.series.where('name').equals(b.series).first()
+            const s = await DB.series
+                .where('slug')
+                .equals(b.series_slug)
+                .first()
             if (s !== undefined) {
                 await DB.saveSeries(s, {
                     user_series: {

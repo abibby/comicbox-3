@@ -10,7 +10,7 @@ import { Book, List, PageType } from 'src/models'
 
 export type BookListRequest = PaginatedRequest & {
     id?: string
-    series?: string
+    series_slug?: string
     list?: List
     before_id?: string
     after_id?: string
@@ -42,7 +42,7 @@ export async function remove(
 
 export interface BookUpdateRequest {
     title: string
-    series: string
+    series_slug: string
     volume: number | null
     chapter: number | null
     rtl: boolean

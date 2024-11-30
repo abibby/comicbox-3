@@ -25,7 +25,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     const menu = useMemo((): ContextMenuItems => {
         const currentPage = book.user_book?.current_page ?? 0
         return [
-            ['View series', route('series.view', { series: book.series })],
+            ['View series', route('series.view', { series: book.series_slug })],
             ['Edit', () => openModal(encode`/book/${book.id}/meta`)],
             currentPage < book.page_count - 1 && [
                 'Mark as read',
@@ -104,7 +104,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
         <Card
             image={coverURL}
             link={route('book.view', { id: book.id })}
-            title={book.series}
+            title={book.series_slug}
             subtitle={title}
             menu={menu}
             disabled={!online && !downloaded}

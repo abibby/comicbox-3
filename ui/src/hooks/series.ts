@@ -3,10 +3,10 @@ import { useCached } from 'src/cache'
 import { DB } from 'src/database'
 import { Series } from 'src/models'
 
-export function useSeries(name: string): [Series | null, boolean] {
+export function useSeries(slug: string): [Series | null, boolean] {
     const seriesList = useCached({
-        listName: `series:${name}`,
-        request: { name: name },
+        listName: `series:${slug}`,
+        request: { slug: slug },
         table: DB.series,
         network: seriesAPI.list,
     })

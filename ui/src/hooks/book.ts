@@ -16,10 +16,15 @@ export function useBook(id: string): [Book | null, boolean] {
 
 export function usePreviousBook(b: Book | undefined | null): Book | undefined {
     const id = b?.id ?? 'no-id'
-    const series = b?.series ?? 'no-series'
+    const seriesSlug = b?.series_slug ?? 'no-series'
     const previousResponse = useCached({
         listName: `book:${id}:previous`,
-        request: { series: series, before_id: id, limit: 1, order: 'desc' },
+        request: {
+            series_slug: seriesSlug,
+            before_id: id,
+            limit: 1,
+            order: 'desc',
+        },
         table: DB.books,
         network: bookAPI.list,
         wait: !b,
@@ -30,10 +35,10 @@ export function usePreviousBook(b: Book | undefined | null): Book | undefined {
 
 export function useNextBook(b: Book | undefined | null): Book | undefined {
     const id = b?.id ?? 'no-id'
-    const series = b?.series ?? 'no-series'
+    const seriesSlug = b?.series_slug ?? 'no-series'
     const nextResponse = useCached({
         listName: `book:${id}:next`,
-        request: { series: series, after_id: id, limit: 1 },
+        request: { series_slug: seriesSlug, after_id: id, limit: 1 },
         table: DB.books,
         network: bookAPI.list,
         wait: !b,

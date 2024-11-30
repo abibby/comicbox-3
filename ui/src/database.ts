@@ -53,6 +53,7 @@ export const emptySeries: Readonly<DBSeries> = {
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,
     update_map: {},
+    slug: '',
     name: '',
     cover_url: '',
     first_book_id: null,
@@ -71,7 +72,7 @@ export const emptyBook: Readonly<DBBook> = {
     title: '',
     chapter: null,
     volume: null,
-    series: '',
+    series_slug: '',
     authors: [],
     pages: [],
     page_count: 0,
@@ -105,6 +106,11 @@ class AppDatabase extends Dexie {
 
     constructor() {
         super('AppDatabase')
+        this.version(5).stores({
+            books: '&id, [series_slug+sort], [series_slug+completed+sort], sort, dirty, created_at',
+            series: '&slug, user_series.list, dirty, [user_series.list+user_series.last_read_at], created_at',
+            lastUpdated: '&list',
+        })
         this.version(4).stores({
             books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
             series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at], created_at',

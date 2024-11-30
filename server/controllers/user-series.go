@@ -9,12 +9,13 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/salusa/database/model"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
 type UpdateUserSeriesRequest struct {
-	SeriesName string            `url:"name"`
+	SeriesSlug string            `url:"slug"`
 	List       models.List       `json:"list"`
 	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
@@ -38,7 +39,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		us, err = models.UserSeriesQuery(r.Context()).
-			Where("series_name", "=", req.SeriesName).
+			Where("series_name", "=", req.SeriesSlug).
 			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
@@ -46,13 +47,14 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		if us == nil {
 			us = &models.UserSeries{
 				UserID:     uid,
-				SeriesName: req.SeriesName,
+				SeriesSlug: req.SeriesSlug,
 			}
 		}
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {
 			us.List = req.List
 		}
 
+		spew.Dump(us.SeriesSlug, us.List)
 		err = model.SaveContext(r.Context(), tx, us)
 		return errors.Wrap(err, "")
 	})

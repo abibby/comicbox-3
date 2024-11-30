@@ -59,7 +59,7 @@ export const EditBook: FunctionalComponent = () => {
                     case 'meta':
                         await DB.saveBook(book, {
                             title: data.get('title') ?? '',
-                            series: data.get('series') ?? '',
+                            series_slug: data.get('series') ?? '',
                             volume: data.getNumber('volume'),
                             chapter: data.getNumber('chapter'),
                             rtl: data.get('view')?.endsWith('rtl') ?? false,
@@ -199,7 +199,7 @@ export const EditBook: FunctionalComponent = () => {
                             <Input
                                 title='Series'
                                 name='series'
-                                value={book.series}
+                                value={book.series_slug}
                             />
                             <Input
                                 title='Title'

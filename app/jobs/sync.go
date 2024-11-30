@@ -24,6 +24,7 @@ import (
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/event"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -95,19 +96,22 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 	return nil
 }
 
-func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string) (*models.Series, error) {
+func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string, book *models.Book) (*models.Series, error) {
 	series, ok := h.seriesCache[name]
 
 	if !ok {
 		var err error
-		series, err = models.SeriesQuery(ctx).Where("display_name", "=", name).First(tx)
+		series, err = models.SeriesQuery(ctx).Where("name", "=", book.SeriesSlug).First(tx)
 		if err != nil {
 			return nil, err
 		}
+		spew.Dump(series, name)
 		if series == nil {
 			series = &models.Series{
-				Slug: models.Slug(name),
-				Name: name,
+				FirstBookCoverPage: book.CoverPage(),
+				FirstBookID:        &book.ID,
+				Slug:               book.SeriesSlug,
+				Name:               name,
 			}
 
 			err = model.SaveContext(ctx, tx, series)
@@ -145,7 +149,7 @@ func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error)
 }
 
 func (h *SyncHandler) addBook(ctx context.Context, tx *sqlx.Tx, file string) error {
-	book, err := h.loadBookData(ctx, tx, file)
+	book, err := h.loadBookData(file)
 	if errors.Is(err, zip.ErrFormat) {
 		return nil
 	} else if err != nil {
@@ -153,10 +157,23 @@ func (h *SyncHandler) addBook(ctx context.Context, tx *sqlx.Tx, file string) err
 	}
 	book.ID = uuid.New()
 
-	return model.SaveContext(ctx, tx, book)
+	seriesName := book.SeriesSlug
+	book.SeriesSlug = models.Slug(book.SeriesSlug)
+
+	err = model.SaveContext(ctx, tx, book)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.createSeries(ctx, tx, seriesName, book)
+	if err != nil {
+		return fmt.Errorf("could not create series: %w", err)
+	}
+
+	return nil
 }
 
-func (h *SyncHandler) loadBookData(ctx context.Context, tx *sqlx.Tx, file string) (*models.Book, error) {
+func (h *SyncHandler) loadBookData(file string) (*models.Book, error) {
 	book := &models.Book{}
 
 	reader, err := zip.OpenReader(file)
@@ -191,14 +208,6 @@ func (h *SyncHandler) loadBookData(ctx context.Context, tx *sqlx.Tx, file string
 	}
 
 	book.File = file
-
-	s, err := h.createSeries(ctx, tx, book.SeriesSlug)
-	if err != nil {
-		return nil, fmt.Errorf("could not create series: %w", err)
-	}
-
-	book.SeriesSlug = s.Slug
-
 	return book, nil
 }
 

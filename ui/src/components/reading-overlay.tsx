@@ -70,10 +70,10 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                         <li>
                             <a
                                 href={route('series.view', {
-                                    series: b.series,
+                                    series: b.series_slug,
                                 })}
                             >
-                                {b.series}
+                                {b.series_slug}
                             </a>
                         </li>
                     </ul>

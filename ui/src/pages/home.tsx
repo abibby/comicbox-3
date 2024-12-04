@@ -20,14 +20,14 @@ export const Home: FunctionalComponent = () => {
 }
 
 export const Reading: FunctionalComponent = () => {
-    const [series] = useSeriesList('reading', {
+    const [series, seriesLoading] = useSeriesList('reading', {
         order_by: SeriesOrder.LastRead,
         with_latest_book: true,
         list: 'reading',
     })
 
     const books = useMemo(
-        () => series?.map(s => s.latest_book).filter(notNullish) ?? null,
+        () => series.map(s => s.latest_book).filter(notNullish),
         [series],
     )
 
@@ -35,7 +35,14 @@ export const Reading: FunctionalComponent = () => {
         return <Fragment></Fragment>
     }
 
-    return <BookList title='Comtinue Reading' books={books} series={series} />
+    return (
+        <BookList
+            title='Comtinue Reading'
+            books={books}
+            series={series}
+            loading={seriesLoading}
+        />
+    )
 }
 
 export const Latest: FunctionalComponent = () => {

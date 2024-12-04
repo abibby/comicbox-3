@@ -8,7 +8,7 @@ import styles from 'src/components/form/form-element.module.css'
 export interface SelectProps extends FormElementOptions {
     name: string
     options: ReadonlyArray<readonly [string | number, string]>
-    value: string | number
+    value?: string | number
 }
 
 export const Select: FunctionalComponent<SelectProps> = props => {

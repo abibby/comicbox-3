@@ -1,7 +1,7 @@
 import { bind, bindValue } from '@zwzn/spicy'
 import classNames from 'classnames'
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { openToast } from 'src/components/toast'
 import styles from 'src/modals/book-edit.module.css'
@@ -24,6 +24,7 @@ import { Select } from 'src/components/form/select'
 import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { encode } from 'src/util'
+import { useAllSeries } from 'src/hooks/series'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -153,6 +154,15 @@ export const EditBook: FunctionalComponent = () => {
         [setEditedPages],
     )
 
+    const [series] = useAllSeries()
+
+    const seriesOptions = useMemo(
+        (): ReadonlyArray<readonly [string | number, string]> =>
+            series
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(s => [s.slug, s.name]),
+        [series],
+    )
     if (!book) {
         return (
             <Modal>
@@ -196,9 +206,10 @@ export const EditBook: FunctionalComponent = () => {
                     <TabContainer class={styles.tabs}>
                         <Tab title='meta'>
                             <input type='hidden' name='tab' value='meta' />
-                            <Input
+                            <Select
                                 title='Series'
                                 name='series'
+                                options={seriesOptions}
                                 value={book.series_slug}
                             />
                             <Input

@@ -2,11 +2,10 @@ import { bindValue } from '@zwzn/spicy'
 import Fuse from 'fuse.js'
 import { Fragment, h, JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
-import { seriesAPI } from 'src/api'
-import { useCached } from 'src/cache'
 import { SeriesList } from 'src/components/series-list'
-import { DB, DBSeries } from 'src/database'
+import { DBSeries } from 'src/database'
 import { useQueryState } from 'src/hooks/query-state'
+import { useAllSeries } from 'src/hooks/series'
 import { Series } from 'src/models'
 import styles from 'src/pages/search.module.css'
 
@@ -14,13 +13,7 @@ export function Search(): JSX.Element {
     const [query, setQuery] = useQueryState('q', '')
     const [foundSeries, setFoundSeries] = useState<Series[] | null>(null)
     const search = useRef<HTMLInputElement | null>(null)
-    const allSeries = useCached({
-        listName: 'series',
-        request: {},
-        table: DB.series,
-        network: seriesAPI.list,
-        promptReload: 'never',
-    })
+    const [allSeries] = useAllSeries()
     const [fuse, setFuse] = useState<Fuse<DBSeries>>()
     useEffect(() => {
         if (allSeries === null) {

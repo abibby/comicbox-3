@@ -15,6 +15,7 @@ interface BookListProps {
     series?: Series[] | null
     scrollTo?: Book | null
     scroll?: 'auto' | 'horizontal' | 'vertical'
+    loading?: boolean
 }
 
 export const BookList: FunctionalComponent<BookListProps> = props => {
@@ -23,7 +24,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
         [props.series],
     )
 
-    if (props.books === null || props.series === null) {
+    if (props.books === null || props.series === null || props.loading) {
         return (
             <CardList title={props.title} scroll={props.scroll}>
                 <Card title='title' subtitle='subtitle' placeholder />

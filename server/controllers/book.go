@@ -251,7 +251,7 @@ var BookUpdate = request.Handler(func(r *BookUpdateRequest) (*models.Book, error
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "title") {
 			book.Title = r.Title
 		}
-		if shouldUpdate(book.UpdateMap, r.UpdateMap, "series") {
+		if shouldUpdate(book.UpdateMap, r.UpdateMap, "series_slug") {
 			book.SeriesSlug = r.SeriesSlug
 		}
 		if shouldUpdate(book.UpdateMap, r.UpdateMap, "volume") {

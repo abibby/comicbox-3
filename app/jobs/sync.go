@@ -24,7 +24,6 @@ import (
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/event"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -105,7 +104,7 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 		if err != nil {
 			return nil, err
 		}
-		spew.Dump(series, name)
+
 		if series == nil {
 			series = &models.Series{
 				FirstBookCoverPage: book.CoverPage(),

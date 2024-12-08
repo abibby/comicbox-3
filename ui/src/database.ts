@@ -109,7 +109,7 @@ class AppDatabase extends Dexie {
         super('comicbox')
         this.version(1).stores({
             books: '&id, [series_slug+sort], [series_slug+completed+sort], sort, dirty, created_at',
-            series: '&slug, name, user_series.list, dirty, [user_series.list+user_series.last_read_at], created_at',
+            series: '&slug, name, user_series.list, dirty, [user_series.list+user_series.last_read_at], user_series.last_read_at, created_at',
             lastUpdated: '&list',
         })
         this.books = this.table('books')

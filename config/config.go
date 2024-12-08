@@ -144,9 +144,19 @@ func (c *cfg) LoggerConfig() clog.Config {
 	}
 }
 
+type CustomSQLiteConfig struct {
+	sqlite.Config
+}
+
+func (c *CustomSQLiteConfig) DriverName() string {
+	return "sqlite3_custom"
+}
+
 // DBConfig implements Config.
 func (c *cfg) DBConfig() database.Config {
-	return sqlite.NewConfig(DBPath)
+	return &CustomSQLiteConfig{
+		Config: *sqlite.NewConfig(DBPath),
+	}
 }
 
 // GetBaseURL implements Config.

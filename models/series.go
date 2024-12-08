@@ -16,15 +16,15 @@ import (
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug               string                       `json:"slug"             db:"name,primary"`
-	Name               string                       `json:"name"             db:"display_name"`
-	CoverURL           string                       `json:"cover_url"        db:"-"`
-	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
-	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`
-	AnilistId          *nulls.Int                   `json:"anilist_id"       db:"anilist_id"`
-	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"      db:"-" local:"name" foreign:"series_name"`
-	LatestBookID       *uuid.UUID                   `json:"latest_book_id"   db:"latest_book_id,readonly"`
-	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"      db:"-" foreign:"latest_book_id" owner:"id"`
+	Slug               string                       `json:"slug"           db:"name,primary"`
+	Name               string                       `json:"name"           db:"display_name"`
+	CoverURL           string                       `json:"cover_url"      db:"-"`
+	FirstBookID        *uuid.UUID                   `json:"first_book_id"  db:"first_book_id"`
+	FirstBookCoverPage int                          `json:"-"              db:"first_book_cover_page"`
+	AnilistId          *nulls.Int                   `json:"anilist_id"     db:"anilist_id"`
+	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"    db:"-" local:"name" foreign:"series_name"`
+	LatestBookID       *uuid.UUID                   `json:"latest_book_id" db:"latest_book_id,readonly"`
+	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"    db:"-" foreign:"latest_book_id" owner:"id"`
 }
 
 func SeriesQuery(ctx context.Context) *builder.ModelBuilder[*Series] {

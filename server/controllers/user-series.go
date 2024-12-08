@@ -9,7 +9,6 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/salusa/database/model"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
@@ -54,7 +53,6 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			us.List = req.List
 		}
 
-		spew.Dump(us.SeriesSlug, us.List)
 		err = model.SaveContext(r.Context(), tx, us)
 		return errors.Wrap(err, "")
 	})

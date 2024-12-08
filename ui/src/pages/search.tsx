@@ -13,7 +13,7 @@ export function Search(): JSX.Element {
     const [query, setQuery] = useQueryState('q', '')
     const [foundSeries, setFoundSeries] = useState<Series[] | null>(null)
     const search = useRef<HTMLInputElement | null>(null)
-    const [allSeries] = useAllSeries()
+    const [allSeries] = useAllSeries({ promptReload: 'never' })
     const [fuse, setFuse] = useState<Fuse<DBSeries>>()
     useEffect(() => {
         if (allSeries === null) {

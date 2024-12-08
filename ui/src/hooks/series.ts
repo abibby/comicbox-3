@@ -31,6 +31,8 @@ export function useSeriesList(
     return [seriesList ?? [], seriesList === null]
 }
 
-export function useAllSeries() {
-    return useSeriesList('all', {})
+export function useAllSeries(
+    options: Partial<CacheOptions<Series, seriesAPI.SeriesListRequest>> = {},
+) {
+    return useSeriesList('all', {}, options)
 }

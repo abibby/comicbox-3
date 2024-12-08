@@ -53,6 +53,7 @@ export const emptySeries: Readonly<DBSeries> = {
     updated_at: '1970-01-01T00:00:00Z',
     deleted_at: null,
     update_map: {},
+    slug: '',
     name: '',
     cover_url: '',
     first_book_id: null,
@@ -71,7 +72,7 @@ export const emptyBook: Readonly<DBBook> = {
     title: '',
     chapter: null,
     volume: null,
-    series: '',
+    series_slug: '',
     authors: [],
     pages: [],
     page_count: 0,
@@ -88,6 +89,7 @@ export const emptyBook: Readonly<DBBook> = {
         current_page: 0,
     },
     completed: 0,
+    series: null,
 }
 
 function objectEntries<T extends object>(o: T): [keyof T, T[keyof T]][] {
@@ -104,25 +106,10 @@ class AppDatabase extends Dexie {
     lastUpdated: Dexie.Table<LastUpdated, number>
 
     constructor() {
-        super('AppDatabase')
-        this.version(4).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
-            series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at], created_at',
-            lastUpdated: '&list',
-        })
-        this.version(3).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
-            series: '&name, user_series.list, dirty, [user_series.list+user_series.last_read_at]',
-            lastUpdated: '&list',
-        })
-        this.version(2).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, dirty, created_at',
-            series: '&name, user_series.list, dirty',
-            lastUpdated: '&list',
-        })
+        super('comicbox')
         this.version(1).stores({
-            books: '&id, [series+sort], [series+completed+sort], sort, dirty',
-            series: '&name, user_series.list, dirty',
+            books: '&id, [series_slug+sort], [series_slug+completed+sort], sort, dirty, created_at',
+            series: '&slug, name, user_series.list, dirty, [user_series.list+user_series.last_read_at], user_series.last_read_at, created_at',
             lastUpdated: '&list',
         })
         this.books = this.table('books')
@@ -181,16 +168,14 @@ class AppDatabase extends Dexie {
         mod: Modification<DBSeries>,
         setDirty = true,
     ): Promise<void> {
-        await this.series.update(
+        const mod2 = this.modelModification(
             s,
-            this.modelModification(
-                s,
-                mod,
-                emptySeries,
-                updatedTimestamp(),
-                setDirty,
-            ),
+            mod,
+            emptySeries,
+            updatedTimestamp(),
+            setDirty,
         )
+        await this.series.update(s, mod2)
     }
 
     private modelModification<T extends DBModel>(

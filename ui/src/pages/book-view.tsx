@@ -11,7 +11,7 @@ import { useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
 import { useMediaQuery } from 'src/hooks/use-media-query'
-import { Book, Page, PageType } from 'src/models'
+import { Book, Page, PageType, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
@@ -22,6 +22,7 @@ import {
     useMergedPages,
 } from 'src/services/book-service'
 import { useLocation, useRoute } from 'preact-iso'
+import { useSeries } from 'src/hooks/series'
 
 export const BookView: FunctionalComponent = () => {
     const { params } = useRoute()
@@ -33,45 +34,48 @@ export const BookView: FunctionalComponent = () => {
         table: DB.books,
         network: bookAPI.list,
     })
-    const b = books?.[0]
+    const book = books?.[0]
 
-    if (b === undefined) {
+    const [series] = useSeries(book?.series_slug ?? '')
+
+    if (!book || !series) {
         return <Error404 />
     }
     let sourcePage = 0
 
     if (params.page) {
         sourcePage = Number(params.page)
-    } else if (b.user_book?.current_page) {
-        sourcePage = b.user_book.current_page
+    } else if (book.user_book?.current_page) {
+        sourcePage = book.user_book.current_page
     }
 
-    return <Reader book={b} sourcePage={sourcePage} />
+    return <Reader book={book} series={series} sourcePage={sourcePage} />
 }
 
 interface ReaderProps {
     book: Book
+    series: Series
     sourcePage: number
 }
 
 const Reader: FunctionalComponent<ReaderProps> = props => {
     const { route: navigate } = useLocation()
-    const b = props.book
-    const activePage = translate(b, props.sourcePage)
+    const book = props.book
+    const activePage = translate(book, props.sourcePage)
         .from('sourcePage')
         .to('activePage')
-    const rtl = b.rtl
+    const rtl = book.rtl
 
     const landscape = useMediaQuery('(orientation: landscape)')
-    const pages = useMergedPages(b.pages, b.long_strip, landscape)
-    const mergedPage = translate(b, props.sourcePage)
+    const pages = useMergedPages(book.pages, book.long_strip, landscape)
+    const mergedPage = translate(book, props.sourcePage)
         .from('sourcePage')
         .toMerged(pages)
 
-    const nextBook = useNextBook(b)
-    const previousBook = usePreviousBook(b)
+    const nextBook = useNextBook(book)
+    const previousBook = usePreviousBook(book)
 
-    const bookID = b.id
+    const bookID = book.id
     const nextBookID = nextBook?.id
     const previousBookID = previousBook?.id
     const setSourcePage = useCallback(
@@ -87,7 +91,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                     current_page: newPage,
                 },
             })
-            const s = await DB.series.where('name').equals(b.series).first()
+            const s = await DB.series
+                .where('slug')
+                .equals(b.series_slug)
+                .first()
             if (s !== undefined) {
                 await DB.saveSeries(s, {
                     user_series: {
@@ -106,7 +113,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
             if (Number(newMergedPage) >= pages.length) {
-                void updateAnilist(b)
+                void updateAnilist(book)
                 if (nextBookID) {
                     navigate(route('book.view', { id: nextBookID }))
                 } else {
@@ -123,7 +130,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
 
-            const newPage = translate(b, newMergedPage)
+            const newPage = translate(book, newMergedPage)
                 .fromMerged(pages)
                 .to('sourcePage')
 
@@ -132,7 +139,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         [
             mergedPage,
             pages,
-            b,
+            book,
             setSourcePage,
             nextBookID,
             navigate,
@@ -205,7 +212,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
         <div
             class={classNames(styles.reader, {
                 [styles.menuOpen]: menuOpen,
-                [styles.rtl]: b.rtl,
+                [styles.rtl]: book.rtl,
             })}
             onClick={click}
         >
@@ -215,22 +222,23 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 </svg>
             </div>
             <Overlay
-                book={b}
+                book={book}
+                series={props.series}
                 sourcePage={props.sourcePage}
                 baseRef={overlay}
                 onPageChange={setSourcePage}
                 open={menuOpen}
                 landscape={landscape}
             />
-            {b.long_strip ? (
+            {book.long_strip ? (
                 <LongStripPages
-                    book={b}
+                    book={book}
                     page={activePage}
                     onPageChange={setMergedPage}
                 />
             ) : (
                 <CurrentPages
-                    book={b}
+                    book={book}
                     pages={pages}
                     pagesIndex={mergedPage}
                     onPageChangeLeft={setPageLeft}

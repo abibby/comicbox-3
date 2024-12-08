@@ -20,6 +20,7 @@ import (
 
 type BaseModel struct {
 	model.BaseModel
+	// mixins.SoftDelete
 	CreatedAt    database.Time     `json:"created_at" db:"created_at"`
 	UpdatedAt    database.Time     `json:"updated_at" db:"updated_at"`
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
@@ -31,6 +32,10 @@ func (*BaseModel) Scopes() []*builder.Scope {
 	return []*builder.Scope{
 		mixins.SoftDeleteScope,
 	}
+}
+
+func (b *BaseModel) Model() *BaseModel {
+	return b
 }
 
 type Model interface {

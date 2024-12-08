@@ -7,8 +7,8 @@ import { Series, SeriesOrder } from 'src/models'
 setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
     let query: Collection<Series>
 
-    if (req.name !== undefined) {
-        query = DB.series.where('name').equals(req.name)
+    if (req.slug !== undefined) {
+        query = DB.series.where('slug').equals(req.slug)
     } else if (req.list !== undefined) {
         if (req.order_by == SeriesOrder.LastRead) {
             query = DB.series
@@ -38,5 +38,41 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
     if (req.limit !== undefined) {
         query = query.limit(req.limit)
     }
-    return query.toArray()
+
+    let series = await query.toArray()
+
+    if (req.with_latest_book) {
+        series = await Promise.all(
+            series.map(async (s): Promise<Series> => {
+                const latestBook = await DB.books
+                    .where(['series_slug', 'completed', 'sort'])
+                    .between(
+                        [s.slug, 0, Dexie.minKey],
+                        [s.slug, 0, Dexie.maxKey],
+                    )
+                    .first()
+                s.latest_book = latestBook ?? null
+                s.latest_book_id = latestBook?.id ?? null
+                return s
+            }),
+        )
+    }
+
+    if (req.order_by === SeriesOrder.LastRead) {
+        series.sort((a, b) => {
+            if (!a.user_series && !b.user_series) {
+                return 0
+            }
+            if (!a.user_series) {
+                return 1
+            }
+            if (!b.user_series) {
+                return -1
+            }
+            return b.user_series.last_read_at.localeCompare(
+                a.user_series.last_read_at,
+            )
+        })
+    }
+    return series
 })

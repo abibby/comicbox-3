@@ -3,13 +3,14 @@ import { FunctionalComponent, h, RefObject } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/reading-overlay.module.css'
-import { Book } from 'src/models'
+import { Book, Series } from 'src/models'
 import { route } from 'src/routes'
 import { translate } from 'src/services/book-service'
 import { openModal } from 'src/components/modal-controller'
 
 interface OverlayProps {
     book: Book
+    series: Series
     sourcePage: number
     baseRef: RefObject<HTMLDivElement>
     open: boolean
@@ -18,7 +19,7 @@ interface OverlayProps {
 }
 
 export const Overlay: FunctionalComponent<OverlayProps> = props => {
-    const b = props.book
+    const book = props.book
 
     const [displayPage, setDisplayPage] = useState(0)
     const sliderInput = useCallback((p: string) => {
@@ -28,7 +29,7 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
     const changePage = props.onPageChange
     const updateDisplayPage = useCallback(
         async (newDisplayPage: string) => {
-            const newSourcePage = translate(b, Number(newDisplayPage))
+            const newSourcePage = translate(book, Number(newDisplayPage))
                 .from('displayPage')
                 .to('sourcePage')
 
@@ -38,16 +39,18 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
 
             await changePage(newSourcePage)
         },
-        [b, changePage, props.sourcePage],
+        [book, changePage, props.sourcePage],
     )
 
     useEffect(() => {
         setDisplayPage(
-            translate(b, props.sourcePage).from('sourcePage').to('displayPage'),
+            translate(book, props.sourcePage)
+                .from('sourcePage')
+                .to('displayPage'),
         )
-    }, [b, props.sourcePage])
+    }, [book, props.sourcePage])
 
-    const maxDisplayPage = translate(b, b.pages.length - 1)
+    const maxDisplayPage = translate(book, book.pages.length - 1)
         .from('sourcePage')
         .to('displayPage')
 
@@ -63,17 +66,17 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                 <div class={styles.sidebar}>
                     <ul>
                         <li>
-                            <a onClick={bind(`/book/${b.id}`, openModal)}>
+                            <a onClick={bind(`/book/${book.id}`, openModal)}>
                                 Edit
                             </a>
                         </li>
                         <li>
                             <a
                                 href={route('series.view', {
-                                    series: b.series,
+                                    series: book.series_slug,
                                 })}
                             >
-                                {b.series}
+                                {props.series.name}
                             </a>
                         </li>
                     </ul>

@@ -5,8 +5,16 @@
 }
 
 .button {
-    background-color: rgb(var(--default-button));
-    color: rgba(var(--default-button-text), 0.85);
+    --button-background-opacity: 0.85;
+    --button-background-color: var(--default-button);
+    --button-text-opacity: 0.85;
+    --button-text-color: var(--default-button-text);
+
+    background-color: rgba(
+        var(--button-background-color),
+        var(--button-background-opacity)
+    );
+    color: rgba(var(--button-text-color), var(--button-text-opacity));
     font-size: inherit;
     padding: 0.25rem 0.75rem;
     border: none;
@@ -17,8 +25,13 @@
     text-align: center;
 }
 
+.button:focus-visible {
+    outline: rgba(var(--text-on-background), 0.85) solid 0.125rem;
+}
+
+.button:focus,
 .button:hover:not(.disabled) {
-    color: rgba(var(--default-button-text), 1);
+    color: rgba(var(--button-text-color), 1);
 }
 
 .disabled {
@@ -27,12 +40,8 @@
 }
 
 .button.primary {
-    background-color: rgb(var(--primary-button));
-    color: rgba(var(--primary-button-text), 0.85);
-}
-
-.button.primary:hover:not(.disabled) {
-    color: rgba(var(--primary-button-text), 1);
+    --button-background-color: var(--primary-button);
+    --button-text-color: var(--text-on-primary);
 }
 
 .button.clear {

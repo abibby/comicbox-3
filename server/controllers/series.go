@@ -33,7 +33,7 @@ const (
 type SeriesIndexRequest struct {
 	PaginatedRequest
 
-	Name           *nulls.String `query:"name"`
+	Slug           *nulls.String `query:"slug"`
 	List           *nulls.String `query:"list"`
 	WithLatestBook bool          `query:"with_latest_book"`
 	OrderBy        *SeriesOrder  `query:"order_by"`
@@ -72,7 +72,7 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 
 	query = query.OrderBy("name")
 
-	if name, ok := req.Name.Ok(); ok {
+	if name, ok := req.Slug.Ok(); ok {
 		query = query.Where("name", "=", name)
 	}
 	if list, ok := req.List.Ok(); ok {
@@ -117,7 +117,8 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Name      string            `path:"name"`
+	Slug      string            `path:"slug"`
+	Name      string            `json:"name"`
 	AnilistID *nulls.Int        `json:"anilist_id"`
 	UpdateMap map[string]string `json:"update_map"   validate:"require"`
 
@@ -131,7 +132,7 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 		var err error
 		s, err = models.SeriesQuery(r.Ctx).
 			With("UserSeries").
-			Find(tx, r.Name)
+			Find(tx, r.Slug)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve series from the database")
 		}
@@ -141,6 +142,10 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 
 		if shouldUpdate(s.UpdateMap, r.UpdateMap, "anilist_id") {
 			s.AnilistId = r.AnilistID
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "name") {
+			s.Name = r.Name
 		}
 
 		return model.SaveContext(r.Ctx, tx, s)

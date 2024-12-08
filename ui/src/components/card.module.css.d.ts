@@ -1,5 +1,5 @@
 declare const styles: {
-  readonly "book": string;
+  readonly "card": string;
   readonly "cardList": string;
   readonly "cover": string;
   readonly "disabled": string;

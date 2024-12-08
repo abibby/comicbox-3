@@ -197,7 +197,7 @@ export async function persist(
                 if (b.update_map !== undefined) {
                     result = await bookAPI.update(b.id, {
                         title: b.title,
-                        series: b.series,
+                        series_slug: b.series_slug,
                         chapter: b.chapter,
                         volume: b.volume,
                         rtl: b.rtl,
@@ -229,7 +229,8 @@ export async function persist(
         for (const s of dirtySeries) {
             let result: Partial<DBSeries> = {}
             try {
-                result = await seriesAPI.update(s.name, {
+                result = await seriesAPI.update(s.slug, {
+                    name: s.name,
                     anilist_id: s.anilist_id,
                     update_map: s.update_map,
                 })
@@ -237,7 +238,7 @@ export async function persist(
                 if (s.user_series !== null) {
                     try {
                         result.user_series = await userSeriesAPI.update(
-                            s.name,
+                            s.slug,
                             {
                                 list: s.user_series.list,
                                 update_map: s.user_series.update_map,

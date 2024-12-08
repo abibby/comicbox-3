@@ -68,7 +68,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
     return (
         <div
             ref={card}
-            class={classNames(styles.book, {
+            class={classNames(styles.card, {
                 [styles.placeholder]: props.placeholder,
                 [styles.disabled]: props.disabled,
             })}
@@ -237,10 +237,14 @@ export const CardList: FunctionalComponent<CardListProps> = ({
                         title
                     )}
                 </h3>
-                <button class={styles.previous} onClick={previous}>
+                <button
+                    class={styles.previous}
+                    onClick={previous}
+                    tabIndex={-1}
+                >
                     <ChevronLeft />
                 </button>
-                <button class={styles.next} onClick={next}>
+                <button class={styles.next} onClick={next} tabIndex={-1}>
                     <ChevronRight />
                 </button>
             </div>

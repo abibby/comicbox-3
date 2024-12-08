@@ -18,16 +18,16 @@ import { encode } from 'src/util'
 
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
-    const name = params.series ?? ''
+    const slug = params.series ?? ''
     const seriesList = useCached({
-        listName: `series:${name}`,
-        request: { name: name },
+        listName: `series:${slug}`,
+        request: { slug: slug },
         table: DB.series,
         network: seriesAPI.list,
     })
 
     if (seriesList === null) {
-        return <SeriesList name={name} />
+        return <SeriesList slug={slug} />
     }
 
     const s = seriesList[0]
@@ -35,20 +35,20 @@ export const SeriesView: FunctionalComponent = () => {
         return <Error404 />
     }
 
-    return <SeriesList name={name} series={s} />
+    return <SeriesList slug={slug} series={s} />
 }
 
 interface SeriesListProps {
-    name: string
+    slug: string
     series?: Series
 }
 
-const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
-    const listName = `series:${name}`
+const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
+    const listName = `series:${slug}`
 
     const books = useCached({
         listName,
-        request: { series: name },
+        request: { series_slug: slug },
         table: DB.books,
         network: bookAPI.list,
     })
@@ -81,13 +81,13 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
         if (series === undefined) {
             return
         }
-        void openModal(encode`/series/${series.name}`)
+        void openModal(encode`/series/${series.slug}`)
     }, [series])
     const seriesName = series?.name
     const markAllRead = useCallback(async () => {
         if (seriesName !== undefined) {
             const seriesBooks = await DB.books
-                .where(['series', 'completed', 'sort'])
+                .where(['series_slug', 'completed', 'sort'])
                 .between(
                     [seriesName, 0, Dexie.minKey],
                     [seriesName, 0, Dexie.maxKey],
@@ -123,9 +123,9 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     const downloadSeries = useCallback(async () => {
         await post({
             type: 'download-series',
-            seriesName: name,
+            seriesSlug: slug,
         })
-    }, [name])
+    }, [slug])
 
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
@@ -143,7 +143,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
     return (
         <>
             <section class={styles.header}>
-                <h1>{name}</h1>
+                <h1>{seriesName}</h1>
                 <ButtonGroup class={styles.actions}>
                     <IconButton
                         color='clear'
@@ -161,6 +161,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                 <BookList
                     title='Bookmark'
                     books={currentBooks}
+                    series={series ? [series] : null}
                     scrollTo={currentBook}
                 />
             )}
@@ -168,6 +169,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ name, series }) => {
                 title={hasCurrentBooks ? 'All Books' : undefined}
                 scroll='vertical'
                 books={reverse(books)}
+                series={series ? [series] : null}
             />
         </>
     )

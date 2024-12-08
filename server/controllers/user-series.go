@@ -14,7 +14,7 @@ import (
 )
 
 type UpdateUserSeriesRequest struct {
-	SeriesName string            `url:"name"`
+	SeriesSlug string            `url:"slug"`
 	List       models.List       `json:"list"`
 	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
@@ -38,7 +38,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
 		us, err = models.UserSeriesQuery(r.Context()).
-			Where("series_name", "=", req.SeriesName).
+			Where("series_name", "=", req.SeriesSlug).
 			First(tx)
 		if err != nil {
 			return errors.Wrap(err, "failed to retrieve user book from the database")
@@ -46,7 +46,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		if us == nil {
 			us = &models.UserSeries{
 				UserID:     uid,
-				SeriesName: req.SeriesName,
+				SeriesSlug: req.SeriesSlug,
 			}
 		}
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {

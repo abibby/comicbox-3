@@ -14,7 +14,7 @@ export type DownloadBookMessage = {
 }
 export type DownloadSeriesMessage = {
     type: 'download-series'
-    seriesName: string
+    seriesSlug: string
 }
 export type BookUpdateMessage = {
     type: 'book-update'

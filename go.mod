@@ -1,15 +1,13 @@
 module github.com/abibby/comicbox-3
 
-go 1.22.6
-
-toolchain go1.23.1
+go 1.23.1
 
 // replace github.com/abibby/salusa => /Users/abibby/github.com/abibby/salusa
 // replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
 
 require (
 	github.com/abibby/nulls v1.1.0
-	github.com/abibby/salusa v0.18.1
+	github.com/abibby/salusa v0.18.2
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
 	github.com/go-faker/faker/v4 v4.1.0
 	github.com/go-kit/kit v0.13.0
@@ -19,6 +17,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/crypto v0.27.0
@@ -50,7 +49,6 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lmittmann/tint v1.0.5 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-sqlite3 v1.14.23 // indirect
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect

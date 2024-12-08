@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/app/jobs"
 	"github.com/abibby/comicbox-3/config"
@@ -26,6 +27,8 @@ var Kernel = kernel.New(
 	kernel.Config(config.Load),
 	kernel.Bootstrap(
 		config.Init,
+
+		bootstrap.SetupDatabase(),
 
 		clog.Register,
 		request.Register,

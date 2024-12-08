@@ -1,6 +1,7 @@
 package models
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -15,14 +16,15 @@ import (
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Name               string                       `json:"name"             db:"name,primary"`
-	CoverURL           string                       `json:"cover_url"        db:"-"`
-	FirstBookID        *uuid.UUID                   `json:"first_book_id"    db:"first_book_id"`
-	FirstBookCoverPage int                          `json:"-"                db:"first_book_cover_page"`
-	AnilistId          *nulls.Int                   `json:"anilist_id"       db:"anilist_id"`
-	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"      db:"-" local:"name" foreign:"series_name"`
-	LatestBookID       *uuid.UUID                   `json:"latest_book_id"   db:"latest_book_id,readonly"`
-	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"      db:"-" foreign:"latest_book_id" owner:"id"`
+	Slug               string                       `json:"slug"           db:"name,primary"`
+	Name               string                       `json:"name"           db:"display_name"`
+	CoverURL           string                       `json:"cover_url"      db:"-"`
+	FirstBookID        *uuid.UUID                   `json:"first_book_id"  db:"first_book_id"`
+	FirstBookCoverPage int                          `json:"-"              db:"first_book_cover_page"`
+	AnilistId          *nulls.Int                   `json:"anilist_id"     db:"anilist_id"`
+	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"    db:"-" local:"name" foreign:"series_name"`
+	LatestBookID       *uuid.UUID                   `json:"latest_book_id" db:"latest_book_id,readonly"`
+	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"    db:"-" foreign:"latest_book_id" owner:"id"`
 }
 
 func SeriesQuery(ctx context.Context) *builder.ModelBuilder[*Series] {
@@ -33,9 +35,6 @@ var _ hooks.BeforeSaver = &Series{}
 var _ hooks.AfterLoader = &Series{}
 var _ builder.Scoper = &Series{}
 
-func (s *Series) Model() *BaseModel {
-	return &s.BaseModel
-}
 func (*Series) Table() string {
 	return "series"
 }
@@ -57,7 +56,7 @@ func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
 
 func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *Book) (bool, error) {
 	b, err := BookQuery(ctx).
-		Where("series", "=", s.Name).
+		Where("series", "=", s.Slug).
 		OrderBy("sort").
 		Limit(1).
 		First(tx)
@@ -83,4 +82,26 @@ func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *B
 		s.FirstBookCoverPage = 0
 	}
 	return s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage, nil
+}
+
+func Slug(s string) string {
+	capOffset := byte('a' - 'A')
+	out := make([]byte, 0, len(s))
+	lastC := byte(0)
+	for _, c := range []byte(s) {
+		var newC byte
+		if 'a' <= c && c <= 'z' {
+			newC = c
+		} else if 'A' <= c && c <= 'Z' {
+			newC = c + capOffset
+		} else {
+			newC = '-'
+		}
+		if newC == '-' && lastC == '-' {
+			continue
+		}
+		out = append(out, newC)
+		lastC = newC
+	}
+	return string(bytes.Trim(out, "-"))
 }

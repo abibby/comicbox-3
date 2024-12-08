@@ -87,8 +87,8 @@ func InitRouter(r *router.Router) {
 			r.Use(controllers.AuthMiddleware(false, auth.TokenAPI))
 
 			r.Get("/series", controllers.SeriesIndex).Name("series.index")
-			r.Post("/series/{name}", controllers.SeriesUpdate).Name("series.update")
-			r.PostFunc("/series/{name}/user-series", controllers.UserSeriesUpdate).Name("user-series.update")
+			r.Post("/series/{slug}", controllers.SeriesUpdate).Name("series.update")
+			r.PostFunc("/series/{slug}/user-series", controllers.UserSeriesUpdate).Name("user-series.update")
 
 			r.Get("/books", controllers.BookIndex).Name("book.index")
 			r.Post("/books/{id}", controllers.BookUpdate).Name("book.update")

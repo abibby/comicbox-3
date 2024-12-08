@@ -63,7 +63,7 @@ export async function updateList<
     })
 
     await Promise.all([
-        DB.fromNetwork(table, items),
+        DB.fromNetwork(items),
         DB.lastUpdated.put({
             list: listName,
             updatedAt: new Date().toISOString(),

@@ -4,17 +4,6 @@ import { CacheOptions, useCached } from 'src/cache'
 import { DB } from 'src/database'
 import { Series } from 'src/models'
 
-export function useSeries(slug: string): [Series | null, boolean] {
-    const seriesList = useCached({
-        listName: `series:${slug}`,
-        request: { slug: slug },
-        table: DB.series,
-        network: seriesAPI.list,
-    })
-
-    return [seriesList?.[0] ?? null, seriesList === null]
-}
-
 export function useSeriesList(
     listName: string,
     request: SeriesListRequest,
@@ -29,6 +18,11 @@ export function useSeriesList(
     })
 
     return [seriesList ?? [], seriesList === null]
+}
+
+export function useSeries(slug: string): [Series | null, boolean] {
+    const [series, loading] = useSeriesList(slug, { slug: slug })
+    return [series[0] ?? null, loading]
 }
 
 export function useAllSeries(

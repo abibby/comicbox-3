@@ -240,27 +240,51 @@ class AppDatabase extends Dexie {
         return 1
     }
 
-    public async fromNetwork<T extends DBSeries | DBBook>(
-        table: Dexie.Table<T>,
-        items: T[],
-    ): Promise<void> {
-        await table.bulkDelete(
-            items
-                .filter(i => i.deleted_at !== null)
-                .map(v => {
-                    if ('id' in v) {
-                        return v.id
-                    }
-                    return v.name
-                }),
+    public async fromNetwork(items: (DBSeries | DBBook)[]): Promise<void> {
+        const books: DBBook[] = items.filter(isBook)
+        const series: DBSeries[] = items.filter(isSeries)
+        await DB.books.bulkDelete(
+            books.filter(i => i.deleted_at !== null).map(v => v.id),
         )
-        const updatedItems = items.filter(i => i.deleted_at === null)
-        const oldItems = await table.bulkGet(
-            updatedItems.map(v => ('id' in v ? v.id : v.name)),
+        await DB.series.bulkDelete(
+            series.filter(i => i.deleted_at !== null).map(v => v.name),
         )
-        await table.bulkPut(
-            updatedItems.map((v, i): T => {
-                const oldItem = oldItems[i]
+
+        const updatedBooks: DBBook[] = []
+        const updatedSeries: DBSeries[] = []
+
+        for (const book of books) {
+            updatedBooks.push(book)
+            if (book.series) {
+                updatedSeries.push(book.series)
+                book.series = null
+            }
+        }
+        for (const s of series) {
+            updatedSeries.push(s)
+            if (s.latest_book) {
+                updatedBooks.push(s.latest_book)
+                s.latest_book = null
+            }
+        }
+
+        const oldBooks = await DB.books.bulkGet(updatedBooks.map(v => v.id))
+        const oldSeries = await DB.series.bulkGet(
+            updatedSeries.map(v => v.name),
+        )
+
+        await DB.books.bulkPut(
+            updatedBooks.map((v, i): DBBook => {
+                const oldItem = oldBooks[i]
+                if (oldItem === undefined) {
+                    return { ...v, dirty: 0 }
+                }
+                return updateNewerFields(oldItem, v)
+            }),
+        )
+        await DB.series.bulkPut(
+            updatedSeries.map((v, i): DBSeries => {
+                const oldItem = oldSeries[i]
                 if (oldItem === undefined) {
                     return { ...v, dirty: 0 }
                 }
@@ -268,6 +292,13 @@ class AppDatabase extends Dexie {
             }),
         )
     }
+}
+
+function isBook(m: DBSeries | DBBook): m is DBBook {
+    return 'id' in m
+}
+function isSeries(m: DBSeries | DBBook): m is DBSeries {
+    return !('id' in m)
 }
 
 export let DB = new AppDatabase()

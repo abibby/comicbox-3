@@ -26,6 +26,8 @@ export const Reading: FunctionalComponent = () => {
         list: 'reading',
     })
 
+    // console.log(series.filter(s => s.latest_book))
+
     const books = useMemo(
         () => series.map(s => s.latest_book).filter(notNullish),
         [series],

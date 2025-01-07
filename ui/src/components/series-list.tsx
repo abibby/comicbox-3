@@ -1,4 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
+import { usePromptUpdate } from 'src/cache'
 import { Card, CardList } from 'src/components/card'
 import { SeriesCard } from 'src/components/series-card'
 import { Series } from 'src/models'
@@ -10,7 +11,9 @@ interface SeriesListProps {
 }
 
 export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
-    if (props.series === null) {
+    const series = usePromptUpdate('New series', props.series)
+
+    if (series === null) {
         return (
             <CardList title={props.title} scroll={props.scroll}>
                 <Card title='title' placeholder />
@@ -19,7 +22,7 @@ export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
     }
     return (
         <CardList title={props.title} scroll={props.scroll}>
-            {props.series.map(s => (
+            {series.map(s => (
                 <SeriesCard key={s.name} series={s} />
             ))}
         </CardList>

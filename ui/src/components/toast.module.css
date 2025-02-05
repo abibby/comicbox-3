@@ -4,7 +4,7 @@
     gap: 5px;
     margin: 10px;
     position: fixed;
-    top: 0;
+    bottom: calc(var(--nav-height) + var(--body-margins));
     left: 0;
     right: 0;
     z-index: 400;
@@ -43,8 +43,8 @@
 @media (min-width: 500px) or (pointer: fine) {
     .controller {
         flex-direction: column-reverse;
-        top: unset;
-        top: 50px;
+        top: calc(var(--nav-height) + var(--body-margins));
+        bottom: unset;
         left: unset;
         right: 0;
         width: 18.75rem;

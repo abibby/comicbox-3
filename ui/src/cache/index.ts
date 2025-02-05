@@ -3,7 +3,6 @@ import EventTarget, { Event } from 'event-target-shim'
 import { useEffect, useState } from 'preact/hooks'
 import { bookAPI, seriesAPI, userBookAPI, userSeriesAPI } from 'src/api'
 import { PaginatedRequest } from 'src/api/internal'
-import { getCacheHandler } from 'src/cache/internal'
 import { openToast } from 'src/components/toast'
 import { DB, DBBook, DBSeries } from 'src/database'
 import { useEventListener } from 'src/hooks/event-listener'
@@ -12,6 +11,7 @@ import { addRespondListener } from 'src/message'
 import { Mutex } from 'async-mutex'
 import 'src/cache/book'
 import 'src/cache/series'
+import { getCacheHandler } from 'src/cache/internal'
 
 interface SyncManager {
     getTags(): Promise<string[]>
@@ -80,6 +80,7 @@ export type CacheOptions<
     request: TRequest
     table: Table<T>
     network: (req: TRequest) => Promise<T[]>
+    // cache: (req: TRequest) => Promise<T[]>
     promptReload?: 'always' | 'never' | 'auto'
     wait?: boolean
 }
@@ -92,48 +93,25 @@ export function useCached<
     request,
     table,
     network,
-    promptReload = 'auto',
-    wait = false,
-}: CacheOptions<T, TRequest>): T[] | null {
+}: // cache,
+CacheOptions<T, TRequest>): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
     const cache = getCacheHandler(network)
     useEventListener(
         cacheEventTarget,
         'update',
-        async (e: UpdateEvent) => {
-            const newItems = await cache(request)
-            let reload = true
-
-            if (
-                promptReload === 'always' ||
-                (promptReload === 'auto' &&
-                    e.fromUserInteraction === false &&
-                    items !== null &&
-                    shouldPrompt(items, newItems))
-            ) {
-                reload =
-                    (await openToast(
-                        'New ' + table.name,
-                        { reload: true },
-                        0,
-                        'reload-prompt',
-                    )) ?? false
-            }
-
-            if (reload) {
-                setItems(newItems)
-            }
+        (_e: UpdateEvent) => {
+            void cache(request).then(setItems)
         },
-        [table.name, setItems, items, cache],
+        [cache],
     )
 
     useEffect(() => {
-        if (!wait) {
-            void cache(request).then(setItems)
-            void updateList(listName, request, table, network)
-        }
+        void cache(request).then(setItems)
+        void updateList(listName, request, table, network)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [setItems, listName, ...Object.values(request), table, network, cache])
+    }, [listName, ...Object.values(request), table, network, cache])
+
     useEventListener(
         document,
         'visibilitychange',
@@ -148,38 +126,6 @@ export function useCached<
     return items
 }
 
-function primaryKeyValue(item: DBSeries | DBBook): string {
-    if (typeof item === 'object' && item !== null) {
-        if ('id' in item) {
-            return item.id
-        }
-        if ('name' in item) {
-            return item.name
-        }
-    }
-    return JSON.stringify(item)
-}
-
-function shouldPrompt<T extends DBBook | DBSeries>(
-    cacheItems: T[],
-    netItems: T[],
-): boolean {
-    if (cacheItems.length === 0) {
-        return false
-    }
-    if (cacheItems.length < netItems.length) {
-        return true
-    }
-
-    const netKeys = netItems.map(primaryKeyValue)
-    const cacheKeys = netItems.map(primaryKeyValue)
-    for (const key of netKeys) {
-        if (cacheKeys.indexOf(key) === -1) {
-            return true
-        }
-    }
-    return false
-}
 const persistMtx = new Mutex()
 
 export async function persist(

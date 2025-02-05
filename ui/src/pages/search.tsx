@@ -1,9 +1,8 @@
 import { bindValue } from '@zwzn/spicy'
 import Fuse from 'fuse.js'
 import { Fragment, h, JSX } from 'preact'
-import { useEffect, useRef, useState } from 'preact/hooks'
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { SeriesList } from 'src/components/series-list'
-import { DBSeries } from 'src/database'
 import { useQueryState } from 'src/hooks/query-state'
 import { useAllSeries } from 'src/hooks/series'
 import { Series } from 'src/models'
@@ -14,18 +13,16 @@ export function Search(): JSX.Element {
     const [foundSeries, setFoundSeries] = useState<Series[] | null>(null)
     const search = useRef<HTMLInputElement | null>(null)
     const [allSeries] = useAllSeries({ promptReload: 'never' })
-    const [fuse, setFuse] = useState<Fuse<DBSeries>>()
-    useEffect(() => {
+
+    const fuse = useMemo(() => {
         if (allSeries === null) {
-            setFuse(undefined)
-        } else {
-            setFuse(
-                new Fuse(allSeries, {
-                    keys: ['name'],
-                }),
-            )
+            return undefined
         }
+        return new Fuse(allSeries, {
+            keys: ['name'],
+        })
     }, [allSeries])
+
     useEffect(() => {
         if (query === '' || fuse === undefined) {
             setFoundSeries([])
@@ -49,7 +46,7 @@ export function Search(): JSX.Element {
                 value={query}
             />
 
-            <SeriesList series={foundSeries} scroll='vertical' />
+            <SeriesList series={foundSeries ?? []} scroll='vertical' />
         </Fragment>
     )
 }

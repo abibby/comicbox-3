@@ -1,10 +1,8 @@
 import { Fragment, FunctionalComponent, h } from 'preact'
 import { useMemo } from 'preact/hooks'
-import { bookAPI, seriesAPI } from 'src/api'
-import { useCached } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { SeriesList } from 'src/components/series-list'
-import { DB } from 'src/database'
+import { useBookList } from 'src/hooks/book'
 import { useSeriesList } from 'src/hooks/series'
 import { SeriesOrder } from 'src/models'
 import { notNullish } from 'src/util'
@@ -24,6 +22,7 @@ export const Reading: FunctionalComponent = () => {
         order_by: SeriesOrder.LastRead,
         with_latest_book: true,
         list: 'reading',
+        limit: null,
     })
 
     const books = useMemo(
@@ -46,28 +45,24 @@ export const Reading: FunctionalComponent = () => {
 }
 
 export const Latest: FunctionalComponent = () => {
-    const books = useCached({
-        listName: 'latest',
-        request: {
-            limit: 15,
-            order_by: 'created_at',
-            order: 'desc',
-            with_series: true,
-        },
-        table: DB.books,
-        network: bookAPI.list,
+    const [books, loading] = useBookList('latest', {
+        limit: 15,
+        order_by: 'created_at',
+        order: 'desc',
+        with_series: true,
     })
 
-    return <BookList title='Latest Books' books={books} />
+    return <BookList title='Latest Books' books={books} loading={loading} />
 }
 
 export const NewSeries: FunctionalComponent = () => {
-    const series = useCached({
-        listName: 'latest',
-        request: { limit: 15, order_by: SeriesOrder.CreatedAt, order: 'desc' },
-        table: DB.series,
-        network: seriesAPI.list,
+    const [series, loading] = useSeriesList('latest', {
+        limit: 15,
+        order_by: SeriesOrder.CreatedAt,
+        order: 'desc',
     })
 
-    return <SeriesList title='Latest Series' series={series} />
+    return (
+        <SeriesList title='Latest Series' series={series} loading={loading} />
+    )
 }

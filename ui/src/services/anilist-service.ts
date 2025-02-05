@@ -4,6 +4,7 @@ import { DBBook } from 'src/database'
 export async function updateAnilist(b: DBBook): Promise<void> {
     const [s] = await seriesAPI.list({
         slug: b.series_slug,
+        limit: 1,
     })
     if (s === undefined || s.anilist_id === null) {
         return

@@ -8,13 +8,13 @@ interface SeriesListProps {
     title?: string
     series: Series[] | null
     scroll?: 'auto' | 'horizontal' | 'vertical'
+    loading?: boolean
 }
-;<Card title='title' placeholder />
 
 export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
     const series = usePromptUpdate(props.series, seriesCompare)
 
-    if (series === null) {
+    if (series === null || props.loading) {
         return (
             <CardList title={props.title} scroll={props.scroll}>
                 <Card title='title' placeholder />

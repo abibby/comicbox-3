@@ -11,7 +11,6 @@ import { addRespondListener } from 'src/message'
 import { Mutex } from 'async-mutex'
 import 'src/cache/book'
 import 'src/cache/series'
-import { getCacheHandler } from 'src/cache/internal'
 
 interface SyncManager {
     getTags(): Promise<string[]>
@@ -80,7 +79,7 @@ export type CacheOptions<
     request: TRequest
     table: Table<T>
     network: (req: TRequest) => Promise<T[]>
-    // cache: (req: TRequest) => Promise<T[]>
+    cache: (req: TRequest) => Promise<T[]>
     promptReload?: 'always' | 'never' | 'auto'
     wait?: boolean
 }
@@ -93,24 +92,32 @@ export function useCached<
     request,
     table,
     network,
-}: // cache,
-CacheOptions<T, TRequest>): T[] | null {
+    cache,
+    wait,
+}: CacheOptions<T, TRequest>): T[] | null {
     const [items, setItems] = useState<T[] | null>(null)
-    const cache = getCacheHandler(network)
     useEventListener(
         cacheEventTarget,
         'update',
         (_e: UpdateEvent) => {
+            if (wait) {
+                return
+            }
+
             void cache(request).then(setItems)
         },
         [cache],
     )
 
     useEffect(() => {
+        if (wait) {
+            return
+        }
+
         void cache(request).then(setItems)
         void updateList(listName, request, table, network)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [listName, ...Object.values(request), table, network, cache])
+    }, [listName, ...Object.values(request), table, network, cache, wait])
 
     useEventListener(
         document,

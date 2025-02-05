@@ -3,13 +3,14 @@ import { FunctionalComponent, Fragment, h } from 'preact'
 import { Edit, MoreHorizontal } from 'preact-feather'
 import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
-import { bookAPI, seriesAPI } from 'src/api'
-import { persist, useCached } from 'src/cache'
+import { persist } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { ButtonGroup, IconButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
 import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
+import { useBookList } from 'src/hooks/book'
+import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
@@ -19,19 +20,9 @@ import { encode } from 'src/util'
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
     const slug = params.series ?? ''
-    const seriesList = useCached({
-        listName: `series:${slug}`,
-        request: { slug: slug },
-        table: DB.series,
-        network: seriesAPI.list,
-    })
+    const [s, loading] = useSeries(slug)
 
-    if (seriesList === null) {
-        return <SeriesList slug={slug} />
-    }
-
-    const s = seriesList[0]
-    if (s === undefined) {
+    if (!loading && s === undefined) {
         return <Error404 />
     }
 
@@ -40,18 +31,13 @@ export const SeriesView: FunctionalComponent = () => {
 
 interface SeriesListProps {
     slug: string
-    series?: Series
+    series: Series | null
 }
 
 const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const listName = `series:${slug}`
 
-    const books = useCached({
-        listName,
-        request: { series_slug: slug },
-        table: DB.books,
-        network: bookAPI.list,
-    })
+    const [books] = useBookList(listName, { series_slug: slug, limit: null })
     const [currentBooks, setCurrentBooks] = useState<Book[] | null>(null)
     const [currentBook, setCurrentBook] = useState<Book | null>(null)
     useEffect(() => {
@@ -78,11 +64,8 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     }, [books])
 
     const editSeries = useCallback(() => {
-        if (series === undefined) {
-            return
-        }
-        void openModal(encode`/series/${series.slug}`)
-    }, [series])
+        void openModal(encode`/series/${slug}`)
+    }, [slug])
     const seriesName = series?.name
     const markAllRead = useCallback(async () => {
         if (seriesName !== undefined) {

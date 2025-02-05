@@ -1,12 +1,12 @@
 import { apiFetch } from 'src/api/internal'
 
-export type BookListRequest = {
+export type LogRequest = {
     message: string
     level: string
     attrs: Record<string, unknown>
 }
 
-export async function log(req: BookListRequest): Promise<void> {
+export async function log(req: LogRequest): Promise<void> {
     return await apiFetch(
         '/api/rum',
         {

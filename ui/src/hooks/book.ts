@@ -1,17 +1,32 @@
 import { bookAPI } from 'src/api'
-import { useCached } from 'src/cache'
-import { DB } from 'src/database'
+import { AllPagesRequest } from 'src/api/internal'
+import { CacheOptions, useCached } from 'src/cache'
+import { bookCache } from 'src/cache/book'
+import { DB, DBBook } from 'src/database'
 import { Book } from 'src/models'
 
-export function useBook(id: string): [Book | null, boolean] {
+export function useBookList(
+    listName: string,
+    req: AllPagesRequest<bookAPI.BookListRequest>,
+    options: Partial<
+        CacheOptions<DBBook, AllPagesRequest<bookAPI.BookListRequest>>
+    > = {},
+): [DBBook[], boolean] {
     const bookList = useCached({
-        listName: `book:${id}`,
-        request: { id: id },
+        listName: listName,
+        request: req,
         table: DB.books,
         network: bookAPI.list,
+        cache: bookCache,
+        ...options,
     })
 
-    return [bookList?.[0] ?? null, bookList === null]
+    return [bookList ?? [], bookList === null]
+}
+
+export function useBook(id: string): [DBBook | null, boolean] {
+    const [bookList, loading] = useBookList(`book:${id}`, { id: id, limit: 1 })
+    return [bookList[0] ?? null, loading]
 }
 
 export function usePreviousBook(b: Book | undefined | null): Book | undefined {
@@ -27,6 +42,7 @@ export function usePreviousBook(b: Book | undefined | null): Book | undefined {
         },
         table: DB.books,
         network: bookAPI.list,
+        cache: bookCache,
         wait: !b,
     })
     const previous = previousResponse?.[0]
@@ -41,6 +57,7 @@ export function useNextBook(b: Book | undefined | null): Book | undefined {
         request: { series_slug: seriesSlug, after_id: id, limit: 1 },
         table: DB.books,
         network: bookAPI.list,
+        cache: bookCache,
         wait: !b,
     })
     const next = nextResponse?.[0]

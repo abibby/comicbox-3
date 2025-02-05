@@ -187,11 +187,16 @@ addAsyncEventListener('message', async function (event) {
 
     switch (message.type) {
         case 'download-book':
-            await cacheBooks(await bookAPI.list({ id: message.bookID }))
+            await cacheBooks(
+                await bookAPI.list({ id: message.bookID, limit: 1 }),
+            )
             break
         case 'download-series':
             await cacheBooks(
-                await bookAPI.list({ series_slug: message.seriesSlug }),
+                await bookAPI.list({
+                    series_slug: message.seriesSlug,
+                    limit: null,
+                }),
             )
             break
         case 'check-update':

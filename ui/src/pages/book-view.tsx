@@ -2,12 +2,11 @@ import { bind } from '@zwzn/spicy'
 import noCover from 'res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { bookAPI } from 'src/api'
-import { persist, useCached } from 'src/cache'
+import { persist } from 'src/cache'
 import classNames from 'src/classnames'
 import { Overlay } from 'src/components/reading-overlay'
 import { DB } from 'src/database'
-import { useNextBook, usePreviousBook } from 'src/hooks/book'
+import { useBook, useNextBook, usePreviousBook } from 'src/hooks/book'
 import { useWindowEvent } from 'src/hooks/event-listener'
 import { usePageURL } from 'src/hooks/page'
 import { useMediaQuery } from 'src/hooks/use-media-query'
@@ -28,19 +27,16 @@ export const BookView: FunctionalComponent = () => {
     const { params } = useRoute()
     const id = params.id
 
-    const books = useCached({
-        listName: `page:${id}`,
-        request: { id: id },
-        table: DB.books,
-        network: bookAPI.list,
-    })
-    const book = books?.[0]
+    const [book, bookLoading] = useBook(id ?? '')
+    const [series, seriesLoading] = useSeries(book?.series_slug ?? '')
 
-    const [series] = useSeries(book?.series_slug ?? '')
-
+    if (bookLoading || seriesLoading) {
+        return <div>loading</div>
+    }
     if (!book || !series) {
         return <Error404 />
     }
+
     let sourcePage = 0
 
     if (params.page) {

@@ -13,8 +13,6 @@ import 'src/cache/book'
 import 'src/cache/series'
 import { getCacheHandler } from 'src/cache/internal'
 
-export { usePromptUpdate } from 'src/cache/internal'
-
 interface SyncManager {
     getTags(): Promise<string[]>
     register(tag: string): Promise<void>

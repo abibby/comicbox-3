@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useMemo } from 'preact/hooks'
-import { usePromptUpdate } from 'src/cache'
+import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { BookCard } from 'src/components/book-card'
 import { Card, CardList } from 'src/components/card'
 import { Book, Series } from 'src/models'
@@ -25,7 +25,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
         [props.series],
     )
 
-    const books = usePromptUpdate('New books', props.books)
+    const books = usePromptUpdate(props.books, bookCompare)
 
     if (books === null || props.series === null || props.loading) {
         return (

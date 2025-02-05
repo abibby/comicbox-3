@@ -10,7 +10,11 @@ export function useQueryState(
         (v: string | number) => {
             const strV = String(v)
             const u = new URL(location.href)
-            u.searchParams.set(key, strV)
+            if (strV === '') {
+                u.searchParams.delete(key)
+            } else {
+                u.searchParams.set(key, strV)
+            }
             setValue(strV)
             history.replaceState({}, '', u.toString())
         },

@@ -126,38 +126,6 @@ CacheOptions<T, TRequest>): T[] | null {
     return items
 }
 
-// function primaryKeyValue(item: DBSeries | DBBook): string {
-//     if (typeof item === 'object' && item !== null) {
-//         if ('id' in item) {
-//             return item.id
-//         }
-//         if ('name' in item) {
-//             return item.name
-//         }
-//     }
-//     return JSON.stringify(item)
-// }
-
-// function shouldPrompt<T extends DBBook | DBSeries>(
-//     cacheItems: T[],
-//     netItems: T[],
-// ): boolean {
-//     if (cacheItems.length === 0) {
-//         return false
-//     }
-//     if (cacheItems.length < netItems.length) {
-//         return true
-//     }
-
-//     const netKeys = netItems.map(primaryKeyValue)
-//     const cacheKeys = netItems.map(primaryKeyValue)
-//     for (const key of netKeys) {
-//         if (cacheKeys.indexOf(key) === -1) {
-//             return true
-//         }
-//     }
-//     return false
-// }
 const persistMtx = new Mutex()
 
 export async function persist(

@@ -1,10 +1,9 @@
 import Dexie, { Collection } from 'dexie'
-import { seriesAPI } from 'src/api'
-import { setCacheHandler } from 'src/cache/internal'
+import { SeriesListRequest } from 'src/api/series'
 import { DB } from 'src/database'
 import { Series, SeriesOrder } from 'src/models'
 
-setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
+export async function seriesCache(req: SeriesListRequest): Promise<Series[]> {
     let query: Collection<Series>
 
     if (req.slug !== undefined) {
@@ -35,8 +34,8 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
         }
     }
 
-    if (req.limit !== undefined) {
-        query = query.limit(req.limit)
+    if (req.page_size !== undefined) {
+        query = query.limit(req.page_size)
     }
 
     let series = await query.toArray()
@@ -75,4 +74,4 @@ setCacheHandler(seriesAPI.list, async (req): Promise<Series[]> => {
         })
     }
     return series
-})
+}

@@ -45,31 +45,32 @@ export function encodeParams(
 }
 
 export type AllPagesRequest<T> = T & {
-    limit?: number
+    limit: number | null
 }
 
 export async function allPages<T, TRequest extends PaginatedRequest>(
     callback: (req: TRequest) => Promise<PaginatedResponse<T>>,
-    req: AllPagesRequest<TRequest>,
+    options: AllPagesRequest<TRequest>,
 ): Promise<T[]> {
     const items: T[] = []
     let page = 1
     let resp: PaginatedResponse<T>
+    const { limit, ...req } = options
     do {
         let pageSize = 100
-        if (req.limit !== undefined && page * pageSize > req.limit) {
-            pageSize = req.limit % pageSize
+        if (limit !== null && page * pageSize > limit) {
+            pageSize = limit % pageSize
         }
         resp = await callback({
+            ...(req as unknown as TRequest),
             page_size: pageSize,
-            ...req,
             page: page,
         })
 
         items.push(...resp.data)
 
         page++
-    } while (resp.page * resp.page_size < (req.limit ?? resp.total))
+    } while (resp.page * resp.page_size < (limit ?? resp.total))
 
     return items
 }

@@ -1,16 +1,14 @@
 import { Fragment, h, JSX } from 'preact'
-import { seriesAPI } from 'src/api'
 import { AllPagesRequest } from 'src/api/internal'
 import { listNames, SeriesListRequest } from 'src/api/series'
-import { useCached } from 'src/cache'
 import { CardList } from 'src/components/card'
 import { SeriesCard } from 'src/components/series-card'
-import { DB } from 'src/database'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
 import styles from 'src/pages/library.module.css'
 import { IconButton } from 'src/components/button'
 import { Settings } from 'preact-feather'
+import { useSeriesList } from 'src/hooks/series'
 
 export function Library(): JSX.Element {
     return (
@@ -50,15 +48,10 @@ interface SeriesRowProps {
     request: AllPagesRequest<SeriesListRequest>
 }
 function SeriesRow(props: SeriesRowProps): JSX.Element {
-    const items = useCached({
-        listName: props.listName,
-        request: props.request,
-        table: DB.series,
-        network: seriesAPI.list,
-    })
+    const [series] = useSeriesList(props.listName, props.request)
     return (
         <CardList title={props.listName} link={props.href} scroll='horizontal'>
-            {items?.map(s => (
+            {series.map(s => (
                 <SeriesCard key={s.name} series={s} />
             ))}
         </CardList>

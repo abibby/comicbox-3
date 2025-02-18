@@ -1,17 +1,49 @@
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import { openToast } from 'src/components/toast'
 import { useStateRef } from 'src/hooks/state-ref'
 import { Book, Series } from 'src/models'
+import { useEventListener } from 'src/hooks/event-listener'
+import { cacheEventTarget, UpdateEvent } from 'src/cache'
+
+const triggerUpdates = new EventTarget()
 
 export function usePromptUpdate<T>(
     liveValues: T[] | null | undefined,
     compare: (a: T, b: T) => boolean,
 ): T[] | null {
     const [values, setValues] = useState(liveValues)
+    const liveValuesRef = useStateRef(liveValues)
     const valuesRef = useStateRef(values)
+    const lastInteraction = useRef(0)
+
+    useEventListener(
+        triggerUpdates,
+        'update',
+        () => {
+            setValues(liveValuesRef.current)
+        },
+        [],
+    )
+    useEventListener(
+        cacheEventTarget,
+        'update',
+        (e: UpdateEvent) => {
+            if (e.fromUserInteraction) {
+                lastInteraction.current = Date.now()
+            }
+        },
+        [],
+    )
     useEffect(() => {
         let closed = false
-        if (!shouldPrompt(valuesRef.current ?? [], liveValues ?? [], compare)) {
+        if (
+            !shouldPrompt(
+                lastInteraction.current,
+                valuesRef.current ?? [],
+                liveValues ?? [],
+                compare,
+            )
+        ) {
             setValues(liveValues)
             return
         }
@@ -21,7 +53,7 @@ export function usePromptUpdate<T>(
                     return
                 }
                 if (reload) {
-                    setValues(liveValues)
+                    triggerUpdates.dispatchEvent(new Event('update'))
                 }
             })
             .catch(e => openToast(e))
@@ -34,10 +66,14 @@ export function usePromptUpdate<T>(
 }
 
 function shouldPrompt<T>(
+    lastInteraction: number,
     oldItems: T[],
     liveItems: T[],
     compare: (a: T, b: T) => boolean,
 ): boolean {
+    if (Date.now() - lastInteraction < 200) {
+        return false
+    }
     if (oldItems.length === 0) {
         return false
     }

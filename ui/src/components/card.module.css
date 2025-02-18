@@ -30,6 +30,7 @@
     height: 100%;
     border-radius: var(--border-radius-large);
     overflow: hidden;
+    background-color: lightgrey;
 }
 
 .cover > img {
@@ -37,6 +38,7 @@
     height: 100%;
     object-fit: cover;
     contain: size;
+    z-index: 1;
 }
 .cover > img[alt]::after {
     display: flex;
@@ -46,12 +48,9 @@
 
     inset: 0;
     padding: 0.25rem;
-
-    background-color: lightgrey;
     text-align: center;
     justify-content: center;
     align-items: center;
-    z-index: -1;
 }
 
 .title,
@@ -94,6 +93,7 @@
     background-color: lightgrey;
     margin-top: 0.25rem;
     border-radius: 9999px;
+    height: 1em;
 }
 .placeholder .title {
     margin-right: 30%;
@@ -182,6 +182,11 @@
 .previous {
     background: none;
     border: none;
+    height: 20px;
+}
+.next svg,
+.previous svg {
+    transform: translateY(-2px);
 }
 .end .next {
     opacity: 0.5;

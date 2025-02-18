@@ -2,6 +2,7 @@ import { FunctionalComponent, h } from 'preact'
 import { useRoute } from 'preact-iso'
 import { listNamesMap } from 'src/api/series'
 import { SeriesList } from 'src/components/series-list'
+import { seriesCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeriesList } from 'src/hooks/series'
 import { List as LList } from 'src/models'
 import { Error404 } from 'src/pages/errors'
@@ -9,7 +10,9 @@ import { Error404 } from 'src/pages/errors'
 export const List: FunctionalComponent = () => {
     const { params } = useRoute()
     const list = params.list ?? ''
-    const [s] = useSeriesList(list, { list: list, limit: null })
+    const [liveSeries] = useSeriesList(list, { list: list, limit: null })
+
+    const series = usePromptUpdate(liveSeries, seriesCompare)
 
     if (!isList(list)) {
         return <Error404 />
@@ -19,7 +22,7 @@ export const List: FunctionalComponent = () => {
         <SeriesList
             title={listNamesMap.get(list)}
             scroll='vertical'
-            series={s ?? []}
+            series={series}
         />
     )
 }

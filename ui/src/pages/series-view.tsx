@@ -10,6 +10,7 @@ import { openContextMenu } from 'src/components/context-menu'
 import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
+import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
@@ -20,13 +21,13 @@ import { encode } from 'src/util'
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
     const slug = params.series ?? ''
-    const [s, loading] = useSeries(slug)
+    const [series, loading] = useSeries(slug)
 
-    if (!loading && s === undefined) {
+    if (!loading && series === undefined) {
         return <Error404 />
     }
 
-    return <SeriesList slug={slug} series={s} />
+    return <SeriesList slug={slug} series={series} />
 }
 
 interface SeriesListProps {
@@ -37,9 +38,16 @@ interface SeriesListProps {
 const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const listName = `series:${slug}`
 
-    const [books] = useBookList(listName, { series_slug: slug, limit: null })
-    const [currentBooks, setCurrentBooks] = useState<Book[] | null>(null)
+    const [liveBooks] = useBookList(listName, {
+        series_slug: slug,
+        limit: null,
+    })
+    const [liveCurrentBooks, setCurrentBooks] = useState<Book[] | null>(null)
     const [currentBook, setCurrentBook] = useState<Book | null>(null)
+
+    const books = usePromptUpdate(liveBooks, bookCompare)
+    const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
+
     useEffect(() => {
         if (books === null) return
         const count = 7

@@ -1,6 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
 import { useMemo } from 'preact/hooks'
-import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { BookCard } from 'src/components/book-card'
 import { Card, CardList } from 'src/components/card'
 import { Book, Series } from 'src/models'
@@ -25,9 +24,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
         [props.series],
     )
 
-    const books = usePromptUpdate(props.books, bookCompare)
-
-    if (books === null || props.series === null || props.loading) {
+    if (props.books === null || props.series === null || props.loading) {
         return (
             <CardList title={props.title} scroll={props.scroll}>
                 <Card title='title' subtitle='subtitle' placeholder />
@@ -38,7 +35,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
     }
     return (
         <CardList title={props.title} scroll={props.scroll}>
-            {books.map(b => (
+            {props.books.map(b => (
                 <BookCard
                     key={b.id}
                     book={b}

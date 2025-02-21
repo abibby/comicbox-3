@@ -11,6 +11,7 @@ import { route } from 'src/routes'
 import { openModal } from 'src/components/modal-controller'
 import { useMemo } from 'preact/hooks'
 import { encode } from 'src/util'
+import { translate } from 'src/services/book-service'
 
 interface BookProps {
     book: DBBook
@@ -98,15 +99,19 @@ export const BookCard: FunctionalComponent<BookProps> = ({
         title += book.title
     }
     const coverURL = usePageURL(book)
-
-    const currentPage = book.user_book?.current_page ?? 0
-    const progress = currentPage !== 0 ? currentPage / (book.page_count - 1) : 0
-
+    const currentPage = translate(book, book.user_book?.current_page ?? 0)
+        .from('sourcePage')
+        .to('activePage')
+    const pageCount = translate(book, book.page_count)
+        .from('sourcePage')
+        .to('activePage')
+    const progress = currentPage !== 0 ? currentPage / (pageCount - 1) : 0
+    const s = series ?? book.series
     return (
         <Card
             image={coverURL}
             link={route('book.view', { id: book.id })}
-            title={series?.name ?? book.series?.name ?? book.series_slug}
+            title={s?.name ?? book.series_slug}
             subtitle={title}
             menu={menu}
             disabled={!online && !downloaded}

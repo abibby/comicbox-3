@@ -9,7 +9,7 @@ import {
     usePromptUpdate,
 } from 'src/hooks/prompt-update'
 import { useSeriesList } from 'src/hooks/series'
-import { Book, SeriesOrder } from 'src/models'
+import { Book, Series, SeriesOrder } from 'src/models'
 import { notNullish } from 'src/util'
 
 export const Home: FunctionalComponent = () => {
@@ -31,7 +31,11 @@ export const Reading: FunctionalComponent = () => {
     })
 
     const liveBooks = useMemo(
-        () => series.map(s => s.latest_book).filter(notNullish),
+        () =>
+            series
+                .sort(byLastUpdated)
+                .map(s => s.latest_book)
+                .filter(notNullish),
         [series],
     )
     const books = usePromptUpdate(liveBooks, readingBookCompare)
@@ -47,6 +51,24 @@ export const Reading: FunctionalComponent = () => {
             loading={seriesLoading}
         />
     )
+}
+function byLastUpdated(a: Series, b: Series) {
+    return (
+        Math.max(
+            getTime(b.user_series?.last_read_at),
+            getTime(b.latest_book?.created_at),
+        ) -
+        Math.max(
+            getTime(a.user_series?.last_read_at),
+            getTime(a.latest_book?.created_at),
+        )
+    )
+}
+function getTime(str: string | undefined): number {
+    if (str === undefined) {
+        return 0
+    }
+    return new Date(str).getTime()
 }
 
 export const Latest: FunctionalComponent = () => {

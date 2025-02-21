@@ -1,6 +1,6 @@
 import { Home } from 'src/pages/home'
 import { BookView } from 'src/pages/book-view'
-import { Library } from 'src/pages/library'
+import { Profile } from 'src/pages/profile'
 import { SeriesIndex } from 'src/pages/series-index'
 import { SeriesView } from 'src/pages/series-view'
 import { UserCreate } from 'src/pages/user-create'
@@ -29,7 +29,7 @@ export const routes = {
     },
     library: {
         path: '/profile',
-        component: Library,
+        component: Profile,
     },
     'series.index': {
         path: '/series',

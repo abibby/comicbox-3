@@ -10,7 +10,10 @@ import { Error404 } from 'src/pages/errors'
 export const List: FunctionalComponent = () => {
     const { params } = useRoute()
     const list = params.list ?? ''
-    const [liveSeries] = useSeriesList(list, { list: list, limit: null })
+    const [liveSeries, loading] = useSeriesList(list, {
+        list: list,
+        limit: null,
+    })
 
     const series = usePromptUpdate(liveSeries, seriesCompare)
 
@@ -23,6 +26,7 @@ export const List: FunctionalComponent = () => {
             title={listNamesMap.get(list)}
             scroll='vertical'
             series={series}
+            loading={loading}
         />
     )
 }

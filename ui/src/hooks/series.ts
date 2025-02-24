@@ -24,10 +24,10 @@ export function useSeriesList(
     return [seriesList ?? [], seriesList === null]
 }
 
-export function useSeries(slug: string): [Series | null, boolean] {
+export function useSeries(slug: string | null): [Series | null, boolean] {
     const [series, loading] = useSeriesList(
         `slug:${slug}`,
-        { slug: slug, limit: null },
+        { slug: slug ?? '', limit: 1 },
         { wait: !slug },
     )
     return [series[0] ?? null, loading]

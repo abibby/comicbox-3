@@ -24,8 +24,17 @@ export function useBookList(
     return [bookList ?? [], bookList === null]
 }
 
-export function useBook(id: string): [DBBook | null, boolean] {
-    const [bookList, loading] = useBookList(`book:${id}`, { id: id, limit: 1 })
+export function useBook(id: string | null): [DBBook | null, boolean] {
+    const [bookList, loading] = useBookList(
+        id ?? '',
+        {
+            id: id ?? '',
+            limit: 1,
+        },
+        {
+            wait: !id,
+        },
+    )
     return [bookList[0] ?? null, loading]
 }
 

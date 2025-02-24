@@ -106,7 +106,7 @@ export function useCached<
 
             void cache(request).then(setItems)
         },
-        [cache],
+        [cache, ...Object.values(request), wait],
     )
 
     useEffect(() => {

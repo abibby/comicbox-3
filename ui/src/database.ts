@@ -132,6 +132,7 @@ class AppDatabase extends Dexie {
             }
             return b
         })
+
         this.books.hook('updating', (mod: Partial<DBBook>, _id, b) => {
             return {
                 ...mod,
@@ -231,8 +232,7 @@ class AppDatabase extends Dexie {
     private bookComplete(b: DBBook, mod: Partial<DBBook> = {}): number {
         const currentPage =
             mod.user_book?.current_page ?? b.user_book?.current_page ?? 0
-        const pageCount =
-            mod.page_count ?? b.page_count ?? Number.MAX_SAFE_INTEGER
+        const pageCount = mod.page_count ?? b.page_count
 
         if (currentPage < pageCount - 1) {
             return 0
@@ -243,10 +243,12 @@ class AppDatabase extends Dexie {
     public async fromNetwork(items: (DBSeries | DBBook)[]): Promise<void> {
         const books: DBBook[] = items.filter(isBook)
         const series: DBSeries[] = items.filter(isSeries)
-        await DB.books.bulkDelete(
+        const readBookPromises: Promise<void>[] = []
+
+        await this.books.bulkDelete(
             books.filter(i => i.deleted_at !== null).map(v => v.id),
         )
-        await DB.series.bulkDelete(
+        await this.series.bulkDelete(
             series.filter(i => i.deleted_at !== null).map(v => v.name),
         )
 
@@ -262,18 +264,49 @@ class AppDatabase extends Dexie {
         }
         for (const s of series) {
             updatedSeries.push(s)
+
+            const slug = s.slug
+            const latestBook = s.latest_book
+            readBookPromises.push(
+                (async () => {
+                    const books = await this.books
+                        .where(['series_slug', 'completed', 'sort'])
+                        .between(
+                            [slug, 0, Dexie.minKey],
+                            [slug, 0, latestBook?.sort ?? Dexie.maxKey],
+                        )
+                        .toArray()
+                    const now = new Date().toISOString()
+                    const readBooks = books.flat().map(book => {
+                        book.user_book = book.user_book ?? {
+                            created_at: now,
+                            updated_at: now,
+                            deleted_at: null,
+                            current_page: 0,
+                            update_map: {},
+                        }
+                        book.user_book.current_page = book.page_count - 1
+                        return book
+                    })
+
+                    await this.books.bulkPut(readBooks)
+                })(),
+            )
+
             if (s.latest_book) {
                 updatedBooks.push(s.latest_book)
                 s.latest_book = null
             }
         }
 
-        const oldBooks = await DB.books.bulkGet(updatedBooks.map(v => v.id))
-        const oldSeries = await DB.series.bulkGet(
+        await Promise.all(readBookPromises)
+
+        const oldBooks = await this.books.bulkGet(updatedBooks.map(v => v.id))
+        const oldSeries = await this.series.bulkGet(
             updatedSeries.map(v => v.name),
         )
 
-        await DB.books.bulkPut(
+        await this.books.bulkPut(
             updatedBooks.map((v, i): DBBook => {
                 const oldItem = oldBooks[i]
                 if (oldItem === undefined) {
@@ -282,7 +315,7 @@ class AppDatabase extends Dexie {
                 return updateNewerFields(oldItem, v)
             }),
         )
-        await DB.series.bulkPut(
+        await this.series.bulkPut(
             updatedSeries.map((v, i): DBSeries => {
                 const oldItem = oldSeries[i]
                 if (oldItem === undefined) {

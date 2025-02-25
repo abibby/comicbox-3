@@ -97,7 +97,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const markAllUnread = useCallback(async () => {
         if (seriesName !== undefined) {
             const seriesBooks = await DB.books
-                .where(['series', 'sort'])
+                .where(['series_slug', 'sort'])
                 .between([seriesName, Dexie.minKey], [seriesName, Dexie.maxKey])
                 .toArray()
             for (const b of seriesBooks) {

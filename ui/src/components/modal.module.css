@@ -17,7 +17,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     position: fixed;
-    bottom: 0;
+    bottom: env(keyboard-inset-height, 0px);
     left: 0;
     right: 0;
     z-index: 171;

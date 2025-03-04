@@ -22,17 +22,17 @@ declare global {
     }
 }
 
-class UpdateEvent extends Event<'update'> {
+export class UpdateEvent extends Event<'update'> {
     constructor(public readonly fromUserInteraction: boolean) {
         super('update')
     }
 }
 
-type CacheEventMap = {
+export type CacheEventMap = {
     update: UpdateEvent
 }
 
-const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
+export const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
 function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
@@ -106,7 +106,7 @@ export function useCached<
 
             void cache(request).then(setItems)
         },
-        [cache],
+        [cache, ...Object.values(request), wait],
     )
 
     useEffect(() => {

@@ -27,8 +27,8 @@ export const BookView: FunctionalComponent = () => {
     const { params } = useRoute()
     const id = params.id
 
-    const [book, bookLoading] = useBook(id ?? '')
-    const [series, seriesLoading] = useSeries(book?.series_slug ?? '')
+    const [book, bookLoading] = useBook(id ?? null)
+    const [series, seriesLoading] = useSeries(book?.series_slug ?? null)
 
     if (bookLoading || seriesLoading) {
         return <div>loading</div>
@@ -74,6 +74,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const bookID = book.id
     const nextBookID = nextBook?.id
     const previousBookID = previousBook?.id
+
     const setSourcePage = useCallback(
         async (newPage: number) => {
             navigate(route('book.view', { id: bookID, page: newPage }))

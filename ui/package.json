@@ -9,6 +9,7 @@
         "prod": "vite build --mode production",
         "watch": "vite build --watch",
         "typecheck": "tsc --noEmit",
+        "typecheck-watch": "tsc --noEmit --watch",
         "lint": "npm run eslint && npm run prettier",
         "eslint": "eslint ./src ./lib",
         "prettier": "prettier ./src ./lib --check",

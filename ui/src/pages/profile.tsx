@@ -1,16 +1,16 @@
 import { Fragment, h, JSX } from 'preact'
 import { AllPagesRequest } from 'src/api/internal'
 import { listNames, SeriesListRequest } from 'src/api/series'
-import { CardList } from 'src/components/card'
-import { SeriesCard } from 'src/components/series-card'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
 import styles from 'src/pages/library.module.css'
 import { IconButton } from 'src/components/button'
 import { Settings } from 'preact-feather'
 import { useSeriesList } from 'src/hooks/series'
+import { SeriesList } from 'src/components/series-list'
+import { seriesCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 
-export function Library(): JSX.Element {
+export function Profile(): JSX.Element {
     return (
         <Fragment>
             <section class={styles.profile}>
@@ -48,12 +48,15 @@ interface SeriesRowProps {
     request: AllPagesRequest<SeriesListRequest>
 }
 function SeriesRow(props: SeriesRowProps): JSX.Element {
-    const [series] = useSeriesList(props.listName, props.request)
+    const [liveSeries, loading] = useSeriesList(props.listName, props.request)
+    const series = usePromptUpdate(liveSeries, seriesCompare)
     return (
-        <CardList title={props.listName} link={props.href} scroll='horizontal'>
-            {series.map(s => (
-                <SeriesCard key={s.name} series={s} />
-            ))}
-        </CardList>
+        <SeriesList
+            title={props.listName}
+            link={props.href}
+            scroll='horizontal'
+            series={series}
+            loading={loading}
+        />
     )
 }

@@ -91,15 +91,26 @@
 .placeholder .title,
 .placeholder .subtitle {
     background-color: lightgrey;
-    margin-top: 0.25rem;
     border-radius: 9999px;
-    height: 1em;
 }
 .placeholder .title {
     margin-right: 30%;
 }
 .placeholder .subtitle {
     margin-right: 50%;
+}
+
+.placeholder .title,
+.placeholder .subtitle,
+.placeholder .cover {
+    mask: linear-gradient(-60deg, #000 40%, #0005, #000 60%) right/350% 100%;
+    animation: shimmer 2.5s infinite;
+}
+
+@keyframes shimmer {
+    100% {
+        mask-position: left;
+    }
 }
 
 .disabled {

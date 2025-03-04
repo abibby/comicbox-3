@@ -14,6 +14,7 @@ declare const styles: {
   readonly "previous": string;
   readonly "progress": string;
   readonly "scroller": string;
+  readonly "shimmer": string;
   readonly "start": string;
   readonly "subtitle": string;
   readonly "title": string;

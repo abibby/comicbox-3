@@ -82,11 +82,11 @@ export const Card: FunctionalComponent<CardProps> = props => {
                     <Progress progress={props.progress ?? 0} />
                     <LazyImg src={props.image} alt={alt} />
                 </div>
-                {/* {props.menu && ( */}
-                <button class={styles.menu} onClick={open}>
-                    <MoreVertical />
-                </button>
-                {/* )} */}
+                {props.menu && (
+                    <button class={styles.menu} onClick={open}>
+                        <MoreVertical />
+                    </button>
+                )}
                 <div class={styles.title} title={props.title}>
                     {props.title}
                 </div>

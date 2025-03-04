@@ -7,7 +7,7 @@ go 1.23.1
 
 require (
 	github.com/abibby/nulls v1.1.0
-	github.com/abibby/salusa v0.18.2
+	github.com/abibby/salusa v0.19.0
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
 	github.com/go-faker/faker/v4 v4.1.0
 	github.com/go-kit/kit v0.13.0

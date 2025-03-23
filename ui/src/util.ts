@@ -19,3 +19,21 @@ export function encode(
     }
     return out
 }
+
+export function splitPromise<T>() {
+    let resolve: (v: T | PromiseLike<T>) => void
+    let reject: (v?: unknown) => void
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res
+        reject = rej
+    })
+    return {
+        promise,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        resolve,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        reject,
+    }
+}

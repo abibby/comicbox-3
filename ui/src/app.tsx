@@ -33,51 +33,50 @@ function showShell(route: RouteDef): boolean {
 const routeList = Object.values(routes)
 const nonShellRoutes = routeList.filter(hideShell)
 const shellRoutes = routeList.filter(showShell)
-const indexRoute = routeList.find(r => r.path === '/')
+
+function ShellPages() {
+    return (
+        <Shell>
+            <Router>
+                {shellRoutes.map(r => (
+                    <Route key={r.path} path={r.path} component={r.component} />
+                ))}
+                <Route default component={Error404} />
+            </Router>
+        </Shell>
+    )
+}
 
 function Main() {
-    const IndexComponent = indexRoute?.component ?? Error404
-
     return (
         <LocationProvider>
             <ErrorBoundary>
                 <Router onRouteChange={changePage}>
-                    {nonShellRoutes
-                        .map(r => (
-                            <Route
-                                key={r.path}
-                                path={r.path}
-                                component={r.component}
-                            />
-                        ))
-                        .concat(
-                            <Shell path='/'>
-                                <IndexComponent />
-                            </Shell>,
-                            <Shell path='/*'>
-                                <Router>
-                                    {shellRoutes
-                                        .map(r => (
-                                            <Route
-                                                key={r.path}
-                                                path={r.path}
-                                                component={r.component}
-                                            />
-                                        ))
-                                        .concat(<Error404 default />)}
-                                </Router>
-                            </Shell>,
-                        )}
+                    {nonShellRoutes.map(r => (
+                        <Route
+                            key={r.path}
+                            path={r.path}
+                            component={r.component}
+                        />
+                    ))}
+                    <Route path='/' component={ShellPages} />
+                    <Route path='/*' component={ShellPages} />
                 </Router>
                 <ToastController />
                 <ContextMenuController />
                 <ModalController>
                     <Router>
-                        <ChangePasswordModal path='/change-password' />
-                        <EditSeries path='/series/:series' />
-                        <EditBook path='/book/:book' />
-                        <EditBook path='/book/:book/*' />
-                        <AnilistMatch path='/anilist-match/:name' />
+                        <Route
+                            path='/change-password'
+                            component={ChangePasswordModal}
+                        />
+                        <Route path='/series/:series' component={EditSeries} />
+                        <Route path='/book/:book' component={EditBook} />
+                        <Route path='/book/:book/*' component={EditBook} />
+                        <Route
+                            path='/anilist-match/:name'
+                            component={AnilistMatch}
+                        />
                     </Router>
                 </ModalController>
             </ErrorBoundary>

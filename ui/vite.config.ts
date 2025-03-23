@@ -37,7 +37,7 @@ export default defineConfig(({ mode }): UserConfig => {
             constantsPlugin({
                 ANILIST_CLIENT_ID: '',
                 PUBLIC_USER_CREATE: true,
-                __ENV: 'development',
+                __ENV: mode,
             }),
             staticOutputPlugin(['sw', 'manifest.json']),
             preact(),
@@ -64,6 +64,10 @@ export default defineConfig(({ mode }): UserConfig => {
             proxy: {
                 '/api': env.VITE_PROXY_HOST ?? 'http://localhost:8080',
             },
+        },
+        test: {
+            setupFiles: ['fake-indexeddb/auto'],
+            environment: 'jsdom',
         },
     }
 })

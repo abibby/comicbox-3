@@ -65,8 +65,10 @@ export default async function manifestPlugin(
                 bundle[relName] = {
                     type: 'asset',
                     name: relName,
+                    names: [relName],
                     fileName: relName,
                     originalFileName: relName,
+                    originalFileNames: [relName],
                     source: content,
                     needsCodeReference: false,
                 }

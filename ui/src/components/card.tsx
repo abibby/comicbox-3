@@ -139,7 +139,6 @@ const Download: FunctionalComponent<DownloadProps> = ({
                 '--download-progress': downloadProgress,
             }}
             class={styles.downloaded}
-            alt='downloaded'
         />
     )
 }

@@ -44,7 +44,9 @@ export default function buildAssetPlugin(replace = true): Plugin {
             bundle.assets = {
                 type: 'asset',
                 name: 'assets',
+                names: ['assets'],
                 originalFileName: null,
+                originalFileNames: [],
                 source: JSON.stringify(assets),
                 fileName: 'assets.json',
                 needsCodeReference: false,

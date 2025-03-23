@@ -1,9 +1,7 @@
 import { FunctionalComponent, h, JSX } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
-export const LazyImg: FunctionalComponent<
-    JSX.HTMLAttributes<HTMLImageElement>
-> = props => {
+export const LazyImg: FunctionalComponent<JSX.ImgHTMLAttributes> = props => {
     const image = useRef<HTMLImageElement | null>(null)
     const [src, setSrc] = useState<string>()
     const ogSrc = props.src

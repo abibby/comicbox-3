@@ -40,22 +40,17 @@ export async function seriesCache(req: SeriesListRequest): Promise<Series[]> {
 
     let series = await query.toArray()
 
-    if (req.with_latest_book) {
-        series = await Promise.all(
-            series.map(async (s): Promise<Series> => {
-                const latestBook = await DB.books
-                    .where(['series_slug', 'completed', 'sort'])
-                    .between(
-                        [s.slug, 0, Dexie.minKey],
-                        [s.slug, 0, Dexie.maxKey],
-                    )
-                    .first()
-                s.latest_book = latestBook ?? null
-                s.latest_book_id = latestBook?.id ?? null
-                return s
-            }),
-        )
-    }
+    series = await Promise.all(
+        series.map(async (s): Promise<Series> => {
+            const latestBook = await DB.books
+                .where(['series_slug', 'completed', 'sort'])
+                .between([s.slug, 0, Dexie.minKey], [s.slug, 0, Dexie.maxKey])
+                .first()
+            s.latest_book = latestBook ?? null
+            s.latest_book_id = latestBook?.id ?? null
+            return s
+        }),
+    )
 
     if (req.order_by === SeriesOrder.LastRead) {
         series.sort((a, b) => {

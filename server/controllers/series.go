@@ -33,11 +33,10 @@ const (
 type SeriesIndexRequest struct {
 	PaginatedRequest
 
-	Slug           *nulls.String `query:"slug"`
-	List           *nulls.String `query:"list"`
-	WithLatestBook bool          `query:"with_latest_book"`
-	OrderBy        *SeriesOrder  `query:"order_by"`
-	Order          *nulls.String `query:"order" validate:"in:asc,desc"`
+	Slug    *nulls.String `query:"slug"`
+	List    *nulls.String `query:"list"`
+	OrderBy *SeriesOrder  `query:"order_by"`
+	Order   *nulls.String `query:"order" validate:"in:asc,desc"`
 
 	Ctx context.Context `inject:""`
 }
@@ -81,29 +80,27 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		})
 	}
 
-	if req.WithLatestBook {
-		uid, ok := auth.UserID(req.Ctx)
-		if ok {
-			query = query.
-				AddSelectSubquery(
-					models.BookQuery(req.Ctx).
-						Select("id").
-						LeftJoinOn("user_books", func(q *builder.Conditions) {
-							q.WhereColumn("books.id", "=", "user_books.book_id").
-								Where("user_books.user_id", "=", uid)
-						}).
-						WhereColumn("books.series", "=", "series.name").
-						And(func(q *builder.Conditions) {
-							q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
-								OrWhere("current_page", "=", nil)
-						}).
-						Where("books.page_count", ">", 1).
-						OrderBy("sort").
-						Limit(1),
-					"latest_book_id",
-				).
-				With("LatestBook.UserBook")
-		}
+	uid, ok := auth.UserID(req.Ctx)
+	if ok {
+		query = query.
+			AddSelectSubquery(
+				models.BookQuery(req.Ctx).
+					Select("id").
+					LeftJoinOn("user_books", func(q *builder.Conditions) {
+						q.WhereColumn("books.id", "=", "user_books.book_id").
+							Where("user_books.user_id", "=", uid)
+					}).
+					WhereColumn("books.series", "=", "series.name").
+					And(func(q *builder.Conditions) {
+						q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
+							OrWhere("current_page", "=", nil)
+					}).
+					Where("books.page_count", ">", 1).
+					OrderBy("sort").
+					Limit(1),
+				"latest_book_id",
+			).
+			With("LatestBook.UserBook")
 	}
 
 	if req.UpdatedAfter != nil {

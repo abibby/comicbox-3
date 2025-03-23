@@ -12,3 +12,4 @@ jobs:
       - run: npm --prefix ui run lint
       - run: npm --prefix ui run prettier
       - run: npm --prefix ui run typecheck
+      - run: npm --prefix ui test

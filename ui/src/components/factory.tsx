@@ -37,8 +37,10 @@ export class Factory<
     }
 
     public Controller: FunctionalComponent = () => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const [alerts, setAlerts] = useState(new Map<string | number, TProps>())
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const setAlerts2 = useCallback(
             (
                 value: (
@@ -54,6 +56,7 @@ export class Factory<
             [setAlerts],
         )
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const onOpen = useCallback(
             (e: OpenEvent<TProps>) => {
                 setAlerts2(alerts => {
@@ -65,6 +68,7 @@ export class Factory<
             [setAlerts2],
         )
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const onClose = useCallback(
             (e: CloseEvent) => {
                 setAlerts2(alerts => {
@@ -76,10 +80,12 @@ export class Factory<
             [setAlerts2],
         )
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         const onClear = useCallback(() => {
             setAlerts2(() => new Map())
         }, [setAlerts2])
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         useEffect(() => {
             this.addEventListener('open', onOpen)
             this.addEventListener('close', onClose)

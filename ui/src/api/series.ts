@@ -20,7 +20,6 @@ export const listNamesMap = new Map<List, string>(listNames)
 export type SeriesListRequest = PaginatedRequest & {
     slug?: string
     list?: string
-    with_latest_book?: boolean
     order_by?: SeriesOrder
     order?: 'asc' | 'desc'
 }

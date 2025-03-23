@@ -25,7 +25,6 @@ export const Home: FunctionalComponent = () => {
 export const Reading: FunctionalComponent = () => {
     const [series, seriesLoading] = useSeriesList('reading', {
         order_by: SeriesOrder.LastRead,
-        with_latest_book: true,
         list: 'reading',
         limit: null,
     })

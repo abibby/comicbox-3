@@ -65,6 +65,7 @@ export const emptySeries: Readonly<DBSeries> = {
     metadata_id: null,
     genres: [],
     tags: [],
+    year: null,
 }
 
 export const emptyBook: Readonly<DBBook> = {

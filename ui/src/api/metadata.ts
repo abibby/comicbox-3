@@ -8,8 +8,11 @@ export type MetadataListResponse = {
 
 export async function metadataList(
     title: string,
+    signal?: AbortSignal,
 ): Promise<MetadataListResponse> {
-    return await apiFetch(encode`/api/meta?title=${title}`)
+    return await apiFetch(encode`/api/meta?title=${title}`, {
+        signal: signal,
+    })
 }
 
 export async function metadataUpdate(slug: string): Promise<Series> {

@@ -35,6 +35,8 @@ type SearchPageMedia struct {
 	Title SearchPageMediaTitle `json:"title"`
 	// The cover images of the media
 	CoverImage SearchPageMediaCoverImage `json:"coverImage"`
+	// The first official release date of the media
+	StartDate SearchPageMediaStartDateFuzzyDate `json:"startDate"`
 	// Short description of the media's story and characters
 	Description string `json:"description"`
 	// The genres of the media
@@ -53,6 +55,9 @@ func (v *SearchPageMedia) GetTitle() SearchPageMediaTitle { return v.Title }
 
 // GetCoverImage returns SearchPageMedia.CoverImage, and is useful for accessing the field via an interface.
 func (v *SearchPageMedia) GetCoverImage() SearchPageMediaCoverImage { return v.CoverImage }
+
+// GetStartDate returns SearchPageMedia.StartDate, and is useful for accessing the field via an interface.
+func (v *SearchPageMedia) GetStartDate() SearchPageMediaStartDateFuzzyDate { return v.StartDate }
 
 // GetDescription returns SearchPageMedia.Description, and is useful for accessing the field via an interface.
 func (v *SearchPageMedia) GetDescription() string { return v.Description }
@@ -131,6 +136,18 @@ func (v *SearchPageMediaStaffStaffConnectionEdgesStaffEdgeNodeStaffName) GetFull
 	return v.Full
 }
 
+// SearchPageMediaStartDateFuzzyDate includes the requested fields of the GraphQL type FuzzyDate.
+// The GraphQL type's documentation follows.
+//
+// Date object that allows for incomplete date values (fuzzy)
+type SearchPageMediaStartDateFuzzyDate struct {
+	// Numeric Year (2017)
+	Year int `json:"year"`
+}
+
+// GetYear returns SearchPageMediaStartDateFuzzyDate.Year, and is useful for accessing the field via an interface.
+func (v *SearchPageMediaStartDateFuzzyDate) GetYear() int { return v.Year }
+
 // SearchPageMediaTagsMediaTag includes the requested fields of the GraphQL type MediaTag.
 // The GraphQL type's documentation follows.
 //
@@ -204,6 +221,9 @@ query Search ($search: String, $id: Int) {
 			}
 			coverImage {
 				extraLarge
+			}
+			startDate {
+				year
 			}
 			description(asHtml: true)
 			genres

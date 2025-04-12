@@ -1,9 +1,18 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
-import { Edit, MoreHorizontal, Play } from 'preact-feather'
+import {
+    Bookmark,
+    ChevronDown,
+    ChevronUp,
+    Download,
+    Edit,
+    MoreHorizontal,
+    Play,
+} from 'preact-feather'
 import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
+import classNames from 'src/classnames'
 import { BookList } from 'src/components/book-list'
 import { ButtonGroup, IconButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
@@ -15,7 +24,7 @@ import { useImageURL } from 'src/hooks/image'
 import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
-import { Book, Series } from 'src/models'
+import { Book, List, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 import { route } from 'src/routes'
@@ -53,6 +62,11 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
 
     const books = usePromptUpdate(liveBooks, bookCompare)
     const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
+
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+
+    const showDescription = useCallback(() => setDescriptionExpanded(true), [])
+    const hideDescription = useCallback(() => setDescriptionExpanded(false), [])
 
     useEffect(() => {
         if (liveBooks === null) return
@@ -128,16 +142,33 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         await updateSeriesMetadata(slug)
     }, [slug])
 
+    const bookmarkSeries = useCallback(async () => {
+        if (!series) {
+            return
+        }
+
+        let list = List.Reading
+        if (series.user_series?.list === List.Reading) {
+            list = List.Paused
+        }
+
+        await DB.saveSeries(series, {
+            user_series: {
+                list: list,
+            },
+        })
+        await persist(true)
+    }, [series])
+
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
             await openContextMenu(e, [
-                ['Download', downloadSeries],
                 ['Mark All Read', markAllRead],
                 ['Mark All Unread', markAllUnread],
                 ['Update Metadata', updateMetadata],
             ])
         },
-        [downloadSeries, markAllRead, markAllUnread, updateMetadata],
+        [markAllRead, markAllUnread, updateMetadata],
     )
 
     const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
@@ -145,30 +176,26 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     return (
         <>
             <section class={styles.header}>
-                <h1>{seriesName}</h1>
-                <ButtonGroup class={styles.actions}>
-                    <IconButton
-                        color='clear'
-                        icon={Edit}
-                        onClick={editSeries}
-                    />
-                    <IconButton
-                        color='clear'
-                        icon={MoreHorizontal}
-                        onClick={contextMenu}
-                    />
-                </ButtonGroup>
-            </section>
-            <section>
-                <img src={coverURL} alt='Series Cover' />
-                <h1>{series?.name}</h1>
-                <p>{currentBook?.id ?? books}</p>
-                <div>
-                    {series?.genres.map(g => (
-                        <span key={g}>|{g}|</span>
+                <img class={styles.cover} src={coverURL} alt='Series Cover' />
+                <h1 class={styles.title}>{series?.name}</h1>
+                <p class={styles.year}>{series?.year}</p>
+                <div class={styles.genres}>
+                    {series?.genres.map((g, i) => (
+                        <Fragment key={g}>
+                            {i > 0 && ', '}
+                            <a
+                                class={styles.genre}
+                                href={
+                                    route('series.index', {}) +
+                                    encode`?genre=${g}`
+                                }
+                            >
+                                {g}
+                            </a>
+                        </Fragment>
                     ))}
                 </div>
-                <ButtonGroup>
+                <ButtonGroup class={styles.buttons}>
                     <IconButton
                         color='primary'
                         icon={Play}
@@ -176,7 +203,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                             id: currentBook?.id ?? liveBooks[0]?.id ?? '',
                         })}
                     >
-                        Next Chapter
+                        {currentBook?.id ? 'Next Chapter' : 'Read'}
                     </IconButton>
                     <IconButton
                         color='clear'
@@ -185,11 +212,48 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                     />
                     <IconButton
                         color='clear'
+                        icon={Bookmark}
+                        filled={series?.user_series?.list === 'reading'}
+                        onClick={bookmarkSeries}
+                    />
+                    <IconButton
+                        color='clear'
+                        icon={Download}
+                        onClick={downloadSeries}
+                    />
+                    <IconButton
+                        color='clear'
                         icon={MoreHorizontal}
                         onClick={contextMenu}
                     />
                 </ButtonGroup>
-                <Markdown>{series?.description ?? ''}</Markdown>
+                {series?.description && (
+                    <div class={styles.description}>
+                        <Markdown
+                            class={classNames(styles.descriptionContent, {
+                                [styles.open]: descriptionExpanded,
+                            })}
+                        >
+                            {series?.description ?? ''}
+                        </Markdown>
+                        {descriptionExpanded || (
+                            <button
+                                class={styles.btnDescriptionExpand}
+                                onClick={showDescription}
+                            >
+                                More <ChevronDown />
+                            </button>
+                        )}
+                        {descriptionExpanded && (
+                            <button
+                                class={styles.btnDescriptionExpand}
+                                onClick={hideDescription}
+                            >
+                                Less <ChevronUp />
+                            </button>
+                        )}
+                    </div>
+                )}
             </section>
             {hasCurrentBooks && (
                 <BookList

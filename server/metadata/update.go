@@ -6,6 +6,7 @@ import (
 
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
+	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
@@ -64,6 +65,9 @@ func applyMetadata(ctx context.Context, tx database.DB, series *models.Series, m
 
 	series.UpdateField("tags")
 	series.Tags = metadata.Tags
+
+	series.UpdateField("year")
+	series.Year = nulls.NewInt(metadata.Year)
 
 	// if series.CoverImageID.Valid {
 

@@ -53,10 +53,10 @@
         "event-target-shim": "^6.0.2",
         "fuse.js": "^6.6.2",
         "idb-keyval": "^6.0.3",
+        "marked": "^15.0.8",
         "preact": "^10.5.14",
         "preact-feather": "^4.2.1",
         "preact-iso": "^2.6.3",
-        "preact-markdown": "^2.1.0",
         "rollup": "^4.21.0"
     }
 }

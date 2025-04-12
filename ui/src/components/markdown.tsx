@@ -1,8 +1,7 @@
 import { h } from 'preact'
-
-import MD from 'preact-markdown'
-import classNames from 'src/classnames'
 import styles from 'src/components/markdown.module.css'
+import { marked } from 'marked'
+import { useMemo } from 'preact/hooks'
 
 export interface MarkdownProps {
     children: string
@@ -10,9 +9,15 @@ export interface MarkdownProps {
 }
 
 export function Markdown(props: MarkdownProps): h.JSX.Element {
-    return MD(props.children ?? '', {
-        markupOpts: {
-            className: classNames(styles.markdown, props.class),
-        },
-    })
+    const markup = useMemo(
+        () => marked(props.children, { async: false }),
+        [props.children],
+    )
+
+    return (
+        <div
+            dangerouslySetInnerHTML={{ __html: markup }}
+            class={styles.markdown + ' ' + props.class}
+        />
+    )
 }

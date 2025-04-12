@@ -5,27 +5,27 @@ import { useEffect, useState } from 'preact/hooks'
 import { Card, CardList } from 'src/components/card'
 import { Input } from 'src/components/form/input'
 import { Modal, ModalBody, ModalHead } from 'src/components/modal'
-import { useAsyncCallback } from 'src/hooks/async'
+import { useDebouncedAsyncCallback } from 'src/hooks/async'
 import { useModal } from 'src/components/modal-controller'
 import { useSeries } from 'src/hooks/series'
 import { metadataList } from 'src/api/metadata'
 import { SeriesMetadata } from 'src/models'
-import { debounce } from 'src/debounce'
-
-const metadataListDebounced = debounce(metadataList)
 
 export const MetadataMatch: FunctionalComponent = () => {
     const { params } = useRoute()
     const { close } = useModal()
     const seriesSlug = params.slug ?? ''
     const [search, setSearch] = useState('')
-    const result = useAsyncCallback(async () => {
-        if (search == '') {
-            return []
-        }
-        const resp = await metadataListDebounced(search)
-        return resp.data
-    }, [search])
+    const result = useDebouncedAsyncCallback(
+        async signal => {
+            if (search == '') {
+                return []
+            }
+            const resp = await metadataList(search, signal)
+            return resp.data
+        },
+        [search],
+    )
 
     const [series] = useSeries(seriesSlug)
 
@@ -49,6 +49,7 @@ export const MetadataMatch: FunctionalComponent = () => {
                     value={search}
                     onInput={setSearch}
                 />
+                {result.status === 'pending' && <div>loading</div>}
                 <CardList scroll='vertical'>
                     {data.map(r => {
                         const current = series?.metadata_id === r.id

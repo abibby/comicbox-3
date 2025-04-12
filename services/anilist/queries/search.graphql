@@ -13,6 +13,9 @@ query Search($search: String, $id: Int) {
       coverImage {
         extraLarge
       }
+      startDate {
+        year
+      }
       description(asHtml: true)
       genres
       tags {

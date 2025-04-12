@@ -42,6 +42,7 @@ type SeriesMetadata struct {
 	Service       models.MetadataService `json:"service"`
 	MatchDistance int                    `json:"match_distance"`
 	Title         string                 `json:"title"`
+	Year          int                    `json:"year"`
 	Description   string                 `json:"description"`
 	Aliases       []string               `json:"aliases"`
 	CoverImageURL string                 `json:"cover_image_url"`

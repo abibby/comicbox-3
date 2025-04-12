@@ -111,6 +111,7 @@ func anilistSeriesMetadata(media *anilist.SearchPageMedia, name string) SeriesMe
 		MatchDistance: levenshtein.ComputeDistance(normalize(media.Title.English), name),
 		Title:         titles[0],
 		Aliases:       titles[1:],
+		Year:          media.StartDate.Year,
 		Description:   media.Description,
 		CoverImageURL: media.CoverImage.ExtraLarge,
 		Genres:        media.Genres,

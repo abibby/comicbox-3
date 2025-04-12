@@ -13,12 +13,14 @@ func init() {
 			table.JSON("aliases").Default("[]")
 			table.JSON("genres").Default("[]")
 			table.JSON("tags").Default("[]")
+			table.Int("year").Nullable()
 		}),
 		Down: schema.Table("series", func(table *schema.Blueprint) {
 			table.DropColumn("description")
 			table.DropColumn("aliases")
 			table.DropColumn("genres")
 			table.DropColumn("tags")
+			table.DropColumn("year")
 		}),
 	})
 }

@@ -51,18 +51,26 @@ export const Button: FunctionalComponent<ButtonProps> = props => {
 type IconButtonProps = ButtonProps & {
     icon: FunctionalComponent<FeatherProps>
     size?: string | number
+    filled?: boolean
 }
 export const IconButton: FunctionalComponent<IconButtonProps> = ({
     icon: Icon,
     size,
+    filled,
     ...props
 }) => {
     if (size === undefined) {
         size = '1em'
     }
+
     return (
         <Button {...props}>
-            <Icon class={styles.icon} width={size} height={size} />
+            <Icon
+                class={styles.icon}
+                width={size}
+                height={size}
+                fill={filled ? 'currentColor' : 'none'}
+            />
             {props.children}
         </Button>
     )

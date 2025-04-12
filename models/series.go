@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abibby/comicbox-3/server/router"
+	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
@@ -30,6 +31,7 @@ type Series struct {
 	Aliases            JSONStrings   `json:"aliases"        db:"aliases"`
 	Genres             JSONStrings   `json:"genres"         db:"genres"`
 	Tags               JSONStrings   `json:"tags"           db:"tags"`
+	Year               *nulls.Int    `json:"year"           db:"year"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
 	LatestBook *builder.BelongsTo[*Book]    `json:"latest_book" db:"-" foreign:"latest_book_id" owner:"id"`

@@ -44,6 +44,7 @@ export interface Series {
     aliases: Array<string>
     genres: Array<string>
     tags: Array<string>
+    year: number | null
     user_series: UserSeries | null
     latest_book: Book | null
 }
@@ -79,6 +80,7 @@ export interface SeriesMetadata {
     service: string
     match_distance: number
     title: string
+    year: number
     description: string
     aliases: Array<string>
     cover_image_url: string

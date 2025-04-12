@@ -6,12 +6,17 @@ export async function updateAnilist(b: DBBook): Promise<void> {
         slug: b.series_slug,
         limit: 1,
     })
-    if (s === undefined || s.anilist_id === null) {
+    if (s === undefined || s.metadata_id === null) {
+        return
+    }
+
+    const [service, id] = s.metadata_id.split('://')
+    if (service !== 'anilist') {
         return
     }
 
     await anilistAPI.updateManga({
-        mediaId: s.anilist_id,
+        mediaId: Number(id),
         progress: b.chapter !== null ? Math.floor(b.chapter) : null,
         progressVolumes: b.volume,
         // startedAt: ,

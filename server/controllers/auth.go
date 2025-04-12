@@ -98,6 +98,11 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if u == nil {
+		sendError(rw, NewHttpError(401, fmt.Errorf("unauthenticated")))
+		return
+	}
+
 	resp, err := generateLoginResponse(u)
 	if err != nil {
 		sendError(rw, err)
@@ -186,8 +191,7 @@ var ChangePassword = request.Handler(func(r *ChangePasswordRequest) (*ChangePass
 })
 
 type authMiddleware struct {
-	acceptQuery bool
-	purposes    []auth.TokenScope
+	purposes []auth.TokenScope
 }
 
 func AttachUserMiddleware() router.InlineMiddlewareFunc {
@@ -197,10 +201,9 @@ func AttachUserMiddleware() router.InlineMiddlewareFunc {
 	}
 }
 
-func AuthMiddleware(acceptQuery bool, purposes ...auth.TokenScope) router.Middleware {
+func HasScope(scopes ...auth.TokenScope) router.Middleware {
 	return &authMiddleware{
-		acceptQuery: acceptQuery,
-		purposes:    purposes,
+		purposes: scopes,
 	}
 }
 
@@ -215,16 +218,17 @@ func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if len(m.purposes) > 0 {
-			for _, scope := range claims.Scope {
-				if !ok || !slices.Contains(m.purposes, auth.TokenScope(scope)) {
-					sendError(w, ErrUnauthorized)
-					return
-				}
+		if len(m.purposes) <= 0 {
+			next.ServeHTTP(w, r)
+			return
+		}
+		for _, scope := range claims.Scope {
+			if slices.Contains(m.purposes, auth.TokenScope(scope)) {
+				next.ServeHTTP(w, r)
+				return
 			}
 		}
-
-		next.ServeHTTP(w, r)
+		sendError(w, ErrUnauthorized)
 	})
 }
 func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation {
@@ -232,7 +236,7 @@ func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation 
 		s.Security = []map[string][]string{}
 	}
 	securityDefinitionName := openapidoc.DefaultSecurityDefinitionName
-	if m.acceptQuery {
+	if slices.Contains(m.purposes, auth.TokenImage) {
 		securityDefinitionName = "Query"
 	}
 	s.Security = append(s.Security, map[string][]string{

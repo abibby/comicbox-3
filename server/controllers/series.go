@@ -114,10 +114,10 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug      string            `path:"slug"`
-	Name      string            `json:"name"`
-	AnilistID *nulls.Int        `json:"anilist_id"`
-	UpdateMap map[string]string `json:"update_map"   validate:"require"`
+	Slug       string             `path:"slug"`
+	Name       string             `json:"name"        validate:"require"`
+	MetadataID *models.MetadataID `json:"metadata_id"`
+	UpdateMap  map[string]string  `json:"update_map"  validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -137,8 +137,8 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 			return Err404
 		}
 
-		if shouldUpdate(s.UpdateMap, r.UpdateMap, "anilist_id") {
-			s.AnilistId = r.AnilistID
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "metadata_id") {
+			s.MetadataID = r.MetadataID
 		}
 
 		if shouldUpdate(s.UpdateMap, r.UpdateMap, "name") {

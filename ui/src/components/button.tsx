@@ -62,7 +62,7 @@ export const IconButton: FunctionalComponent<IconButtonProps> = ({
     }
     return (
         <Button {...props}>
-            <Icon width={size} height={size} />
+            <Icon class={styles.icon} width={size} height={size} />
             {props.children}
         </Button>
     )

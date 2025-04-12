@@ -1,0 +1,33 @@
+# @genqlient(omitempty: true)
+query Search($search: String, $id: Int) {
+  Page(perPage: 50) {
+    pageInfo {
+      total
+    }
+    media(type: MANGA, format: MANGA, search: $search, id: $id) {
+      id
+      title {
+        romaji
+        english
+      }
+      coverImage {
+        extraLarge
+      }
+      description(asHtml: true)
+      genres
+      tags {
+        name
+      }
+      staff {
+        edges {
+          role
+          node {
+            name {
+              full
+            }
+          }
+        }
+      }
+    }
+  }
+}

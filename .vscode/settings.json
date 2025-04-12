@@ -1,7 +1,4 @@
 {
-    "cSpell.words": [
-        "Favicons",
-        "progressor"
-    ],
-    "typescript.tsdk": "./ui/node_modules/typescript/lib"
+  "cSpell.words": ["anilist", "comicbox", "Favicons", "progressor"],
+  "typescript.tsdk": "./ui/node_modules/typescript/lib"
 }

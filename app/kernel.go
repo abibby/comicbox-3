@@ -4,6 +4,7 @@ import (
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/app/jobs"
+	"github.com/abibby/comicbox-3/app/providers"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/database/migrations"
@@ -39,6 +40,7 @@ var Kernel = kernel.New(
 
 		database.Init,
 		events.RegisterSync,
+		providers.Register,
 	),
 	kernel.APIDocumentation(
 		openapidoc.Info(spec.InfoProps{

@@ -66,6 +66,7 @@ var (
 	Logger              string
 	LokiURL             string
 	LokiTenantID        string
+	FilePath            string
 )
 
 var PublicConfig map[string]any
@@ -80,6 +81,7 @@ func Init(ctx context.Context) error {
 	BaseURL = env("BASE_URL", "")
 	DBPath = env("DB_PATH", "./db.sqlite")
 	CachePath = env("CACHE_PATH", "./cache")
+	FilePath = env("FILE_PATH", "./files")
 	LibraryPath = mustEnv("LIBRARY_PATH")
 	Port = envInt("PORT", 8080)
 	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)

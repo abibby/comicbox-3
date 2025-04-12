@@ -34,7 +34,7 @@ export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
 
 interface SeriesUpdateRequest {
     name: string | null
-    anilist_id: number | null
+    metadata_id: string | null
     update_map: Record<string, string>
 }
 

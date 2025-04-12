@@ -17,8 +17,6 @@ func init() {
 			table.Blob("first_book_id").Nullable()
 			table.Int("first_book_cover_page")
 			table.Int("anilist_id").Nullable()
-			table.Blob("latest_book_id").Nullable()
-			table.ForeignKey("latest_book_id", "books", "id")
 		}),
 		Down: schema.DropIfExists("series"),
 	})

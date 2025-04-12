@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
@@ -26,6 +27,19 @@ type BaseModel struct {
 	DeletedAt    *database.Time    `json:"deleted_at" db:"deleted_at"`
 	UpdateMap    map[string]string `json:"update_map" db:"-"`
 	RawUpdateMap []byte            `json:"-"          db:"update_map,type:json"`
+}
+
+var updateIndex int32
+
+func (b *BaseModel) UpdateField(name string) {
+	index := atomic.AddInt32(&updateIndex, 1)
+	b.UpdateMap[name] = fmt.Sprintf("%d-SERVER-%d", time.Now().UnixMilli(), index)
+	if index == 1 {
+		go func() {
+			time.Sleep(time.Second)
+			updateIndex = 0
+		}()
+	}
 }
 
 func (*BaseModel) Scopes() []*builder.Scope {
@@ -115,7 +129,7 @@ func (bm *BaseModel) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 }
 
 func (bm *BaseModel) AfterLoad(ctx context.Context, tx salusadb.DB) error {
-	if bm.RawUpdateMap != nil && len(bm.RawUpdateMap) > 0 {
+	if len(bm.RawUpdateMap) > 0 {
 		err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
 		if err != nil {
 			return err

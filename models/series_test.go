@@ -11,14 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func TestMain(m *testing.M) {
-// 	bobtest.SetMigrate(func(db *sqlx.DB) error {
-// 		database.SetTestDB(db)
-// 		return database.Migrate()
-// 	})
-// 	os.Exit(m.Run())
-// }
-
 func userContext(u *models.User) context.Context {
 	return context.WithValue(context.Background(), "user-id", u.ID)
 }

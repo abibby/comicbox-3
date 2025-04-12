@@ -24,6 +24,7 @@
     "devDependencies": {
         "@preact/preset-vite": "^2.9.0",
         "@testing-library/preact": "^3.2.4",
+        "@types/marked": "^5.0.2",
         "@types/node": "^22.5.5",
         "@types/serviceworker": "^0.0.53",
         "autoprefixer": "^10.4.20",
@@ -55,6 +56,7 @@
         "preact": "^10.5.14",
         "preact-feather": "^4.2.1",
         "preact-iso": "^2.6.3",
+        "preact-markdown": "^2.1.0",
         "rollup": "^4.21.0"
     }
 }

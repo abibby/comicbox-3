@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/abibby/comicbox-3/server/router"
-	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
@@ -16,15 +17,54 @@ import (
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug               string                       `json:"slug"           db:"name,primary"`
-	Name               string                       `json:"name"           db:"display_name"`
-	CoverURL           string                       `json:"cover_url"      db:"-"`
-	FirstBookID        *uuid.UUID                   `json:"first_book_id"  db:"first_book_id"`
-	FirstBookCoverPage int                          `json:"-"              db:"first_book_cover_page"`
-	AnilistId          *nulls.Int                   `json:"anilist_id"     db:"anilist_id"`
-	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"    db:"-" local:"name" foreign:"series_name"`
-	LatestBookID       *uuid.UUID                   `json:"latest_book_id" db:"latest_book_id,readonly"`
-	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"    db:"-" foreign:"latest_book_id" owner:"id"`
+	Slug string `json:"slug"           db:"name,primary"`
+	Name string `json:"name"           db:"display_name"`
+	// Directory          string        `json:"directory"      db:"directory"`
+	CoverURL           string        `json:"cover_url"      db:"-"`
+	FirstBookID        uuid.NullUUID `json:"first_book_id"  db:"first_book_id,type:blob,nullable"`
+	FirstBookCoverPage int           `json:"-"              db:"first_book_cover_page"`
+	MetadataID         *MetadataID   `json:"metadata_id"    db:"metadata_id,nullable"`
+	LatestBookID       uuid.NullUUID `json:"latest_book_id" db:"latest_book_id,type:blob,nullable,readonly"`
+	CoverImageID       uuid.NullUUID `json:"-"              db:"cover_image_id,type:blob,nullable"`
+	Description        string        `json:"description"    db:"description"`
+	Aliases            JSONStrings   `json:"aliases"        db:"aliases"`
+	Genres             JSONStrings   `json:"genres"         db:"genres"`
+	Tags               JSONStrings   `json:"tags"           db:"tags"`
+
+	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
+	LatestBook *builder.BelongsTo[*Book]    `json:"latest_book" db:"-" foreign:"latest_book_id" owner:"id"`
+	CoverImage *builder.HasOne[*File]       `json:"-"           db:"-" foreign:"cover_image_id" owner:"id"`
+}
+
+type MetadataID string
+type MetadataService string
+
+const (
+	MetadataServiceAnilist = "anilist"
+)
+
+func NewAnilistID(id int) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceAnilist, id))
+	return &mid
+}
+
+func (m MetadataID) ID() (MetadataService, string, error) {
+	parts := strings.SplitN(string(m), "://", 2)
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("MetadataID: invalid format: %s", m)
+	}
+	return MetadataService(parts[0]), parts[1], nil
+}
+func (m *MetadataID) IntID() (MetadataService, int) {
+	service, strID, err := m.ID()
+	if err != nil {
+		return "", 0
+	}
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		return "", 0
+	}
+	return service, id
 }
 
 func SeriesQuery(ctx context.Context) *builder.ModelBuilder[*Series] {
@@ -48,8 +88,8 @@ func (s *Series) BeforeSave(ctx context.Context, tx database.DB) error {
 }
 
 func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
-	if s.FirstBookID != nil {
-		s.CoverURL = router.MustURL(ctx, "book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
+	if s.FirstBookID.Valid {
+		s.CoverURL = router.MustURL(ctx, "file.view", "id", s.CoverImageID.UUID.String())
 	}
 	return nil
 }
@@ -75,10 +115,10 @@ func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *B
 	oldID := s.FirstBookID
 	oldCoverPage := s.FirstBookCoverPage
 	if b != nil {
-		s.FirstBookID = &b.ID
+		s.FirstBookID = uuid.NullUUID{UUID: b.ID, Valid: true}
 		s.FirstBookCoverPage = b.CoverPage()
 	} else {
-		s.FirstBookID = nil
+		s.FirstBookID = uuid.NullUUID{}
 		s.FirstBookCoverPage = 0
 	}
 	return s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage, nil

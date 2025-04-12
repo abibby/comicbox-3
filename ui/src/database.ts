@@ -55,12 +55,16 @@ export const emptySeries: Readonly<DBSeries> = {
     update_map: {},
     slug: '',
     name: '',
+    aliases: [],
+    description: '',
     cover_url: '',
     first_book_id: null,
     latest_book: null,
     latest_book_id: null,
     user_series: emptyUserSeries,
-    anilist_id: null,
+    metadata_id: null,
+    genres: [],
+    tags: [],
 }
 
 export const emptyBook: Readonly<DBBook> = {

@@ -84,7 +84,7 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(false, auth.TokenAPI))
+			r.Use(controllers.HasScope(auth.TokenAPI))
 
 			r.Get("/series", controllers.SeriesIndex).Name("series.index")
 			r.Post("/series/{slug}", controllers.SeriesUpdate).Name("series.update")
@@ -102,9 +102,18 @@ func InitRouter(r *router.Router) {
 
 			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
 			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
+
+			r.Post("/meta/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+			r.Get("/meta", controllers.MetaList).Name("meta.list")
 		})
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(true, auth.TokenImage))
+			r.Use(controllers.HasScope(auth.TokenAPI, auth.TokenImage))
+
+			r.Get("/file/{id}", controllers.FileView).Name("file.view")
+		})
+
+		r.Group("", func(r *router.Router) {
+			r.Use(controllers.HasScope(auth.TokenImage))
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
 				r.Use(middleware.CacheMiddleware())
@@ -119,7 +128,7 @@ func InitRouter(r *router.Router) {
 		r.Post("/rum", controllers.RumLogging).Name("rum.logging")
 
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(false, auth.TokenRefresh))
+			r.Use(controllers.HasScope(auth.TokenRefresh))
 			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")
 		})
 

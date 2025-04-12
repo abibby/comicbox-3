@@ -38,9 +38,13 @@ export interface Series {
     name: string
     cover_url: string
     first_book_id: string | null
-    anilist_id: number | null
-    user_series: UserSeries | null
+    metadata_id: string | null
     latest_book_id: string | null
+    description: string
+    aliases: Array<string>
+    genres: Array<string>
+    tags: Array<string>
+    user_series: UserSeries | null
     latest_book: Book | null
 }
 export interface User {
@@ -66,6 +70,22 @@ export interface UserSeries {
     list: List
     last_read_at: string
 }
+export interface Staff {
+    name: string
+    role: StaffRole
+}
+export interface SeriesMetadata {
+    id: string | null
+    service: string
+    match_distance: number
+    title: string
+    description: string
+    aliases: Array<string>
+    cover_image_url: string
+    staff: Array<Staff>
+    genres: Array<string>
+    tags: Array<string>
+}
 export enum PageType {
     Deleted = "Deleted",
     FrontCover = "FrontCover",
@@ -85,4 +105,12 @@ export enum SeriesOrder {
     CreatedAt = "created_at",
     LastRead = "last-read",
     Name = "name",
+}
+export enum StaffRole {
+    RoleArtist = "artist",
+    RoleAssistant = "assistant",
+    RoleEditor = "editor",
+    RoleLetterer = "letterer",
+    RoleTranslator = "translator",
+    RoleWriter = "writer",
 }

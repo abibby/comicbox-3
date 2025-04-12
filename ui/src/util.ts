@@ -7,7 +7,7 @@ export function truthy<T>(v: T | null | undefined | false): v is T {
 
 export function encode(
     fixed: TemplateStringsArray,
-    ...parts: (string | number)[]
+    ...parts: (string | number | undefined)[]
 ): string {
     let out = ''
     for (let i = 0; i < fixed.length; i++) {

@@ -23,20 +23,30 @@ export function useAsync<T, E = Error>(
         status: 'pending',
     })
     useEffect(() => {
+        let canceled = false
         setResult({ status: 'pending' })
         asyncFunction()
             .then(r => {
+                if (canceled) {
+                    return
+                }
                 setResult({
                     status: 'success',
                     data: r,
                 })
             })
             .catch(e => {
+                if (canceled) {
+                    return
+                }
                 setResult({
                     status: 'error',
                     error: e,
                 })
             })
+        return () => {
+            canceled = true
+        }
     }, [asyncFunction, setResult])
     return result
 }

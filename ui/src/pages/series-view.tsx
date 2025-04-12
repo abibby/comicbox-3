@@ -1,21 +1,25 @@
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
-import { Edit, MoreHorizontal } from 'preact-feather'
+import { Edit, MoreHorizontal, Play } from 'preact-feather'
 import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { BookList } from 'src/components/book-list'
 import { ButtonGroup, IconButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
+import { Markdown } from 'src/components/markdown'
 import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
+import { useImageURL } from 'src/hooks/image'
 import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
+import { route } from 'src/routes'
+import { updateSeriesMetadata } from 'src/services/series-service'
 import { encode } from 'src/util'
 
 export const SeriesView: FunctionalComponent = () => {
@@ -42,34 +46,36 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         series_slug: slug,
         limit: null,
     })
-    const [liveCurrentBooks, setCurrentBooks] = useState<Book[] | null>(null)
+    const [liveCurrentBooks, setLiveCurrentBooks] = useState<Book[] | null>(
+        null,
+    )
     const [currentBook, setCurrentBook] = useState<Book | null>(null)
 
     const books = usePromptUpdate(liveBooks, bookCompare)
     const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
 
     useEffect(() => {
-        if (books === null) return
+        if (liveBooks === null) return
         const count = 7
-        if (books.length <= count) {
-            setCurrentBooks([])
+        if (liveBooks.length <= count) {
+            setLiveCurrentBooks([])
             return
         }
-        const current = books.findIndex(b => b.completed === 0)
-        setCurrentBook(books[current] ?? null)
+        const current = liveBooks.findIndex(b => b.completed === 0)
+        setCurrentBook(liveBooks[current] ?? null)
         let start = current - Math.floor(count / 2)
         let end = current + Math.ceil(count / 2)
         if (start < 0) {
             start = 0
             end = count
         }
-        if (end > books.length || current === -1) {
-            start = books.length - count
-            end = books.length
+        if (end > liveBooks.length || current === -1) {
+            start = liveBooks.length - count
+            end = liveBooks.length
         }
 
-        setCurrentBooks(books.slice(start, end))
-    }, [books])
+        setLiveCurrentBooks(liveBooks.slice(start, end))
+    }, [liveBooks])
 
     const editSeries = useCallback(() => {
         void openModal(encode`/series/${slug}`)
@@ -118,19 +124,24 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         })
     }, [slug])
 
+    const updateMetadata = useCallback(async () => {
+        await updateSeriesMetadata(slug)
+    }, [slug])
+
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
             await openContextMenu(e, [
                 ['Download', downloadSeries],
                 ['Mark All Read', markAllRead],
                 ['Mark All Unread', markAllUnread],
+                ['Update Metadata', updateMetadata],
             ])
         },
-        [downloadSeries, markAllRead, markAllUnread],
+        [downloadSeries, markAllRead, markAllUnread, updateMetadata],
     )
 
     const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
-
+    const coverURL = useImageURL(series?.cover_url)
     return (
         <>
             <section class={styles.header}>
@@ -147,6 +158,38 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                         onClick={contextMenu}
                     />
                 </ButtonGroup>
+            </section>
+            <section>
+                <img src={coverURL} alt='Series Cover' />
+                <h1>{series?.name}</h1>
+                <p>{currentBook?.id ?? books}</p>
+                <div>
+                    {series?.genres.map(g => (
+                        <span key={g}>|{g}|</span>
+                    ))}
+                </div>
+                <ButtonGroup>
+                    <IconButton
+                        color='primary'
+                        icon={Play}
+                        href={route('book.view', {
+                            id: currentBook?.id ?? liveBooks[0]?.id ?? '',
+                        })}
+                    >
+                        Next Chapter
+                    </IconButton>
+                    <IconButton
+                        color='clear'
+                        icon={Edit}
+                        onClick={editSeries}
+                    />
+                    <IconButton
+                        color='clear'
+                        icon={MoreHorizontal}
+                        onClick={contextMenu}
+                    />
+                </ButtonGroup>
+                <Markdown>{series?.description ?? ''}</Markdown>
             </section>
             {hasCurrentBooks && (
                 <BookList

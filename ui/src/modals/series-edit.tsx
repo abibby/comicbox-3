@@ -1,5 +1,5 @@
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
 import { Button } from 'src/components/button'
@@ -18,6 +18,7 @@ import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { useSeries } from 'src/hooks/series'
 import { encode } from 'src/util'
+import { updateSeriesMetadata } from 'src/services/series-service'
 
 const listOptions = [['', 'None'], ...listNames] as const
 
@@ -28,20 +29,22 @@ export const EditSeries: FunctionalComponent = () => {
     const seriesSlug = params.series ?? ''
     const [series, seriesLoading] = useSeries(seriesSlug)
 
-    const [anilistID, setAnilistID] = useState(String(series?.anilist_id ?? ''))
-    const findAnilist = useCallback(async () => {
-        const modal = openModal(encode`/anilist-match/${seriesSlug}`)
+    const [metadataID, setMetadataID] = useState(series?.metadata_id ?? '')
+    const metadataIDChanged = useRef(false)
+    const findMeta = useCallback(async () => {
+        const modal = openModal(encode`/metadata/${seriesSlug}`)
         const id = await modal.result()
         if (id === undefined) {
             return
         }
 
-        setAnilistID(String(id))
+        setMetadataID(String(id))
+        metadataIDChanged.current = true
     }, [seriesSlug])
 
     useEffect(() => {
-        setAnilistID(String(series?.anilist_id ?? ''))
-    }, [series?.anilist_id, series?.name])
+        setMetadataID(String(series?.metadata_id ?? ''))
+    }, [series?.metadata_id, series?.name])
 
     const submit = useCallback(
         async (data: Data) => {
@@ -56,15 +59,18 @@ export const EditSeries: FunctionalComponent = () => {
 
             await DB.saveSeries(series, {
                 name: data.get('name') ?? '',
-                anilist_id: anilistID === '' ? -1 : Number(anilistID),
+                metadata_id: metadataID === '' ? null : metadataID,
                 user_series: {
                     list: list,
                 },
             })
             await persist(true)
+            if (metadataIDChanged.current) {
+                await updateSeriesMetadata(series.slug)
+            }
             close()
         },
-        [series, anilistID, close],
+        [series, metadataID, close],
     )
 
     if (!seriesLoading && series === null) {
@@ -97,10 +103,10 @@ export const EditSeries: FunctionalComponent = () => {
                     <Input
                         title='Anilist ID'
                         name='anilist_id'
-                        value={anilistID}
-                        onInput={setAnilistID}
+                        value={metadataID}
+                        onInput={setMetadataID}
                     >
-                        <Button onClick={findAnilist}>Find Anilist ID</Button>
+                        <Button onClick={findMeta}>Find Anilist ID</Button>
                     </Input>
                 </ModalBody>
             </Form>

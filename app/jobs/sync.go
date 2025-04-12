@@ -108,7 +108,7 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 		if series == nil {
 			series = &models.Series{
 				FirstBookCoverPage: book.CoverPage(),
-				FirstBookID:        &book.ID,
+				FirstBookID:        uuid.NullUUID{UUID: book.ID, Valid: true},
 				Slug:               book.SeriesSlug,
 				Name:               name,
 			}

@@ -1,30 +1,42 @@
 import { bind } from '@zwzn/spicy'
 import { FunctionalComponent, h } from 'preact'
 import { useRoute } from 'preact-iso'
-import { useState } from 'preact/hooks'
-import { searchManga, SearchMangaResponse } from 'src/api/anilist'
+import { useEffect, useState } from 'preact/hooks'
 import { Card, CardList } from 'src/components/card'
 import { Input } from 'src/components/form/input'
 import { Modal, ModalBody, ModalHead } from 'src/components/modal'
 import { useAsyncCallback } from 'src/hooks/async'
 import { useModal } from 'src/components/modal-controller'
 import { useSeries } from 'src/hooks/series'
+import { metadataList } from 'src/api/metadata'
+import { SeriesMetadata } from 'src/models'
+import { debounce } from 'src/debounce'
 
-export const AnilistMatch: FunctionalComponent = () => {
+const metadataListDebounced = debounce(metadataList)
+
+export const MetadataMatch: FunctionalComponent = () => {
     const { params } = useRoute()
     const { close } = useModal()
-    const seriesName = params.name ?? ''
-    const [search, setSearch] = useState(seriesName)
+    const seriesSlug = params.slug ?? ''
+    const [search, setSearch] = useState('')
     const result = useAsyncCallback(async () => {
-        return searchManga(search)
+        if (search == '') {
+            return []
+        }
+        const resp = await metadataListDebounced(search)
+        return resp.data
     }, [search])
 
-    const [series] = useSeries(seriesName)
+    const [series] = useSeries(seriesSlug)
 
-    let data: SearchMangaResponse[] = []
+    useEffect(() => {
+        setSearch(series?.name ?? '')
+    }, [series])
+
+    let data: SeriesMetadata[] = []
 
     if (result.status === 'success') {
-        data = result.data.results
+        data = result.data
     }
 
     return (
@@ -39,20 +51,17 @@ export const AnilistMatch: FunctionalComponent = () => {
                 />
                 <CardList scroll='vertical'>
                     {data.map(r => {
-                        const current = series?.anilist_id === r.id
-                        let subtitle: string = r.format
-                        if (r.title.english) {
-                            subtitle += ' • ' + r.title.english
+                        const current = series?.metadata_id === r.id
+                        let subtitle: string = `${r.service} • ${r.match_distance}`
+                        if (r.aliases) {
+                            subtitle += ' • ' + r.aliases
                         }
                         return (
                             <Card
                                 key={r.id}
-                                title={
-                                    r.title.userPreferred +
-                                    (current ? ' (current)' : '')
-                                }
+                                title={r.title + (current ? ' (current)' : '')}
                                 subtitle={subtitle}
-                                image={r.coverImage.large}
+                                image={r.cover_image_url}
                                 link={bind(r.id, close)}
                                 progress={current ? 1 : 0}
                             />

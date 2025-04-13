@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
+	"github.com/abibby/salusa/database"
+	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
@@ -15,37 +16,41 @@ import (
 type MetaUpdateRequest struct {
 	SeriesSlug string `path:"slug"`
 
-	Ctx context.Context `inject:""`
+	Update database.Update `inject:""`
+	Ctx    context.Context `inject:""`
 }
 type MetaUpdateResponse struct {
 	Success bool `json:"success"`
 }
 
 var MetaUpdate = request.Handler(func(req *MetaUpdateRequest) (*models.Series, error) {
-	var series *models.Series
-	var err error
-	err = database.UpdateTx(req.Ctx, func(tx *sqlx.Tx) error {
-		series, err = models.SeriesQuery(req.Ctx).Find(tx, req.SeriesSlug)
+	return database.Value(req.Update, func(tx *sqlx.Tx) (*models.Series, error) {
+		series, err := models.SeriesQuery(req.Ctx).Find(tx, req.SeriesSlug)
 		if err != nil {
-			return fmt.Errorf("failed to retrieve series: %w", err)
+			return nil, fmt.Errorf("failed to retrieve series: %w", err)
 		}
 
 		if series == nil {
-			return request.ErrStatusNotFound
+			return nil, request.ErrStatusNotFound
 		}
 
 		meta := metadata.MetaProviderFactory()
 		err = metadata.Update(req.Ctx, tx, meta, series)
 		if err != nil {
-			return fmt.Errorf("failed to update metadata: %w", err)
+			return nil, fmt.Errorf("failed to update metadata: %w", err)
 		}
 
-		return model.SaveContext(req.Ctx, tx, series)
+		err = model.SaveContext(req.Ctx, tx, series)
+		if err != nil {
+			return nil, err
+		}
+
+		err = builder.LoadContext(req.Ctx, tx, series, "LatestBook")
+		if err != nil {
+			return nil, err
+		}
+		return series, nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return series, nil
 })
 
 type MetaListRequest struct {

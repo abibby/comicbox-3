@@ -66,7 +66,9 @@ export const IconButton: FunctionalComponent<IconButtonProps> = ({
     return (
         <Button {...props}>
             <Icon
-                class={styles.icon}
+                class={classNames(styles.icon, {
+                    [styles.iconOnly]: !props.children,
+                })}
                 width={size}
                 height={size}
                 fill={filled ? 'currentColor' : 'none'}

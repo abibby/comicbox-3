@@ -1,16 +1,56 @@
-import { Fragment, FunctionalComponent, h } from 'preact'
+import { bind } from '@zwzn/spicy'
+import { ComponentChildren, Fragment, FunctionalComponent, h } from 'preact'
+import { X } from 'preact-feather'
+import { useMemo } from 'preact/hooks'
 import { SeriesList } from 'src/components/series-list'
 import { seriesCompare, usePromptUpdate } from 'src/hooks/prompt-update'
+import { useQueryState } from 'src/hooks/query-state'
 import { useSeriesList } from 'src/hooks/series'
+import styles from 'src/pages/series-index.module.css'
 
 export const SeriesIndex: FunctionalComponent = () => {
     const [liveSeries] = useSeriesList('series-index', { limit: null })
 
     const series = usePromptUpdate(liveSeries, seriesCompare)
+    const [genreFilter, setGenreFilter] = useQueryState('genre', '')
+
+    const filteredSeries = useMemo(() => {
+        return (
+            series?.filter(s => {
+                if (genreFilter && !s.genres.includes(genreFilter)) {
+                    return false
+                }
+                return true
+            }) ?? null
+        )
+    }, [series, genreFilter])
 
     return (
         <Fragment>
-            <SeriesList title='Series' scroll='vertical' series={series} />
+            {genreFilter && (
+                <Filter onClose={bind('', setGenreFilter)}>
+                    Genre: {genreFilter}
+                </Filter>
+            )}
+            <SeriesList
+                title='Series'
+                scroll='vertical'
+                series={filteredSeries}
+            />
         </Fragment>
+    )
+}
+
+type FilterProps = {
+    children: ComponentChildren
+    onClose: () => void
+}
+
+function Filter(props: FilterProps) {
+    return (
+        <span class={styles.filter}>
+            {props.children}{' '}
+            <X class={styles.filterClose} onClick={props.onClose} />
+        </span>
     )
 }

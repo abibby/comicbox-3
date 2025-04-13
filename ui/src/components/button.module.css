@@ -59,8 +59,9 @@
 
 .icon {
     transform: translate(0em, 0.1em);
+    margin-right: 0.5em;
 }
 
-.icon:not(:last-child) {
-    background-color: red;
+.icon.iconOnly {
+    margin-right: 0;
 }

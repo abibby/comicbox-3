@@ -1,13 +1,14 @@
+import { bind } from '@zwzn/spicy'
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
 import {
+    BookOpen,
     Bookmark,
     ChevronDown,
     ChevronUp,
     Download,
     Edit,
     MoreHorizontal,
-    Play,
 } from 'preact-feather'
 import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
@@ -63,11 +64,6 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const books = usePromptUpdate(liveBooks, bookCompare)
     const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
 
-    const [descriptionExpanded, setDescriptionExpanded] = useState(false)
-
-    const showDescription = useCallback(() => setDescriptionExpanded(true), [])
-    const hideDescription = useCallback(() => setDescriptionExpanded(false), [])
-
     useEffect(() => {
         if (liveBooks === null) return
         const count = 7
@@ -91,9 +87,52 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         setLiveCurrentBooks(liveBooks.slice(start, end))
     }, [liveBooks])
 
+    const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
+    return (
+        <>
+            <SeriesHeader
+                slug={slug}
+                series={series}
+                currentBook={currentBook}
+                liveBooks={liveBooks}
+            />
+            {hasCurrentBooks && (
+                <BookList
+                    title='Bookmark'
+                    books={currentBooks}
+                    series={series ? [series] : null}
+                    scrollTo={currentBook}
+                />
+            )}
+            <BookList
+                title={hasCurrentBooks ? 'All Books' : undefined}
+                scroll='vertical'
+                books={reverse(books)}
+                series={series ? [series] : null}
+            />
+        </>
+    )
+}
+
+type SeriesHeaderProps = {
+    slug: string
+    series: Series | null
+    currentBook: Book | null
+    liveBooks: Book[]
+}
+
+function SeriesHeader({
+    slug,
+    series,
+    currentBook,
+    liveBooks,
+}: SeriesHeaderProps) {
     const editSeries = useCallback(() => {
         void openModal(encode`/series/${slug}`)
     }, [slug])
+
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+
     const seriesName = series?.name
     const markAllRead = useCallback(async () => {
         if (seriesName !== undefined) {
@@ -171,105 +210,84 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         [markAllRead, markAllUnread, updateMetadata],
     )
 
-    const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
     const coverURL = useImageURL(series?.cover_url)
+
     return (
-        <>
-            <section class={styles.header}>
-                <img class={styles.cover} src={coverURL} alt='Series Cover' />
-                <h1 class={styles.title}>{series?.name}</h1>
-                <p class={styles.year}>{series?.year}</p>
-                <div class={styles.genres}>
-                    {series?.genres.map((g, i) => (
-                        <Fragment key={g}>
-                            {i > 0 && ', '}
-                            <a
-                                class={styles.genre}
-                                href={
-                                    route('series.index', {}) +
-                                    encode`?genre=${g}`
-                                }
-                            >
-                                {g}
-                            </a>
-                        </Fragment>
-                    ))}
-                </div>
-                <ButtonGroup class={styles.buttons}>
-                    <IconButton
-                        color='primary'
-                        icon={Play}
-                        href={route('book.view', {
-                            id: currentBook?.id ?? liveBooks[0]?.id ?? '',
+        <section class={styles.header}>
+            <img class={styles.cover} src={coverURL} alt='Series Cover' />
+            <h1 class={styles.title}>{series?.name}</h1>
+            <p class={styles.year}>{series?.year}</p>
+            <div class={styles.genres}>
+                {series?.genres.map((g, i) => (
+                    <Fragment key={g}>
+                        {i > 0 && ', '}
+                        <a
+                            class={styles.genre}
+                            href={
+                                route('series.index', {}) + encode`?genre=${g}`
+                            }
+                        >
+                            {g}
+                        </a>
+                    </Fragment>
+                ))}
+            </div>
+            <ButtonGroup class={styles.buttons}>
+                <IconButton
+                    color='primary'
+                    icon={BookOpen}
+                    href={route('book.view', {
+                        id: currentBook?.id ?? liveBooks[0]?.id ?? '',
+                    })}
+                >
+                    {currentBook?.id ? 'Next Chapter' : 'Read'}
+                </IconButton>
+                <IconButton color='clear' icon={Edit} onClick={editSeries} />
+                <IconButton
+                    color='clear'
+                    icon={Bookmark}
+                    filled={series?.user_series?.list === 'reading'}
+                    onClick={bookmarkSeries}
+                />
+                <IconButton
+                    color='clear'
+                    icon={Download}
+                    onClick={downloadSeries}
+                />
+                <IconButton
+                    color='clear'
+                    icon={MoreHorizontal}
+                    onClick={contextMenu}
+                />
+            </ButtonGroup>
+            {series?.description && (
+                <div class={styles.description}>
+                    <Markdown
+                        class={classNames(styles.descriptionContent, {
+                            [styles.open]: descriptionExpanded,
                         })}
                     >
-                        {currentBook?.id ? 'Next Chapter' : 'Read'}
-                    </IconButton>
-                    <IconButton
-                        color='clear'
-                        icon={Edit}
-                        onClick={editSeries}
-                    />
-                    <IconButton
-                        color='clear'
-                        icon={Bookmark}
-                        filled={series?.user_series?.list === 'reading'}
-                        onClick={bookmarkSeries}
-                    />
-                    <IconButton
-                        color='clear'
-                        icon={Download}
-                        onClick={downloadSeries}
-                    />
-                    <IconButton
-                        color='clear'
-                        icon={MoreHorizontal}
-                        onClick={contextMenu}
-                    />
-                </ButtonGroup>
-                {series?.description && (
-                    <div class={styles.description}>
-                        <Markdown
-                            class={classNames(styles.descriptionContent, {
-                                [styles.open]: descriptionExpanded,
-                            })}
+                        {series?.description ?? ''}
+                    </Markdown>
+                    {descriptionExpanded || (
+                        <button
+                            class={styles.btnDescriptionExpand}
+                            onClick={bind(true, setDescriptionExpanded)}
                         >
-                            {series?.description ?? ''}
-                        </Markdown>
-                        {descriptionExpanded || (
-                            <button
-                                class={styles.btnDescriptionExpand}
-                                onClick={showDescription}
-                            >
-                                More <ChevronDown />
-                            </button>
-                        )}
-                        {descriptionExpanded && (
-                            <button
-                                class={styles.btnDescriptionExpand}
-                                onClick={hideDescription}
-                            >
-                                Less <ChevronUp />
-                            </button>
-                        )}
-                    </div>
-                )}
-            </section>
-            {hasCurrentBooks && (
-                <BookList
-                    title='Bookmark'
-                    books={currentBooks}
-                    series={series ? [series] : null}
-                    scrollTo={currentBook}
-                />
+                            More <ChevronDown />
+                        </button>
+                    )}
+                    {descriptionExpanded && (
+                        <button
+                            class={styles.btnDescriptionExpand}
+                            onClick={bind(false, setDescriptionExpanded)}
+                        >
+                            Less <ChevronUp />
+                        </button>
+                    )}
+                </div>
             )}
-            <BookList
-                title={hasCurrentBooks ? 'All Books' : undefined}
-                scroll='vertical'
-                books={reverse(books)}
-                series={series ? [series] : null}
-            />
-        </>
+        </section>
     )
 }
 

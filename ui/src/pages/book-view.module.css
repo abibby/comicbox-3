@@ -6,7 +6,6 @@
     right: 0;
     z-index: 200;
     background-color: black;
-    overflow-y: auto;
 }
 .reader.menuOpen {
     z-index: 0;
@@ -133,13 +132,15 @@
 }
 
 .longStrip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    overflow-y: scroll;
+    height: 100vh;
 }
 
 .longStripPage {
+    display: block;
+    margin: 0 auto;
     width: calc(9 / 16 * 100vh);
     max-width: 100%;
     aspect-ratio: calc(var(--width) / var(--height));
+    flex-grow: 1;
 }

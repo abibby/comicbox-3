@@ -1,4 +1,3 @@
-import { bind } from '@zwzn/spicy'
 import noCover from 'res/images/no-cover.svg'
 import { FunctionalComponent, h, JSX } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
@@ -76,7 +75,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setSourcePage = useCallback(
         async (newPage: number) => {
-            navigate(route('book.view', { id: bookID, page: newPage }))
+            navigate(route('book.view', { id: bookID, page: newPage }), true)
 
             const b = await DB.books.where('id').equals(bookID).first()
             if (b === undefined) {
@@ -259,10 +258,10 @@ interface LongStripPagesProps {
 }
 
 function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
-    const [loaded, setLoaded] = useState(false)
-
+    const loaded = useRef(false)
+    const currentPage = useRef(0)
     useEffect(() => {
-        if (!book.long_strip) {
+        if (page === currentPage.current) {
             return
         }
         const img = document.querySelector<HTMLImageElement>(
@@ -271,22 +270,40 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
 
         if (img && !isInViewport(img)) {
             img.scrollIntoView()
-            setLoaded(true)
+            loaded.current = true
         }
-    }, [book.long_strip, page])
+    }, [page])
 
-    const setCurrentPageLongStrip = useCallback(
-        (newPage: number) => {
-            if (!loaded) {
-                return
+    const scroll: JSX.UIEventHandler<HTMLDivElement> = useCallback(
+        e => {
+            const parent = e.currentTarget
+            const box = parent.getBoundingClientRect()
+            const scrollPercent =
+                parent.scrollTop / (parent.scrollHeight - box.height)
+            const pagesHeight = book.pages
+                .map(p => p.height)
+                .reduce((sum, height) => (sum += height), 0)
+
+            const pages = book.pages.filter(p => p.type !== PageType.Deleted)
+            let currentPagePercent = 0
+            let i = 0
+            for (const page of pages) {
+                currentPagePercent += page.height / pagesHeight
+                if (currentPagePercent > scrollPercent) {
+                    if (currentPage.current !== i) {
+                        currentPage.current = i
+                        onPageChange(i)
+                    }
+                    return
+                }
+                i++
             }
-
-            onPageChange(newPage)
         },
-        [loaded, onPageChange],
+        [book.pages, onPageChange],
     )
+
     return (
-        <div className={styles.longStrip}>
+        <div className={styles.longStrip} onScroll={scroll}>
             {book.pages
                 .filter(p => p.type !== PageType.Deleted)
                 .map((p, i) => (
@@ -295,7 +312,6 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
                         key={p.url}
                         page={p}
                         data-page={i}
-                        onPageVisible={bind(i, setCurrentPageLongStrip)}
                     />
                 ))}
         </div>

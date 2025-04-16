@@ -76,7 +76,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
 
     const setSourcePage = useCallback(
         async (newPage: number) => {
-            navigate(route('book.view', { id: bookID, page: newPage }))
+            navigate(route('book.view', { id: bookID, page: newPage }), true)
 
             const b = await DB.books.where('id').equals(bookID).first()
             if (b === undefined) {
@@ -255,6 +255,9 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
     const loaded = useRef(false)
     const currentPage = useRef(0)
     useEffect(() => {
+        if (page === currentPage.current) {
+            return
+        }
         const img = document.querySelector<HTMLImageElement>(
             `[data-page="${page}"]`,
         )

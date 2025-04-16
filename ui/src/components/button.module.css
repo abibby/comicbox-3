@@ -65,3 +65,16 @@
 .icon.iconOnly {
     margin-right: 0;
 }
+
+.selectLabel {
+    position: relative;
+}
+.select {
+    position: absolute;
+    inset: 0;
+    color: rgba(0, 0, 0, 0);
+}
+.select option {
+    text-align: initial;
+    color: initial;
+}

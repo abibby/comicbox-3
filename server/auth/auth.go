@@ -14,7 +14,7 @@ import (
 type Claims struct {
 	jwt.RegisteredClaims
 	Scope       auth.ScopeStrings `json:"scope,omitempty"`
-	NewClientID uuid.UUID         `json:"new_client_id,omitempty"`
+	NewClientID uuid.NullUUID     `json:"new_client_id,omitempty"`
 }
 
 type TokenScope string

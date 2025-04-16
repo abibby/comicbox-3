@@ -13,13 +13,15 @@ import (
 //go:generate spice generate:migration
 type UserSeries struct {
 	BaseModel
-	SeriesSlug string        `json:"-"            db:"series_name,primary"`
-	UserID     uuid.UUID     `json:"-"            db:"user_id,primary"`
-	List       List          `json:"list"         db:"list"`
-	LastReadAt database.Time `json:"last_read_at" db:"last_read_at"`
+	SeriesSlug   string        `json:"-"              db:"series_name,primary"`
+	UserID       uuid.UUID     `json:"-"              db:"user_id,primary"`
+	List         List          `json:"list"           db:"list"`
+	LastReadAt   database.Time `json:"last_read_at"   db:"last_read_at"`
+	LatestBookID uuid.NullUUID `json:"latest_book_id" db:"latest_book_id,type:blob,nullable"`
 
-	Series *builder.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
-	User   *builder.BelongsTo[*User]   `json:"-"`
+	Series     *builder.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
+	User       *builder.BelongsTo[*User]   `json:"-"`
+	LatestBook *builder.BelongsTo[*Book]   `json:"latest_book" foreign:"latest_book_id" owner:"id"`
 }
 
 type List string

@@ -39,14 +39,12 @@ export interface Series {
     cover_url: string
     first_book_id: string | null
     metadata_id: string | null
-    latest_book_id: string | null
     description: string
     aliases: Array<string>
     genres: Array<string>
     tags: Array<string>
     year: number | null
     user_series: UserSeries | null
-    latest_book: Book | null
 }
 export interface User {
     created_at: string
@@ -70,6 +68,8 @@ export interface UserSeries {
     update_map: Record<string, string>
     list: List
     last_read_at: string
+    latest_book_id: string | null
+    latest_book: Book | null
 }
 export interface Staff {
     name: string

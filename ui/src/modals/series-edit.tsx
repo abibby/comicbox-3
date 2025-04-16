@@ -1,11 +1,9 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
-import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
 import { Button } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
-import { Select } from 'src/components/form/select'
 import {
     Modal,
     ModalBody,
@@ -19,8 +17,7 @@ import { useRoute } from 'preact-iso'
 import { useSeries } from 'src/hooks/series'
 import { encode } from 'src/util'
 import { updateSeriesMetadata } from 'src/services/series-service'
-
-const listOptions = [['', 'None'], ...listNames] as const
+import { TextArea } from 'src/components/form/textarea'
 
 export const EditSeries: FunctionalComponent = () => {
     const { close } = useModal()
@@ -93,16 +90,24 @@ export const EditSeries: FunctionalComponent = () => {
                 </ModalHead>
                 <ModalBody>
                     <Input title='Name' name='name' value={series?.name} />
-                    <Select
-                        title='List'
-                        name='list'
-                        value={series?.user_series?.list ?? ''}
-                        options={listOptions}
+                    <TextArea
+                        title='Genres'
+                        name='genres'
+                        value={series?.genres.join('\n')}
                     />
-
+                    <TextArea
+                        title='Aliases'
+                        name='aliases'
+                        value={series?.aliases.join('\n')}
+                    />
+                    <TextArea
+                        title='Description'
+                        name='description'
+                        value={series?.description}
+                    />
                     <Input
-                        title='Anilist ID'
-                        name='anilist_id'
+                        title='Metadata ID'
+                        name='metadata_id'
                         value={metadataID}
                         onInput={setMetadataID}
                     >

@@ -14,7 +14,6 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
-	salusaauth "github.com/abibby/salusa/auth"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/abibby/salusa/request"
@@ -114,17 +113,17 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 
 func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 
-	token, err := generateToken(u, withPurpose(auth.TokenAPI))
+	token, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenAPI))
 	if err != nil {
 		return nil, err
 	}
 
-	imageToken, err := generateToken(u, withPurpose(auth.TokenImage))
+	imageToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenImage))
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := generateToken(u, withPurpose(auth.TokenRefresh), withLifetime(time.Hour*24*30))
+	refreshToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenRefresh), auth.WithLifetime(time.Hour*24*30))
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +140,7 @@ type UserCreateTokenResponse struct {
 }
 
 func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
-	token, err := generateToken(nil, createsUser(uuid.New()))
+	token, err := auth.GenerateToken(uuid.UUID{}, auth.CreatesUser(uuid.New()))
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -267,7 +266,7 @@ func attachUser(r *http.Request) *http.Request {
 	_, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return config.AppKey, nil
@@ -287,43 +286,4 @@ func attachUser(r *http.Request) *http.Request {
 	}
 
 	return auth.WithClaims(r, claims)
-}
-
-// https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-func generateToken(u *models.User, modifyClaims ...func(*auth.Claims) *auth.Claims) (string, error) {
-	now := time.Now()
-	claims := &auth.Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   u.ID.String(),
-			IssuedAt:  jwt.NewNumericDate(now),
-			ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour * 24)),
-		},
-	}
-	for _, m := range modifyClaims {
-		claims = m(claims)
-	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(config.AppKey)
-}
-
-func createsUser(id uuid.UUID) func(claims *auth.Claims) *auth.Claims {
-	return func(claims *auth.Claims) *auth.Claims {
-		claims.NewClientID = id
-		return claims
-	}
-}
-func withPurpose(purpose ...auth.TokenScope) func(claims *auth.Claims) *auth.Claims {
-	scopes := make(salusaauth.ScopeStrings, len(purpose))
-	for i, v := range purpose {
-		scopes[i] = string(v)
-	}
-	return func(claims *auth.Claims) *auth.Claims {
-		claims.Scope = scopes
-		return claims
-	}
-}
-func withLifetime(duration time.Duration) func(claims *auth.Claims) *auth.Claims {
-	return func(claims *auth.Claims) *auth.Claims {
-		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(duration))
-		return claims
-	}
 }

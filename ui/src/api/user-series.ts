@@ -3,6 +3,8 @@ import { UserSeries } from 'src/models'
 
 interface UserSeriesUpdateRequest {
     list: string | null
+    latest_book_id: string | null
+    last_read_at: string | null
     update_map: Record<string, string>
 }
 

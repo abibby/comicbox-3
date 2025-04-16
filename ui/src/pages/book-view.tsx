@@ -14,7 +14,6 @@ import { Book, Page, PageType, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/book-view.module.css'
 import { route } from 'src/routes'
-import { updateAnilist } from 'src/services/anilist-service'
 import {
     MergedPages,
     translate,
@@ -95,6 +94,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             if (s !== undefined) {
                 await DB.saveSeries(s, {
                     user_series: {
+                        latest_book_id: bookID,
                         last_read_at: new Date().toISOString(),
                     },
                 })
@@ -110,12 +110,17 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
             if (Number(newMergedPage) >= pages.length) {
-                void updateAnilist(book)
                 if (nextBookID) {
                     navigate(route('book.view', { id: nextBookID }))
                 } else {
                     navigate(route('home', {}))
                 }
+                await DB.saveSeries(props.series, {
+                    user_series: {
+                        latest_book_id: nextBookID,
+                    },
+                })
+                await persist(true)
                 return
             }
             if (Number(newMergedPage) < 0) {
@@ -138,6 +143,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             pages,
             book,
             setSourcePage,
+            props.series,
             nextBookID,
             navigate,
             previousBookID,

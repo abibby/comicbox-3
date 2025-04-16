@@ -1,6 +1,10 @@
 package app
 
 import (
+	"context"
+	"fmt"
+	"net/http"
+
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/app/jobs"
@@ -8,9 +12,13 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/database/migrations"
+	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server"
+	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/salusa/clog"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/databasedi"
+	"github.com/abibby/salusa/di"
 	"github.com/abibby/salusa/event"
 	"github.com/abibby/salusa/event/cron"
 	"github.com/abibby/salusa/kernel"
@@ -18,6 +26,7 @@ import (
 	"github.com/abibby/salusa/openapidoc/openapidocdi"
 	"github.com/abibby/salusa/request"
 	"github.com/go-openapi/spec"
+	"github.com/jmoiron/sqlx"
 )
 
 func init() {
@@ -60,4 +69,22 @@ var Kernel = kernel.New(
 		),
 	),
 	kernel.InitRoutes(server.InitRouter),
+	kernel.FetchAuth(func(ctx context.Context, username string, r *http.Request) error {
+		read, err := di.Resolve[salusadb.Read](ctx)
+		if err != nil {
+			return err
+		}
+		user, err := salusadb.Value(read, func(tx *sqlx.Tx) (*models.User, error) {
+			return models.UserQuery(ctx).Where("username", "=", username).First(tx)
+		})
+		if err != nil {
+			return err
+		}
+		token, err := auth.GenerateToken(user.ID, auth.WithPurpose(auth.TokenAPI, auth.TokenImage))
+		if err != nil {
+			return err
+		}
+		r.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+		return nil
+	}),
 )

@@ -1,9 +1,12 @@
 import Dexie, { Collection } from 'dexie'
+import { AllPagesRequest } from 'src/api/internal'
 import { SeriesListRequest } from 'src/api/series'
-import { DB } from 'src/database'
+import { DB, emptyUserSeries } from 'src/database'
 import { Series, SeriesOrder } from 'src/models'
 
-export async function seriesCache(req: SeriesListRequest): Promise<Series[]> {
+export async function seriesCache(
+    req: AllPagesRequest<SeriesListRequest>,
+): Promise<Series[]> {
     let query: Collection<Series>
 
     if (req.slug !== undefined) {
@@ -34,21 +37,24 @@ export async function seriesCache(req: SeriesListRequest): Promise<Series[]> {
         }
     }
 
-    if (req.page_size !== undefined) {
-        query = query.limit(req.page_size)
+    if (req.limit !== null) {
+        query = query.limit(req.limit)
     }
 
-    let series = await query.toArray()
+    const series = await query.toArray()
 
-    series = await Promise.all(
-        series.map(async (s): Promise<Series> => {
-            const latestBook = await DB.books
-                .where(['series_slug', 'completed', 'sort'])
-                .between([s.slug, 0, Dexie.minKey], [s.slug, 0, Dexie.maxKey])
-                .first()
-            s.latest_book = latestBook ?? null
-            s.latest_book_id = latestBook?.id ?? null
-            return s
+    await Promise.all(
+        series.map(async (s): Promise<void> => {
+            if (!s.user_series?.latest_book_id) {
+                return
+            }
+
+            const latestBook = await DB.books.get(s.user_series.latest_book_id)
+            s.user_series = {
+                ...emptyUserSeries,
+                ...s.user_series,
+                latest_book: latestBook ?? null,
+            }
         }),
     )
 

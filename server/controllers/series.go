@@ -44,7 +44,7 @@ type SeriesIndexRequest struct {
 var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedResponse[*models.Series], error) {
 
 	query := models.SeriesQuery(req.Ctx).
-		With("UserSeries")
+		With("UserSeries.LatestBook")
 
 	orderColumn := "name"
 	if req.OrderBy != nil {
@@ -69,7 +69,9 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		query = query.OrderBy(orderColumn)
 	}
 
-	query = query.OrderBy("name")
+	if orderColumn != "name" {
+		query = query.OrderBy("name")
+	}
 
 	if name, ok := req.Slug.Ok(); ok {
 		query = query.Where("name", "=", name)
@@ -80,28 +82,28 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		})
 	}
 
-	uid, ok := auth.UserID(req.Ctx)
-	if ok {
-		query = query.
-			AddSelectSubquery(
-				models.BookQuery(req.Ctx).
-					Select("id").
-					LeftJoinOn("user_books", func(q *builder.Conditions) {
-						q.WhereColumn("books.id", "=", "user_books.book_id").
-							Where("user_books.user_id", "=", uid)
-					}).
-					WhereColumn("books.series", "=", "series.name").
-					And(func(q *builder.Conditions) {
-						q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
-							OrWhere("current_page", "=", nil)
-					}).
-					Where("books.page_count", ">", 1).
-					OrderBy("sort").
-					Limit(1),
-				"latest_book_id",
-			).
-			With("LatestBook.UserBook")
-	}
+	// uid, ok := auth.UserID(req.Ctx)
+	// if ok {
+	// 	query = query.
+	// 		AddSelectSubquery(
+	// 			models.BookQuery(req.Ctx).
+	// 				Select("id").
+	// 				LeftJoinOn("user_books", func(q *builder.Conditions) {
+	// 					q.WhereColumn("books.id", "=", "user_books.book_id").
+	// 						Where("user_books.user_id", "=", uid)
+	// 				}).
+	// 				WhereColumn("books.series", "=", "series.name").
+	// 				And(func(q *builder.Conditions) {
+	// 					q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
+	// 						OrWhere("current_page", "=", nil)
+	// 				}).
+	// 				Where("books.page_count", ">", 1).
+	// 				OrderBy("sort").
+	// 				Limit(1),
+	// 			"latest_book_id",
+	// 		).
+	// 		With("LatestBook.UserBook")
+	// }
 
 	if req.UpdatedAfter != nil {
 		query = query.OrWhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {

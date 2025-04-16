@@ -12,10 +12,11 @@ import {
 } from 'preact-feather'
 import { useRoute } from 'preact-iso'
 import { useCallback, useEffect, useState } from 'preact/hooks'
+import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
 import classNames from 'src/classnames'
 import { BookList } from 'src/components/book-list'
-import { ButtonGroup, IconButton } from 'src/components/button'
+import { Button, ButtonGroup, SelectButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
 import { Markdown } from 'src/components/markdown'
 import { openModal } from 'src/components/modal-controller'
@@ -25,12 +26,15 @@ import { useImageURL } from 'src/hooks/image'
 import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
-import { Book, List, Series } from 'src/models'
+import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 import { route } from 'src/routes'
 import { updateSeriesMetadata } from 'src/services/series-service'
 import { encode } from 'src/util'
+import { isList } from 'src/pages/lists'
+
+const listOptions = [['', 'None'], ...listNames] as const
 
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
@@ -181,23 +185,25 @@ function SeriesHeader({
         await updateSeriesMetadata(slug)
     }, [slug])
 
-    const bookmarkSeries = useCallback(async () => {
-        if (!series) {
-            return
-        }
+    const bookmarkSeries = useCallback(
+        async (list: string) => {
+            if (!series) {
+                return
+            }
 
-        let list = List.Reading
-        if (series.user_series?.list === List.Reading) {
-            list = List.Paused
-        }
+            if (!isList(list)) {
+                return
+            }
 
-        await DB.saveSeries(series, {
-            user_series: {
-                list: list,
-            },
-        })
-        await persist(true)
-    }, [series])
+            await DB.saveSeries(series, {
+                user_series: {
+                    list: list,
+                },
+            })
+            await persist(true)
+        },
+        [series],
+    )
 
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
@@ -233,7 +239,7 @@ function SeriesHeader({
                 ))}
             </div>
             <ButtonGroup class={styles.buttons}>
-                <IconButton
+                <Button
                     color='primary'
                     icon={BookOpen}
                     href={route('book.view', {
@@ -241,20 +247,21 @@ function SeriesHeader({
                     })}
                 >
                     {currentBook?.id ? 'Next Chapter' : 'Read'}
-                </IconButton>
-                <IconButton color='clear' icon={Edit} onClick={editSeries} />
-                <IconButton
+                </Button>
+                <Button color='clear' icon={Edit} onClick={editSeries} />
+                <SelectButton
                     color='clear'
                     icon={Bookmark}
-                    filled={series?.user_series?.list === 'reading'}
-                    onClick={bookmarkSeries}
+                    iconFilled={series?.user_series?.list === 'reading'}
+                    options={listOptions}
+                    onChange={bookmarkSeries}
                 />
-                <IconButton
+                <Button
                     color='clear'
                     icon={Download}
                     onClick={downloadSeries}
                 />
-                <IconButton
+                <Button
                     color='clear'
                     icon={MoreHorizontal}
                     onClick={contextMenu}

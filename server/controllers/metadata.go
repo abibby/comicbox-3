@@ -45,10 +45,11 @@ var MetaUpdate = request.Handler(func(req *MetaUpdateRequest) (*models.Series, e
 			return nil, err
 		}
 
-		err = builder.LoadContext(req.Ctx, tx, series, "LatestBook")
+		err = builder.LoadContext(req.Ctx, tx, series, "UserSeries")
 		if err != nil {
 			return nil, err
 		}
+
 		return series, nil
 	})
 })

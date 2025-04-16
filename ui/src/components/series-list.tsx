@@ -25,6 +25,7 @@ export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
             </CardList>
         )
     }
+
     return (
         <CardList title={props.title} scroll={props.scroll} link={props.link}>
             {props.series.map(s => (

@@ -54,8 +54,6 @@ func paginatedList[T model.Model](req *PaginatedRequest, query *builder.ModelBui
 			return nil, fmt.Errorf("failed to fetch page: %w", err)
 		}
 
-		query.Dump()
-
 		total, err := query.Count(tx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch total count: %w", err)

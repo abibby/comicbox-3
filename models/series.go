@@ -25,7 +25,6 @@ type Series struct {
 	FirstBookID        uuid.NullUUID `json:"first_book_id"  db:"first_book_id,type:blob,nullable"`
 	FirstBookCoverPage int           `json:"-"              db:"first_book_cover_page"`
 	MetadataID         *MetadataID   `json:"metadata_id"    db:"metadata_id,nullable"`
-	LatestBookID       uuid.NullUUID `json:"latest_book_id" db:"latest_book_id,type:blob,nullable,readonly"`
 	CoverImageID       uuid.NullUUID `json:"-"              db:"cover_image_id,type:blob,nullable"`
 	Description        string        `json:"description"    db:"description"`
 	Aliases            JSONStrings   `json:"aliases"        db:"aliases"`
@@ -34,7 +33,6 @@ type Series struct {
 	Year               *nulls.Int    `json:"year"           db:"year"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
-	LatestBook *builder.BelongsTo[*Book]    `json:"latest_book" db:"-" foreign:"latest_book_id" owner:"id"`
 	CoverImage *builder.HasOne[*File]       `json:"-"           db:"-" foreign:"cover_image_id" owner:"id"`
 }
 

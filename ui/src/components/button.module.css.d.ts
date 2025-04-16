@@ -7,6 +7,8 @@ declare const styles: {
   readonly "icon": string;
   readonly "iconOnly": string;
   readonly "primary": string;
+  readonly "select": string;
+  readonly "selectLabel": string;
 };
 export = styles;
 

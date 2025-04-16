@@ -24,6 +24,7 @@
     flex-grow: 0;
     object-fit: cover;
     background-color: rgb(var(--primary));
+    border-radius: var(--border-radius-large);
 }
 .title {
     grid-area: title;

@@ -47,6 +47,8 @@ export const emptyUserSeries: Readonly<UserSeries> = {
     update_map: {},
     list: List.None,
     last_read_at: '1970-01-01T00:00:00Z',
+    latest_book_id: null,
+    latest_book: null,
 }
 export const emptySeries: Readonly<DBSeries> = {
     created_at: '1970-01-01T00:00:00Z',
@@ -59,8 +61,6 @@ export const emptySeries: Readonly<DBSeries> = {
     description: '',
     cover_url: '',
     first_book_id: null,
-    latest_book: null,
-    latest_book_id: null,
     user_series: emptyUserSeries,
     metadata_id: null,
     genres: [],
@@ -68,6 +68,13 @@ export const emptySeries: Readonly<DBSeries> = {
     year: null,
 }
 
+export const emptyUserBook: Readonly<UserBook> = {
+    created_at: '1970-01-01T00:00:00Z',
+    updated_at: '1970-01-01T00:00:00Z',
+    deleted_at: null,
+    update_map: {},
+    current_page: 0,
+}
 export const emptyBook: Readonly<DBBook> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
@@ -270,37 +277,9 @@ class AppDatabase extends Dexie {
         for (const s of series) {
             updatedSeries.push(s)
 
-            const slug = s.slug
-            const latestBook = s.latest_book
-            readBookPromises.push(
-                (async () => {
-                    const books = await this.books
-                        .where(['series_slug', 'completed', 'sort'])
-                        .between(
-                            [slug, 0, Dexie.minKey],
-                            [slug, 0, latestBook?.sort ?? Dexie.maxKey],
-                        )
-                        .toArray()
-                    const now = new Date().toISOString()
-                    const readBooks = books.flat().map(book => {
-                        book.user_book = book.user_book ?? {
-                            created_at: now,
-                            updated_at: now,
-                            deleted_at: null,
-                            current_page: 0,
-                            update_map: {},
-                        }
-                        book.user_book.current_page = book.page_count - 1
-                        return book
-                    })
-
-                    await this.books.bulkPut(readBooks)
-                })(),
-            )
-
-            if (s.latest_book) {
-                updatedBooks.push(s.latest_book)
-                s.latest_book = null
+            if (s.user_series?.latest_book) {
+                updatedBooks.push(s.user_series.latest_book)
+                s.user_series.latest_book = null
             }
         }
 

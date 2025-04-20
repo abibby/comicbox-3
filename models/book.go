@@ -13,6 +13,7 @@ import (
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
+	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
 )
 
@@ -59,8 +60,7 @@ type Book struct {
 	Chapter     *nulls.Float64 `json:"chapter"     db:"chapter"`
 	Volume      *nulls.Float64 `json:"volume"      db:"volume"`
 	SeriesSlug  string         `json:"series_slug" db:"series"`
-	Authors     []string       `json:"authors"     db:"-"`
-	RawAuthors  []byte         `json:"-"           db:"authors,type:json"`
+	Authors     JSONStrings    `json:"authors"     db:"authors,type:json"`
 	Pages       []*Page        `json:"pages"       db:"-"`
 	RawPages    []byte         `json:"-"           db:"pages,type:json"`
 	PageCount   int            `json:"page_count"  db:"page_count"`
@@ -73,6 +73,8 @@ type Book struct {
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
 	Series     *builder.BelongsTo[*Series]  `json:"series"    db:"-" foreign:"series" owner:"name"`
+
+	originalSeriesSlug string `json:"-" db:"-"`
 }
 
 func BookQuery(ctx context.Context) *builder.ModelBuilder[*Book] {
@@ -85,24 +87,17 @@ var _ hooks.AfterSaver = &Book{}
 var _ hooks.AfterLoader = &Book{}
 
 func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
-	// err := b.updateSeries(ctx, tx)
-	// if err != nil {
-	// 	return err
-	// }
 	if b.Authors == nil {
 		b.Authors = []string{}
 	}
-	err := marshal(&b.RawAuthors, b.Authors)
-	if err != nil {
-		return err
-	}
+
 	basePages := make([]*BasePage, len(b.Pages))
 	if b.Pages != nil {
 		for i, page := range b.Pages {
 			basePages[i] = &page.BasePage
 		}
 	}
-	err = marshal(&b.RawPages, basePages)
+	err := marshal(&b.RawPages, basePages)
 	if err != nil {
 		return err
 	}
@@ -125,12 +120,32 @@ func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 	return nil
 }
 func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
-	count, err := BookQuery(ctx).Where("series", "=", b.SeriesSlug).Count(tx)
+	err := b.updateUserSeries(ctx, tx)
 	if err != nil {
 		return err
 	}
-	if count == 0 {
-		err = SeriesQuery(ctx).Where("name", "=", b.SeriesSlug).Delete(tx)
+	if b.originalSeriesSlug != b.SeriesSlug {
+		err = DeleteEmptySeries(ctx, tx)
+		if err != nil {
+			return err
+		}
+	}
+
+	b.updateOriginals()
+	return nil
+}
+
+func (b *Book) updateUserSeries(ctx context.Context, tx database.DB) error {
+	userSeries, err := UserSeriesQuery(ctx).Where("series_name", "=", b.SeriesSlug).Get(tx)
+	if err != nil {
+		return err
+	}
+	for _, us := range userSeries {
+		if us.LatestBookID.Valid {
+			continue
+		}
+		us.LatestBookID = uuid.NullUUID{UUID: b.ID, Valid: true}
+		err = model.SaveContext(ctx, tx, us)
 		if err != nil {
 			return err
 		}
@@ -138,38 +153,8 @@ func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
 	return nil
 }
 
-// func (b *Book) updateSeries(ctx context.Context, tx database.DB) error {
-// 	seriesChange := false
-// 	err := builder.LoadMissing(tx, b, "Series")
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed find a series from book")
-// 	}
-// 	s, _ := b.Series.Value()
-// 	if s == nil {
-// 		seriesChange = true
-// 		s = &Series{Slug: b.SeriesSlug}
-// 	}
-// 	changed, err := s.UpdateFirstBook(ctx, tx, b)
-// 	if err != nil {
-// 		return errors.Wrap(err, "failed update series first book")
-// 	}
-// 	seriesChange = seriesChange || changed
-// 	if seriesChange {
-// 		err = model.SaveContext(ctx, tx, s)
-// 		if err != nil {
-// 			return errors.Wrap(err, "failed to create series from book")
-// 		}
-// 	}
-// 	return nil
-// }
-
 func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
-	err := json.Unmarshal(b.RawAuthors, &b.Authors)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(b.RawPages, &b.Pages)
+	err := json.Unmarshal(b.RawPages, &b.Pages)
 	if err != nil {
 		return err
 	}
@@ -180,7 +165,11 @@ func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
 	}
 
 	b.CoverURL = router.MustURL(ctx, "book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(b.CoverPage()))
+	b.updateOriginals()
 	return nil
+}
+func (b *Book) updateOriginals() {
+	b.originalSeriesSlug = b.SeriesSlug
 }
 func (b *Book) CoverPage() int {
 	fallback := 0

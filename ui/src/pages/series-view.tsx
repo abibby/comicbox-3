@@ -11,7 +11,7 @@ import {
     MoreHorizontal,
 } from 'preact-feather'
 import { useRoute } from 'preact-iso'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useMemo, useState } from 'preact/hooks'
 import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
 import classNames from 'src/classnames'
@@ -60,36 +60,17 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         series_slug: slug,
         limit: null,
     })
-    const [liveCurrentBooks, setLiveCurrentBooks] = useState<Book[] | null>(
-        null,
-    )
-    const [currentBook, setCurrentBook] = useState<Book | null>(null)
 
     const books = usePromptUpdate(liveBooks, bookCompare)
-    const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
 
-    useEffect(() => {
-        if (liveBooks === null) return
-        const count = 7
-        if (liveBooks.length <= count) {
-            setLiveCurrentBooks([])
-            return
-        }
-        const current = liveBooks.findIndex(b => b.completed === 0)
-        setCurrentBook(liveBooks[current] ?? null)
-        let start = current - Math.floor(count / 2)
-        let end = current + Math.ceil(count / 2)
-        if (start < 0) {
-            start = 0
-            end = count
-        }
-        if (end > liveBooks.length || current === -1) {
-            start = liveBooks.length - count
-            end = liveBooks.length
-        }
-
-        setLiveCurrentBooks(liveBooks.slice(start, end))
-    }, [liveBooks])
+    const currentBooks = useMemo(() => {
+        const current =
+            books?.findIndex(
+                b => b.id === series?.user_series?.latest_book_id,
+            ) ?? 0
+        return books?.slice(current, current + 7) ?? []
+    }, [books, series?.user_series?.latest_book_id])
+    const currentBook = currentBooks[0] ?? null
 
     const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
     return (
@@ -105,7 +86,6 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                     title='Bookmark'
                     books={currentBooks}
                     series={series ? [series] : null}
-                    scrollTo={currentBook}
                 />
             )}
             <BookList
@@ -137,14 +117,13 @@ function SeriesHeader({
 
     const [descriptionExpanded, setDescriptionExpanded] = useState(false)
 
-    const seriesName = series?.name
     const markAllRead = useCallback(async () => {
-        if (seriesName !== undefined) {
+        if (series?.slug !== undefined) {
             const seriesBooks = await DB.books
                 .where(['series_slug', 'completed', 'sort'])
                 .between(
-                    [seriesName, 0, Dexie.minKey],
-                    [seriesName, 0, Dexie.maxKey],
+                    [series?.slug, 0, Dexie.minKey],
+                    [series?.slug, 0, Dexie.maxKey],
                 )
                 .toArray()
             for (const b of seriesBooks) {
@@ -154,14 +133,23 @@ function SeriesHeader({
                     },
                 })
             }
+            await DB.saveSeries(series, {
+                user_series: {
+                    latest_book_id: null,
+                },
+            })
+
             await persist(true)
         }
-    }, [seriesName])
+    }, [series])
     const markAllUnread = useCallback(async () => {
-        if (seriesName !== undefined) {
+        if (series?.slug !== undefined) {
             const seriesBooks = await DB.books
                 .where(['series_slug', 'sort'])
-                .between([seriesName, Dexie.minKey], [seriesName, Dexie.maxKey])
+                .between(
+                    [series?.slug, Dexie.minKey],
+                    [series?.slug, Dexie.maxKey],
+                )
                 .toArray()
             for (const b of seriesBooks) {
                 await DB.saveBook(b, {
@@ -170,9 +158,14 @@ function SeriesHeader({
                     },
                 })
             }
+            await DB.saveSeries(series, {
+                user_series: {
+                    latest_book_id: liveBooks[0]?.id ?? null,
+                },
+            })
             await persist(true)
         }
-    }, [seriesName])
+    }, [liveBooks, series])
 
     const downloadSeries = useCallback(async () => {
         await post({
@@ -218,6 +211,8 @@ function SeriesHeader({
 
     const coverURL = useImageURL(series?.cover_url)
 
+    const isOnFirstBook = !currentBook || currentBook.id === liveBooks[0]?.id
+
     return (
         <section class={styles.header}>
             <img class={styles.cover} src={coverURL} alt='Series Cover' />
@@ -246,7 +241,7 @@ function SeriesHeader({
                         id: currentBook?.id ?? liveBooks[0]?.id ?? '',
                     })}
                 >
-                    {currentBook?.id ? 'Next Chapter' : 'Read'}
+                    {isOnFirstBook ? 'Start Reading' : 'Continue Reading'}
                 </Button>
                 <Button color='clear' icon={Edit} onClick={editSeries} />
                 <SelectButton

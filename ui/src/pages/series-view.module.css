@@ -74,7 +74,7 @@
     transform: translate(0em, 0.1em);
 }
 
-@media (min-width: 500px) {
+@media (min-width: 600px) {
     .header {
         grid-template-areas:
             'cover title'

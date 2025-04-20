@@ -34,7 +34,7 @@ type SeriesIndexRequest struct {
 	PaginatedRequest
 
 	Slug    *nulls.String `query:"slug"`
-	List    *nulls.String `query:"list"`
+	List    models.List   `query:"list"`
 	OrderBy *SeriesOrder  `query:"order_by"`
 	Order   *nulls.String `query:"order" validate:"in:asc,desc"`
 
@@ -44,7 +44,7 @@ type SeriesIndexRequest struct {
 var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedResponse[*models.Series], error) {
 
 	query := models.SeriesQuery(req.Ctx).
-		With("UserSeries.LatestBook")
+		With("UserSeries.LatestBook.UserBook")
 
 	orderColumn := "name"
 	if req.OrderBy != nil {
@@ -76,34 +76,11 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 	if name, ok := req.Slug.Ok(); ok {
 		query = query.Where("name", "=", name)
 	}
-	if list, ok := req.List.Ok(); ok {
+	if req.List != "" {
 		query = query.WhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
-			return q.Where("list", "=", list)
+			return q.Where("list", "=", req.List)
 		})
 	}
-
-	// uid, ok := auth.UserID(req.Ctx)
-	// if ok {
-	// 	query = query.
-	// 		AddSelectSubquery(
-	// 			models.BookQuery(req.Ctx).
-	// 				Select("id").
-	// 				LeftJoinOn("user_books", func(q *builder.Conditions) {
-	// 					q.WhereColumn("books.id", "=", "user_books.book_id").
-	// 						Where("user_books.user_id", "=", uid)
-	// 				}).
-	// 				WhereColumn("books.series", "=", "series.name").
-	// 				And(func(q *builder.Conditions) {
-	// 					q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
-	// 						OrWhere("current_page", "=", nil)
-	// 				}).
-	// 				Where("books.page_count", ">", 1).
-	// 				OrderBy("sort").
-	// 				Limit(1),
-	// 			"latest_book_id",
-	// 		).
-	// 		With("LatestBook.UserBook")
-	// }
 
 	if req.UpdatedAfter != nil {
 		query = query.OrWhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
@@ -116,10 +93,15 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug       string             `path:"slug"`
-	Name       string             `json:"name"        validate:"require"`
-	MetadataID *models.MetadataID `json:"metadata_id"`
-	UpdateMap  map[string]string  `json:"update_map"  validate:"require"`
+	Slug        string             `path:"slug"`
+	Name        string             `json:"name" validate:"require"`
+	Aliases     []string           `json:"aliases"`
+	Genres      []string           `json:"genres"`
+	Tags        []string           `json:"tags"`
+	Description string             `json:"description"`
+	Year        *nulls.Int         `json:"year"`
+	MetadataID  *models.MetadataID `json:"metadata_id"`
+	UpdateMap   map[string]string  `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -145,6 +127,26 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 
 		if shouldUpdate(s.UpdateMap, r.UpdateMap, "name") {
 			s.Name = r.Name
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "aliases") {
+			s.Aliases = r.Aliases
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "genres") {
+			s.Genres = r.Genres
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "tags") {
+			s.Tags = r.Tags
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "description") {
+			s.Description = r.Description
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "year") {
+			s.Year = r.Year
 		}
 
 		return model.SaveContext(r.Ctx, tx, s)

@@ -57,5 +57,8 @@ func GetClaims(ctx context.Context) (*Claims, bool) {
 }
 
 func WithClaims(r *http.Request, claims jwt.Claims) *http.Request {
-	return r.WithContext(context.WithValue(r.Context(), claimsKey, claims))
+	return r.WithContext(ContextWithClaims(r.Context(), claims))
+}
+func ContextWithClaims(ctx context.Context, claims jwt.Claims) context.Context {
+	return context.WithValue(ctx, claimsKey, claims)
 }

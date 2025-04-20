@@ -184,6 +184,11 @@ export async function persist(
             try {
                 result = await seriesAPI.update(s.slug, {
                     name: s.name,
+                    year: s.year,
+                    aliases: s.aliases,
+                    tags: s.tags,
+                    genres: s.genres,
+                    description: s.description,
                     metadata_id: s.metadata_id,
                     update_map: s.update_map,
                 })

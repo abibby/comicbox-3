@@ -8,9 +8,11 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
+const DriverName = "sqlite3_custom"
+
 func SetupDatabase() func(ctx context.Context) error {
 	return func(ctx context.Context) error {
-		sql.Register("sqlite3_custom", &sqlite3.SQLiteDriver{
+		sql.Register(DriverName, &sqlite3.SQLiteDriver{
 			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 				if err := conn.RegisterFunc("slug", models.Slug, true); err != nil {
 					return err

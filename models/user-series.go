@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/abibby/comicbox-3/database"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
@@ -22,6 +23,8 @@ type UserSeries struct {
 	Series     *builder.BelongsTo[*Series] `json:"-" foreign:"series_name" owner:"name"`
 	User       *builder.BelongsTo[*User]   `json:"-"`
 	LatestBook *builder.BelongsTo[*Book]   `json:"latest_book" foreign:"latest_book_id" owner:"id"`
+
+	saved bool
 }
 
 type List string
@@ -67,4 +70,21 @@ func (b *UserSeries) Scopes() []*builder.Scope {
 	return []*builder.Scope{
 		UserScoped,
 	}
+}
+
+func (s *UserSeries) AfterLoad(ctx context.Context, tx salusadb.DB) error {
+	s.saved = true
+	return nil
+}
+
+func (s *UserSeries) BeforeSave(ctx context.Context, tx salusadb.DB) error {
+	if !s.saved && !s.LatestBookID.Valid {
+		b, err := BookQuery(ctx).Where("series", "=", s.SeriesSlug).OrderBy("sort").First(tx)
+		if err != nil {
+			return err
+		}
+		s.LatestBookID = uuid.NullUUID{Valid: true, UUID: b.ID}
+	}
+	s.saved = true
+	return nil
 }

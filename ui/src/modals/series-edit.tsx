@@ -54,8 +54,15 @@ export const EditSeries: FunctionalComponent = () => {
                 list = rawList
             }
 
+            const yearStr = data.get('year')
+
             await DB.saveSeries(series, {
                 name: data.get('name') ?? '',
+                year: yearStr ? Number(yearStr) : null,
+                aliases: data.get('aliases')?.split('\n') ?? [],
+                genres: data.get('genres')?.split('\n') ?? [],
+                tags: data.get('tags')?.split('\n') ?? [],
+                description: data.get('description') ?? '',
                 metadata_id: metadataID === '' ? null : metadataID,
                 user_series: {
                     list: list,
@@ -90,15 +97,26 @@ export const EditSeries: FunctionalComponent = () => {
                 </ModalHead>
                 <ModalBody>
                     <Input title='Name' name='name' value={series?.name} />
+                    <Input
+                        title='Year'
+                        name='year'
+                        value={String(series?.year)}
+                        type='number'
+                    />
+                    <TextArea
+                        title='Aliases'
+                        name='aliases'
+                        value={series?.aliases.join('\n')}
+                    />
                     <TextArea
                         title='Genres'
                         name='genres'
                         value={series?.genres.join('\n')}
                     />
                     <TextArea
-                        title='Aliases'
-                        name='aliases'
-                        value={series?.aliases.join('\n')}
+                        title='Tags'
+                        name='tags'
+                        value={series?.tags.join('\n')}
                     />
                     <TextArea
                         title='Description'

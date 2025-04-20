@@ -8,6 +8,7 @@ import {
 import styles from 'src/components/form/form-element.module.css'
 
 export interface TextAreaProps extends FormElementOptions {
+    class?: string
     value?: string | number
     focused?: boolean
     readonly?: boolean

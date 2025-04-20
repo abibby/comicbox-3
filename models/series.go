@@ -145,3 +145,15 @@ func Slug(s string) string {
 	}
 	return string(bytes.Trim(out, "-"))
 }
+
+func DeleteEmptySeries(ctx context.Context, tx database.DB) error {
+	return SeriesQuery(ctx).
+		WhereNotExists(BookQuery(ctx).WhereColumn("books.series", "=", "series.name")).
+		Chunk(tx, func(series []*Series) error {
+			slugs := make([]any, len(series))
+			for i, s := range series {
+				slugs[i] = s.Slug
+			}
+			return SeriesQuery(ctx).WhereIn("name", slugs).Delete(tx)
+		})
+}

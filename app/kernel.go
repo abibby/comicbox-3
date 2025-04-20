@@ -70,6 +70,9 @@ var Kernel = kernel.New(
 	),
 	kernel.InitRoutes(server.InitRouter),
 	kernel.FetchAuth(func(ctx context.Context, username string, r *http.Request) error {
+		if username == "" {
+			return nil
+		}
 		read, err := di.Resolve[salusadb.Read](ctx)
 		if err != nil {
 			return err
@@ -80,6 +83,11 @@ var Kernel = kernel.New(
 		if err != nil {
 			return err
 		}
+
+		if user == nil {
+			return fmt.Errorf("no user with the username %s", username)
+		}
+
 		token, err := auth.GenerateToken(user.ID, auth.WithPurpose(auth.TokenAPI, auth.TokenImage))
 		if err != nil {
 			return err

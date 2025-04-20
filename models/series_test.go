@@ -11,39 +11,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func userContext(u *models.User) context.Context {
-	return context.WithValue(context.Background(), "user-id", u.ID)
-}
-
-func FromSeries(s *models.Series) func(us *models.UserSeries) *models.UserSeries {
-	return func(us *models.UserSeries) *models.UserSeries {
+func FromSeries(s *models.Series) func(us *models.UserSeries) {
+	return func(us *models.UserSeries) {
 		us.SeriesSlug = s.Slug
-		return us
 	}
 }
-func FromUser(u *models.User) func(us *models.UserSeries) *models.UserSeries {
-	return func(us *models.UserSeries) *models.UserSeries {
+func FromUser(u *models.User) func(us *models.UserSeries) {
+	return func(us *models.UserSeries) {
 		us.UserID = u.ID
-		return us
 	}
 }
 
 func TestSeries(t *testing.T) {
-	test.Run(t, "", func(t *testing.T, tx *sqlx.Tx) {
+	test.Run(t, "", func(ctx context.Context, t *testing.T, tx *sqlx.Tx) {
 		u := factory.User.Create(tx)
 		{
 			s := factory.Series.Create(tx)
 			factory.UserSeries.
 				State(FromSeries(s)).
 				State(FromUser(u)).
-				State(func(us *models.UserSeries) *models.UserSeries {
+				State(func(us *models.UserSeries) {
 					us.List = models.ListDropped
-					return us
 				}).
 				Create(tx)
 		}
 
-		ctx := userContext(u)
+		ctx = test.WithUser(ctx, u)
 
 		s, err := models.SeriesQuery(ctx).
 			With("UserSeries").

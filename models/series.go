@@ -4,36 +4,40 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path"
 	"strconv"
 	"strings"
 
+	"github.com/abibby/comicbox-3/app/providers"
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
-	"github.com/google/uuid"
+	"github.com/abibby/salusa/database/model/modeldi"
 )
 
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug string `json:"slug"           db:"name,primary"`
-	Name string `json:"name"           db:"display_name"`
-	// Directory          string        `json:"directory"      db:"directory"`
-	CoverURL           string        `json:"cover_url"      db:"-"`
-	FirstBookID        uuid.NullUUID `json:"first_book_id"  db:"first_book_id,type:blob,nullable"`
-	FirstBookCoverPage int           `json:"-"              db:"first_book_cover_page"`
-	MetadataID         *MetadataID   `json:"metadata_id"    db:"metadata_id,nullable"`
-	CoverImageID       uuid.NullUUID `json:"-"              db:"cover_image_id,type:blob,nullable"`
-	Description        string        `json:"description"    db:"description"`
-	Aliases            JSONStrings   `json:"aliases"        db:"aliases"`
-	Genres             JSONStrings   `json:"genres"         db:"genres"`
-	Tags               JSONStrings   `json:"tags"           db:"tags"`
-	Year               *nulls.Int    `json:"year"           db:"year"`
+	Slug           string      `json:"slug"        db:"name,primary"`
+	Name           string      `json:"name"        db:"display_name"`
+	Directory      string      `json:"directory"   db:"directory"`
+	CoverURL       string      `json:"cover_url"   db:"-"`
+	MetadataID     *MetadataID `json:"metadata_id" db:"metadata_id,nullable"`
+	Description    string      `json:"description" db:"description"`
+	Aliases        JSONStrings `json:"aliases"     db:"aliases"`
+	Genres         JSONStrings `json:"genres"      db:"genres"`
+	Tags           JSONStrings `json:"tags"        db:"tags"`
+	Year           *nulls.Int  `json:"year"        db:"year"`
+	CoverImagePath string      `json:"-"           db:"cover_image_path"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
-	CoverImage *builder.HasOne[*File]       `json:"-"           db:"-" foreign:"cover_image_id" owner:"id"`
+}
+
+func init() {
+	providers.Add(modeldi.Register[*Series])
 }
 
 type MetadataID string
@@ -82,46 +86,12 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(ctx context.Context, tx database.DB) error {
-	_, err := s.UpdateFirstBook(ctx, tx, nil)
-	return err
-}
-
 func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
-	if s.FirstBookID.Valid {
-		s.CoverURL = router.MustURL(ctx, "file.view", "id", s.CoverImageID.UUID.String())
-	}
+	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
 	return nil
 }
-
-func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *Book) (bool, error) {
-	b, err := BookQuery(ctx).
-		Where("series", "=", s.Slug).
-		OrderBy("sort").
-		Limit(1).
-		First(tx)
-	if err != nil {
-		return false, err
-	}
-
-	if b == nil {
-		b = newBook
-	}
-	if newBook != nil {
-		if b.Sort > newBook.Sort {
-			b = newBook
-		}
-	}
-	oldID := s.FirstBookID
-	oldCoverPage := s.FirstBookCoverPage
-	if b != nil {
-		s.FirstBookID = uuid.NullUUID{UUID: b.ID, Valid: true}
-		s.FirstBookCoverPage = b.CoverPage()
-	} else {
-		s.FirstBookID = uuid.NullUUID{}
-		s.FirstBookCoverPage = 0
-	}
-	return s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage, nil
+func (s *Series) DirectoryPath() string {
+	return path.Join(config.LibraryPath, s.Directory)
 }
 
 func Slug(s string) string {

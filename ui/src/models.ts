@@ -36,8 +36,8 @@ export interface Series {
     update_map: Record<string, string>
     slug: string
     name: string
+    directory: string
     cover_url: string
-    first_book_id: string | null
     metadata_id: string | null
     description: string
     aliases: Array<string>

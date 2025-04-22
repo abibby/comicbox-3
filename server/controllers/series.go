@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/nulls"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/request"
@@ -156,4 +158,25 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 	}
 
 	return s, nil
+})
+
+type SeriesThumbnailRequest struct {
+	Slug string        `path:"slug"`
+	Read salusadb.Read `inject:""`
+
+	Ctx context.Context `inject:""`
+}
+
+var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, error) {
+	series, err := salusadb.Value(r.Read, func(tx *sqlx.Tx) (*models.Series, error) {
+		return models.SeriesQuery(r.Ctx).Find(tx, r.Slug)
+	})
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(series.CoverImagePath)
+	if err != nil {
+		return nil, err
+	}
+	return request.NewResponse(f), nil
 })

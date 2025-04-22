@@ -3,6 +3,11 @@ package metadata
 import (
 	"context"
 	"fmt"
+	"io"
+	"mime"
+	"net/http"
+	"os"
+	"path"
 
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
@@ -10,7 +15,6 @@ import (
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
-	"github.com/google/uuid"
 )
 
 func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *models.Series) error {
@@ -69,16 +73,63 @@ func applyMetadata(ctx context.Context, tx database.DB, series *models.Series, m
 	series.UpdateField("year")
 	series.Year = nulls.NewInt(metadata.Year)
 
-	// if series.CoverImageID.Valid {
-
-	// }
-
-	coverImage, err := models.DownloadFile(ctx, tx, metadata.CoverImageURL)
+	coverPath, err := downloadFile(ctx, metadata.CoverImageURL, path.Join(series.DirectoryPath(), ".comicbox/cover"))
 	if err != nil {
 		return fmt.Errorf("AnilistMetaProvider.UpdateMetadata: downloading cover: %w", err)
 	}
-	series.UpdateField("cover_image_id")
-	series.CoverImageID = uuid.NullUUID{UUID: coverImage.ID, Valid: true}
+	series.CoverImagePath = coverPath
 
 	return model.SaveContext(ctx, tx, series)
+}
+
+func downloadFile(ctx context.Context, url, filePath string) (string, error) {
+	client := http.DefaultClient
+
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	buff := make([]byte, 512)
+	resp.Body.Read(buff)
+	mimetype := http.DetectContentType(buff)
+	exts, err := mime.ExtensionsByType(mimetype)
+	if err != nil {
+		return "", fmt.Errorf("cannot find extension: %w", err)
+	}
+	ext := ""
+	if len(exts) > 0 {
+		ext = exts[len(exts)-1]
+	}
+
+	dir := path.Dir(filePath)
+	err = os.MkdirAll(dir, 0777)
+	if err != nil {
+		return "", fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	fullPath := filePath + ext
+
+	f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+
+	_, err = f.Write(buff)
+	if err != nil {
+		return "", fmt.Errorf("failed to write file: %w", err)
+	}
+
+	_, err = io.CopyBuffer(f, resp.Body, buff)
+	if err != nil {
+		return "", fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return fullPath, nil
 }

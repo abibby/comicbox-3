@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"sort"
 	"strings"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database"
@@ -183,7 +185,9 @@ func (b *Book) CoverPage() int {
 	}
 	return fallback
 }
-
+func (b *Book) FilePath() string {
+	return path.Join(config.LibraryPath, b.File)
+}
 func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
 	sort.Slice(reader.File, func(i, j int) bool {
 		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0

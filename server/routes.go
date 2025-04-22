@@ -15,6 +15,7 @@ import (
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
+	"github.com/gorilla/mux"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -67,11 +68,13 @@ func InitRouter(r *router.Router) {
 			q := u.Query()
 			q.Del("_token")
 			u.RawQuery = q.Encode()
+
 			clog.Use(r.Context()).Info("request",
-				"url", &u,
+				"url", u.String(),
 				"status", rr.StatusCode,
 				"user_agent", r.Header.Get("User-Agent"),
 				"duration", time.Since(start).Truncate(time.Millisecond),
+				"route_name", mux.CurrentRoute(r).GetName(),
 			)
 		}()
 		next.ServeHTTP(rr, r)
@@ -106,14 +109,10 @@ func InitRouter(r *router.Router) {
 			r.Post("/meta/update/{slug}", controllers.MetaUpdate).Name("meta.update")
 			r.Get("/meta", controllers.MetaList).Name("meta.list")
 		})
-		r.Group("", func(r *router.Router) {
-			r.Use(controllers.HasScope(auth.TokenAPI, auth.TokenImage))
-
-			r.Get("/file/{id}", controllers.FileView).Name("file.view")
-		})
 
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.HasScope(auth.TokenImage))
+			r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
 				r.Use(middleware.CacheMiddleware())
@@ -134,10 +133,10 @@ func InitRouter(r *router.Router) {
 
 		r.Handle("/docs", openapidoc.SwaggerUI())
 
-		r.Handle("/", http.HandlerFunc(controllers.API404))
+		r.Handle("/", http.HandlerFunc(controllers.API404)).Name("404")
 	})
 
 	r.GetFunc("/static-files", controllers.StaticFiles)
 
-	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html"))
+	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html")).Name("static.files")
 }

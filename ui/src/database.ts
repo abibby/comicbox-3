@@ -60,12 +60,12 @@ export const emptySeries: Readonly<DBSeries> = {
     aliases: [],
     description: '',
     cover_url: '',
-    first_book_id: null,
     user_series: emptyUserSeries,
     metadata_id: null,
     genres: [],
     tags: [],
     year: null,
+    directory: '',
 }
 
 export const emptyUserBook: Readonly<UserBook> = {
@@ -253,16 +253,18 @@ class AppDatabase extends Dexie {
     }
 
     public async fromNetwork(items: (DBSeries | DBBook)[]): Promise<void> {
-        const books: DBBook[] = items.filter(isBook)
-        const series: DBSeries[] = items.filter(isSeries)
+        const allBooks: DBBook[] = items.filter(isBook)
+        const allSeries: DBSeries[] = items.filter(isSeries)
         const readBookPromises: Promise<void>[] = []
 
         await this.books.bulkDelete(
-            books.filter(i => i.deleted_at !== null).map(v => v.id),
+            allBooks.filter(i => i.deleted_at !== null).map(v => v.id),
         )
         await this.series.bulkDelete(
-            series.filter(i => i.deleted_at !== null).map(v => v.name),
+            allSeries.filter(i => i.deleted_at !== null).map(v => v.slug),
         )
+        const books = allBooks.filter(b => b.deleted_at === null)
+        const series = allSeries.filter(s => s.deleted_at === null)
 
         const updatedBooks: DBBook[] = []
         const updatedSeries: DBSeries[] = []

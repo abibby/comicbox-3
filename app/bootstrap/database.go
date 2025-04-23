@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
+	"path"
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/mattn/go-sqlite3"
@@ -15,6 +16,9 @@ func SetupDatabase() func(ctx context.Context) error {
 		sql.Register(DriverName, &sqlite3.SQLiteDriver{
 			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 				if err := conn.RegisterFunc("slug", models.Slug, true); err != nil {
+					return err
+				}
+				if err := conn.RegisterFunc("dir", path.Dir, true); err != nil {
 					return err
 				}
 				return nil

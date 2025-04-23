@@ -17,12 +17,12 @@ func init() {
 			SET directory=COALESCE(
 				(
 					SELECT
-						SUBSTRING(file, 0, INSTR(SUBSTRING(file, 2), '/')+ 1) as directory
+						dir(file) as directory
 					FROM
 						books
 					WHERE
 						books.series = series.name
-					GROUP BY series, SUBSTRING(file, 0, INSTR(SUBSTRING(file, 2), '/')+ 1)
+					GROUP BY dir(file)
 					ORDER BY count(*) desc
 					LIMIT 1
 				),

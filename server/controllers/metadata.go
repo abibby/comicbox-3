@@ -60,7 +60,7 @@ type MetaListRequest struct {
 	Ctx context.Context `inject:""`
 }
 type MetaListResponse struct {
-	Data []metadata.SeriesMetadata `json:"data"`
+	Data []metadata.DistanceMetadata `json:"data"`
 }
 
 var MetaList = request.Handler(func(req *MetaListRequest) (*MetaListResponse, error) {

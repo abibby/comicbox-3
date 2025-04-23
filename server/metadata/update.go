@@ -18,7 +18,7 @@ import (
 )
 
 func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *models.Series) error {
-	var matches []SeriesMetadata
+	var matches []DistanceMetadata
 	var err error
 	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
 	if series.MetadataID == nil {
@@ -31,10 +31,10 @@ func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *
 		if err != nil {
 			return err
 		}
-		matches = []SeriesMetadata{match}
+		matches = []DistanceMetadata{match.WithDistance(series.Name)}
 	}
 
-	var bestMatch *SeriesMetadata
+	var bestMatch *DistanceMetadata
 
 	for _, match := range matches {
 		if bestMatch == nil || match.MatchDistance > bestMatch.MatchDistance {
@@ -42,7 +42,7 @@ func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *
 		}
 	}
 
-	return applyMetadata(ctx, tx, series, bestMatch)
+	return applyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
 }
 
 func applyMetadata(ctx context.Context, tx database.DB, series *models.Series, metadata *SeriesMetadata) error {

@@ -44,11 +44,16 @@ type MetadataID string
 type MetadataService string
 
 const (
-	MetadataServiceAnilist = "anilist"
+	MetadataServiceAnilist   = "anilist"
+	MetadataServiceComicVine = "comicvine"
 )
 
 func NewAnilistID(id int) *MetadataID {
 	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceAnilist, id))
+	return &mid
+}
+func NewComicVineID(id int) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceComicVine, id))
 	return &mid
 }
 

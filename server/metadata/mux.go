@@ -3,6 +3,7 @@ package metadata
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 	"sync/atomic"
 
@@ -33,8 +34,8 @@ func (m *MetadataMux) GetSeries(ctx context.Context, id *models.MetadataID) (Ser
 }
 
 // SearchSeries implements MetaProvider.
-func (m *MetadataMux) SearchSeries(ctx context.Context, name string) ([]SeriesMetadata, error) {
-	meta := make([][]SeriesMetadata, len(m.providers))
+func (m *MetadataMux) SearchSeries(ctx context.Context, name string) ([]DistanceMetadata, error) {
+	matchesList := make([][]DistanceMetadata, len(m.providers))
 
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
@@ -50,7 +51,7 @@ func (m *MetadataMux) SearchSeries(ctx context.Context, name string) ([]SeriesMe
 				cancel(err)
 				return
 			}
-			meta[i] = result
+			matchesList[i] = result
 			atomic.AddInt32(&total, int32(len(result)))
 		}(p)
 	}
@@ -61,11 +62,15 @@ func (m *MetadataMux) SearchSeries(ctx context.Context, name string) ([]SeriesMe
 		return nil, err
 	}
 
-	result := make([]SeriesMetadata, 0, total)
+	result := make([]DistanceMetadata, 0, total)
 
-	for _, m := range meta {
-		result = append(result, m...)
+	for _, matches := range matchesList {
+		result = append(result, matches...)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].MatchDistance < result[j].MatchDistance
+	})
 
 	return result, nil
 }

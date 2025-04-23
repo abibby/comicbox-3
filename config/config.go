@@ -67,6 +67,7 @@ var (
 	LokiURL             string
 	LokiTenantID        string
 	FilePath            string
+	ComicVineAPIKey     string
 )
 
 var PublicConfig map[string]any
@@ -101,6 +102,8 @@ func Init(ctx context.Context) error {
 		"ANILIST_CLIENT_ID":  AnilistClientID,
 		"PUBLIC_USER_CREATE": PublicUserCreate,
 	}
+
+	ComicVineAPIKey = env("COMIC_VINE_API_KEY", "")
 
 	return nil
 }

@@ -78,7 +78,6 @@ export interface Staff {
 export interface SeriesMetadata {
     id: string | null
     service: string
-    match_distance: number
     title: string
     year: number
     description: string

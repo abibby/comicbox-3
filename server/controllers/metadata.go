@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
 	"github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/event"
 	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
 )
@@ -72,5 +74,23 @@ var MetaList = request.Handler(func(req *MetaListRequest) (*MetaListResponse, er
 	}
 	return &MetaListResponse{
 		Data: meta,
+	}, nil
+})
+
+type MetaStartScanRequest struct {
+	Queue event.Queue     `inject:""`
+	Ctx   context.Context `inject:""`
+}
+type MetaStartScanResponse struct {
+	Success bool `json:"success"`
+}
+
+var MetaStartScan = request.Handler(func(req *MetaStartScanRequest) (*MetaStartScanResponse, error) {
+	err := req.Queue.Push(&events.UpdateMetadataEvent{})
+	if err != nil {
+		return nil, err
+	}
+	return &MetaStartScanResponse{
+		Success: true,
 	}, nil
 })

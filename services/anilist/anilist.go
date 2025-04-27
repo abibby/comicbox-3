@@ -42,13 +42,6 @@ func (d *RateLimitedDoer) Do(r *http.Request) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	// resp.Header.Get("x-ratelimit-limit")
-	// strRemaining := resp.Header.Get("x-ratelimit-remaining")
-
-	// if remaining, err := strconv.Atoi(strRemaining); err == nil {
-	// 	d.limiter.SetBurst(remaining)
-	// 	spew.Dump(remaining)
-	// }
 
 	return resp, nil
 }

@@ -8,28 +8,38 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
+	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/database"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
 )
 
-func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *models.Series) error {
+func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *models.Series) error {
+	bestMatch, err := GetBestMatch(ctx, provider, series)
+	if err != nil {
+		return err
+	}
+
+	return ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+}
+
+func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Series) (*DistanceMetadata, error) {
 	var matches []DistanceMetadata
 	var err error
-	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
 	if series.MetadataID == nil {
 		matches, err = provider.SearchSeries(ctx, series.Name)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		match, err := provider.GetSeries(ctx, series.MetadataID)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		matches = []DistanceMetadata{match.WithDistance(series.Name)}
 	}
@@ -41,11 +51,11 @@ func Update(ctx context.Context, tx database.DB, provider MetaProvider, series *
 			bestMatch = &match
 		}
 	}
-
-	return applyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+	return bestMatch, nil
 }
 
-func applyMetadata(ctx context.Context, tx database.DB, series *models.Series, metadata *SeriesMetadata) error {
+func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, metadata *SeriesMetadata) error {
+	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
 
 	series.UpdateField("name")
 	series.Name = metadata.Title
@@ -78,6 +88,8 @@ func applyMetadata(ctx context.Context, tx database.DB, series *models.Series, m
 		return fmt.Errorf("AnilistMetaProvider.UpdateMetadata: downloading cover: %w", err)
 	}
 	series.CoverImagePath = coverPath
+
+	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 
 	return model.SaveContext(ctx, tx, series)
 }

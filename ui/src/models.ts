@@ -86,6 +86,7 @@ export interface SeriesMetadata {
     staff: Array<Staff>
     genres: Array<string>
     tags: Array<string>
+    publisher: string
 }
 export enum PageType {
     Deleted = "Deleted",

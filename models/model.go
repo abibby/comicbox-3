@@ -15,8 +15,6 @@ import (
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
-	"github.com/google/uuid"
 )
 
 type BaseModel struct {
@@ -44,7 +42,7 @@ func (b *BaseModel) UpdateField(name string) {
 
 func (*BaseModel) Scopes() []*builder.Scope {
 	return []*builder.Scope{
-		mixins.SoftDeleteScope,
+		SoftDeleteScope,
 	}
 }
 
@@ -140,11 +138,20 @@ func (bm *BaseModel) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	return nil
 }
 
-func uuidEqual(a, b uuid.UUID) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
+var SoftDeleteScope = &builder.Scope{
+	Name: "soft-deletes",
+	Query: func(b *builder.Builder) *builder.Builder {
+		return b.Where(b.GetTable()+".deleted_at", "=", nil)
+	},
+	Delete: func(next func(q *builder.Builder, tx salusadb.DB) error) func(q *builder.Builder, tx salusadb.DB) error {
+		return func(q *builder.Builder, tx salusadb.DB) error {
+			err := q.Update(tx, builder.Updates{
+				"deleted_at": database.Time(time.Now()),
+			})
+			if err != nil {
+				return err
+			}
+			return next(q, tx)
 		}
-	}
-	return true
+	},
 }

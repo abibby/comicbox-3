@@ -18,3 +18,7 @@ export async function metadataList(
 export async function metadataUpdate(slug: string): Promise<Series> {
     return await apiFetch(encode`/api/meta/update/${slug}`, { method: 'POST' })
 }
+
+export async function metadataSync(): Promise<Series> {
+    return await apiFetch(encode`/api/meta/sync`, { method: 'POST' })
+}

@@ -66,6 +66,7 @@ var Kernel = kernel.New(
 		cron.Service(),
 		event.Service(
 			event.NewListener[*jobs.SyncHandler](),
+			event.NewListener[*jobs.UpdateMetadataHandler](),
 		),
 	),
 	kernel.InitRoutes(server.InitRouter),
@@ -88,7 +89,7 @@ var Kernel = kernel.New(
 			return fmt.Errorf("no user with the username %s", username)
 		}
 
-		token, err := auth.GenerateToken(user.ID, auth.WithPurpose(auth.TokenAPI, auth.TokenImage))
+		token, err := auth.GenerateToken(user.ID, auth.WithPurpose(auth.ScopeAPI, auth.ScopeImage))
 		if err != nil {
 			return err
 		}

@@ -10,8 +10,10 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,6 +26,7 @@ import (
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/event"
+	"github.com/abibby/salusa/set"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -63,23 +66,32 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 		return err
 	}
 
+	removedFiles := []any{}
+
 	for _, file := range dbBookFiles {
-		if _, ok := bookFiles[file]; ok {
-			delete(bookFiles, file)
+		fullPath := path.Join(config.LibraryPath, file)
+		if bookFiles.Has(fullPath) {
+			bookFiles.Delete(fullPath)
 		} else {
-			err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
-				return removeBook(ctx, tx, file)
-			})
-			if err != nil {
-				log.Printf("Failed to remove %s from the library: %v", file, err)
-			} else {
-				log.Printf("Removed %s from the library", file)
-			}
+			removedFiles = append(removedFiles, file)
 		}
 	}
 
+	err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
+		for chunk := range slices.Chunk(removedFiles, 100) {
+			err := models.BookQuery(ctx).WhereIn("file", chunk).Delete(tx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		log.Printf("Failed to remove books from the library: %v", err)
+	}
+
 	count := 0
-	for file := range bookFiles {
+	for file := range bookFiles.All() {
 		count++
 		err = database.UpdateTx(ctx, func(tx *sqlx.Tx) error {
 			return h.addBook(ctx, tx, file)
@@ -87,7 +99,7 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 		if err != nil {
 			log.Printf("failed to add %s to the library: %v", file, err)
 		} else {
-			log.Printf("Added %s to the library (%d of %d)", file, count, len(bookFiles))
+			log.Printf("Added %s to the library (%d of %d)", file, count, bookFiles.Len())
 		}
 	}
 
@@ -122,10 +134,10 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 	return series, nil
 }
 
-func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error) {
-	bookFiles := map[string]struct{}{}
+func getBookFiles(ctx context.Context, libraryPath string) (set.Set[string], error) {
+	bookFiles := set.New[string]()
 
-	err := symwalk.Walk(path, func(path string, info fs.FileInfo, err error) error {
+	err := symwalk.Walk(libraryPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -134,7 +146,7 @@ func getBookFiles(ctx context.Context, path string) (map[string]struct{}, error)
 		}
 
 		if filepath.Ext(path) == ".cbz" {
-			bookFiles[path] = struct{}{}
+			bookFiles.Add(path)
 		}
 
 		return nil

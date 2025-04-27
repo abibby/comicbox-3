@@ -10,9 +10,10 @@ import (
 
 	"github.com/abibby/comicbox-3/app/providers"
 	"github.com/abibby/comicbox-3/config"
+	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model/modeldi"
@@ -21,17 +22,18 @@ import (
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug           string      `json:"slug"        db:"name,primary"`
-	Name           string      `json:"name"        db:"display_name"`
-	Directory      string      `json:"directory"   db:"directory"`
-	CoverURL       string      `json:"cover_url"   db:"-"`
-	MetadataID     *MetadataID `json:"metadata_id" db:"metadata_id,nullable"`
-	Description    string      `json:"description" db:"description"`
-	Aliases        JSONStrings `json:"aliases"     db:"aliases"`
-	Genres         JSONStrings `json:"genres"      db:"genres"`
-	Tags           JSONStrings `json:"tags"        db:"tags"`
-	Year           *nulls.Int  `json:"year"        db:"year"`
-	CoverImagePath string      `json:"-"           db:"cover_image_path"`
+	Slug              string         `json:"slug"        db:"name,primary"`
+	Name              string         `json:"name"        db:"display_name"`
+	Directory         string         `json:"directory"   db:"directory"`
+	CoverURL          string         `json:"cover_url"   db:"-"`
+	MetadataID        *MetadataID    `json:"metadata_id" db:"metadata_id,nullable"`
+	Description       string         `json:"description" db:"description"`
+	Aliases           JSONStrings    `json:"aliases"     db:"aliases"`
+	Genres            JSONStrings    `json:"genres"      db:"genres"`
+	Tags              JSONStrings    `json:"tags"        db:"tags"`
+	Year              *nulls.Int     `json:"year"        db:"year"`
+	CoverImagePath    string         `json:"-"           db:"cover_image_path"`
+	MetadataUpdatedAt *database.Time `json:"-"           db:"metadata_updated_at"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
 }
@@ -46,6 +48,7 @@ type MetadataService string
 const (
 	MetadataServiceAnilist   = "anilist"
 	MetadataServiceComicVine = "comicvine"
+	MetadataServiceLocal     = "local"
 )
 
 func NewAnilistID(id int) *MetadataID {
@@ -91,7 +94,7 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
+func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
 	return nil
 }
@@ -121,7 +124,7 @@ func Slug(s string) string {
 	return string(bytes.Trim(out, "-"))
 }
 
-func DeleteEmptySeries(ctx context.Context, tx database.DB) error {
+func DeleteEmptySeries(ctx context.Context, tx salusadb.DB) error {
 	return SeriesQuery(ctx).
 		WhereNotExists(BookQuery(ctx).WhereColumn("books.series", "=", "series.name")).
 		Chunk(tx, func(series []*Series) error {

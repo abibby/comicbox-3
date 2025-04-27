@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/abibby/comicbox-3/database"
@@ -31,7 +30,7 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 
 	uid, ok := auth.UserID(r.Context())
 	if !ok {
-		sendError(rw, NewHttpError(401, fmt.Errorf("unautherised")))
+		sendError(rw, ErrUnauthorized)
 		return
 	}
 

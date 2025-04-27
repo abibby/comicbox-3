@@ -27,7 +27,7 @@ type UpdateUserBookRequest struct {
 var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.UserBook, error) {
 	uid, ok := auth.UserID(r.Ctx)
 	if !ok {
-		return nil, NewHttpError(401, fmt.Errorf("unautherised"))
+		return nil, ErrUnauthorized
 	}
 
 	ub := &models.UserBook{}

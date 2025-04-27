@@ -6,7 +6,6 @@ import (
 
 	"github.com/abibby/salusa/auth"
 	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/set"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -20,14 +19,10 @@ type Claims struct {
 type TokenScope string
 
 const (
-	TokenAPI     = TokenScope("api")
-	TokenRefresh = TokenScope("refresh")
-	TokenImage   = TokenScope("image")
+	ScopeAPI     = TokenScope("api")
+	ScopeRefresh = TokenScope("refresh")
+	ScopeImage   = TokenScope("image")
 )
-
-var QueryScopes = set.Set[TokenScope]{
-	TokenImage: struct{}{},
-}
 
 type contextKey uint8
 

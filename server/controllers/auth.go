@@ -98,7 +98,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if u == nil {
-		sendError(rw, NewHttpError(401, fmt.Errorf("unauthenticated")))
+		sendError(rw, ErrUnauthorized)
 		return
 	}
 
@@ -113,17 +113,17 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 
 func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 
-	token, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenAPI))
+	token, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeAPI))
 	if err != nil {
 		return nil, err
 	}
 
-	imageToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenImage))
+	imageToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeImage))
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.TokenRefresh), auth.WithLifetime(time.Hour*24*30))
+	refreshToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeRefresh), auth.WithLifetime(time.Hour*24*30))
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +235,7 @@ func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation 
 		s.Security = []map[string][]string{}
 	}
 	securityDefinitionName := openapidoc.DefaultSecurityDefinitionName
-	if slices.Contains(m.purposes, auth.TokenImage) {
+	if slices.Contains(m.purposes, auth.ScopeImage) {
 		securityDefinitionName = "Query"
 	}
 	s.Security = append(s.Security, map[string][]string{
@@ -247,15 +247,11 @@ func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation 
 func attachUser(r *http.Request) *http.Request {
 	tokenStr := ""
 	authHeader := r.Header.Get("Authorization")
-	usingQuery := false
 	prefix := "Bearer "
 	if strings.HasPrefix(authHeader, prefix) {
 		tokenStr = authHeader[len(prefix):]
 	} else {
 		tokenStr = r.URL.Query().Get("_token")
-		if tokenStr != "" {
-			usingQuery = true
-		}
 	}
 
 	if tokenStr == "" {
@@ -273,15 +269,6 @@ func attachUser(r *http.Request) *http.Request {
 	})
 	if err != nil {
 		slog.Error("failed to parse JWT", "err", err)
-		return r
-	}
-	hasQueryScope := false
-	for _, s := range claims.Scope {
-		if auth.QueryScopes.Has(auth.TokenScope(s)) {
-			hasQueryScope = true
-		}
-	}
-	if usingQuery && !hasQueryScope {
 		return r
 	}
 

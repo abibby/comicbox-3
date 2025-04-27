@@ -17,11 +17,12 @@ func init() {
 			SET directory=COALESCE(
 				(
 					SELECT
-						dir(file) as directory
+						dir(file)
 					FROM
 						books
 					WHERE
-						books.series = series.name
+						books.series = series.name and
+						deleted_at is null
 					GROUP BY dir(file)
 					ORDER BY count(*) desc
 					LIMIT 1

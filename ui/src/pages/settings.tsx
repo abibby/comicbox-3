@@ -12,6 +12,7 @@ import { RadioButton, RadioButtonGroup } from 'src/components/form/radio-button'
 import { useLocation } from 'preact-iso'
 import { openModal } from 'src/components/modal-controller'
 import { bind } from '@zwzn/spicy'
+import { metadataSync } from 'src/api/metadata'
 
 function useLogoutAndRoute() {
     const { route } = useLocation()
@@ -80,6 +81,7 @@ export const Settings: FunctionalComponent = () => {
             <section>
                 <h3>Admin</h3>
                 <Button onClick={bookSync}>Scan Library Files</Button>
+                <Button onClick={metadataSync}>Update Series Metadata</Button>
                 {!PUBLIC_USER_CREATE && (
                     <Button onClick={generateToken}>Invite User</Button>
                 )}

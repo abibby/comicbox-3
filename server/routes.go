@@ -87,7 +87,7 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.HasScope(auth.TokenAPI))
+			r.Use(controllers.HasScope(auth.ScopeAPI))
 
 			r.Get("/series", controllers.SeriesIndex).Name("series.index")
 			r.Post("/series/{slug}", controllers.SeriesUpdate).Name("series.update")
@@ -107,11 +107,12 @@ func InitRouter(r *router.Router) {
 			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
 
 			r.Post("/meta/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+			r.Post("/meta/sync", controllers.MetaStartScan).Name("meta.scan")
 			r.Get("/meta", controllers.MetaList).Name("meta.list")
 		})
 
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.HasScope(auth.TokenImage))
+			r.Use(controllers.HasScope(auth.ScopeImage))
 			r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
@@ -127,7 +128,7 @@ func InitRouter(r *router.Router) {
 		r.Post("/rum", controllers.RumLogging).Name("rum.logging")
 
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.HasScope(auth.TokenRefresh))
+			r.Use(controllers.HasScope(auth.ScopeRefresh))
 			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")
 		})
 

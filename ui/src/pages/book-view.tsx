@@ -264,6 +264,7 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
         if (page === currentPage.current) {
             return
         }
+
         const img = document.querySelector<HTMLImageElement>(
             `[data-page="${page}"]`,
         )
@@ -272,7 +273,7 @@ function LongStripPages({ book, page, onPageChange }: LongStripPagesProps) {
             img.scrollIntoView()
             loaded.current = true
         }
-    }, [page])
+    }, [page, book.id])
 
     const scroll: JSX.UIEventHandler<HTMLDivElement> = useCallback(
         e => {

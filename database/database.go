@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"sync"
 
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/di"
@@ -12,12 +11,6 @@ import (
 
 var database *sqlx.DB
 var testTx *sqlx.Tx
-
-var mtx = &sync.RWMutex{}
-
-func Mutex() *sync.RWMutex {
-	return mtx
-}
 
 func Init(ctx context.Context) error {
 	db, err := di.Resolve[*sqlx.DB](ctx)
@@ -37,13 +30,9 @@ func SetTestTx(tx *sqlx.Tx) {
 }
 
 func ReadTx(ctx context.Context, cb func(tx *sqlx.Tx) error) error {
-	mtx.RLock()
-	defer mtx.RUnlock()
 	return transaction(ctx, &sql.TxOptions{ReadOnly: true}, cb)
 }
 func UpdateTx(ctx context.Context, cb func(tx *sqlx.Tx) error) error {
-	mtx.Lock()
-	defer mtx.Unlock()
 	return transaction(ctx, &sql.TxOptions{ReadOnly: false}, cb)
 }
 

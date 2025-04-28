@@ -24,6 +24,9 @@ func NewMetadataMux(providers ...MetaProvider) *MetadataMux {
 
 // GetSeries implements MetaProvider.
 func (m *MetadataMux) GetSeries(ctx context.Context, id *models.MetadataID) (SeriesMetadata, error) {
+	if id == nil {
+		return SeriesMetadata{}, ErrWrongService
+	}
 	for _, provider := range m.providers {
 		result, err := provider.GetSeries(ctx, id)
 		if !errors.Is(err, ErrWrongService) {

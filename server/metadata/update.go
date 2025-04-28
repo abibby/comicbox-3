@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,15 +9,17 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 	"time"
 
-	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/clog"
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
+	"github.com/abibby/salusa/di"
+	"github.com/abibby/salusa/kernel"
 )
 
 func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *models.Series) error {
@@ -55,33 +58,44 @@ func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Ser
 }
 
 func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, metadata *SeriesMetadata) error {
-	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
+	if series.Directory == "" {
+		return fmt.Errorf("series directory is not set for %s", series.Slug)
+	}
 
-	series.UpdateField("name")
-	series.Name = metadata.Title
+	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
 
 	series.UpdateField("metadata_id")
 	series.MetadataID = metadata.ID
 
-	series.UpdateField("description")
-	mdDisc, err := htmltomarkdown.ConvertString(metadata.Description)
-	if err == nil {
-		series.Description = mdDisc
-	} else {
+	if metadata.Title != "" {
+		series.UpdateField("name")
+		series.Name = metadata.Title
+	}
+
+	if metadata.Description != "" {
+		series.UpdateField("description")
 		series.Description = metadata.Description
 	}
 
-	series.UpdateField("aliases")
-	series.Aliases = metadata.Aliases
+	if len(metadata.Aliases) != 0 {
+		series.UpdateField("aliases")
+		series.Aliases = metadata.Aliases
+	}
 
-	series.UpdateField("genres")
-	series.Genres = metadata.Genres
+	if len(metadata.Genres) != 0 {
+		series.UpdateField("genres")
+		series.Genres = metadata.Genres
+	}
 
-	series.UpdateField("tags")
-	series.Tags = metadata.Tags
+	if len(metadata.Tags) != 0 {
+		series.UpdateField("tags")
+		series.Tags = metadata.Tags
+	}
 
-	series.UpdateField("year")
-	series.Year = nulls.NewInt(metadata.Year)
+	if metadata.Year != 0 {
+		series.UpdateField("year")
+		series.Year = nulls.NewInt(metadata.Year)
+	}
 
 	coverPath, err := downloadFile(ctx, metadata.CoverImageURL, path.Join(series.DirectoryPath(), ".comicbox/cover"))
 	if err != nil {
@@ -101,10 +115,21 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	var resp *http.Response
+	if strings.HasPrefix(url, "/") {
+		k, err := di.Resolve[*kernel.Kernel](ctx)
+		if err != nil {
+			return "", err
+		}
+		recorder := newResponseRecorder()
+		k.RootHandler().ServeHTTP(recorder, req.WithContext(ctx))
+		resp = recorder.Response
+	} else {
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
+		resp, err = client.Do(req)
+		if err != nil {
+			return "", err
+		}
 	}
 	defer resp.Body.Close()
 
@@ -144,4 +169,38 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	}
 
 	return fullPath, nil
+}
+
+type responseRecorder struct {
+	Response *http.Response
+	body     *bytes.Buffer
+}
+
+func newResponseRecorder() *responseRecorder {
+	body := &bytes.Buffer{}
+	return &responseRecorder{
+		Response: &http.Response{
+			StatusCode: 200,
+			Status:     http.StatusText(200),
+			Header:     http.Header{},
+			Body:       io.NopCloser(body),
+		},
+		body: body,
+	}
+}
+
+// Header implements http.ResponseWriter.
+func (r *responseRecorder) Header() http.Header {
+	return r.Response.Header
+}
+
+// Write implements http.ResponseWriter.
+func (r *responseRecorder) Write(b []byte) (int, error) {
+	return r.body.Write(b)
+}
+
+// WriteHeader implements http.ResponseWriter.
+func (r *responseRecorder) WriteHeader(statusCode int) {
+	r.Response.StatusCode = statusCode
+	r.Response.Status = http.StatusText(statusCode)
 }

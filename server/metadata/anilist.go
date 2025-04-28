@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/anilist"
 )
@@ -103,13 +104,19 @@ func anilistSeriesMetadata(media *anilist.SearchPageMedia, name string) SeriesMe
 		}
 	}
 
+	description := ""
+	mdDisc, err := htmltomarkdown.ConvertString(media.Description)
+	if err == nil {
+		description = mdDisc
+	}
+
 	return SeriesMetadata{
 		ID:            models.NewAnilistID(media.Id),
 		Service:       models.MetadataServiceAnilist,
 		Title:         titles[0],
 		Aliases:       titles[1:],
 		Year:          media.StartDate.Year,
-		Description:   media.Description,
+		Description:   description,
 		CoverImageURL: media.CoverImage.ExtraLarge,
 		Genres:        media.Genres,
 		Tags:          tags,

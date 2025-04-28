@@ -59,19 +59,20 @@ func NewComicVineID(id int) *MetadataID {
 	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceComicVine, id))
 	return &mid
 }
+func NewLocalID(id string) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%s", MetadataServiceLocal, id))
+	return &mid
+}
 
-func (m MetadataID) ID() (MetadataService, string, error) {
+func (m MetadataID) ID() (MetadataService, string) {
 	parts := strings.SplitN(string(m), "://", 2)
 	if len(parts) != 2 {
-		return "", "", fmt.Errorf("MetadataID: invalid format: %s", m)
+		return "", ""
 	}
-	return MetadataService(parts[0]), parts[1], nil
+	return MetadataService(parts[0]), parts[1]
 }
 func (m *MetadataID) IntID() (MetadataService, int) {
-	service, strID, err := m.ID()
-	if err != nil {
-		return "", 0
-	}
+	service, strID := m.ID()
 	id, err := strconv.Atoi(strID)
 	if err != nil {
 		return "", 0

@@ -36,6 +36,8 @@ import (
 var syncMtx = &sync.Mutex{}
 
 type SyncHandler struct {
+	Queue event.Queue `inject:""`
+
 	seriesCache map[string]*models.Series
 }
 
@@ -44,6 +46,8 @@ var _ event.Handler[*events.SyncEvent] = (*SyncHandler)(nil)
 func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error {
 	syncMtx.Lock()
 	defer syncMtx.Unlock()
+
+	defer h.Queue.Push(&events.UpdateMetadataEvent{})
 
 	h.seriesCache = map[string]*models.Series{}
 
@@ -119,8 +123,9 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 
 		if series == nil {
 			series = &models.Series{
-				Slug: book.SeriesSlug,
-				Name: name,
+				Slug:      book.SeriesSlug,
+				Name:      name,
+				Directory: path.Dir(book.File),
 			}
 
 			err = model.SaveContext(ctx, tx, series)

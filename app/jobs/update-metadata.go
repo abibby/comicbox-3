@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
-	"time"
 
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
@@ -31,12 +30,11 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 
 	meta := metadata.MetaProviderFactory()
 
-	q := models.SeriesQuery(ctx).
-		OrWhere("metadata_updated_at", "<", time.Now().AddDate(0, -1, 0)).
-		OrWhere("metadata_updated_at", "=", nil).
-		Limit(50)
-	if event.SeriesSlug != "" {
-		q.Where("name", "=", event.SeriesSlug)
+	q := models.SeriesQuery(ctx).Limit(50)
+	if event.SeriesSlug == "" {
+		q = q.OrWhere("metadata_updated_at", "=", nil)
+	} else {
+		q = q.Where("name", "=", event.SeriesSlug)
 	}
 	for {
 		seriesList, err := q.Get(u.DB)
@@ -78,7 +76,8 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 				return nil
 			})
 			if err != nil {
-				return err
+				u.Log.Warn("failed to update metadata", "series", ogSeries.Slug, "err", err)
+				continue
 			}
 		}
 	}

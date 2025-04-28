@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/comicvine"
 )
@@ -68,12 +69,18 @@ func comicVineSeriesMetadata(volume *comicvine.Volume) SeriesMetadata {
 		tags[i] = concept.Name
 	}
 
+	description := ""
+	mdDisc, err := htmltomarkdown.ConvertString(volume.Description)
+	if err == nil {
+		description = mdDisc
+	}
+
 	return SeriesMetadata{
 		ID:            models.NewComicVineID(volume.ID),
 		Service:       models.MetadataServiceComicVine,
 		Title:         volume.Name,
 		Year:          year,
-		Description:   volume.Description,
+		Description:   description,
 		Aliases:       aliases,
 		CoverImageURL: volume.Image.OriginalUrl,
 		Publisher:     volume.Publisher.Name,

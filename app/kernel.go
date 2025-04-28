@@ -43,7 +43,7 @@ var Kernel = kernel.New(
 		clog.Register,
 		request.Register,
 		databasedi.RegisterFromConfig(migrations.Use()),
-		databasedi.RegisterTransactions(database.Mutex()),
+		databasedi.RegisterTransactions(nil),
 		event.RegisterChannelQueue,
 		openapidocdi.Register,
 

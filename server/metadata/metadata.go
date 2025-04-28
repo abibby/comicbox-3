@@ -86,5 +86,6 @@ func MetaProviderFactory() MetaProvider {
 	return NewMetadataMux(
 		NewAnilistMetaProvider(),
 		NewComicVineMetaProvider(),
+		NewLocalMetaProvider(),
 	)
 }

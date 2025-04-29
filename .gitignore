@@ -2,6 +2,7 @@
 /ui/dist
 /bin
 /cache
+/files
 .env
 pgsql
 *.sqlite

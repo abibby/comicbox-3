@@ -68,14 +68,10 @@ func getUser(r *http.Request) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return u, nil
-}
-
-func toNullsInt(f *nulls.Float64) *nulls.Int {
-	if f == nil {
-		return nil
+	if u == nil {
+		return nil, ErrUnauthorized
 	}
-	return nulls.NewInt(int(f.Value()))
+	return u, nil
 }
 
 type AnilistUpdateGrantRequest struct {
@@ -116,9 +112,13 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 
 		return model.SaveContext(r.Context(), tx, u)
 	})
+	if err != nil {
+		sendError(rw, err)
+		return
+	}
 	_, err = anilistLogin(r, userID.String())
 	if err != nil {
-		sendError(rw, ErrUnauthorized)
+		sendError(rw, err)
 		return
 	}
 

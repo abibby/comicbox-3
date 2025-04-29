@@ -28,7 +28,7 @@ func NewRequest(h http.HandlerFunc, method, target string, body io.Reader) *Requ
 func (r *Request) ActingAs(u *models.User) *Request {
 	c := auth.Claims{}
 	c.Subject = u.ID.String()
-	c.Scope = salusaauth.ScopeStrings{string(auth.TokenAPI)}
+	c.Scope = salusaauth.ScopeStrings{string(auth.ScopeAPI)}
 
 	r.request = auth.WithClaims(r.request, c)
 

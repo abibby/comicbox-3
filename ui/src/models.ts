@@ -36,12 +36,16 @@ export interface Series {
     update_map: Record<string, string>
     slug: string
     name: string
+    directory: string
     cover_url: string
-    first_book_id: string | null
-    anilist_id: number | null
+    metadata_id: string | null
+    description: string
+    aliases: Array<string>
+    genres: Array<string>
+    tags: Array<string>
+    year: number | null
+    locked_fields: Array<string>
     user_series: UserSeries | null
-    latest_book_id: string | null
-    latest_book: Book | null
 }
 export interface User {
     created_at: string
@@ -65,6 +69,39 @@ export interface UserSeries {
     update_map: Record<string, string>
     list: List
     last_read_at: string
+    latest_book_id: string | null
+    latest_book: Book | null
+}
+export interface Staff {
+    name: string
+    role: StaffRole
+}
+export interface SeriesMetadata {
+    id: string | null
+    service: string
+    title: string
+    year: number
+    description: string
+    aliases: Array<string>
+    cover_image_url: string
+    staff: Array<Staff>
+    genres: Array<string>
+    tags: Array<string>
+    publisher: string
+}
+export interface DistanceMetadata {
+    id: string | null
+    service: string
+    title: string
+    year: number
+    description: string
+    aliases: Array<string>
+    cover_image_url: string
+    staff: Array<Staff>
+    genres: Array<string>
+    tags: Array<string>
+    publisher: string
+    match_distance: number
 }
 export enum PageType {
     Deleted = "Deleted",
@@ -85,4 +122,12 @@ export enum SeriesOrder {
     CreatedAt = "created_at",
     LastRead = "last-read",
     Name = "name",
+}
+export enum StaffRole {
+    RoleArtist = "artist",
+    RoleAssistant = "assistant",
+    RoleEditor = "editor",
+    RoleLetterer = "letterer",
+    RoleTranslator = "translator",
+    RoleWriter = "writer",
 }

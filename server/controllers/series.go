@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"context"
+	"os"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/nulls"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/request"
@@ -34,7 +36,7 @@ type SeriesIndexRequest struct {
 	PaginatedRequest
 
 	Slug    *nulls.String `query:"slug"`
-	List    *nulls.String `query:"list"`
+	List    models.List   `query:"list"`
 	OrderBy *SeriesOrder  `query:"order_by"`
 	Order   *nulls.String `query:"order" validate:"in:asc,desc"`
 
@@ -44,7 +46,7 @@ type SeriesIndexRequest struct {
 var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedResponse[*models.Series], error) {
 
 	query := models.SeriesQuery(req.Ctx).
-		With("UserSeries")
+		With("UserSeries.LatestBook.UserBook")
 
 	orderColumn := "name"
 	if req.OrderBy != nil {
@@ -69,38 +71,17 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		query = query.OrderBy(orderColumn)
 	}
 
-	query = query.OrderBy("name")
+	if orderColumn != "name" {
+		query = query.OrderBy("name")
+	}
 
 	if name, ok := req.Slug.Ok(); ok {
 		query = query.Where("name", "=", name)
 	}
-	if list, ok := req.List.Ok(); ok {
+	if req.List != "" {
 		query = query.WhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
-			return q.Where("list", "=", list)
+			return q.Where("list", "=", req.List)
 		})
-	}
-
-	uid, ok := auth.UserID(req.Ctx)
-	if ok {
-		query = query.
-			AddSelectSubquery(
-				models.BookQuery(req.Ctx).
-					Select("id").
-					LeftJoinOn("user_books", func(q *builder.Conditions) {
-						q.WhereColumn("books.id", "=", "user_books.book_id").
-							Where("user_books.user_id", "=", uid)
-					}).
-					WhereColumn("books.series", "=", "series.name").
-					And(func(q *builder.Conditions) {
-						q.OrWhereRaw("user_books.current_page < (books.page_count - 1)").
-							OrWhere("current_page", "=", nil)
-					}).
-					Where("books.page_count", ">", 1).
-					OrderBy("sort").
-					Limit(1),
-				"latest_book_id",
-			).
-			With("LatestBook.UserBook")
 	}
 
 	if req.UpdatedAfter != nil {
@@ -114,10 +95,16 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug      string            `path:"slug"`
-	Name      string            `json:"name"`
-	AnilistID *nulls.Int        `json:"anilist_id"`
-	UpdateMap map[string]string `json:"update_map"   validate:"require"`
+	Slug         string             `path:"slug"`
+	Name         string             `json:"name" validate:"require"`
+	Aliases      []string           `json:"aliases"`
+	Genres       []string           `json:"genres"`
+	Tags         []string           `json:"tags"`
+	Description  string             `json:"description"`
+	Year         *nulls.Int         `json:"year"`
+	MetadataID   *models.MetadataID `json:"metadata_id"`
+	LockedFields []string           `json:"locked_fields"`
+	UpdateMap    map[string]string  `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -137,12 +124,36 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 			return Err404
 		}
 
-		if shouldUpdate(s.UpdateMap, r.UpdateMap, "anilist_id") {
-			s.AnilistId = r.AnilistID
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "metadata_id") {
+			s.MetadataID = r.MetadataID
 		}
 
 		if shouldUpdate(s.UpdateMap, r.UpdateMap, "name") {
 			s.Name = r.Name
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "aliases") {
+			s.Aliases = r.Aliases
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "genres") {
+			s.Genres = r.Genres
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "tags") {
+			s.Tags = r.Tags
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "description") {
+			s.Description = r.Description
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "year") {
+			s.Year = r.Year
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "locked_fields") {
+			s.LockedFields = r.LockedFields
 		}
 
 		return model.SaveContext(r.Ctx, tx, s)
@@ -152,4 +163,25 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 	}
 
 	return s, nil
+})
+
+type SeriesThumbnailRequest struct {
+	Slug string        `path:"slug"`
+	Read salusadb.Read `inject:""`
+
+	Ctx context.Context `inject:""`
+}
+
+var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, error) {
+	series, err := salusadb.Value(r.Read, func(tx *sqlx.Tx) (*models.Series, error) {
+		return models.SeriesQuery(r.Ctx).Find(tx, r.Slug)
+	})
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(series.CoverImagePath)
+	if err != nil {
+		return nil, err
+	}
+	return request.NewResponse(f), nil
 })

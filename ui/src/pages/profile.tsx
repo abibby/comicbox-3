@@ -4,7 +4,7 @@ import { listNames, SeriesListRequest } from 'src/api/series'
 import { SeriesOrder } from 'src/models'
 import { route } from 'src/routes'
 import styles from 'src/pages/library.module.css'
-import { IconButton } from 'src/components/button'
+import { Button } from 'src/components/button'
 import { Settings } from 'preact-feather'
 import { useSeriesList } from 'src/hooks/series'
 import { SeriesList } from 'src/components/series-list'
@@ -15,7 +15,7 @@ export function Profile(): JSX.Element {
         <Fragment>
             <section class={styles.profile}>
                 <h1>My Profile</h1>
-                <IconButton
+                <Button
                     color='clear'
                     icon={Settings}
                     href={route('settings')}

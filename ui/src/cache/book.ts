@@ -1,9 +1,12 @@
 import Dexie, { Collection } from 'dexie'
 import { BookListRequest } from 'src/api/book'
+import { AllPagesRequest } from 'src/api/internal'
 import { DB } from 'src/database'
 import { Book } from 'src/models'
 
-export async function bookCache(req: BookListRequest): Promise<Book[]> {
+export async function bookCache(
+    req: AllPagesRequest<BookListRequest>,
+): Promise<Book[]> {
     if (req.id !== undefined) {
         return DB.books.where('id').equals(req.id).toArray()
     }
@@ -42,8 +45,8 @@ export async function bookCache(req: BookListRequest): Promise<Book[]> {
         collection = DB.books.where('sort').between(afterSort, beforeSort)
     }
 
-    if (req.page_size !== undefined) {
-        collection = collection.limit(req.page_size)
+    if (req.limit !== null) {
+        collection = collection.limit(req.limit)
     }
     if (req.order === 'desc') {
         collection = collection.reverse()

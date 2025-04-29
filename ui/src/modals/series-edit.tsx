@@ -1,11 +1,9 @@
 import { FunctionalComponent, h } from 'preact'
-import { useCallback, useEffect, useState } from 'preact/hooks'
-import { listNames } from 'src/api/series'
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { Button } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
-import { Select } from 'src/components/form/select'
 import {
     Modal,
     ModalBody,
@@ -18,8 +16,9 @@ import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { useSeries } from 'src/hooks/series'
 import { encode } from 'src/util'
-
-const listOptions = [['', 'None'], ...listNames] as const
+import { updateSeriesMetadata } from 'src/services/series-service'
+import { TextArea } from 'src/components/form/textarea'
+import { Locker } from 'src/components/form/locker'
 
 export const EditSeries: FunctionalComponent = () => {
     const { close } = useModal()
@@ -28,20 +27,22 @@ export const EditSeries: FunctionalComponent = () => {
     const seriesSlug = params.series ?? ''
     const [series, seriesLoading] = useSeries(seriesSlug)
 
-    const [anilistID, setAnilistID] = useState(String(series?.anilist_id ?? ''))
-    const findAnilist = useCallback(async () => {
-        const modal = openModal(encode`/anilist-match/${seriesSlug}`)
+    const [metadataID, setMetadataID] = useState(series?.metadata_id ?? '')
+    const metadataIDChanged = useRef(false)
+    const findMeta = useCallback(async () => {
+        const modal = openModal(encode`/metadata/${seriesSlug}`)
         const id = await modal.result()
         if (id === undefined) {
             return
         }
 
-        setAnilistID(String(id))
+        setMetadataID(String(id))
+        metadataIDChanged.current = true
     }, [seriesSlug])
 
     useEffect(() => {
-        setAnilistID(String(series?.anilist_id ?? ''))
-    }, [series?.anilist_id, series?.name])
+        setMetadataID(String(series?.metadata_id ?? ''))
+    }, [series?.metadata_id, series?.name])
 
     const submit = useCallback(
         async (data: Data) => {
@@ -54,17 +55,28 @@ export const EditSeries: FunctionalComponent = () => {
                 list = rawList
             }
 
+            const yearStr = data.get('year')
+
             await DB.saveSeries(series, {
                 name: data.get('name') ?? '',
-                anilist_id: anilistID === '' ? -1 : Number(anilistID),
+                year: yearStr ? Number(yearStr) : null,
+                aliases: data.get('aliases')?.split('\n') ?? [],
+                genres: data.get('genres')?.split('\n') ?? [],
+                tags: data.get('tags')?.split('\n') ?? [],
+                description: data.get('description') ?? '',
+                metadata_id: metadataID === '' ? null : metadataID,
+                locked_fields: data.getAll('locked_fields') ?? [],
                 user_series: {
                     list: list,
                 },
             })
             await persist(true)
+            if (metadataIDChanged.current) {
+                void updateSeriesMetadata(series.slug)
+            }
             close()
         },
-        [series, anilistID, close],
+        [series, metadataID, close],
     )
 
     if (!seriesLoading && series === null) {
@@ -86,21 +98,61 @@ export const EditSeries: FunctionalComponent = () => {
                     </ModalHeadActions>
                 </ModalHead>
                 <ModalBody>
-                    <Input title='Name' name='name' value={series?.name} />
-                    <Select
-                        title='List'
-                        name='list'
-                        value={series?.user_series?.list ?? ''}
-                        options={listOptions}
-                    />
-
+                    <Input title='Name' name='name' value={series?.name}>
+                        <Locker name='name' locked={series?.locked_fields} />
+                    </Input>
                     <Input
-                        title='Anilist ID'
-                        name='anilist_id'
-                        value={anilistID}
-                        onInput={setAnilistID}
+                        title='Year'
+                        name='year'
+                        value={String(series?.year)}
+                        type='number'
                     >
-                        <Button onClick={findAnilist}>Find Anilist ID</Button>
+                        <Locker name='year' locked={series?.locked_fields} />
+                    </Input>
+                    <TextArea
+                        title='Aliases'
+                        name='aliases'
+                        value={series?.aliases.join('\n')}
+                    >
+                        <Locker name='aliases' locked={series?.locked_fields} />
+                    </TextArea>
+                    <TextArea
+                        title='Genres'
+                        name='genres'
+                        value={series?.genres.join('\n')}
+                    >
+                        <Locker name='genres' locked={series?.locked_fields} />
+                    </TextArea>
+                    <TextArea
+                        title='Tags'
+                        name='tags'
+                        value={series?.tags.join('\n')}
+                    >
+                        <Locker name='tags' locked={series?.locked_fields} />
+                    </TextArea>
+                    <TextArea
+                        title='Description'
+                        name='description'
+                        value={series?.description}
+                    >
+                        <Locker
+                            name='description'
+                            locked={series?.locked_fields}
+                        />
+                    </TextArea>
+                    <Input
+                        title='Directory'
+                        name='directory'
+                        readonly
+                        value={series?.directory}
+                    />
+                    <Input
+                        title='Metadata ID'
+                        name='metadata_id'
+                        value={metadataID}
+                        onInput={setMetadataID}
+                    >
+                        <Button onClick={findMeta}>Find Anilist ID</Button>
                     </Input>
                 </ModalBody>
             </Form>

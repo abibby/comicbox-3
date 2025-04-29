@@ -201,7 +201,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	if book == nil {
 		return nil, Err404
 	}
-	reader, err := zip.OpenReader(book.File)
+	reader, err := zip.OpenReader(book.FilePath())
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ var BookDelete = request.Handler(func(r *BookDeleteRequest) (*BookDeleteResponse
 		}
 
 		if r.File {
-			err = os.Remove(b.File)
+			err = os.Remove(b.FilePath())
 			if err != nil {
 				return err
 			}

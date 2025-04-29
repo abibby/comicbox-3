@@ -55,44 +55,30 @@ export const EditBook: FunctionalComponent = () => {
             if (!book) {
                 return
             }
+
             try {
-                switch (data.get('tab')) {
-                    case 'meta':
-                        await DB.saveBook(book, {
-                            title: data.get('title') ?? '',
-                            series_slug: data.get('series') ?? '',
-                            volume: data.getNumber('volume'),
-                            chapter: data.getNumber('chapter'),
-                            rtl: data.get('view')?.endsWith('rtl') ?? false,
-                            long_strip:
-                                data.get('view')?.startsWith('long_strip') ??
-                                false,
-                        })
-                        break
-                    case 'pages':
-                        if (
-                            book.pages.length !==
-                            data.getAll('page.type')?.length
-                        ) {
-                            await openToast('Invalid page count')
-                            return
-                        }
-                        await DB.saveBook(book, {
-                            pages: data.getAll('page.type')?.map(
-                                (type, i): Page => ({
-                                    url: book.pages[i]?.url ?? '',
-                                    thumbnail_url:
-                                        book.pages[i]?.thumbnail_url ?? '',
-                                    type: isPageType(type)
-                                        ? type
-                                        : PageType.Story,
-                                    width: book.pages[i]?.height ?? 0,
-                                    height: book.pages[i]?.width ?? 0,
-                                }),
-                            ),
-                        })
-                        break
+                if (book.pages.length !== data.getAll('page.type')?.length) {
+                    await openToast('Invalid page count')
+                    return
                 }
+                await DB.saveBook(book, {
+                    title: data.get('title') ?? '',
+                    series_slug: data.get('series') ?? '',
+                    volume: data.getNumber('volume'),
+                    chapter: data.getNumber('chapter'),
+                    rtl: data.get('view')?.endsWith('rtl') ?? false,
+                    long_strip:
+                        data.get('view')?.startsWith('long_strip') ?? false,
+                    pages: data.getAll('page.type')?.map(
+                        (type, i): Page => ({
+                            url: book.pages[i]?.url ?? '',
+                            thumbnail_url: book.pages[i]?.thumbnail_url ?? '',
+                            type: isPageType(type) ? type : PageType.Story,
+                            width: book.pages[i]?.height ?? 0,
+                            height: book.pages[i]?.width ?? 0,
+                        }),
+                    ),
+                })
 
                 void openToast(
                     'Chapter updating',

@@ -36,8 +36,8 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var id uuid.UUID
-	if (claims != nil && claims.NewClientID != uuid.UUID{}) {
-		id = claims.NewClientID
+	if claims != nil && claims.NewClientID.Valid {
+		id = claims.NewClientID.UUID
 	} else {
 		id = uuid.New()
 	}

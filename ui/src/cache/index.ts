@@ -34,7 +34,7 @@ export type CacheEventMap = {
 
 export const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
-function invalidateCache(fromUserInteraction: boolean): void {
+export function invalidateCache(fromUserInteraction: boolean): void {
     cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
 }
 
@@ -184,7 +184,13 @@ export async function persist(
             try {
                 result = await seriesAPI.update(s.slug, {
                     name: s.name,
-                    anilist_id: s.anilist_id,
+                    year: s.year,
+                    aliases: s.aliases,
+                    tags: s.tags,
+                    genres: s.genres,
+                    description: s.description,
+                    metadata_id: s.metadata_id,
+                    locked_fields: s.locked_fields,
                     update_map: s.update_map,
                 })
                 result.dirty = 0
@@ -194,6 +200,8 @@ export async function persist(
                             s.slug,
                             {
                                 list: s.user_series.list,
+                                latest_book_id: s.user_series.latest_book_id,
+                                last_read_at: s.user_series.last_read_at,
                                 update_map: s.user_series.update_map,
                             },
                         )

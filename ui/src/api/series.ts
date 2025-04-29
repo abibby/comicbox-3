@@ -33,8 +33,14 @@ export async function listPaged(
 export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
 
 interface SeriesUpdateRequest {
-    name: string | null
-    anilist_id: number | null
+    name: string
+    aliases: string[]
+    genres: string[]
+    tags: string[]
+    description: string
+    year: number | null
+    metadata_id: string | null
+    locked_fields: string[]
     update_map: Record<string, string>
 }
 

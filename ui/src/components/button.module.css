@@ -56,3 +56,25 @@
 .alignRight {
     justify-content: end;
 }
+
+.icon {
+    transform: translate(0em, 0.1em);
+    margin-right: 0.5em;
+}
+
+.icon.iconOnly {
+    margin-right: 0;
+}
+
+.selectLabel {
+    position: relative;
+}
+.select {
+    position: absolute;
+    inset: 0;
+    color: rgba(0, 0, 0, 0);
+}
+.select option {
+    text-align: initial;
+    color: initial;
+}

@@ -15,7 +15,7 @@ import { LocationProvider, Router, Route } from 'preact-iso'
 import { ChangePasswordModal } from 'src/modals/change-password-modal'
 import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
-import { AnilistMatch } from 'src/modals/anilist-match'
+import { MetadataMatch } from 'src/modals/metadata-match'
 import { ErrorBoundary } from 'src/components/error-boundry'
 
 function changePage(): void {
@@ -74,8 +74,8 @@ function Main() {
                         <Route path='/book/:book' component={EditBook} />
                         <Route path='/book/:book/*' component={EditBook} />
                         <Route
-                            path='/anilist-match/:name'
-                            component={AnilistMatch}
+                            path='/metadata/:slug'
+                            component={MetadataMatch}
                         />
                     </Router>
                 </ModalController>

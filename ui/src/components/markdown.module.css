@@ -1,0 +1,6 @@
+.markdown {
+    display: block;
+}
+.markdown * {
+    all: revert;
+}

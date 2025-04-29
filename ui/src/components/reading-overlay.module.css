@@ -64,7 +64,9 @@
 }
 
 .slider .range {
-    --percent: calc(var(--value) / var(--max) * 100%);
+    --percent: calc(
+        (var(--value) - var(--min, 0)) / (var(--max) - var(--min, 0)) * 100%
+    );
 
     -webkit-appearance: none; /* Override default CSS styles */
     appearance: none;

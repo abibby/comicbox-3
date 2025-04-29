@@ -15,6 +15,7 @@ import (
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
+	"github.com/gorilla/mux"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -67,11 +68,13 @@ func InitRouter(r *router.Router) {
 			q := u.Query()
 			q.Del("_token")
 			u.RawQuery = q.Encode()
+
 			clog.Use(r.Context()).Info("request",
-				"url", &u,
+				"url", u.String(),
 				"status", rr.StatusCode,
 				"user_agent", r.Header.Get("User-Agent"),
 				"duration", time.Since(start).Truncate(time.Millisecond),
+				"route_name", mux.CurrentRoute(r).GetName(),
 			)
 		}()
 		next.ServeHTTP(rr, r)
@@ -84,7 +87,7 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(false, auth.TokenAPI))
+			r.Use(controllers.HasScope(auth.ScopeAPI))
 
 			r.Get("/series", controllers.SeriesIndex).Name("series.index")
 			r.Post("/series/{slug}", controllers.SeriesUpdate).Name("series.update")
@@ -102,9 +105,15 @@ func InitRouter(r *router.Router) {
 
 			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
 			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
+
+			r.Post("/meta/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+			r.Post("/meta/sync", controllers.MetaStartScan).Name("meta.scan")
+			r.Get("/meta", controllers.MetaList).Name("meta.list")
 		})
+
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(true, auth.TokenImage))
+			r.Use(controllers.HasScope(auth.ScopeImage))
+			r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
 				r.Use(middleware.CacheMiddleware())
@@ -119,16 +128,16 @@ func InitRouter(r *router.Router) {
 		r.Post("/rum", controllers.RumLogging).Name("rum.logging")
 
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.AuthMiddleware(false, auth.TokenRefresh))
+			r.Use(controllers.HasScope(auth.ScopeRefresh))
 			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")
 		})
 
 		r.Handle("/docs", openapidoc.SwaggerUI())
 
-		r.Handle("/", http.HandlerFunc(controllers.API404))
+		r.Handle("/", http.HandlerFunc(controllers.API404)).Name("404")
 	})
 
 	r.GetFunc("/static-files", controllers.StaticFiles)
 
-	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html"))
+	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html")).Name("static.files")
 }

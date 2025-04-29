@@ -4,27 +4,81 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path"
+	"strconv"
+	"strings"
 
+	"github.com/abibby/comicbox-3/app/providers"
+	"github.com/abibby/comicbox-3/config"
+	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
-	"github.com/google/uuid"
+	"github.com/abibby/salusa/database/model/modeldi"
 )
 
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug               string                       `json:"slug"           db:"name,primary"`
-	Name               string                       `json:"name"           db:"display_name"`
-	CoverURL           string                       `json:"cover_url"      db:"-"`
-	FirstBookID        *uuid.UUID                   `json:"first_book_id"  db:"first_book_id"`
-	FirstBookCoverPage int                          `json:"-"              db:"first_book_cover_page"`
-	AnilistId          *nulls.Int                   `json:"anilist_id"     db:"anilist_id"`
-	UserSeries         *builder.HasOne[*UserSeries] `json:"user_series"    db:"-" local:"name" foreign:"series_name"`
-	LatestBookID       *uuid.UUID                   `json:"latest_book_id" db:"latest_book_id,readonly"`
-	LatestBook         *builder.BelongsTo[*Book]    `json:"latest_book"    db:"-" foreign:"latest_book_id" owner:"id"`
+	Slug              string         `json:"slug"          db:"name,primary"`
+	Name              string         `json:"name"          db:"display_name"`
+	Directory         string         `json:"directory"     db:"directory"`
+	CoverURL          string         `json:"cover_url"     db:"-"`
+	MetadataID        *MetadataID    `json:"metadata_id"   db:"metadata_id,nullable"`
+	Description       string         `json:"description"   db:"description"`
+	Aliases           JSONStrings    `json:"aliases"       db:"aliases"`
+	Genres            JSONStrings    `json:"genres"        db:"genres"`
+	Tags              JSONStrings    `json:"tags"          db:"tags"`
+	Year              *nulls.Int     `json:"year"          db:"year"`
+	CoverImagePath    string         `json:"-"             db:"cover_image_path"`
+	MetadataUpdatedAt *database.Time `json:"-"             db:"metadata_updated_at"`
+	LockedFields      JSONStrings    `json:"locked_fields" db:"locked_fields"`
+
+	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
+}
+
+func init() {
+	providers.Add(modeldi.Register[*Series])
+}
+
+type MetadataID string
+type MetadataService string
+
+const (
+	MetadataServiceAnilist   = "anilist"
+	MetadataServiceComicVine = "comicvine"
+	MetadataServiceLocal     = "local"
+)
+
+func NewAnilistID(id int) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceAnilist, id))
+	return &mid
+}
+func NewComicVineID(id int) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%d", MetadataServiceComicVine, id))
+	return &mid
+}
+func NewLocalID(id string) *MetadataID {
+	mid := MetadataID(fmt.Sprintf("%s://%s", MetadataServiceLocal, id))
+	return &mid
+}
+
+func (m MetadataID) ID() (MetadataService, string) {
+	parts := strings.SplitN(string(m), "://", 2)
+	if len(parts) != 2 {
+		return "", ""
+	}
+	return MetadataService(parts[0]), parts[1]
+}
+func (m *MetadataID) IntID() (MetadataService, int) {
+	service, strID := m.ID()
+	id, err := strconv.Atoi(strID)
+	if err != nil {
+		return "", 0
+	}
+	return service, id
 }
 
 func SeriesQuery(ctx context.Context) *builder.ModelBuilder[*Series] {
@@ -42,46 +96,12 @@ func (*Series) PrimaryKey() string {
 	return "name"
 }
 
-func (s *Series) BeforeSave(ctx context.Context, tx database.DB) error {
-	_, err := s.UpdateFirstBook(ctx, tx, nil)
-	return err
-}
-
-func (s *Series) AfterLoad(ctx context.Context, tx database.DB) error {
-	if s.FirstBookID != nil {
-		s.CoverURL = router.MustURL(ctx, "book.thumbnail", "id", s.FirstBookID.String(), "page", fmt.Sprint(s.FirstBookCoverPage))
-	}
+func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
+	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
 	return nil
 }
-
-func (s *Series) UpdateFirstBook(ctx context.Context, tx database.DB, newBook *Book) (bool, error) {
-	b, err := BookQuery(ctx).
-		Where("series", "=", s.Slug).
-		OrderBy("sort").
-		Limit(1).
-		First(tx)
-	if err != nil {
-		return false, err
-	}
-
-	if b == nil {
-		b = newBook
-	}
-	if newBook != nil {
-		if b.Sort > newBook.Sort {
-			b = newBook
-		}
-	}
-	oldID := s.FirstBookID
-	oldCoverPage := s.FirstBookCoverPage
-	if b != nil {
-		s.FirstBookID = &b.ID
-		s.FirstBookCoverPage = b.CoverPage()
-	} else {
-		s.FirstBookID = nil
-		s.FirstBookCoverPage = 0
-	}
-	return s.FirstBookID != oldID || s.FirstBookCoverPage != oldCoverPage, nil
+func (s *Series) DirectoryPath() string {
+	return path.Join(config.LibraryPath, s.Directory)
 }
 
 func Slug(s string) string {
@@ -104,4 +124,16 @@ func Slug(s string) string {
 		lastC = newC
 	}
 	return string(bytes.Trim(out, "-"))
+}
+
+func DeleteEmptySeries(ctx context.Context, tx salusadb.DB) error {
+	return SeriesQuery(ctx).
+		WhereNotExists(BookQuery(ctx).WhereColumn("books.series", "=", "series.name")).
+		Chunk(tx, func(series []*Series) error {
+			slugs := make([]any, len(series))
+			for i, s := range series {
+				slugs[i] = s.Slug
+			}
+			return SeriesQuery(ctx).WhereIn("name", slugs).Delete(tx)
+		})
 }

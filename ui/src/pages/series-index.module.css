@@ -1,0 +1,13 @@
+.filter {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    background-color: rgb(var(--default-button));
+    color: rgb(var(--default-button-text));
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-small);
+}
+.filterClose {
+    height: 1em;
+    cursor: pointer;
+}

@@ -47,6 +47,8 @@ export const emptyUserSeries: Readonly<UserSeries> = {
     update_map: {},
     list: List.None,
     last_read_at: '1970-01-01T00:00:00Z',
+    latest_book_id: null,
+    latest_book: null,
 }
 export const emptySeries: Readonly<DBSeries> = {
     created_at: '1970-01-01T00:00:00Z',
@@ -55,14 +57,25 @@ export const emptySeries: Readonly<DBSeries> = {
     update_map: {},
     slug: '',
     name: '',
+    aliases: [],
+    description: '',
     cover_url: '',
-    first_book_id: null,
-    latest_book: null,
-    latest_book_id: null,
     user_series: emptyUserSeries,
-    anilist_id: null,
+    metadata_id: null,
+    genres: [],
+    tags: [],
+    year: null,
+    directory: '',
+    locked_fields: [],
 }
 
+export const emptyUserBook: Readonly<UserBook> = {
+    created_at: '1970-01-01T00:00:00Z',
+    updated_at: '1970-01-01T00:00:00Z',
+    deleted_at: null,
+    update_map: {},
+    current_page: 0,
+}
 export const emptyBook: Readonly<DBBook> = {
     created_at: '1970-01-01T00:00:00Z',
     updated_at: '1970-01-01T00:00:00Z',
@@ -241,16 +254,18 @@ class AppDatabase extends Dexie {
     }
 
     public async fromNetwork(items: (DBSeries | DBBook)[]): Promise<void> {
-        const books: DBBook[] = items.filter(isBook)
-        const series: DBSeries[] = items.filter(isSeries)
+        const allBooks: DBBook[] = items.filter(isBook)
+        const allSeries: DBSeries[] = items.filter(isSeries)
         const readBookPromises: Promise<void>[] = []
 
         await this.books.bulkDelete(
-            books.filter(i => i.deleted_at !== null).map(v => v.id),
+            allBooks.filter(i => i.deleted_at !== null).map(v => v.id),
         )
         await this.series.bulkDelete(
-            series.filter(i => i.deleted_at !== null).map(v => v.name),
+            allSeries.filter(i => i.deleted_at !== null).map(v => v.slug),
         )
+        const books = allBooks.filter(b => b.deleted_at === null)
+        const series = allSeries.filter(s => s.deleted_at === null)
 
         const updatedBooks: DBBook[] = []
         const updatedSeries: DBSeries[] = []
@@ -265,37 +280,9 @@ class AppDatabase extends Dexie {
         for (const s of series) {
             updatedSeries.push(s)
 
-            const slug = s.slug
-            const latestBook = s.latest_book
-            readBookPromises.push(
-                (async () => {
-                    const books = await this.books
-                        .where(['series_slug', 'completed', 'sort'])
-                        .between(
-                            [slug, 0, Dexie.minKey],
-                            [slug, 0, latestBook?.sort ?? Dexie.maxKey],
-                        )
-                        .toArray()
-                    const now = new Date().toISOString()
-                    const readBooks = books.flat().map(book => {
-                        book.user_book = book.user_book ?? {
-                            created_at: now,
-                            updated_at: now,
-                            deleted_at: null,
-                            current_page: 0,
-                            update_map: {},
-                        }
-                        book.user_book.current_page = book.page_count - 1
-                        return book
-                    })
-
-                    await this.books.bulkPut(readBooks)
-                })(),
-            )
-
-            if (s.latest_book) {
-                updatedBooks.push(s.latest_book)
-                s.latest_book = null
+            if (s.user_series?.latest_book) {
+                updatedBooks.push(s.user_series.latest_book)
+                s.user_series.latest_book = null
             }
         }
 

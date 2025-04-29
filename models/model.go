@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
@@ -14,8 +15,6 @@ import (
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
-	"github.com/google/uuid"
 )
 
 type BaseModel struct {
@@ -28,9 +27,22 @@ type BaseModel struct {
 	RawUpdateMap []byte            `json:"-"          db:"update_map,type:json"`
 }
 
+var updateIndex int32
+
+func (b *BaseModel) UpdateField(name string) {
+	index := atomic.AddInt32(&updateIndex, 1)
+	b.UpdateMap[name] = fmt.Sprintf("%d-SERVER-%d", time.Now().UnixMilli(), index)
+	if index == 1 {
+		go func() {
+			time.Sleep(time.Second)
+			updateIndex = 0
+		}()
+	}
+}
+
 func (*BaseModel) Scopes() []*builder.Scope {
 	return []*builder.Scope{
-		mixins.SoftDeleteScope,
+		SoftDeleteScope,
 	}
 }
 
@@ -115,7 +127,7 @@ func (bm *BaseModel) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 }
 
 func (bm *BaseModel) AfterLoad(ctx context.Context, tx salusadb.DB) error {
-	if bm.RawUpdateMap != nil && len(bm.RawUpdateMap) > 0 {
+	if len(bm.RawUpdateMap) > 0 {
 		err := json.Unmarshal(bm.RawUpdateMap, &bm.UpdateMap)
 		if err != nil {
 			return err
@@ -126,11 +138,20 @@ func (bm *BaseModel) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	return nil
 }
 
-func uuidEqual(a, b uuid.UUID) bool {
-	for i := range a {
-		if a[i] != b[i] {
-			return false
+var SoftDeleteScope = &builder.Scope{
+	Name: "soft-deletes",
+	Query: func(b *builder.Builder) *builder.Builder {
+		return b.Where(b.GetTable()+".deleted_at", "=", nil)
+	},
+	Delete: func(next func(q *builder.Builder, tx salusadb.DB) error) func(q *builder.Builder, tx salusadb.DB) error {
+		return func(q *builder.Builder, tx salusadb.DB) error {
+			err := q.Update(tx, builder.Updates{
+				"deleted_at": database.Time(time.Now()),
+			})
+			if err != nil {
+				return err
+			}
+			return next(q, tx)
 		}
-	}
-	return true
+	},
 }

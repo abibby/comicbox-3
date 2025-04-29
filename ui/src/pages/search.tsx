@@ -19,7 +19,7 @@ export function Search(): JSX.Element {
             return undefined
         }
         return new Fuse(allSeries, {
-            keys: ['name'],
+            keys: ['name', 'aliases'],
         })
     }, [allSeries])
 

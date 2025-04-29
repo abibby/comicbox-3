@@ -23,7 +23,7 @@ export const Home: FunctionalComponent = () => {
 }
 
 export const Reading: FunctionalComponent = () => {
-    const [series, seriesLoading] = useSeriesList('reading', {
+    const [liveSeries, seriesLoading] = useSeriesList('reading', {
         order_by: SeriesOrder.LastRead,
         list: 'reading',
         limit: null,
@@ -31,12 +31,14 @@ export const Reading: FunctionalComponent = () => {
 
     const liveBooks = useMemo(
         () =>
-            series
+            liveSeries
+                .filter(s => s.user_series?.latest_book)
                 .sort(byLastUpdated)
-                .map(s => s.latest_book)
+                .map(s => s.user_series?.latest_book)
                 .filter(notNullish),
-        [series],
+        [liveSeries],
     )
+
     const books = usePromptUpdate(liveBooks, readingBookCompare)
 
     if (!seriesLoading && liveBooks?.length === 0) {
@@ -44,9 +46,9 @@ export const Reading: FunctionalComponent = () => {
     }
     return (
         <BookList
-            title='Comtinue Reading'
+            title='Continue Reading'
             books={books}
-            series={series}
+            series={liveSeries}
             loading={seriesLoading}
         />
     )
@@ -55,11 +57,11 @@ function byLastUpdated(a: Series, b: Series) {
     return (
         Math.max(
             getTime(b.user_series?.last_read_at),
-            getTime(b.latest_book?.created_at),
+            getTime(b.user_series?.latest_book?.created_at),
         ) -
         Math.max(
             getTime(a.user_series?.last_read_at),
-            getTime(a.latest_book?.created_at),
+            getTime(a.user_series?.latest_book?.created_at),
         )
     )
 }

@@ -1,22 +1,40 @@
+import { bind } from '@zwzn/spicy'
 import Dexie from 'dexie'
 import { FunctionalComponent, Fragment, h } from 'preact'
-import { Edit, MoreHorizontal } from 'preact-feather'
+import {
+    BookOpen,
+    Bookmark,
+    ChevronDown,
+    ChevronUp,
+    Download,
+    Edit,
+    MoreHorizontal,
+} from 'preact-feather'
 import { useRoute } from 'preact-iso'
-import { useCallback, useEffect, useState } from 'preact/hooks'
+import { useCallback, useMemo, useState } from 'preact/hooks'
+import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
+import classNames from 'src/classnames'
 import { BookList } from 'src/components/book-list'
-import { ButtonGroup, IconButton } from 'src/components/button'
+import { Button, ButtonGroup, SelectButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
+import { Markdown } from 'src/components/markdown'
 import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
+import { useImageURL } from 'src/hooks/image'
 import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
+import { route } from 'src/routes'
+import { updateSeriesMetadata } from 'src/services/series-service'
 import { encode } from 'src/util'
+import { isList } from 'src/pages/lists'
+
+const listOptions = [['', 'None'], ...listNames] as const
 
 export const SeriesView: FunctionalComponent = () => {
     const { params } = useRoute()
@@ -42,118 +60,32 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         series_slug: slug,
         limit: null,
     })
-    const [liveCurrentBooks, setCurrentBooks] = useState<Book[] | null>(null)
-    const [currentBook, setCurrentBook] = useState<Book | null>(null)
 
     const books = usePromptUpdate(liveBooks, bookCompare)
-    const currentBooks = usePromptUpdate(liveCurrentBooks, bookCompare)
 
-    useEffect(() => {
-        if (books === null) return
-        const count = 7
-        if (books.length <= count) {
-            setCurrentBooks([])
-            return
-        }
-        const current = books.findIndex(b => b.completed === 0)
-        setCurrentBook(books[current] ?? null)
-        let start = current - Math.floor(count / 2)
-        let end = current + Math.ceil(count / 2)
-        if (start < 0) {
-            start = 0
-            end = count
-        }
-        if (end > books.length || current === -1) {
-            start = books.length - count
-            end = books.length
-        }
-
-        setCurrentBooks(books.slice(start, end))
-    }, [books])
-
-    const editSeries = useCallback(() => {
-        void openModal(encode`/series/${slug}`)
-    }, [slug])
-    const seriesName = series?.name
-    const markAllRead = useCallback(async () => {
-        if (seriesName !== undefined) {
-            const seriesBooks = await DB.books
-                .where(['series_slug', 'completed', 'sort'])
-                .between(
-                    [seriesName, 0, Dexie.minKey],
-                    [seriesName, 0, Dexie.maxKey],
-                )
-                .toArray()
-            for (const b of seriesBooks) {
-                await DB.saveBook(b, {
-                    user_book: {
-                        current_page: b.page_count - 1,
-                    },
-                })
-            }
-            await persist(true)
-        }
-    }, [seriesName])
-    const markAllUnread = useCallback(async () => {
-        if (seriesName !== undefined) {
-            const seriesBooks = await DB.books
-                .where(['series_slug', 'sort'])
-                .between([seriesName, Dexie.minKey], [seriesName, Dexie.maxKey])
-                .toArray()
-            for (const b of seriesBooks) {
-                await DB.saveBook(b, {
-                    user_book: {
-                        current_page: 0,
-                    },
-                })
-            }
-            await persist(true)
-        }
-    }, [seriesName])
-
-    const downloadSeries = useCallback(async () => {
-        await post({
-            type: 'download-series',
-            seriesSlug: slug,
-        })
-    }, [slug])
-
-    const contextMenu = useCallback(
-        async (e: MouseEvent) => {
-            await openContextMenu(e, [
-                ['Download', downloadSeries],
-                ['Mark All Read', markAllRead],
-                ['Mark All Unread', markAllUnread],
-            ])
-        },
-        [downloadSeries, markAllRead, markAllUnread],
-    )
+    const currentBooks = useMemo(() => {
+        const current =
+            books?.findIndex(
+                b => b.id === series?.user_series?.latest_book_id,
+            ) ?? 0
+        return books?.slice(current, current + 7) ?? []
+    }, [books, series?.user_series?.latest_book_id])
+    const currentBook = currentBooks[0] ?? null
 
     const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
-
     return (
         <>
-            <section class={styles.header}>
-                <h1>{seriesName}</h1>
-                <ButtonGroup class={styles.actions}>
-                    <IconButton
-                        color='clear'
-                        icon={Edit}
-                        onClick={editSeries}
-                    />
-                    <IconButton
-                        color='clear'
-                        icon={MoreHorizontal}
-                        onClick={contextMenu}
-                    />
-                </ButtonGroup>
-            </section>
+            <SeriesHeader
+                slug={slug}
+                series={series}
+                currentBook={currentBook}
+                liveBooks={liveBooks}
+            />
             {hasCurrentBooks && (
                 <BookList
                     title='Bookmark'
                     books={currentBooks}
                     series={series ? [series] : null}
-                    scrollTo={currentBook}
                 />
             )}
             <BookList
@@ -163,6 +95,199 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                 series={series ? [series] : null}
             />
         </>
+    )
+}
+
+type SeriesHeaderProps = {
+    slug: string
+    series: Series | null
+    currentBook: Book | null
+    liveBooks: Book[]
+}
+
+function SeriesHeader({
+    slug,
+    series,
+    currentBook,
+    liveBooks,
+}: SeriesHeaderProps) {
+    const editSeries = useCallback(() => {
+        void openModal(encode`/series/${slug}`)
+    }, [slug])
+
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+
+    const markAllRead = useCallback(async () => {
+        if (series?.slug !== undefined) {
+            const seriesBooks = await DB.books
+                .where(['series_slug', 'completed', 'sort'])
+                .between(
+                    [series?.slug, 0, Dexie.minKey],
+                    [series?.slug, 0, Dexie.maxKey],
+                )
+                .toArray()
+            for (const b of seriesBooks) {
+                await DB.saveBook(b, {
+                    user_book: {
+                        current_page: b.page_count - 1,
+                    },
+                })
+            }
+            await DB.saveSeries(series, {
+                user_series: {
+                    latest_book_id: null,
+                },
+            })
+
+            await persist(true)
+        }
+    }, [series])
+    const markAllUnread = useCallback(async () => {
+        if (series?.slug !== undefined) {
+            const seriesBooks = await DB.books
+                .where(['series_slug', 'sort'])
+                .between(
+                    [series?.slug, Dexie.minKey],
+                    [series?.slug, Dexie.maxKey],
+                )
+                .toArray()
+            for (const b of seriesBooks) {
+                await DB.saveBook(b, {
+                    user_book: {
+                        current_page: 0,
+                    },
+                })
+            }
+            await DB.saveSeries(series, {
+                user_series: {
+                    latest_book_id: liveBooks[0]?.id ?? null,
+                },
+            })
+            await persist(true)
+        }
+    }, [liveBooks, series])
+
+    const downloadSeries = useCallback(async () => {
+        await post({
+            type: 'download-series',
+            seriesSlug: slug,
+        })
+    }, [slug])
+
+    const updateMetadata = useCallback(async () => {
+        await updateSeriesMetadata(slug)
+    }, [slug])
+
+    const bookmarkSeries = useCallback(
+        async (list: string) => {
+            if (!series) {
+                return
+            }
+
+            if (!isList(list)) {
+                return
+            }
+
+            await DB.saveSeries(series, {
+                user_series: {
+                    list: list,
+                },
+            })
+            await persist(true)
+        },
+        [series],
+    )
+
+    const contextMenu = useCallback(
+        async (e: MouseEvent) => {
+            await openContextMenu(e, [
+                ['Mark All Read', markAllRead],
+                ['Mark All Unread', markAllUnread],
+                ['Update Metadata', updateMetadata],
+            ])
+        },
+        [markAllRead, markAllUnread, updateMetadata],
+    )
+
+    const coverURL = useImageURL(series?.cover_url)
+
+    return (
+        <section class={styles.header}>
+            <img class={styles.cover} src={coverURL} alt='Series Cover' />
+            <h1 class={styles.title}>{series?.name}</h1>
+            <p class={styles.year}>{series?.year}</p>
+            <div class={styles.genres}>
+                {series?.genres.map((g, i) => (
+                    <Fragment key={g}>
+                        {i > 0 && ', '}
+                        <a
+                            class={styles.genre}
+                            href={
+                                route('series.index', {}) + encode`?genre=${g}`
+                            }
+                        >
+                            {g}
+                        </a>
+                    </Fragment>
+                ))}
+            </div>
+            <ButtonGroup class={styles.buttons}>
+                <Button
+                    color='primary'
+                    icon={BookOpen}
+                    href={route('book.view', {
+                        id: currentBook?.id ?? liveBooks[0]?.id ?? '',
+                    })}
+                >
+                    Read
+                </Button>
+                <Button color='clear' icon={Edit} onClick={editSeries} />
+                <SelectButton
+                    color='clear'
+                    icon={Bookmark}
+                    iconFilled={series?.user_series?.list === 'reading'}
+                    options={listOptions}
+                    onChange={bookmarkSeries}
+                />
+                <Button
+                    color='clear'
+                    icon={Download}
+                    onClick={downloadSeries}
+                />
+                <Button
+                    color='clear'
+                    icon={MoreHorizontal}
+                    onClick={contextMenu}
+                />
+            </ButtonGroup>
+            {series?.description && (
+                <div class={styles.description}>
+                    <Markdown
+                        class={classNames(styles.descriptionContent, {
+                            [styles.open]: descriptionExpanded,
+                        })}
+                    >
+                        {series?.description ?? ''}
+                    </Markdown>
+                    {descriptionExpanded || (
+                        <button
+                            class={styles.btnDescriptionExpand}
+                            onClick={bind(true, setDescriptionExpanded)}
+                        >
+                            More <ChevronDown />
+                        </button>
+                    )}
+                    {descriptionExpanded && (
+                        <button
+                            class={styles.btnDescriptionExpand}
+                            onClick={bind(false, setDescriptionExpanded)}
+                        >
+                            Less <ChevronUp />
+                        </button>
+                    )}
+                </div>
+            )}
+        </section>
     )
 }
 

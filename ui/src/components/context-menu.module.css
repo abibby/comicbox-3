@@ -2,7 +2,7 @@
     display: block;
     position: absolute;
     background-color: rgb(var(--surface));
-    z-index: 50;
+    z-index: 301;
     cursor: pointer;
     list-style-type: none;
     padding: 0.5rem 0;
@@ -27,5 +27,5 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 49;
+    z-index: 300;
 }

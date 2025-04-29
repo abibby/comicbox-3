@@ -31,6 +31,6 @@ export const List: FunctionalComponent = () => {
     )
 }
 
-function isList(v: unknown): v is LList {
+export function isList(v: unknown): v is LList {
     return Object.values(LList).includes(v as LList)
 }

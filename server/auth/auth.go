@@ -6,7 +6,6 @@ import (
 
 	"github.com/abibby/salusa/auth"
 	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/set"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -14,20 +13,16 @@ import (
 type Claims struct {
 	jwt.RegisteredClaims
 	Scope       auth.ScopeStrings `json:"scope,omitempty"`
-	NewClientID uuid.UUID         `json:"new_client_id,omitempty"`
+	NewClientID uuid.NullUUID     `json:"new_client_id,omitempty"`
 }
 
 type TokenScope string
 
 const (
-	TokenAPI     = TokenScope("api")
-	TokenRefresh = TokenScope("refresh")
-	TokenImage   = TokenScope("image")
+	ScopeAPI     = TokenScope("api")
+	ScopeRefresh = TokenScope("refresh")
+	ScopeImage   = TokenScope("image")
 )
-
-var QueryScopes = set.Set[TokenScope]{
-	TokenImage: struct{}{},
-}
 
 type contextKey uint8
 
@@ -57,5 +52,8 @@ func GetClaims(ctx context.Context) (*Claims, bool) {
 }
 
 func WithClaims(r *http.Request, claims jwt.Claims) *http.Request {
-	return r.WithContext(context.WithValue(r.Context(), claimsKey, claims))
+	return r.WithContext(ContextWithClaims(r.Context(), claims))
+}
+func ContextWithClaims(ctx context.Context, claims jwt.Claims) context.Context {
+	return context.WithValue(ctx, claimsKey, claims)
 }

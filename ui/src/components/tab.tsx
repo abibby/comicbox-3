@@ -1,8 +1,14 @@
 import { bind } from '@zwzn/spicy'
-import { FunctionalComponent, h, VNode } from 'preact'
-import { useState } from 'preact/hooks'
+import { createContext, FunctionalComponent, h, VNode } from 'preact'
+import { useContext, useMemo, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/tab.module.css'
+
+type TabContext = {
+    activeTabTitle: string
+}
+
+const TabContext = createContext<TabContext>({ activeTabTitle: '' })
 
 export interface TabContainerProps {
     children: VNode<TabProps>[]
@@ -12,6 +18,13 @@ export interface TabContainerProps {
 export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
     const [activeTab, setActiveTab] = useState(0)
     const tabs = props.children
+    const ctx = useMemo(
+        (): TabContext => ({
+            activeTabTitle: tabs[activeTab]?.props.title ?? '',
+        }),
+        [activeTab, tabs],
+    )
+
     return (
         <div class={classNames(styles.tabContainer, props.class)}>
             <div class={styles.tabButtonList}>
@@ -28,7 +41,7 @@ export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
                     </button>
                 ))}
             </div>
-            <div class={styles.body}>{tabs[activeTab]}</div>
+            <TabContext.Provider value={ctx}>{tabs}</TabContext.Provider>
         </div>
     )
 }
@@ -37,5 +50,14 @@ export interface TabProps {
     title: string
 }
 export const Tab: FunctionalComponent<TabProps> = props => {
-    return <div>{props.children}</div>
+    const ctx = useContext(TabContext)
+    return (
+        <div
+            class={classNames(styles.body, {
+                [styles.active]: ctx.activeTabTitle === props.title,
+            })}
+        >
+            {props.children}
+        </div>
+    )
 }

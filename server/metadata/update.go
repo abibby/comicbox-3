@@ -15,7 +15,6 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/clog"
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/di"
@@ -35,7 +34,7 @@ func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *
 func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Series) (*DistanceMetadata, error) {
 	var matches []DistanceMetadata
 	var err error
-	if series.MetadataID == nil {
+	if series.MetadataID == nil || *series.MetadataID == "" {
 		matches, err = provider.SearchSeries(ctx, series.Name)
 		if err != nil {
 			return nil, err
@@ -51,7 +50,7 @@ func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Ser
 	var bestMatch *DistanceMetadata
 
 	for _, match := range matches {
-		if bestMatch == nil || match.MatchDistance > bestMatch.MatchDistance {
+		if bestMatch == nil || match.MatchDistance < bestMatch.MatchDistance {
 			bestMatch = &match
 		}
 	}
@@ -62,8 +61,6 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 	if series.Directory == "" {
 		return fmt.Errorf("series directory is not set for %s", series.Slug)
 	}
-
-	clog.Use(ctx).Info("Updating series metadata", "series", series.Name)
 
 	series.UpdateField("metadata_id")
 	series.MetadataID = metadata.ID

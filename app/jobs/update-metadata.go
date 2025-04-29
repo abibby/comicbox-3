@@ -36,7 +36,16 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 	} else {
 		q = q.Where("name", "=", event.SeriesSlug)
 	}
+
+	totalCount, err := q.Count(u.DB)
+	if err != nil {
+		return err
+	}
 	for {
+		remainingCount, err := q.Count(u.DB)
+		if err != nil {
+			return err
+		}
 		seriesList, err := q.Get(u.DB)
 		if err != nil {
 			return err
@@ -45,7 +54,8 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 			return nil
 		}
 
-		for _, ogSeries := range seriesList {
+		for i, ogSeries := range seriesList {
+			u.Log.Info("Updating series metadata", "name", ogSeries.Name, "total", totalCount, "remaining", remainingCount-i)
 
 			bestMatch, err := metadata.GetBestMatch(ctx, meta, ogSeries)
 			if err != nil {

@@ -9,4 +9,5 @@
 }
 .filterClose {
     height: 1em;
+    cursor: pointer;
 }

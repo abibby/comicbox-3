@@ -1,0 +1,31 @@
+.locker {
+    height: 100%;
+    padding: 0 10px;
+    background-color: rgb(var(--default-button));
+    display: flex;
+    align-items: center;
+    border-radius: var(--border-radius-small);
+}
+
+.locker:has(:checked) {
+    background-color: rgb(var(--primary));
+}
+
+.locker input {
+    display: none;
+}
+
+.lock {
+    display: none;
+}
+.unlock {
+    display: block;
+}
+
+.locker input:checked ~ .lock {
+    display: block;
+}
+
+.locker input:checked ~ .unlock {
+    display: none;
+}

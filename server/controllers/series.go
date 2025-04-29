@@ -95,15 +95,16 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug        string             `path:"slug"`
-	Name        string             `json:"name" validate:"require"`
-	Aliases     []string           `json:"aliases"`
-	Genres      []string           `json:"genres"`
-	Tags        []string           `json:"tags"`
-	Description string             `json:"description"`
-	Year        *nulls.Int         `json:"year"`
-	MetadataID  *models.MetadataID `json:"metadata_id"`
-	UpdateMap   map[string]string  `json:"update_map" validate:"require"`
+	Slug         string             `path:"slug"`
+	Name         string             `json:"name" validate:"require"`
+	Aliases      []string           `json:"aliases"`
+	Genres       []string           `json:"genres"`
+	Tags         []string           `json:"tags"`
+	Description  string             `json:"description"`
+	Year         *nulls.Int         `json:"year"`
+	MetadataID   *models.MetadataID `json:"metadata_id"`
+	LockedFields []string           `json:"locked_fields"`
+	UpdateMap    map[string]string  `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -149,6 +150,10 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 
 		if shouldUpdate(s.UpdateMap, r.UpdateMap, "year") {
 			s.Year = r.Year
+		}
+
+		if shouldUpdate(s.UpdateMap, r.UpdateMap, "locked_fields") {
+			s.LockedFields = r.LockedFields
 		}
 
 		return model.SaveContext(r.Ctx, tx, s)

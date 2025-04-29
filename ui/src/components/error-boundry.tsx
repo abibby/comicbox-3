@@ -25,7 +25,7 @@ export class ErrorBoundary extends Component<
         if (this.state.error) {
             return (
                 <Fragment>
-                    <pre>
+                    <pre onClick={this.closeError}>
                         {this.state.error.stack ?? String(this.state.error)}
                     </pre>
                     {this.props.children}
@@ -33,5 +33,9 @@ export class ErrorBoundary extends Component<
             )
         }
         return this.props.children
+    }
+
+    closeError = () => {
+        this.setState({ error: undefined })
     }
 }

@@ -1,9 +1,9 @@
 import { encode } from 'src/util'
 import { apiFetch } from 'src/api/internal'
-import { Series, SeriesMetadata } from 'src/models'
+import { DistanceMetadata, Series } from 'src/models'
 
 export type MetadataListResponse = {
-    data: SeriesMetadata[]
+    data: DistanceMetadata[]
 }
 
 export async function metadataList(

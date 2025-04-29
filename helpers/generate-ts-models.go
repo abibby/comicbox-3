@@ -42,6 +42,7 @@ func main() {
 		models.UserSeries{},
 		metadata.Staff{},
 		metadata.SeriesMetadata{},
+		metadata.DistanceMetadata{},
 	}
 	enums := []models.Enum{
 		models.PageType(""),

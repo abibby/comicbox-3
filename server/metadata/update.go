@@ -19,6 +19,7 @@ import (
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/di"
+	"github.com/abibby/salusa/extra/sets"
 	"github.com/abibby/salusa/kernel"
 )
 
@@ -67,32 +68,34 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 	series.UpdateField("metadata_id")
 	series.MetadataID = metadata.ID
 
-	if metadata.Title != "" {
+	lockedFields := sets.New(series.LockedFields...)
+
+	if metadata.Title != "" && !lockedFields.Has("name") {
 		series.UpdateField("name")
 		series.Name = metadata.Title
 	}
 
-	if metadata.Description != "" {
+	if metadata.Description != "" && !lockedFields.Has("description") {
 		series.UpdateField("description")
 		series.Description = metadata.Description
 	}
 
-	if len(metadata.Aliases) != 0 {
+	if len(metadata.Aliases) != 0 && !lockedFields.Has("aliases") {
 		series.UpdateField("aliases")
 		series.Aliases = metadata.Aliases
 	}
 
-	if len(metadata.Genres) != 0 {
+	if len(metadata.Genres) != 0 && !lockedFields.Has("genres") {
 		series.UpdateField("genres")
 		series.Genres = metadata.Genres
 	}
 
-	if len(metadata.Tags) != 0 {
+	if len(metadata.Tags) != 0 && !lockedFields.Has("tags") {
 		series.UpdateField("tags")
 		series.Tags = metadata.Tags
 	}
 
-	if metadata.Year != 0 {
+	if metadata.Year != 0 && !lockedFields.Has("year") {
 		series.UpdateField("year")
 		series.Year = nulls.NewInt(metadata.Year)
 	}

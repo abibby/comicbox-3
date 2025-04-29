@@ -66,6 +66,7 @@ export const emptySeries: Readonly<DBSeries> = {
     tags: [],
     year: null,
     directory: '',
+    locked_fields: [],
 }
 
 export const emptyUserBook: Readonly<UserBook> = {

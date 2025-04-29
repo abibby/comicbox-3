@@ -18,6 +18,7 @@ import { useSeries } from 'src/hooks/series'
 import { encode } from 'src/util'
 import { updateSeriesMetadata } from 'src/services/series-service'
 import { TextArea } from 'src/components/form/textarea'
+import { Locker } from 'src/components/form/locker'
 
 export const EditSeries: FunctionalComponent = () => {
     const { close } = useModal()
@@ -64,13 +65,14 @@ export const EditSeries: FunctionalComponent = () => {
                 tags: data.get('tags')?.split('\n') ?? [],
                 description: data.get('description') ?? '',
                 metadata_id: metadataID === '' ? null : metadataID,
+                locked_fields: data.getAll('locked_fields') ?? [],
                 user_series: {
                     list: list,
                 },
             })
             await persist(true)
             if (metadataIDChanged.current) {
-                await updateSeriesMetadata(series.slug)
+                void updateSeriesMetadata(series.slug)
             }
             close()
         },
@@ -96,33 +98,48 @@ export const EditSeries: FunctionalComponent = () => {
                     </ModalHeadActions>
                 </ModalHead>
                 <ModalBody>
-                    <Input title='Name' name='name' value={series?.name} />
+                    <Input title='Name' name='name' value={series?.name}>
+                        <Locker name='name' locked={series?.locked_fields} />
+                    </Input>
                     <Input
                         title='Year'
                         name='year'
                         value={String(series?.year)}
                         type='number'
-                    />
+                    >
+                        <Locker name='year' locked={series?.locked_fields} />
+                    </Input>
                     <TextArea
                         title='Aliases'
                         name='aliases'
                         value={series?.aliases.join('\n')}
-                    />
+                    >
+                        <Locker name='aliases' locked={series?.locked_fields} />
+                    </TextArea>
                     <TextArea
                         title='Genres'
                         name='genres'
                         value={series?.genres.join('\n')}
-                    />
+                    >
+                        <Locker name='genres' locked={series?.locked_fields} />
+                    </TextArea>
                     <TextArea
                         title='Tags'
                         name='tags'
                         value={series?.tags.join('\n')}
-                    />
+                    >
+                        <Locker name='tags' locked={series?.locked_fields} />
+                    </TextArea>
                     <TextArea
                         title='Description'
                         name='description'
                         value={series?.description}
-                    />
+                    >
+                        <Locker
+                            name='description'
+                            locked={series?.locked_fields}
+                        />
+                    </TextArea>
                     <Input
                         title='Metadata ID'
                         name='metadata_id'

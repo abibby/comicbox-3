@@ -190,6 +190,7 @@ export async function persist(
                     genres: s.genres,
                     description: s.description,
                     metadata_id: s.metadata_id,
+                    locked_fields: s.locked_fields,
                     update_map: s.update_map,
                 })
                 result.dirty = 0

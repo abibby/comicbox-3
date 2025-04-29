@@ -11,7 +11,7 @@ export interface Book {
     chapter: number | null
     volume: number | null
     series_slug: string
-    authors: string[]
+    authors: Array<string>
     pages: Array<Page>
     page_count: number
     rtl: boolean
@@ -40,10 +40,11 @@ export interface Series {
     cover_url: string
     metadata_id: string | null
     description: string
-    aliases: string[]
-    genres: string[]
-    tags: string[]
+    aliases: Array<string>
+    genres: Array<string>
+    tags: Array<string>
     year: number | null
+    locked_fields: Array<string>
     user_series: UserSeries | null
 }
 export interface User {
@@ -87,6 +88,20 @@ export interface SeriesMetadata {
     genres: Array<string>
     tags: Array<string>
     publisher: string
+}
+export interface DistanceMetadata {
+    id: string | null
+    service: string
+    title: string
+    year: number
+    description: string
+    aliases: Array<string>
+    cover_image_url: string
+    staff: Array<Staff>
+    genres: Array<string>
+    tags: Array<string>
+    publisher: string
+    match_distance: number
 }
 export enum PageType {
     Deleted = "Deleted",

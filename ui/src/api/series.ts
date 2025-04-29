@@ -40,6 +40,7 @@ interface SeriesUpdateRequest {
     description: string
     year: number | null
     metadata_id: string | null
+    locked_fields: string[]
     update_map: Record<string, string>
 }
 

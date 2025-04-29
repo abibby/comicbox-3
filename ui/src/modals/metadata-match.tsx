@@ -9,7 +9,7 @@ import { useDebouncedAsyncCallback } from 'src/hooks/async'
 import { useModal } from 'src/components/modal-controller'
 import { useSeries } from 'src/hooks/series'
 import { metadataList } from 'src/api/metadata'
-import { SeriesMetadata } from 'src/models'
+import { DistanceMetadata } from 'src/models'
 
 export const MetadataMatch: FunctionalComponent = () => {
     const { params } = useRoute()
@@ -33,7 +33,7 @@ export const MetadataMatch: FunctionalComponent = () => {
         setSearch(series?.name ?? '')
     }, [series])
 
-    let data: SeriesMetadata[] = []
+    let data: DistanceMetadata[] = []
 
     if (result.status === 'success') {
         data = result.data

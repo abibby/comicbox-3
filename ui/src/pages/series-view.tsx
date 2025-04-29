@@ -241,7 +241,7 @@ function SeriesHeader({
                         id: currentBook?.id ?? liveBooks[0]?.id ?? '',
                     })}
                 >
-                    {isOnFirstBook ? 'Start Reading' : 'Continue Reading'}
+                    Read
                 </Button>
                 <Button color='clear' icon={Edit} onClick={editSeries} />
                 <SelectButton

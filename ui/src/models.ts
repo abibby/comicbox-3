@@ -11,7 +11,7 @@ export interface Book {
     chapter: number | null
     volume: number | null
     series_slug: string
-    authors: Array<string>
+    authors: string[]
     pages: Array<Page>
     page_count: number
     rtl: boolean
@@ -40,9 +40,9 @@ export interface Series {
     cover_url: string
     metadata_id: string | null
     description: string
-    aliases: Array<string>
-    genres: Array<string>
-    tags: Array<string>
+    aliases: string[]
+    genres: string[]
+    tags: string[]
     year: number | null
     user_series: UserSeries | null
 }

@@ -8,6 +8,7 @@ import (
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/anilist"
+	"github.com/abibby/salusa/extra/sets"
 )
 
 type AnilistMetaProvider struct {
@@ -81,12 +82,13 @@ func anilistStaffRoles(staffRole string) []StaffRole {
 	return roles
 }
 func anilistSeriesMetadata(media *anilist.SearchPageMedia, name string) SeriesMetadata {
-	titles := []string{}
-	if media.Title.English != "" {
-		titles = append(titles, media.Title.English)
-	}
-	if media.Title.Romaji != "" {
-		titles = append(titles, media.Title.Romaji)
+	titleSet := sets.NewSliceSet[string]()
+	titleSet.Add(media.Title.English, media.Title.Romaji)
+	titleSet.Add(media.Synonyms...)
+	titleSet.Delete("")
+	titles := make([]string, 0, titleSet.Len())
+	for title := range titleSet.All() {
+		titles = append(titles, title)
 	}
 
 	tags := make([]string, len(media.Tags))

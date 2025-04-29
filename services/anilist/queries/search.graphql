@@ -10,6 +10,7 @@ query Search($search: String, $id: Int) {
         romaji
         english
       }
+      synonyms
       coverImage {
         extraLarge
       }

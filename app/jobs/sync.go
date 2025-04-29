@@ -26,7 +26,7 @@ import (
 	"github.com/abibby/nulls"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/set"
+	"github.com/abibby/salusa/extra/sets"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -139,8 +139,8 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 	return series, nil
 }
 
-func getBookFiles(ctx context.Context, libraryPath string) (set.Set[string], error) {
-	bookFiles := set.New[string]()
+func getBookFiles(ctx context.Context, libraryPath string) (sets.Set[string], error) {
+	bookFiles := sets.New[string]()
 
 	err := symwalk.Walk(libraryPath, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {

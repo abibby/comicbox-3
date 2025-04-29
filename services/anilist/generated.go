@@ -33,6 +33,8 @@ type SearchPageMedia struct {
 	Id int `json:"id"`
 	// The official titles of the media in various languages
 	Title SearchPageMediaTitle `json:"title"`
+	// Alternative titles of the media
+	Synonyms []string `json:"synonyms"`
 	// The cover images of the media
 	CoverImage SearchPageMediaCoverImage `json:"coverImage"`
 	// The first official release date of the media
@@ -52,6 +54,9 @@ func (v *SearchPageMedia) GetId() int { return v.Id }
 
 // GetTitle returns SearchPageMedia.Title, and is useful for accessing the field via an interface.
 func (v *SearchPageMedia) GetTitle() SearchPageMediaTitle { return v.Title }
+
+// GetSynonyms returns SearchPageMedia.Synonyms, and is useful for accessing the field via an interface.
+func (v *SearchPageMedia) GetSynonyms() []string { return v.Synonyms }
 
 // GetCoverImage returns SearchPageMedia.CoverImage, and is useful for accessing the field via an interface.
 func (v *SearchPageMedia) GetCoverImage() SearchPageMediaCoverImage { return v.CoverImage }
@@ -219,6 +224,7 @@ query Search ($search: String, $id: Int) {
 				romaji
 				english
 			}
+			synonyms
 			coverImage {
 				extraLarge
 			}

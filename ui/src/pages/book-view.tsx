@@ -109,8 +109,15 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 return
             }
             if (Number(newMergedPage) >= pages.length) {
-                if (nextBookID) {
-                    navigate(route('book.view', { id: nextBookID }))
+                if (nextBook?.id) {
+                    navigate(
+                        route('book.view', {
+                            id: nextBook.id,
+                            page: translate(nextBook, 0)
+                                .from('activePage')
+                                .to('sourcePage'),
+                        }),
+                    )
                 } else {
                     navigate(route('home', {}))
                 }

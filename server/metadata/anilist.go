@@ -82,7 +82,7 @@ func anilistStaffRoles(staffRole string) []StaffRole {
 	return roles
 }
 func anilistSeriesMetadata(media *anilist.SearchPageMedia, name string) SeriesMetadata {
-	titleSet := sets.NewSliceSet[string]()
+	titleSet := sets.NewOrderedSet[string]()
 	titleSet.Add(media.Title.English, media.Title.Romaji)
 	titleSet.Add(media.Synonyms...)
 	titleSet.Delete("")

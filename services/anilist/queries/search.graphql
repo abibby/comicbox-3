@@ -4,7 +4,13 @@ query Search($search: String, $id: Int) {
     pageInfo {
       total
     }
-    media(type: MANGA, format: MANGA, search: $search, id: $id) {
+    media(
+      type: MANGA
+      format: MANGA
+      isAdult: false
+      search: $search
+      id: $id
+    ) {
       id
       title {
         romaji

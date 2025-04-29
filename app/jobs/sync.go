@@ -47,8 +47,6 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 	syncMtx.Lock()
 	defer syncMtx.Unlock()
 
-	defer h.Queue.Push(&events.UpdateMetadataEvent{})
-
 	h.seriesCache = map[string]*models.Series{}
 
 	log.Print("Starting sync")
@@ -132,6 +130,8 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 			if err != nil {
 				return nil, err
 			}
+
+			h.Queue.Push(&events.UpdateMetadataEvent{SeriesSlug: series.Slug})
 		}
 		h.seriesCache[name] = series
 	}

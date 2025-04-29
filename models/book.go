@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"path"
 	"sort"
 	"strings"
@@ -77,6 +78,7 @@ type Book struct {
 	Series     *builder.BelongsTo[*Series]  `json:"series"    db:"-" foreign:"series" owner:"name"`
 
 	originalSeriesSlug string
+	saved              bool
 }
 
 func BookQuery(ctx context.Context) *builder.ModelBuilder[*Book] {
@@ -122,12 +124,15 @@ func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 	return nil
 }
 func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
-	err := b.updateUserSeries(ctx, tx)
-	if err != nil {
-		return err
+	slog.Error("save book", "book", b.Sort, "saved", b.saved)
+	if !b.saved {
+		err := b.updateUserSeries(ctx, tx)
+		if err != nil {
+			return err
+		}
 	}
 	if b.originalSeriesSlug != b.SeriesSlug {
-		err = DeleteEmptySeries(ctx, tx)
+		err := DeleteEmptySeries(ctx, tx)
 		if err != nil {
 			return err
 		}
@@ -138,11 +143,16 @@ func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
 }
 
 func (b *Book) updateUserSeries(ctx context.Context, tx database.DB) error {
-	userSeries, err := UserSeriesQuery(ctx).Where("series_name", "=", b.SeriesSlug).Get(tx)
+	userSeries, err := UserSeriesQuery(ctx).WithoutGlobalScope(UserScoped).Where("series_name", "=", b.SeriesSlug).Get(tx)
 	if err != nil {
 		return err
 	}
 	for _, us := range userSeries {
+		slog.Error("update user series",
+			"user", us.UserID,
+			"series", us.SeriesSlug,
+			"latest_book", us.LatestBookID,
+			"book", b.Sort)
 		if us.LatestBookID.Valid {
 			continue
 		}
@@ -171,6 +181,7 @@ func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
 	return nil
 }
 func (b *Book) updateOriginals() {
+	b.saved = true
 	b.originalSeriesSlug = b.SeriesSlug
 }
 func (b *Book) CoverPage() int {

@@ -141,6 +141,12 @@ export const EditSeries: FunctionalComponent = () => {
                         />
                     </TextArea>
                     <Input
+                        title='Directory'
+                        name='directory'
+                        readonly
+                        value={series?.directory}
+                    />
+                    <Input
                         title='Metadata ID'
                         name='metadata_id'
                         value={metadataID}

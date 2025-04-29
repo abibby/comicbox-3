@@ -30,8 +30,13 @@ export const MetadataMatch: FunctionalComponent = () => {
     const [series] = useSeries(seriesSlug)
 
     useEffect(() => {
-        setSearch(series?.name ?? '')
-    }, [series])
+        if (!series?.directory) {
+            setSearch('')
+            return
+        }
+        const idx = series.directory.lastIndexOf('/')
+        setSearch(series.directory.slice(idx + 1))
+    }, [series?.directory])
 
     let data: DistanceMetadata[] = []
 

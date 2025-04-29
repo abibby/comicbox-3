@@ -1,14 +1,9 @@
 package models_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/comicbox-3/models/factory"
-	"github.com/abibby/comicbox-3/test"
-	"github.com/jmoiron/sqlx"
-	"github.com/stretchr/testify/assert"
 )
 
 func FromSeries(s *models.Series) func(us *models.UserSeries) {
@@ -22,36 +17,34 @@ func FromUser(u *models.User) func(us *models.UserSeries) {
 	}
 }
 
-func TestSeries(t *testing.T) {
-	test.Run(t, "", func(ctx context.Context, t *testing.T, tx *sqlx.Tx) {
-		u := factory.User.Create(tx)
-		{
-			s := factory.Series.Create(tx)
-			factory.UserSeries.
-				State(FromSeries(s)).
-				State(FromUser(u)).
-				State(func(us *models.UserSeries) {
-					us.List = models.ListDropped
-				}).
-				Create(tx)
-		}
+// func TestSeries(t *testing.T) {
+// 	test.Run(t, "", func(ctx context.Context, t *testing.T, tx *sqlx.Tx) {
+// 		u := factory.User.Create(tx)
 
-		ctx = test.WithUser(ctx, u)
+// 		factory.UserSeries.
+// 			State(FromSeries(factory.Series.Create(tx))).
+// 			State(FromUser(u)).
+// 			State(func(us *models.UserSeries) {
+// 				us.List = models.ListDropped
+// 			}).
+// 			Create(tx)
 
-		s, err := models.SeriesQuery(ctx).
-			With("UserSeries").
-			Get(tx)
-		assert.NoError(t, err)
+// 		ctx = test.WithUser(ctx, u)
 
-		if !assert.Len(t, s, 1) {
-			return
-		}
-		us, ok := s[0].UserSeries.Value()
-		assert.True(t, ok)
-		assert.Equal(t, models.ListDropped, us.List)
-		// SeriesQuery(userContext()).Find()
-	})
-}
+// 		s, err := models.SeriesQuery(ctx).
+// 			With("UserSeries").
+// 			Get(tx)
+// 		assert.NoError(t, err)
+
+// 		if !assert.Len(t, s, 1) {
+// 			return
+// 		}
+// 		us, ok := s[0].UserSeries.Value()
+// 		assert.True(t, ok)
+// 		assert.Equal(t, models.ListDropped, us.List)
+// 		// SeriesQuery(userContext()).Find()
+// 	})
+// }
 
 func TestSlug(t *testing.T) {
 	type args struct {

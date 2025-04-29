@@ -3,7 +3,6 @@ package models_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
@@ -24,9 +23,7 @@ func TestUserSeries_save(t *testing.T) {
 		di.RegisterSingleton(ctx, func() router.URLResolver {
 			return router.NewTestResolver()
 		})
-		time.Sleep(time.Second)
-		_, err := di.Resolve[router.URLResolver](ctx)
-		assert.NoError(t, err)
+
 		seriesSlug := "slug"
 		chapter := float64(0)
 

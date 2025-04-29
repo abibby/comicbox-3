@@ -85,6 +85,7 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
                     <input
                         style={{
                             '--value': displayPage,
+                            '--min': 1,
                             '--max': maxDisplayPage,
                         }}
                         class={styles.range}

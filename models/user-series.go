@@ -83,6 +83,9 @@ func (s *UserSeries) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 		if err != nil {
 			return err
 		}
+		if b == nil {
+			return nil
+		}
 		s.LatestBookID = uuid.NullUUID{Valid: true, UUID: b.ID}
 	}
 	s.saved = true

@@ -211,8 +211,6 @@ function SeriesHeader({
 
     const coverURL = useImageURL(series?.cover_url)
 
-    const isOnFirstBook = !currentBook || currentBook.id === liveBooks[0]?.id
-
     return (
         <section class={styles.header}>
             <img class={styles.cover} src={coverURL} alt='Series Cover' />

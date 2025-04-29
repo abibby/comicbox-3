@@ -70,7 +70,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     const previousBook = usePreviousBook(book)
 
     const bookID = book.id
-    const nextBookID = nextBook?.id
     const previousBookID = previousBook?.id
 
     const setSourcePage = useCallback(
@@ -123,7 +122,7 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                 }
                 await DB.saveSeries(props.series, {
                     user_series: {
-                        latest_book_id: nextBookID,
+                        latest_book_id: nextBook?.id,
                     },
                 })
                 await persist(true)
@@ -149,8 +148,8 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
             pages,
             book,
             setSourcePage,
+            nextBook,
             props.series,
-            nextBookID,
             navigate,
             previousBookID,
         ],

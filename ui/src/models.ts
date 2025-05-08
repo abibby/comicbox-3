@@ -137,30 +137,30 @@ export interface PageUpdate {
     type: string
 }
 export enum PageType {
-    Deleted = "Deleted",
-    FrontCover = "FrontCover",
-    Spread = "Spread",
-    SpreadSplit = "SpreadSplit",
-    Story = "Story",
+    Deleted = 'Deleted',
+    FrontCover = 'FrontCover',
+    Spread = 'Spread',
+    SpreadSplit = 'SpreadSplit',
+    Story = 'Story',
 }
 export enum List {
-    Completed = "completed",
-    Dropped = "dropped",
-    None = "",
-    Paused = "paused",
-    Planning = "planning",
-    Reading = "reading",
+    Completed = 'completed',
+    Dropped = 'dropped',
+    None = '',
+    Paused = 'paused',
+    Planning = 'planning',
+    Reading = 'reading',
 }
 export enum SeriesOrder {
-    CreatedAt = "created_at",
-    LastRead = "last-read",
-    Name = "name",
+    CreatedAt = 'created_at',
+    LastRead = 'last-read',
+    Name = 'name',
 }
 export enum StaffRole {
-    RoleArtist = "artist",
-    RoleAssistant = "assistant",
-    RoleEditor = "editor",
-    RoleLetterer = "letterer",
-    RoleTranslator = "translator",
-    RoleWriter = "writer",
+    RoleArtist = 'artist',
+    RoleAssistant = 'assistant',
+    RoleEditor = 'editor',
+    RoleLetterer = 'letterer',
+    RoleTranslator = 'translator',
+    RoleWriter = 'writer',
 }

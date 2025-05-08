@@ -90,7 +90,6 @@ func generateTsInterfaceProps(t reflect.Type) string {
 		}
 		name, ok := sf.Tag.Lookup("json")
 		if !ok {
-			// name = sf.Name
 			continue
 		}
 		if name == "-" {

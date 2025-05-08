@@ -11,7 +11,6 @@ import {
     ModalHeadActions,
 } from 'src/components/modal'
 import { DB } from 'src/database'
-import { List } from 'src/models'
 import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { useSeries } from 'src/hooks/series'
@@ -49,11 +48,6 @@ export const EditSeries: FunctionalComponent = () => {
             if (!series) {
                 return
             }
-            let list: List = List.None
-            const rawList = data.get('list')
-            if (inEnum(List, rawList)) {
-                list = rawList
-            }
 
             const yearStr = data.get('year')
 
@@ -66,9 +60,6 @@ export const EditSeries: FunctionalComponent = () => {
                 description: data.get('description') ?? '',
                 metadata_id: metadataID === '' ? null : metadataID,
                 locked_fields: data.getAll('locked_fields') ?? [],
-                user_series: {
-                    list: list,
-                },
             })
             await persist(true)
             if (metadataIDChanged.current) {
@@ -158,11 +149,4 @@ export const EditSeries: FunctionalComponent = () => {
             </Form>
         </Modal>
     )
-}
-
-function inEnum(e: typeof List, v: unknown): v is List {
-    if (typeof v !== 'string' && typeof v !== 'number') {
-        return false
-    }
-    return Object.values(e).includes(v as List)
 }

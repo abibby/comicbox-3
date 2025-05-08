@@ -2,26 +2,26 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/salusa/database/model"
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
-type UpdateUserSeriesRequest struct {
-	SeriesSlug   string            `url:"slug"`
-	List         models.List       `json:"list"`
-	LatestBookID uuid.NullUUID     `json:"latest_book_id"`
-	UpdateMap    map[string]string `json:"update_map" validate:"require"`
+type UserSeriesUpdateRequest struct {
+	SeriesSlug string            `url:"slug"`
+	List       models.List       `json:"list"`
+	LastReadAt time.Time         `json:"last_read_at"`
+	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
 
 func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
-	req := &UpdateUserSeriesRequest{}
+	req := &UserSeriesUpdateRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
 		sendError(rw, err)
@@ -53,9 +53,8 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 		if shouldUpdate(us.UpdateMap, req.UpdateMap, "list") {
 			us.List = req.List
 		}
-
-		if shouldUpdate(us.UpdateMap, req.UpdateMap, "latest_book_id") {
-			us.LatestBookID = req.LatestBookID
+		if shouldUpdate(us.UpdateMap, req.UpdateMap, "last_read_at") {
+			us.LastReadAt = database.Time(req.LastReadAt)
 		}
 
 		err = model.SaveContext(r.Context(), tx, us)

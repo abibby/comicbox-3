@@ -179,7 +179,7 @@ var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, erro
 	if err != nil {
 		return nil, err
 	}
-	f, err := os.Open(series.CoverImagePath)
+	f, err := os.Open(series.CoverImagePath())
 	if err != nil {
 		return nil, err
 	}

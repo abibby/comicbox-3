@@ -103,6 +103,39 @@ export interface DistanceMetadata {
     publisher: string
     match_distance: number
 }
+export interface UserSeriesUpdateRequest {
+    list: List
+    last_read_at: string
+    update_map: Record<string, string>
+}
+export interface UserBookUpdateRequest {
+    current_page: number
+    update_map: Record<string, string>
+}
+export interface BookUpdateRequest {
+    title: string
+    series_slug: string
+    volume: number | null
+    chapter: number | null
+    rtl: boolean
+    long_strip: boolean
+    pages: Array<PageUpdate>
+    update_map: Record<string, string>
+}
+export interface SeriesUpdateRequest {
+    name: string
+    aliases: Array<string>
+    genres: Array<string>
+    tags: Array<string>
+    description: string
+    year: number | null
+    metadata_id: string | null
+    locked_fields: Array<string>
+    update_map: Record<string, string>
+}
+export interface PageUpdate {
+    type: string
+}
 export enum PageType {
     Deleted = "Deleted",
     FrontCover = "FrontCover",

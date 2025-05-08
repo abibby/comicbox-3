@@ -43,6 +43,11 @@ func main() {
 		metadata.Staff{},
 		metadata.SeriesMetadata{},
 		metadata.DistanceMetadata{},
+		controllers.UserSeriesUpdateRequest{},
+		controllers.UserBookUpdateRequest{},
+		controllers.BookUpdateRequest{},
+		controllers.SeriesUpdateRequest{},
+		controllers.PageUpdate{},
 	}
 	enums := []models.Enum{
 		models.PageType(""),
@@ -85,7 +90,8 @@ func generateTsInterfaceProps(t reflect.Type) string {
 		}
 		name, ok := sf.Tag.Lookup("json")
 		if !ok {
-			name = sf.Name
+			// name = sf.Name
+			continue
 		}
 		if name == "-" {
 			continue

@@ -16,25 +16,26 @@ import (
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
+	"github.com/abibby/salusa/database/jsoncolumn"
 	"github.com/abibby/salusa/database/model/modeldi"
 )
 
 //go:generate spice generate:migration
 type Series struct {
 	BaseModel
-	Slug              string         `json:"slug"          db:"name,primary"`
-	Name              string         `json:"name"          db:"display_name"`
-	Directory         string         `json:"directory"     db:"directory"`
-	CoverURL          string         `json:"cover_url"     db:"-"`
-	MetadataID        *MetadataID    `json:"metadata_id"   db:"metadata_id,nullable"`
-	Description       string         `json:"description"   db:"description"`
-	Aliases           JSONStrings    `json:"aliases"       db:"aliases"`
-	Genres            JSONStrings    `json:"genres"        db:"genres"`
-	Tags              JSONStrings    `json:"tags"          db:"tags"`
-	Year              *nulls.Int     `json:"year"          db:"year"`
-	CoverImagePath    string         `json:"-"             db:"cover_image_path"`
-	MetadataUpdatedAt *database.Time `json:"-"             db:"metadata_updated_at"`
-	LockedFields      JSONStrings    `json:"locked_fields" db:"locked_fields"`
+	Slug              string                   `json:"slug"          db:"name,primary"`
+	Name              string                   `json:"name"          db:"display_name"`
+	Directory         string                   `json:"directory"     db:"directory"`
+	CoverURL          string                   `json:"cover_url"     db:"-"`
+	MetadataID        *MetadataID              `json:"metadata_id"   db:"metadata_id,nullable"`
+	Description       string                   `json:"description"   db:"description"`
+	Aliases           jsoncolumn.Slice[string] `json:"aliases"       db:"aliases"`
+	Genres            jsoncolumn.Slice[string] `json:"genres"        db:"genres"`
+	Tags              jsoncolumn.Slice[string] `json:"tags"          db:"tags"`
+	Year              *nulls.Int               `json:"year"          db:"year"`
+	CoverImage        string                   `json:"-"             db:"cover_image_path"`
+	MetadataUpdatedAt *database.Time           `json:"-"             db:"metadata_updated_at"`
+	LockedFields      jsoncolumn.Slice[string] `json:"locked_fields" db:"locked_fields"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
 }
@@ -102,6 +103,9 @@ func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 }
 func (s *Series) DirectoryPath() string {
 	return path.Join(config.LibraryPath, s.Directory)
+}
+func (s *Series) CoverImagePath() string {
+	return path.Join(config.LibraryPath, s.CoverImage)
 }
 
 func Slug(s string) string {

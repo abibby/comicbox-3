@@ -16,7 +16,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type UpdateUserBookRequest struct {
+type UserBookUpdateRequest struct {
 	BookID      string            `path:"id"            validate:"uuid"`
 	CurrentPage int               `json:"current_page" validate:"require|min:0" model:"current_page"`
 	UpdateMap   map[string]string `json:"update_map"   validate:"require"`
@@ -24,7 +24,7 @@ type UpdateUserBookRequest struct {
 	Ctx context.Context `inject:""`
 }
 
-var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.UserBook, error) {
+var UserBookUpdate = request.Handler(func(r *UserBookUpdateRequest) (*models.UserBook, error) {
 	uid, ok := auth.UserID(r.Ctx)
 	if !ok {
 		return nil, ErrUnauthorized

@@ -3,19 +3,20 @@ package models
 import (
 	"archive/zip"
 	"context"
-	"encoding/json"
 	"fmt"
-	"log/slog"
 	"path"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/abibby/comicbox-3/config"
+	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
+	"github.com/abibby/salusa/database/jsoncolumn"
 	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
 )
@@ -58,20 +59,19 @@ const (
 //go:generate spice generate:migration
 type Book struct {
 	BaseModel
-	ID          uuid.UUID      `json:"id"          db:"id,primary"`
-	Title       string         `json:"title"       db:"title"`
-	Chapter     *nulls.Float64 `json:"chapter"     db:"chapter"`
-	Volume      *nulls.Float64 `json:"volume"      db:"volume"`
-	SeriesSlug  string         `json:"series_slug" db:"series"`
-	Authors     JSONStrings    `json:"authors"     db:"authors,type:json"`
-	Pages       []*Page        `json:"pages"       db:"-"`
-	RawPages    []byte         `json:"-"           db:"pages,type:json"`
-	PageCount   int            `json:"page_count"  db:"page_count"`
-	RightToLeft bool           `json:"rtl"         db:"rtl"`
-	LongStrip   bool           `json:"long_strip"  db:"long_strip"`
-	Sort        string         `json:"sort"        db:"sort,index"`
-	File        string         `json:"file"        db:"file"`
-	CoverURL    string         `json:"cover_url"   db:"-"`
+	ID          uuid.UUID                `json:"id"          db:"id,primary"`
+	Title       string                   `json:"title"       db:"title"`
+	Chapter     *nulls.Float64           `json:"chapter"     db:"chapter"`
+	Volume      *nulls.Float64           `json:"volume"      db:"volume"`
+	SeriesSlug  string                   `json:"series_slug" db:"series"`
+	Authors     jsoncolumn.Slice[string] `json:"authors"     db:"authors,type:json"`
+	Pages       jsoncolumn.Slice[*Page]  `json:"pages"       db:"pages"`
+	PageCount   int                      `json:"page_count"  db:"page_count"`
+	RightToLeft bool                     `json:"rtl"         db:"rtl"`
+	LongStrip   bool                     `json:"long_strip"  db:"long_strip"`
+	Sort        string                   `json:"sort"        db:"sort,index"`
+	File        string                   `json:"file"        db:"file"`
+	CoverURL    string                   `json:"cover_url"   db:"-"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
@@ -90,7 +90,7 @@ var _ hooks.AfterSaver = &Book{}
 
 var _ hooks.AfterLoader = &Book{}
 
-func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
+func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	if b.Authors == nil {
 		b.Authors = []string{}
 	}
@@ -100,10 +100,6 @@ func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 		for i, page := range b.Pages {
 			basePages[i] = &page.BasePage
 		}
-	}
-	err := marshal(&b.RawPages, basePages)
-	if err != nil {
-		return err
 	}
 
 	b.PageCount = len(b.Pages)
@@ -123,14 +119,43 @@ func (b *Book) BeforeSave(ctx context.Context, tx database.DB) error {
 
 	return nil
 }
-func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
-	slog.Error("save book", "book", b.Sort, "saved", b.saved)
+func (b *Book) AfterSave(ctx context.Context, tx salusadb.DB) error {
 	if !b.saved {
 		err := b.updateUserSeries(ctx, tx)
 		if err != nil {
 			return err
 		}
 	}
+
+	_, err := tx.ExecContext(ctx, `
+		update
+			user_series
+		set
+			latest_book_id = (
+				select
+					books.id
+				from
+					books
+				left join user_books on
+					books.id = user_books.book_id
+					and user_series.user_id = user_books.user_id
+				where
+					(user_books.current_page is null
+						or user_books.current_page < books.page_count - 1)
+					and books.series = user_series.series_name
+					and books.page_count > 1
+				order by
+					sort
+				limit 1
+			),
+			updated_at = ?
+		where
+			user_series.series_name in (?, ?)
+	`, database.Time(time.Now()), b.originalSeriesSlug, b.SeriesSlug)
+	if err != nil {
+		return err
+	}
+
 	if b.originalSeriesSlug != b.SeriesSlug {
 		err := DeleteEmptySeries(ctx, tx)
 		if err != nil {
@@ -142,17 +167,12 @@ func (b *Book) AfterSave(ctx context.Context, tx database.DB) error {
 	return nil
 }
 
-func (b *Book) updateUserSeries(ctx context.Context, tx database.DB) error {
+func (b *Book) updateUserSeries(ctx context.Context, tx salusadb.DB) error {
 	userSeries, err := UserSeriesQuery(ctx).WithoutGlobalScope(UserScoped).Where("series_name", "=", b.SeriesSlug).Get(tx)
 	if err != nil {
 		return err
 	}
 	for _, us := range userSeries {
-		slog.Error("update user series",
-			"user", us.UserID,
-			"series", us.SeriesSlug,
-			"latest_book", us.LatestBookID,
-			"book", b.Sort)
 		if us.LatestBookID.Valid {
 			continue
 		}
@@ -165,12 +185,7 @@ func (b *Book) updateUserSeries(ctx context.Context, tx database.DB) error {
 	return nil
 }
 
-func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
-	err := json.Unmarshal(b.RawPages, &b.Pages)
-	if err != nil {
-		return err
-	}
-
+func (b *Book) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	for i, page := range b.Pages {
 		page.URL = router.MustURL(ctx, "book.page", "id", b.ID.String(), "page", fmt.Sprint(i))
 		page.ThumbnailURL = router.MustURL(ctx, "book.thumbnail", "id", b.ID.String(), "page", fmt.Sprint(i))
@@ -180,10 +195,12 @@ func (b *Book) AfterLoad(ctx context.Context, tx database.DB) error {
 	b.updateOriginals()
 	return nil
 }
+
 func (b *Book) updateOriginals() {
 	b.saved = true
 	b.originalSeriesSlug = b.SeriesSlug
 }
+
 func (b *Book) CoverPage() int {
 	fallback := 0
 	for i, page := range b.Pages {
@@ -196,9 +213,11 @@ func (b *Book) CoverPage() int {
 	}
 	return fallback
 }
+
 func (b *Book) FilePath() string {
 	return path.Join(config.LibraryPath, b.File)
 }
+
 func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
 	sort.Slice(reader.File, func(i, j int) bool {
 		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0

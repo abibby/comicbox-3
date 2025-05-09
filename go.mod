@@ -8,7 +8,7 @@ require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.3.2
 	github.com/Khan/genqlient v0.8.0
 	github.com/abibby/nulls v1.1.0
-	github.com/abibby/salusa v0.20.1
+	github.com/abibby/salusa v0.20.2
 	github.com/agnivade/levenshtein v1.2.1
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
 	github.com/go-faker/faker/v4 v4.1.0

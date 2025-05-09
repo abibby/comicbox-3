@@ -57,10 +57,6 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 			us.LastReadAt = database.Time(req.LastReadAt)
 		}
 
-		if shouldUpdate(us.UpdateMap, req.UpdateMap, "latest_book_id") {
-			us.LatestBookID = req.LatestBookID
-		}
-
 		err = model.SaveContext(r.Context(), tx, us)
 		return errors.Wrap(err, "")
 	})

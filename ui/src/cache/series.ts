@@ -2,7 +2,7 @@ import Dexie, { Collection } from 'dexie'
 import { AllPagesRequest } from 'src/api/internal'
 import { SeriesListRequest } from 'src/api/series'
 import { DB, emptyUserSeries } from 'src/database'
-import { Book, Series, SeriesOrder } from 'src/models'
+import { Series, SeriesOrder } from 'src/models'
 
 export async function seriesCache(
     req: AllPagesRequest<SeriesListRequest>,
@@ -45,15 +45,16 @@ export async function seriesCache(
 
     await Promise.all(
         series.map(async (s): Promise<void> => {
-            let latestBook: Book | undefined
-            if (s.user_series?.latest_book_id) {
-                latestBook = await DB.books.get(s.user_series.latest_book_id)
-            }
+            const latestBook = await DB.books
+                .where(['series_slug', 'completed', 'sort'])
+                .between([s.slug, 0, Dexie.minKey], [s.slug, 0, Dexie.maxKey])
+                .first()
 
             s.user_series = {
                 ...emptyUserSeries,
                 ...s.user_series,
                 latest_book: latestBook ?? null,
+                latest_book_id: latestBook?.id ?? null,
             }
         }),
     )

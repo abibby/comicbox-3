@@ -279,10 +279,12 @@ class AppDatabase extends Dexie {
         }
         for (const s of series) {
             updatedSeries.push(s)
+            readBookPromises.push(this.readBooks(s))
 
             if (s.user_series?.latest_book) {
                 updatedBooks.push(s.user_series.latest_book)
                 s.user_series.latest_book = null
+                s.user_series.latest_book_id = null
             }
         }
 
@@ -309,6 +311,33 @@ class AppDatabase extends Dexie {
                     return { ...v, dirty: 0 }
                 }
                 return updateNewerFields(oldItem, v)
+            }),
+        )
+    }
+
+    async readBooks(s: Series) {
+        if (!s.user_series?.latest_book_id) {
+            return
+        }
+
+        const book = await this.books.get(s.user_series.latest_book_id)
+
+        const unreadBooks = await this.books
+            .where(['series_slug', 'completed', 'sort'])
+            .between(
+                [s.slug, 0, Dexie.minKey],
+                [s.slug, 0, book?.sort ?? Dexie.maxKey],
+            )
+            .toArray()
+
+        await this.books.bulkPut(
+            unreadBooks.map(b => {
+                b.user_book = {
+                    ...emptyUserBook,
+                    ...b.user_book,
+                    current_page: b.page_count - 1,
+                }
+                return b
             }),
         )
     }

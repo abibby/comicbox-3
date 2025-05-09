@@ -7,10 +7,8 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	salusadb "github.com/abibby/salusa/database"
@@ -127,31 +125,7 @@ func (b *Book) AfterSave(ctx context.Context, tx salusadb.DB) error {
 		}
 	}
 
-	_, err := tx.ExecContext(ctx, `
-		update
-			user_series
-		set
-			latest_book_id = (
-				select
-					books.id
-				from
-					books
-				left join user_books on
-					books.id = user_books.book_id
-					and user_series.user_id = user_books.user_id
-				where
-					(user_books.current_page is null
-						or user_books.current_page < books.page_count - 1)
-					and books.series = user_series.series_name
-					and books.page_count > 1
-				order by
-					sort
-				limit 1
-			),
-			updated_at = ?
-		where
-			user_series.series_name in (?, ?)
-	`, database.Time(time.Now()), b.originalSeriesSlug, b.SeriesSlug)
+	err := UpdateUserSeriesLatestBookID(ctx, tx, []string{b.SeriesSlug})
 	if err != nil {
 		return err
 	}

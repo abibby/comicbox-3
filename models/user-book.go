@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/google/uuid"
 )
@@ -28,4 +29,19 @@ func (b *UserBook) Scopes() []*builder.Scope {
 	return []*builder.Scope{
 		UserScoped,
 	}
+}
+
+func (ub *UserBook) AfterSave(ctx context.Context, tx salusadb.DB) error {
+	err := builder.LoadMissing(tx, ub, "Book")
+	if err != nil {
+		return err
+	}
+	b, _ := ub.Book.Value()
+	if b != nil {
+		err = UpdateUserSeriesLatestBookID(ctx, tx, []string{b.SeriesSlug})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

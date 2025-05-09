@@ -1,10 +1,5 @@
 import { apiFetch } from 'src/api/internal'
-import { UserBook } from 'src/models'
-
-interface UserBookUpdateRequest {
-    current_page: number
-    update_map: Record<string, string>
-}
+import { UserBook, UserBookUpdateRequest } from 'src/models'
 
 export async function update(
     bookID: string,

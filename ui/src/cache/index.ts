@@ -200,7 +200,6 @@ export async function persist(
                             s.slug,
                             {
                                 list: s.user_series.list,
-                                latest_book_id: s.user_series.latest_book_id,
                                 last_read_at: s.user_series.last_read_at,
                                 update_map: s.user_series.update_map,
                             },

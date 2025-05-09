@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -16,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type UpdateUserBookRequest struct {
+type UserBookUpdateRequest struct {
 	BookID      string            `path:"id"            validate:"uuid"`
 	CurrentPage int               `json:"current_page" validate:"require|min:0" model:"current_page"`
 	UpdateMap   map[string]string `json:"update_map"   validate:"require"`
@@ -24,7 +22,7 @@ type UpdateUserBookRequest struct {
 	Ctx context.Context `inject:""`
 }
 
-var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.UserBook, error) {
+var UserBookUpdate = request.Handler(func(r *UserBookUpdateRequest) (*models.UserBook, error) {
 	uid, ok := auth.UserID(r.Ctx)
 	if !ok {
 		return nil, ErrUnauthorized
@@ -50,24 +48,24 @@ var UserBookUpdate = request.Handler(func(r *UpdateUserBookRequest) (*models.Use
 		if shouldUpdate(ub.UpdateMap, r.UpdateMap, "current_page") {
 			ub.CurrentPage = r.CurrentPage
 
-			b, err := models.BookQuery(r.Ctx).With("UserSeries").Find(tx, r.BookID)
-			if err != nil {
-				return fmt.Errorf("failed to find book: %w", err)
-			}
+			// b, err := models.BookQuery(r.Ctx).With("UserSeries").Find(tx, r.BookID)
+			// if err != nil {
+			// 	return fmt.Errorf("failed to find book: %w", err)
+			// }
 
-			us, _ := b.UserSeries.Value()
-			if us == nil {
-				uid, _ := auth.UserID(r.Ctx)
-				us = &models.UserSeries{
-					UserID:     uid,
-					SeriesSlug: b.SeriesSlug,
-				}
-			}
-			us.LastReadAt = database.Time(time.Now())
-			err = model.SaveContext(r.Ctx, tx, us)
-			if err != nil {
-				return fmt.Errorf("failed to save user series: %w", err)
-			}
+			// us, _ := b.UserSeries.Value()
+			// if us == nil {
+			// 	uid, _ := auth.UserID(r.Ctx)
+			// 	us = &models.UserSeries{
+			// 		UserID:     uid,
+			// 		SeriesSlug: b.SeriesSlug,
+			// 	}
+			// }
+			// us.LastReadAt = database.Time(time.Now())
+			// err = model.SaveContext(r.Ctx, tx, us)
+			// if err != nil {
+			// 	return fmt.Errorf("failed to save user series: %w", err)
+			// }
 
 		}
 		ub.DeletedAt = nil

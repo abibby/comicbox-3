@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	salusadb "github.com/abibby/salusa/database"
@@ -90,4 +91,44 @@ func (s *UserSeries) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	}
 	s.saved = true
 	return nil
+}
+
+func UpdateUserSeriesLatestBookID(ctx context.Context, tx salusadb.DB, seriesSlugs []string) error {
+	bindings := make([]any, len(seriesSlugs)+1)
+	bindings[0] = database.Time(time.Now())
+	for i, v := range seriesSlugs {
+		bindings[i+1] = v
+	}
+	questions := ""
+	for range len(seriesSlugs) {
+		questions += "?, "
+	}
+	questions = questions[:len(questions)-2]
+	_, err := tx.ExecContext(ctx, `
+		update
+			user_series
+		set
+			latest_book_id = (
+				select
+					books.id
+				from
+					books
+				left join user_books on
+					books.id = user_books.book_id
+					and user_series.user_id = user_books.user_id
+				where
+					(user_books.current_page is null
+						or user_books.current_page < books.page_count - 1)
+					and books.series = user_series.series_name
+					and books.page_count > 1
+					and books.deleted_at is null
+				order by
+					sort
+				limit 1
+			),
+			updated_at = ?
+		where
+			user_series.series_name in (`+questions+`)
+	`, bindings...)
+	return err
 }

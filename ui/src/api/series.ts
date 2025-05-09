@@ -5,7 +5,7 @@ import {
     PaginatedRequest,
     PaginatedResponse,
 } from 'src/api/internal'
-import { List, Series, SeriesOrder } from 'src/models'
+import { List, Series, SeriesOrder, SeriesUpdateRequest } from 'src/models'
 
 export const listNames: [List, string][] = [
     [List.Reading, 'Reading'],
@@ -31,18 +31,6 @@ export async function listPaged(
 }
 
 export const list = allPagesFactory<Series, SeriesListRequest>(listPaged)
-
-interface SeriesUpdateRequest {
-    name: string
-    aliases: string[]
-    genres: string[]
-    tags: string[]
-    description: string
-    year: number | null
-    metadata_id: string | null
-    locked_fields: string[]
-    update_map: Record<string, string>
-}
 
 export async function update(
     slug: string,

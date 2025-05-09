@@ -6,7 +6,7 @@ import {
     PaginatedResponse,
 } from 'src/api/internal'
 import { DBBook } from 'src/database'
-import { Book, List, PageType } from 'src/models'
+import { Book, BookUpdateRequest, List } from 'src/models'
 
 export type BookListRequest = PaginatedRequest & {
     id?: string
@@ -39,21 +39,6 @@ export async function remove(
         method: 'DELETE',
         body: JSON.stringify(req),
     })
-}
-
-export interface BookUpdateRequest {
-    title: string
-    series_slug: string
-    volume: number | null
-    chapter: number | null
-    rtl: boolean
-    long_strip: boolean | null
-    pages: BookPageUpdate[]
-    update_map: Record<string, string>
-}
-
-export interface BookPageUpdate {
-    type: PageType
 }
 
 export async function update(

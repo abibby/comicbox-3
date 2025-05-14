@@ -1,3 +1,10 @@
+.pagesTab {
+    text-align: right;
+}
+
+.pagesTab > * {
+    text-align: initial;
+}
 .pageList {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(18.75rem, 1fr));
@@ -10,8 +17,8 @@
 
 .spread {
     display: flex;
-    background-color: rgb(var(--background));
-    color: rgb(var(--text-on-background));
+    background-color: rgb(var(--surface));
+    color: rgb(var(--text-on-surface));
     box-shadow: var(--background-box-shadow);
     border-radius: var(--border-radius-small);
     padding: 5px;
@@ -69,6 +76,6 @@
 .pageTypeSelect {
     width: 100%;
 }
-.tabs {
-    /* max-height: calc(100vh - 290px); */
+.btnScroll {
+    margin: 0.5rem 0;
 }

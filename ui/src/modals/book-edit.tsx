@@ -25,6 +25,7 @@ import { useModal, openModal } from 'src/components/modal-controller'
 import { useRoute } from 'preact-iso'
 import { encode } from 'src/util'
 import { useAllSeries } from 'src/hooks/series'
+import { Button } from 'src/components/button'
 
 const pageTypeOptions: [PageType, string][] = [
     [PageType.FrontCover, 'Cover'],
@@ -149,6 +150,7 @@ export const EditBook: FunctionalComponent = () => {
                 .map(s => [s.slug, s.name]),
         [series],
     )
+
     if (!book) {
         return (
             <Modal>
@@ -188,94 +190,72 @@ export const EditBook: FunctionalComponent = () => {
                         <button type='submit'>save</button>
                     </ModalHeadActions>
                 </ModalHead>
-                <ModalBody>
-                    <TabContainer class={styles.tabs}>
-                        <Tab title='meta'>
-                            <input type='hidden' name='tab' value='meta' />
-                            <Select
-                                title='Series'
-                                name='series'
-                                options={seriesOptions}
-                                value={book.series_slug}
-                            />
-                            <Input
-                                title='Title'
-                                name='title'
-                                value={book.title}
-                            />
-                            <Input
-                                title='Volume'
-                                type='number'
-                                name='volume'
-                                value={book.volume ?? ''}
-                            />
-                            <Input
-                                title='Chapter'
-                                type='number'
-                                name='chapter'
-                                value={book.chapter ?? ''}
-                                step='any'
-                            />
-                            <Select
-                                title='View'
-                                name='view'
-                                options={viewOptions}
-                                value={view}
-                            />
-                            <Input
-                                title='File'
-                                name='file'
-                                readonly
-                                value={book.file}
-                            />
-                        </Tab>
-                        <Tab title='pages'>
-                            <input type='hidden' name='tab' value='pages' />
-                            <div
-                                class={classNames(styles.pageList, {
-                                    [styles.rtl]: book.rtl,
-                                    [styles.longStrip]: book.long_strip,
-                                })}
-                            >
-                                {mergePages(
-                                    editedPages,
-                                    book.long_strip,
-                                    true,
-                                    true,
-                                ).map(p => (
-                                    <SpreadThumb
-                                        key={p[0].url}
-                                        page={p}
-                                        onPageTypeChange={changePageType}
-                                    />
-                                ))}
-                            </div>
-                        </Tab>
-                    </TabContainer>
-                </ModalBody>
-                {/* <ModalFoot>
-                    <ButtonGroup alignRight>
+                <TabContainer>
+                    <Tab title='meta'>
+                        <Select
+                            title='Series'
+                            name='series'
+                            options={seriesOptions}
+                            value={book.series_slug}
+                        />
+                        <Input title='Title' name='title' value={book.title} />
+                        <Input
+                            title='Volume'
+                            type='number'
+                            name='volume'
+                            value={book.volume ?? ''}
+                        />
+                        <Input
+                            title='Chapter'
+                            type='number'
+                            name='chapter'
+                            value={book.chapter ?? ''}
+                            step='any'
+                        />
+                        <Select
+                            title='View'
+                            name='view'
+                            options={viewOptions}
+                            value={view}
+                        />
+                        <Input
+                            title='File'
+                            name='file'
+                            readonly
+                            value={book.file}
+                        />
+                    </Tab>
+                    <Tab title='pages' class={styles.pagesTab}>
                         <Button
-                            type='submit'
-                            name='submit'
-                            value='previous'
-                            disabled={previous === undefined}
+                            class={styles.btnScroll}
+                            onClick={scrollToBottom}
                         >
-                            Previous
+                            Bottom
                         </Button>
-                        <Button
-                            type='submit'
-                            name='submit'
-                            value='next'
-                            disabled={next === undefined}
+                        <div
+                            class={classNames(styles.pageList, {
+                                [styles.rtl]: book.rtl,
+                                [styles.longStrip]: book.long_strip,
+                            })}
                         >
-                            Next
+                            {mergePages(
+                                editedPages,
+                                book.long_strip,
+                                true,
+                                true,
+                            ).map(p => (
+                                <SpreadThumb
+                                    key={p[0].url}
+                                    page={p}
+                                    onPageTypeChange={changePageType}
+                                />
+                            ))}
+                        </div>
+                        <Button class={styles.btnScroll} onClick={scrollToTop}>
+                            Top
                         </Button>
-                        <Button type='submit' color='primary'>
-                            Save
-                        </Button>
-                    </ButtonGroup>
-                </ModalFoot> */}
+                    </Tab>
+                </TabContainer>
             </Form>
         </Modal>
     )
@@ -332,4 +312,40 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
             </label>
         </div>
     )
+}
+
+function scrollToBottom(e: Event) {
+    scrollTo(e, 'bottom')
+}
+function scrollToTop(e: Event) {
+    scrollTo(e, 'top')
+}
+
+function scrollTo(e: Event, pos: 'top' | 'bottom') {
+    if (!(e.target instanceof HTMLElement)) {
+        return
+    }
+    let current = e.target
+    while (true) {
+        if (isScrollable(current)) {
+            switch (pos) {
+                case 'top':
+                    current.scrollTop = 0
+                    break
+                case 'bottom':
+                    current.scrollTop = current.scrollHeight
+                    break
+            }
+            return
+        }
+
+        if (current.parentElement === null) {
+            return
+        }
+        current = current.parentElement
+    }
+}
+
+function isScrollable(element: HTMLElement): boolean {
+    return getComputedStyle(element).overflowY == 'auto'
 }

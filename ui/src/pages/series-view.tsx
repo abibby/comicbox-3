@@ -215,7 +215,12 @@ function SeriesHeader({
         <section class={styles.header}>
             <img class={styles.cover} src={coverURL} alt='Series Cover' />
             <h1 class={styles.title}>{series?.name}</h1>
-            <p class={styles.year}>{series?.year}</p>
+            <a
+                class={styles.year}
+                href={route('series.index', {}) + encode`?year=${series?.year}`}
+            >
+                {series?.year}
+            </a>
             <div class={styles.genres}>
                 {series?.genres.map((g, i) => (
                     <Fragment key={g}>

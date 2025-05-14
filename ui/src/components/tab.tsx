@@ -48,12 +48,13 @@ export const TabContainer: FunctionalComponent<TabContainerProps> = props => {
 
 export interface TabProps {
     title: string
+    class?: string
 }
 export const Tab: FunctionalComponent<TabProps> = props => {
     const ctx = useContext(TabContext)
     return (
         <div
-            class={classNames(styles.body, {
+            class={classNames(styles.body, props.class, {
                 [styles.active]: ctx.activeTabTitle === props.title,
             })}
         >

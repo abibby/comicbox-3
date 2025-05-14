@@ -33,12 +33,15 @@
 }
 .year {
     grid-area: year;
-    color: rgba(var(--text-on-background), 0.5);
 }
 .genres {
     grid-area: genres;
+}
+.year,
+.genres {
     color: rgba(var(--text-on-background), 0.5);
 }
+.year:hover,
 .genre:hover {
     text-decoration: underline;
 }

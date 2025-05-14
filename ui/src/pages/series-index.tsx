@@ -13,6 +13,7 @@ export const SeriesIndex: FunctionalComponent = () => {
 
     const series = usePromptUpdate(liveSeries, seriesCompare)
     const [genreFilter, setGenreFilter] = useQueryState('genre', '')
+    const [yearFilter, setYearFilter] = useQueryState('year', '')
 
     const filteredSeries = useMemo(() => {
         return (
@@ -20,16 +21,24 @@ export const SeriesIndex: FunctionalComponent = () => {
                 if (genreFilter && !s.genres.includes(genreFilter)) {
                     return false
                 }
+                if (yearFilter && String(s.year) !== yearFilter) {
+                    return false
+                }
                 return true
             }) ?? null
         )
-    }, [series, genreFilter])
+    }, [series, genreFilter, yearFilter])
 
     return (
         <Fragment>
             {genreFilter && (
                 <Filter onClose={bind('', setGenreFilter)}>
                     Genre: {genreFilter}
+                </Filter>
+            )}
+            {yearFilter && (
+                <Filter onClose={bind('', setYearFilter)}>
+                    Year: {yearFilter}
                 </Filter>
             )}
             <SeriesList

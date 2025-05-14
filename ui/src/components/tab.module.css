@@ -1,10 +1,8 @@
 .tabContainer {
     --padding: 1.25rem;
     --tab-background: var(--background);
-    /* --tab-background: var(--default-button); */
     display: flex;
     flex-direction: column;
-    /* margin: calc(var(--padding * -1)); */
     background-color: rgb(var(--tab-background));
 }
 
@@ -18,13 +16,10 @@
         rgb(var(--tab-background)) 50%
     );
     padding: 0.5rem 0;
-    /* margin: 0 -0.5rem; */
 }
 .tabButtonList::before {
     content: ' ';
     display: block;
-    /* position: absolute; */
-    /* border-radius: var(--border-radius-small); */
     background-color: rgb(var(--surface));
     height: calc(1em + 0.5rem);
     width: var(--padding);
@@ -49,7 +44,6 @@
 }
 .tabButton {
     border: none;
-    /* z-index: 2; */
     padding: 0.25rem 1rem;
     border-top-right-radius: var(--border-radius-small);
     border-top-left-radius: var(--border-radius-small);

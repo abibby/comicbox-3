@@ -152,8 +152,9 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	}
 
 	fullPath := filePath + ext
+	downloadPath := fullPath + ".downloading"
 
-	f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(downloadPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
@@ -166,6 +167,11 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	_, err = io.CopyBuffer(f, resp.Body, buff)
 	if err != nil {
 		return "", fmt.Errorf("failed to write file: %w", err)
+	}
+
+	err = os.Rename(downloadPath, filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to rename file: %w", err)
 	}
 
 	return fullPath, nil

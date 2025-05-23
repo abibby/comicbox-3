@@ -17,7 +17,6 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/di"
 	"github.com/abibby/salusa/extra/sets"
 	"github.com/abibby/salusa/kernel"
@@ -106,7 +105,7 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 
 	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 
-	return model.SaveContext(ctx, tx, series)
+	return nil
 }
 
 func downloadFile(ctx context.Context, url, filePath string) (string, error) {
@@ -134,8 +133,11 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	buff := make([]byte, 512)
-	resp.Body.Read(buff)
+	buff := make([]byte, 32*1024)
+	_, err = resp.Body.Read(buff)
+	if err != nil {
+		return "", fmt.Errorf("failed to download image: %w", err)
+	}
 	mimetype := http.DetectContentType(buff)
 	exts, err := mime.ExtensionsByType(mimetype)
 	if err != nil {
@@ -153,8 +155,9 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	}
 
 	fullPath := filePath + ext
+	downloadPath := fullPath + ".downloading"
 
-	f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(downloadPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
@@ -167,6 +170,11 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	_, err = io.CopyBuffer(f, resp.Body, buff)
 	if err != nil {
 		return "", fmt.Errorf("failed to write file: %w", err)
+	}
+
+	err = os.Rename(downloadPath, filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to rename file: %w", err)
 	}
 
 	return fullPath, nil

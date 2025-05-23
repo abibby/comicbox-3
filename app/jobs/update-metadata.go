@@ -41,6 +41,7 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 	if err != nil {
 		return err
 	}
+
 	for {
 		remainingCount, err := q.Count(u.DB)
 		if err != nil {
@@ -57,38 +58,46 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 		for i, ogSeries := range seriesList {
 			u.Log.Info("Updating series metadata", "name", ogSeries.Name, "total", totalCount, "remaining", remainingCount-i)
 
-			bestMatch, err := metadata.GetBestMatch(ctx, meta, ogSeries)
+			err = u.updateSeries(ctx, meta, ogSeries)
 			if err != nil {
-				u.Log.Warn("failed to retrieve metadata", "series", ogSeries.Slug, "err", err)
-				continue
-			}
-			err = u.Update(func(tx *sqlx.Tx) error {
-				series, err := models.SeriesQuery(ctx).Find(tx, ogSeries.Slug)
-				if err != nil {
-					return err
-				}
-
-				if !reflect.DeepEqual(ogSeries, series) {
-					u.Log.Warn("series changed, skipping metadata update", "series", series.Slug)
-					return nil
-				}
-
-				err = metadata.ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
-				if err != nil {
-					return fmt.Errorf("failed to update metadata: %w", err)
-				}
-
-				err = model.SaveContext(ctx, tx, series)
-				if err != nil {
-					return err
-				}
-
-				return nil
-			})
-			if err != nil {
+				q = q.Where("name", "!=", ogSeries.Slug)
 				u.Log.Warn("failed to update metadata", "series", ogSeries.Slug, "err", err)
 				continue
 			}
 		}
+
+		if remainingCount <= len(seriesList) {
+			return nil
+		}
 	}
+}
+
+func (u *UpdateMetadataHandler) updateSeries(ctx context.Context, meta metadata.MetaProvider, ogSeries *models.Series) error {
+	bestMatch, err := metadata.GetBestMatch(ctx, meta, ogSeries)
+	if err != nil {
+		return err
+	}
+	return u.Update(func(tx *sqlx.Tx) error {
+		series, err := models.SeriesQuery(ctx).Find(tx, ogSeries.Slug)
+		if err != nil {
+			return err
+		}
+
+		if !reflect.DeepEqual(ogSeries, series) {
+			u.Log.Warn("series changed, skipping metadata update", "series", series.Slug)
+			return nil
+		}
+
+		err = metadata.ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+		if err != nil {
+			return fmt.Errorf("failed to update metadata: %w", err)
+		}
+
+		err = model.SaveContext(ctx, tx, series)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

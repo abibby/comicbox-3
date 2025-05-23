@@ -103,21 +103,21 @@ export const EditSeries: FunctionalComponent = () => {
                     <TextArea
                         title='Aliases'
                         name='aliases'
-                        value={series?.aliases.join('\n')}
+                        value={series?.aliases?.join('\n')}
                     >
                         <Locker name='aliases' locked={series?.locked_fields} />
                     </TextArea>
                     <TextArea
                         title='Genres'
                         name='genres'
-                        value={series?.genres.join('\n')}
+                        value={series?.genres?.join('\n')}
                     >
                         <Locker name='genres' locked={series?.locked_fields} />
                     </TextArea>
                     <TextArea
                         title='Tags'
                         name='tags'
-                        value={series?.tags.join('\n')}
+                        value={series?.tags?.join('\n')}
                     >
                         <Locker name='tags' locked={series?.locked_fields} />
                     </TextArea>

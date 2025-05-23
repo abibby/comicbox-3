@@ -35,6 +35,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             image={coverURL}
             link={route('series.view', { series: props.series.slug })}
             title={props.series.name}
+            subtitle={props.series.year?.toString()}
             menu={menu}
         />
     )

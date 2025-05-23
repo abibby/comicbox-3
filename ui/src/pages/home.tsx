@@ -44,6 +44,7 @@ export const Reading: FunctionalComponent = () => {
     if (!seriesLoading && liveBooks?.length === 0) {
         return <Fragment></Fragment>
     }
+
     return (
         <BookList
             title='Continue Reading'

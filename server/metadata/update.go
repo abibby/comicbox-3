@@ -133,8 +133,11 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	buff := make([]byte, 512)
-	resp.Body.Read(buff)
+	buff := make([]byte, 32*1024)
+	_, err = resp.Body.Read(buff)
+	if err != nil {
+		return "", fmt.Errorf("failed to download image: %w", err)
+	}
 	mimetype := http.DetectContentType(buff)
 	exts, err := mime.ExtensionsByType(mimetype)
 	if err != nil {

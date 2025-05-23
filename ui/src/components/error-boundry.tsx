@@ -1,4 +1,5 @@
 import { Component, Fragment, h } from 'preact'
+import { Button } from 'src/components/button'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type ErrorBoundaryProps = {}
@@ -28,7 +29,7 @@ export class ErrorBoundary extends Component<
                     <pre onClick={this.closeError}>
                         {this.state.error.stack ?? String(this.state.error)}
                     </pre>
-                    {this.props.children}
+                    <Button href='/'>Home</Button>
                 </Fragment>
             )
         }

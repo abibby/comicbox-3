@@ -17,7 +17,6 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/di"
 	"github.com/abibby/salusa/extra/sets"
 	"github.com/abibby/salusa/kernel"
@@ -106,7 +105,7 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 
 	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 
-	return model.SaveContext(ctx, tx, series)
+	return nil
 }
 
 func downloadFile(ctx context.Context, url, filePath string) (string, error) {

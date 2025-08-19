@@ -134,19 +134,20 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	defer resp.Body.Close()
 
 	buff := make([]byte, 32*1024)
-	_, err = resp.Body.Read(buff)
+	n, err := resp.Body.Read(buff)
 	if err != nil {
 		return "", fmt.Errorf("failed to download image: %w", err)
 	}
-	mimetype := http.DetectContentType(buff)
+	mimetype := http.DetectContentType(buff[:n])
 	exts, err := mime.ExtensionsByType(mimetype)
 	if err != nil {
 		return "", fmt.Errorf("cannot find extension: %w", err)
 	}
-	ext := ""
-	if len(exts) > 0 {
-		ext = exts[len(exts)-1]
+
+	if len(exts) == 0 {
+		return "", fmt.Errorf("unknown image format")
 	}
+	ext := exts[len(exts)-1]
 
 	dir := path.Dir(filePath)
 	err = os.MkdirAll(dir, 0777)
@@ -162,7 +163,7 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
 
-	_, err = f.Write(buff)
+	_, err = f.Write(buff[:n])
 	if err != nil {
 		return "", fmt.Errorf("failed to write file: %w", err)
 	}
@@ -172,7 +173,7 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 		return "", fmt.Errorf("failed to write file: %w", err)
 	}
 
-	err = os.Rename(downloadPath, filePath)
+	err = os.Rename(downloadPath, fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to rename file: %w", err)
 	}

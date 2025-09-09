@@ -1,6 +1,6 @@
 import { bind } from '@zwzn/spicy'
 import Dexie from 'dexie'
-import { FunctionalComponent, Fragment, h } from 'preact'
+import { FunctionalComponent, Fragment, h, Component } from 'preact'
 import {
     BookOpen,
     Bookmark,
@@ -11,14 +11,14 @@ import {
     MoreHorizontal,
 } from 'preact-feather'
 import { useRoute } from 'preact-iso'
-import { useCallback, useMemo, useState } from 'preact/hooks'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { listNames } from 'src/api/series'
 import { persist } from 'src/cache'
 import classNames from 'src/classnames'
 import { BookList } from 'src/components/book-list'
 import { Button, ButtonGroup, SelectButton } from 'src/components/button'
 import { openContextMenu } from 'src/components/context-menu'
-import { Markdown } from 'src/components/markdown'
+import { Markdown, MarkdownProps } from 'src/components/markdown'
 import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
@@ -211,6 +211,17 @@ function SeriesHeader({
 
     const coverURL = useImageURL(series?.cover_url)
 
+    const descriptionRef = useRef<Component<MarkdownProps> | null>(null)
+    const [showMoreButton, setShowMoreButton] = useState(false)
+    useEffect(() => {
+        if (!(descriptionRef.current?.base instanceof HTMLElement)) {
+            return
+        }
+        const scroll = descriptionRef.current?.base?.scrollHeight ?? 0
+        const client = descriptionRef.current?.base?.clientHeight ?? 0
+        setShowMoreButton(scroll > client)
+    }, [series?.description])
+
     return (
         <section class={styles.header}>
             <img class={styles.cover} src={coverURL} alt='Series Cover' />
@@ -271,25 +282,26 @@ function SeriesHeader({
                         class={classNames(styles.descriptionContent, {
                             [styles.open]: descriptionExpanded,
                         })}
+                        ref={descriptionRef}
                     >
                         {series?.description ?? ''}
                     </Markdown>
-                    {descriptionExpanded || (
-                        <button
-                            class={styles.btnDescriptionExpand}
-                            onClick={bind(true, setDescriptionExpanded)}
-                        >
-                            More <ChevronDown />
-                        </button>
-                    )}
-                    {descriptionExpanded && (
-                        <button
-                            class={styles.btnDescriptionExpand}
-                            onClick={bind(false, setDescriptionExpanded)}
-                        >
-                            Less <ChevronUp />
-                        </button>
-                    )}
+                    {showMoreButton &&
+                        (descriptionExpanded ? (
+                            <button
+                                class={styles.btnDescriptionExpand}
+                                onClick={bind(false, setDescriptionExpanded)}
+                            >
+                                Less <ChevronUp />
+                            </button>
+                        ) : (
+                            <button
+                                class={styles.btnDescriptionExpand}
+                                onClick={bind(true, setDescriptionExpanded)}
+                            >
+                                More <ChevronDown />
+                            </button>
+                        ))}
                 </div>
             )}
         </section>

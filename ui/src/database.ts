@@ -316,11 +316,14 @@ class AppDatabase extends Dexie {
     }
 
     async readBooks(s: Series) {
-        if (!s.user_series?.latest_book_id) {
+        if (!s.user_series) {
             return
         }
 
-        const book = await this.books.get(s.user_series.latest_book_id)
+        let book: Book | undefined
+        if (s.user_series.latest_book_id) {
+            book = await this.books.get(s.user_series.latest_book_id)
+        }
 
         const unreadBooks = await this.books
             .where(['series_slug', 'completed', 'sort'])

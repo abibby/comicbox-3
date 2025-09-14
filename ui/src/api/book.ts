@@ -11,6 +11,7 @@ import { Book, BookUpdateRequest, List } from 'src/models'
 export type BookListRequest = PaginatedRequest & {
     id?: string
     series_slug?: string
+    unread?: boolean
     list?: List
     before_id?: string
     after_id?: string

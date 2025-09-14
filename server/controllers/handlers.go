@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"io/fs"
 	"net/http"
 	"time"
 
@@ -12,6 +13,10 @@ import (
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
 )
+
+type Stater interface {
+	Stat() (fs.FileInfo, error)
+}
 
 func init() {
 	openapidoc.RegisterResponse[*JpegHandler](spec.NewResponse().WithDescription("A JPEG encoded image"))
@@ -72,6 +77,15 @@ func (h *ReaderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for k, vs := range h.header {
 		for _, v := range vs {
 			w.Header().Add(k, v)
+		}
+	}
+
+	if s, ok := h.reader.(Stater); ok {
+		info, err := s.Stat()
+		if err != nil {
+			clog.Use(r.Context()).Warn("failed to get file info", "err", err)
+		} else {
+			w.Header().Add("Content-Length", fmt.Sprint(info.Size()))
 		}
 	}
 

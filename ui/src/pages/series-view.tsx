@@ -30,7 +30,10 @@ import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 import { route } from 'src/routes'
-import { updateSeriesMetadata } from 'src/services/series-service'
+import {
+    downloadSeries,
+    updateSeriesMetadata,
+} from 'src/services/series-service'
 import { encode } from 'src/util'
 import { isList } from 'src/pages/lists'
 
@@ -167,12 +170,11 @@ function SeriesHeader({
         }
     }, [liveBooks, series])
 
-    const downloadSeries = useCallback(async () => {
-        await post({
-            type: 'download-series',
-            seriesSlug: slug,
-        })
-    }, [slug])
+    const download = useCallback(async () => {
+        if (series) {
+            await downloadSeries(series)
+        }
+    }, [series])
 
     const updateMetadata = useCallback(async () => {
         await updateSeriesMetadata(slug)
@@ -265,11 +267,7 @@ function SeriesHeader({
                     options={listOptions}
                     onChange={bookmarkSeries}
                 />
-                <Button
-                    color='clear'
-                    icon={Download}
-                    onClick={downloadSeries}
-                />
+                <Button color='clear' icon={Download} onClick={download} />
                 <Button
                     color='clear'
                     icon={MoreHorizontal}

@@ -45,6 +45,7 @@ export default defineConfig(({ mode }): UserConfig => {
             cssModuleTypes(),
         ],
         build: {
+            minify: false,
             rollupOptions: {
                 input: {
                     main: resolve(__dirname, './index.html'),

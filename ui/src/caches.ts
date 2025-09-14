@@ -49,6 +49,10 @@ export async function removeBookCache(bookID: string): Promise<void> {
     cacheEventListener.dispatchEvent(new LocalMessageEvent(message))
 }
 
+export async function sendCacheUpdate(message: Message): Promise<void> {
+    cacheEventListener.dispatchEvent(new LocalMessageEvent(message))
+}
+
 export function useBookCached(
     book: Book,
 ): [boolean | undefined, number | undefined] {

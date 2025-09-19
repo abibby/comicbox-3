@@ -106,9 +106,11 @@ func InitRouter(r *router.Router) {
 			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
 			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
 
-			r.Post("/meta/update/{slug}", controllers.MetaUpdate).Name("meta.update")
-			r.Post("/meta/sync", controllers.MetaStartScan).Name("meta.scan")
-			r.Get("/meta", controllers.MetaList).Name("meta.list")
+			r.Group("/meta", func(r *router.Router) {
+				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+				r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
+				r.Get("/", controllers.MetaList).Name("meta.list")
+			})
 		})
 
 		r.Group("", func(r *router.Router) {

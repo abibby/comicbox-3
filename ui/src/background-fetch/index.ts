@@ -1,3 +1,6 @@
+import EventTarget from 'event-target-shim'
+import { _BackgroundFetchManager } from 'src/background-fetch/internal'
+
 export type BackgroundFetchResult = '' | 'success' | 'failure'
 
 export type BackgroundFetchFailureReason =
@@ -14,6 +17,15 @@ export type BackgroundFetchFailureReason =
     | 'quota-exceeded'
     // The provided downloadTotal was exceeded.
     | 'download-total-exceeded'
+export interface BackgroundFetchManager {
+    fetch(
+        id: string,
+        requests: RequestInfo | RequestInfo[],
+        options?: BackgroundFetchOptions,
+    ): Promise<BackgroundFetchRegistration>
+    get(id: string): Promise<BackgroundFetchRegistration | null>
+    getIds(): Promise<string[]>
+}
 
 export interface BackgroundFetchRegistration extends EventTarget {
     readonly id: string
@@ -25,7 +37,7 @@ export interface BackgroundFetchRegistration extends EventTarget {
     readonly failureReason: BackgroundFetchFailureReason
     readonly recordsAvailable: boolean
 
-    onprogress: (e: Event) => void
+    onprogress?: (e: Event) => void
 
     abort(): Promise<boolean>
     match(
@@ -56,16 +68,15 @@ export interface ImageResource {
     label?: string
 }
 
-export async function backgroundFetch(
-    id: string,
-    requests: RequestInfo[],
-    options?: BackgroundFetchOptions,
-): Promise<BackgroundFetchRegistration> {
+export async function backgroundFetch(): Promise<BackgroundFetchManager> {
     const swReg: ServiceWorkerRegistration = navigator.serviceWorker
         ? await navigator.serviceWorker.ready
         : registration
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    return swReg.backgroundFetch.fetch(id, requests, options)
+    if ('backgroundFetch' in swReg) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        return swReg.backgroundFetch
+    }
+    return new _BackgroundFetchManager(swReg)
 }

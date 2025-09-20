@@ -1,12 +1,12 @@
 import { bookAPI, pageURL } from 'src/api'
 import { metadataUpdate } from 'src/api/metadata'
-import { backgroundFetch } from 'src/background-fetch'
+import { backgroundFetch, backgroundFetchEnabled } from 'src/background-fetch'
 import { invalidateCache } from 'src/cache'
 import { DB } from 'src/database'
 import { Series } from 'src/models'
 import icon from 'res/images/logo.svg'
 import { sendCacheUpdate } from 'src/caches'
-import { downloadBook } from './book-service'
+import { post } from 'src/message'
 
 export async function updateSeriesMetadata(slug: string): Promise<void> {
     const s = await metadataUpdate(slug)
@@ -25,6 +25,15 @@ export async function downloadSeries(series: Series): Promise<void> {
         books.push(series.user_series?.latest_book)
     }
     if (books.length === 0) {
+        return
+    }
+    if (!backgroundFetchEnabled) {
+        for (const book of books) {
+            await post({
+                type: 'download-book',
+                bookID: book.id,
+            })
+        }
         return
     }
     const pages: string[] = []

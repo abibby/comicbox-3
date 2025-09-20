@@ -1,9 +1,10 @@
 import { useMemo } from 'preact/hooks'
-import { backgroundFetch } from 'src/background-fetch'
+import { backgroundFetch, backgroundFetchEnabled } from 'src/background-fetch'
 import { sendCacheUpdate } from 'src/caches'
 import { Book, Page, PageType, Series } from 'src/models'
 import icon from 'res/images/logo.svg'
 import { pageURL } from 'src/api'
+import { post } from 'src/message'
 
 export interface PageWithIndex extends Page {
     index: number
@@ -273,6 +274,13 @@ export function bookFullName(book: Book): string {
 }
 
 export async function downloadBook(book: Book, series?: Series): Promise<void> {
+    if (!backgroundFetchEnabled) {
+        await post({
+            type: 'download-book',
+            bookID: book.id,
+        })
+        return
+    }
     const seriesName = series?.name ?? book.series?.name ?? book.series_slug
     const reg = await backgroundFetch().fetch(
         book.id,

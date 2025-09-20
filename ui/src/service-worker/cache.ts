@@ -2,59 +2,28 @@
 /// <reference path="../../node_modules/@types/serviceworker/index.d.ts" />
 
 import { pageURL } from 'src/api'
-import {
-    backgroundFetch,
-    BackgroundFetchRegistration,
-} from 'src/background-fetch'
+import { BackgroundFetchRegistration } from 'src/background-fetch'
 import { openPageCache, openThumbCache } from 'src/caches'
 import { Book } from 'src/models'
 import { Progressor } from 'src/service-worker/progressor'
-import { bookFullName } from 'src/services/book-service'
-import { sendMessage } from './send-message'
+import { sendMessage } from 'src/service-worker/send-message'
 
 async function cacheBook(b: Book): Promise<void> {
     const progressor = new Progressor(b.pages.length + 1, 'book', b.id)
     await progressor.start()
 
-    // const thumbCache = await openThumbCache()
-    // await thumbCache.add(await pageURL(b))
+    const thumbCache = await openThumbCache()
+    await thumbCache.add(await pageURL(b))
     await progressor.next()
-    const bgFetch = await backgroundFetch(
-        b.id,
-        await Promise.all([pageURL(b), ...b.pages.map(p => pageURL(p))]),
-        {
-            title: b.series?.name + ' ' + bookFullName(b),
-            // downloadTotal: 10000000,
-        },
+
+    const pageCache = await openPageCache(b.id)
+    await Promise.all(
+        b.pages.map(async p => {
+            await pageCache.add(await pageURL(p))
+            await progressor.next()
+        }),
     )
-    // reg.onprogress = e => {
-    //     console.log(e)
-    // }
-    bgFetch.addEventListener('progress', e => {
-        // eslint-disable-next-line no-console
-        console.log(e)
-    })
-
-    // const id = setInterval(() => {
-    //     // eslint-disable-next-line no-console
-    //     console.log(bgFetch)
-    // }, 1000)
-
-    // setTimeout(() => {
-    //     // eslint-disable-next-line no-console
-    //     console.log(bgFetch)
-    //     void bgFetch.abort()
-    //     clearInterval(id)
-    // }, 30_000)
-
-    // const pageCache = await openPageCache(b.id)
-    // await Promise.all(
-    //     b.pages.map(async p => {
-    //         await pageCache.add(await pageURL(p))
-    //         await progressor.next()
-    //     }),
-    // )
-    // await progressor.finish()
+    await progressor.finish()
 }
 
 export async function cacheBooks(books: Book[]): Promise<void> {

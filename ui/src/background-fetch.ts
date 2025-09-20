@@ -1,6 +1,3 @@
-import EventTarget from 'event-target-shim'
-import { _BackgroundFetchManager } from 'src/background-fetch/internal'
-
 export type BackgroundFetchResult = '' | 'success' | 'failure'
 
 export type BackgroundFetchFailureReason =

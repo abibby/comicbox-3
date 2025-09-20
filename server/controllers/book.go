@@ -36,7 +36,6 @@ type BookIndexRequest struct {
 	ID         *uuid.UUID    `query:"id"        validate:"uuid"`
 	SeriesSlug *nulls.String `query:"series_slug"`
 	List       *models.List  `query:"list"`
-	Unread     bool          `query:"unread"`
 	BeforeID   *uuid.UUID    `query:"before_id" validate:"uuid"`
 	AfterID    *uuid.UUID    `query:"after_id"  validate:"uuid"`
 	Order      *nulls.String `query:"order"     validate:"in:asc,desc"`
@@ -91,12 +90,6 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 				WhereColumn("series_name", "=", "books.series").
 				Where("list", "=", req.List),
 		)
-	}
-
-	if req.Unread {
-		query = query.WhereHas("UserBook", func(q *builder.Builder) *builder.Builder {
-			return q.WhereRaw("user_books.current_page < (books.page_count - 1)")
-		})
 	}
 
 	if req.UpdatedAfter != nil {
@@ -221,7 +214,6 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	if page < 0 || page >= len(imgs) {
 		return nil, Err404
 	}
-
 	f, err := imgs[page].Open()
 	if err != nil {
 		return nil, err

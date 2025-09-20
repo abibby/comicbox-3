@@ -186,23 +186,23 @@ addAsyncEventListener('message', async function (event) {
     const message: Message = event.data
 
     switch (message.type) {
-        // case 'download-book':
-        //     await cacheBooks(
-        //         await bookAPI.list({
-        //             id: message.bookID,
-        //             limit: 1,
-        //             with_series: true,
-        //         }),
-        //     )
-        //     break
-        // case 'download-series':
-        //     await cacheBooks(
-        //         await bookAPI.list({
-        //             series_slug: message.seriesSlug,
-        //             limit: null,
-        //         }),
-        //     )
-        //     break
+        case 'download-book':
+            await cacheBooks(
+                await bookAPI.list({
+                    id: message.bookID,
+                    limit: 1,
+                    with_series: true,
+                }),
+            )
+            break
+        case 'download-series':
+            await cacheBooks(
+                await bookAPI.list({
+                    series_slug: message.seriesSlug,
+                    limit: null,
+                }),
+            )
+            break
         case 'check-update':
             await this.registration.update()
             break

@@ -1,11 +1,11 @@
-import {
+import type {
     BackgroundFetchFailureReason,
     BackgroundFetchManager,
     BackgroundFetchOptions,
     BackgroundFetchRecord,
     BackgroundFetchRegistration,
     BackgroundFetchResult,
-} from '.'
+} from 'src/background-fetch'
 
 export type ArgsMap = {
     fetch: [
@@ -79,7 +79,7 @@ export class _BackgroundFetchManager implements BackgroundFetchManager {
         name: T,
         args: ArgsMap[T],
     ): Promise<ResponseMap[T]> {
-        if (!registration.active) {
+        if (!this.registration.active) {
             throw new Error('No active service worker')
         }
 
@@ -88,7 +88,7 @@ export class _BackgroundFetchManager implements BackgroundFetchManager {
             id: _BackgroundFetchManager.currentID++,
             args: args,
         }
-        registration.active.postMessage(request)
+        this.registration.active.postMessage(request)
 
         return new Promise<ResponseMap[T]>((resolve, reject) => {
             const handler = (e: MessageEvent) => {
@@ -100,7 +100,7 @@ export class _BackgroundFetchManager implements BackgroundFetchManager {
                 ) {
                     return
                 }
-                window.removeEventListener('message', handler)
+                globalThis.removeEventListener('message', handler)
                 if (message.error) {
                     reject(message.error)
                 } else {
@@ -108,7 +108,7 @@ export class _BackgroundFetchManager implements BackgroundFetchManager {
                 }
             }
 
-            window.addEventListener('message', handler)
+            globalThis.addEventListener('message', handler)
         })
     }
 }

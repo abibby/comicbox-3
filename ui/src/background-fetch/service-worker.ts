@@ -71,11 +71,20 @@ async function bgFetch(
         )
     }
 
-    const fetches: Promise<Response>[] = []
-    for (const request of requests) {
-        fetches.push(fetch(request, {}))
-    }
+    // const fetches: Promise<Response>[] = []
+    // for (const request of requests) {
+    //     fetches.push(fetch(request, {}))
+    // }
 
+    const workers: Promise<void>[] = []
+    for (let i = 0; i < 3; i++) {
+        workers.push(
+            (async () => {
+                fetch()
+            })(),
+        )
+    }
+    await Promise.all(workers)
     activeFetches.set
 
     const responses = Promise.all(fetches)

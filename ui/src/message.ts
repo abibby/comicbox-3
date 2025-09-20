@@ -3,7 +3,7 @@ import type { BackgroundFetchOptions } from './background-fetch'
 export type Message =
     | DownloadBookMessage
     | DownloadSeriesMessage
-    // | DownloadMessage
+    | DownloadMessage
     | BookUpdateMessage
     | CheckUpdateMessage
     | ReloadMessage

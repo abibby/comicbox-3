@@ -274,7 +274,7 @@ export function bookFullName(book: Book): string {
 
 export async function downloadBook(book: Book, series?: Series): Promise<void> {
     const seriesName = series?.name ?? book.series?.name ?? book.series_slug
-    const reg = await backgroundFetch(
+    const reg = await backgroundFetch().fetch(
         book.id,
         await Promise.all([pageURL(book), ...book.pages.map(p => pageURL(p))]),
         {

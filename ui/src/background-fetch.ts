@@ -68,15 +68,40 @@ export interface ImageResource {
     label?: string
 }
 
-export async function backgroundFetch(): Promise<BackgroundFetchManager> {
-    const swReg: ServiceWorkerRegistration = navigator.serviceWorker
-        ? await navigator.serviceWorker.ready
-        : registration
+class AsyncBackgroundFetchManager implements BackgroundFetchManager {
+    private readonly backgroundFetchManager: Promise<BackgroundFetchManager>
+    constructor() {
+        this.backgroundFetchManager = (async () => {
+            const swReg: ServiceWorkerRegistration = navigator.serviceWorker
+                ? await navigator.serviceWorker.ready
+                : globalThis.registration
 
-    if ('backgroundFetch' in swReg) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
-        return swReg.backgroundFetch
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            return swReg.backgroundFetch
+        })()
     }
-    return new _BackgroundFetchManager(swReg)
+    async fetch(
+        id: string,
+        requests: RequestInfo | RequestInfo[],
+        options?: BackgroundFetchOptions,
+    ): Promise<BackgroundFetchRegistration> {
+        const bgm = await this.backgroundFetchManager
+        return bgm.fetch(id, requests, options)
+    }
+    async get(id: string): Promise<BackgroundFetchRegistration | null> {
+        const bgm = await this.backgroundFetchManager
+        return bgm.get(id)
+    }
+    async getIds(): Promise<string[]> {
+        const bgm = await this.backgroundFetchManager
+        return bgm.getIds()
+    }
 }
+
+export function backgroundFetch(): BackgroundFetchManager {
+    return new AsyncBackgroundFetchManager()
+}
+
+export const backgroundFetchEnabled =
+    'serviceWorker' in navigator && 'BackgroundFetchManager' in self

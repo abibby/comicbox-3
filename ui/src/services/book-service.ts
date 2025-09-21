@@ -283,14 +283,15 @@ export async function downloadBook(book: Book, series?: Series): Promise<void> {
     }
     const seriesName = series?.name ?? book.series?.name ?? book.series_slug
     const reg = await backgroundFetch().fetch(
-        book.id,
-        await Promise.all([pageURL(book), ...book.pages.map(p => pageURL(p))]),
+        `book:${book.id}`,
+        await Promise.all(book.pages.map(p => pageURL(p))),
         {
             title: seriesName + ' ' + bookFullName(book),
-            // downloadTotal: book.size,
+            downloadTotal: book.download_size,
             icons: [{ src: icon }],
         },
     )
+
     await sendCacheUpdate({
         type: 'download',
         downloadType: 'progress',

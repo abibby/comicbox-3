@@ -79,9 +79,43 @@ addEventListener('backgroundfetchsuccess', (event: any) => {
                     progress: 100,
                 })
             }
-
-            // Update the progress notification.
-            // event.updateUI({ title: 'Download Complete!' })
         })(),
     )
 })
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+addEventListener('backgroundfetchclick', (event: any) => {
+    const bgFetch: BackgroundFetchRegistration = event.registration
+
+    const [prefix, id] = bgFetch.id.split(':')
+    switch (prefix) {
+        case 'book':
+            void navigate(`/book/${id}`)
+            return
+        case 'series':
+            void navigate(`/series/${id}`)
+            return
+    }
+})
+
+async function navigate(path: string) {
+    const windows = await clients.matchAll({
+        includeUncontrolled: true,
+        type: 'window',
+    })
+
+    for (const w of windows) {
+        if (w.visibilityState === 'visible') {
+            void w.navigate(path)
+            return
+        }
+    }
+
+    const w = windows[0]
+    if (w) {
+        await w.focus()
+        await w.navigate(path)
+        return
+    }
+    await clients.openWindow(path)
+}

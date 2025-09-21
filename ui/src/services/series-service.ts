@@ -38,16 +38,16 @@ export async function downloadSeries(series: Series): Promise<void> {
     }
     const pages: string[] = []
     for (const book of books) {
-        const bookPages = await Promise.all([
-            pageURL(book),
-            ...book.pages.map(p => pageURL(p)),
-        ])
+        const bookPages = await Promise.all(book.pages.map(p => pageURL(p)))
         pages.push(...bookPages)
     }
 
-    const reg = await backgroundFetch().fetch(series.slug, pages, {
+    const reg = await backgroundFetch().fetch(`series:${series.slug}`, pages, {
         title: series.name,
-        // downloadTotal: book.size,
+        downloadTotal: books.reduce(
+            (total, book) => total + book.download_size,
+            0,
+        ),
         icons: [{ src: icon }],
     })
     for (const book of books) {
@@ -58,8 +58,10 @@ export async function downloadSeries(series: Series): Promise<void> {
             model: 'book',
             progress: 0,
         })
+    }
 
-        reg.addEventListener('progress', async () => {
+    reg.addEventListener('progress', async () => {
+        for (const book of books) {
             if (reg.downloadTotal) {
                 await sendCacheUpdate({
                     type: 'download',
@@ -77,7 +79,13 @@ export async function downloadSeries(series: Series): Promise<void> {
                     model: 'book',
                     progress: 1,
                 })
+                await sendCacheUpdate({
+                    type: 'download',
+                    downloadType: 'complete',
+                    id: book.id,
+                    model: 'book',
+                })
             }
-        })
-    }
+        }
+    })
 }

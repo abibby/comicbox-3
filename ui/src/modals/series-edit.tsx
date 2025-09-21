@@ -143,7 +143,7 @@ export const EditSeries: FunctionalComponent = () => {
                         value={metadataID}
                         onInput={setMetadataID}
                     >
-                        <Button onClick={findMeta}>Find Anilist ID</Button>
+                        <Button onClick={findMeta}>Find Match</Button>
                     </Input>
                 </ModalBody>
             </Form>

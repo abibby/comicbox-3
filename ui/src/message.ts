@@ -1,3 +1,5 @@
+import type { BackgroundFetchOptions } from './background-fetch'
+
 export type Message =
     | DownloadBookMessage
     | DownloadSeriesMessage
@@ -5,6 +7,8 @@ export type Message =
     | BookUpdateMessage
     | CheckUpdateMessage
     | ReloadMessage
+    | SkipWaitingMessage
+    | BackgroundFetchMessage
 
 export type MessageType = Message['type']
 
@@ -23,7 +27,6 @@ export type DownloadMessage =
     | DownloadProgressMessage
     | DownloadCompleteMessage
     | DownloadRemovedMessage
-    | SkipWaitingMessage
 
 export type DownloadProgressMessage = {
     type: 'download'
@@ -52,6 +55,12 @@ export type SkipWaitingMessage = {
 }
 export type ReloadMessage = {
     type: 'reload'
+}
+export type BackgroundFetchMessage = {
+    type: 'background-fetch'
+    id: string
+    requests: RequestInfo[]
+    options: BackgroundFetchOptions | undefined
 }
 
 const receiveListeners = new Map<MessageType, Set<(message: Message) => void>>()

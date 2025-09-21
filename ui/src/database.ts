@@ -103,6 +103,7 @@ export const emptyBook: Readonly<DBBook> = {
     },
     completed: 0,
     series: null,
+    download_size: 0,
 }
 
 function objectEntries<T extends object>(o: T): [keyof T, T[keyof T]][] {

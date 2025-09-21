@@ -11,6 +11,7 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	"github.com/abibby/salusa/clog"
 	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/hooks"
@@ -57,19 +58,20 @@ const (
 //go:generate spice generate:migration
 type Book struct {
 	BaseModel
-	ID          uuid.UUID                `json:"id"          db:"id,primary"`
-	Title       string                   `json:"title"       db:"title"`
-	Chapter     *nulls.Float64           `json:"chapter"     db:"chapter"`
-	Volume      *nulls.Float64           `json:"volume"      db:"volume"`
-	SeriesSlug  string                   `json:"series_slug" db:"series"`
-	Authors     jsoncolumn.Slice[string] `json:"authors"     db:"authors,type:json"`
-	Pages       jsoncolumn.Slice[*Page]  `json:"pages"       db:"pages"`
-	PageCount   int                      `json:"page_count"  db:"page_count"`
-	RightToLeft bool                     `json:"rtl"         db:"rtl"`
-	LongStrip   bool                     `json:"long_strip"  db:"long_strip"`
-	Sort        string                   `json:"sort"        db:"sort,index"`
-	File        string                   `json:"file"        db:"file"`
-	CoverURL    string                   `json:"cover_url"   db:"-"`
+	ID           uuid.UUID                `json:"id"            db:"id,primary"`
+	Title        string                   `json:"title"         db:"title"`
+	Chapter      *nulls.Float64           `json:"chapter"       db:"chapter"`
+	Volume       *nulls.Float64           `json:"volume"        db:"volume"`
+	SeriesSlug   string                   `json:"series_slug"   db:"series"`
+	Authors      jsoncolumn.Slice[string] `json:"authors"       db:"authors,type:json"`
+	Pages        jsoncolumn.Slice[*Page]  `json:"pages"         db:"pages"`
+	PageCount    int                      `json:"page_count"    db:"page_count"`
+	RightToLeft  bool                     `json:"rtl"           db:"rtl"`
+	LongStrip    bool                     `json:"long_strip"    db:"long_strip"`
+	Sort         string                   `json:"sort"          db:"sort,index"`
+	File         string                   `json:"file"          db:"file"`
+	CoverURL     string                   `json:"cover_url"     db:"-"`
+	DownloadSize int                      `json:"download_size" db:"download_size"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
@@ -91,6 +93,15 @@ var _ hooks.AfterLoader = &Book{}
 func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	if b.Authors == nil {
 		b.Authors = []string{}
+	}
+
+	if b.DownloadSize == 0 {
+		size, err := b.calculateDownloadSize()
+		if err != nil {
+			clog.Use(ctx).Warn("failed to calculate download size", "err", err)
+		} else {
+			b.DownloadSize = size
+		}
 	}
 
 	basePages := make([]*BasePage, len(b.Pages))
@@ -117,6 +128,7 @@ func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 
 	return nil
 }
+
 func (b *Book) AfterSave(ctx context.Context, tx salusadb.DB) error {
 	if !b.saved {
 		err := b.updateUserSeries(ctx, tx)
@@ -157,6 +169,26 @@ func (b *Book) updateUserSeries(ctx context.Context, tx salusadb.DB) error {
 		}
 	}
 	return nil
+}
+
+func (b *Book) calculateDownloadSize() (int, error) {
+	reader, err := zip.OpenReader(b.FilePath())
+	if err != nil {
+		return 0, err
+	}
+
+	imgs, err := ZippedImages(reader)
+	if err != nil {
+		return 0, err
+	}
+
+	totalSize := 0
+
+	for _, img := range imgs {
+		totalSize += int(img.FileInfo().Size())
+	}
+
+	return totalSize, nil
 }
 
 func (b *Book) AfterLoad(ctx context.Context, tx salusadb.DB) error {

@@ -19,6 +19,7 @@ export interface Book {
     sort: string
     file: string
     cover_url: string
+    download_size: number
     user_book: UserBook | null
     series: Series | null
 }

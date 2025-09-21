@@ -1,5 +1,10 @@
 import { useMemo } from 'preact/hooks'
-import { Book, Page, PageType } from 'src/models'
+import { backgroundFetch, backgroundFetchEnabled } from 'src/background-fetch'
+import { sendCacheUpdate } from 'src/caches'
+import { Book, Page, PageType, Series } from 'src/models'
+import icon from 'res/images/logo.svg'
+import { pageURL } from 'src/api'
+import { post } from 'src/message'
 
 export interface PageWithIndex extends Page {
     index: number
@@ -245,4 +250,74 @@ export class PageTo {
 
 export function translate(b: Book, page: number): PageFrom {
     return new PageFrom(b, page)
+}
+
+export function bookFullName(book: Book): string {
+    let title = ''
+    if (book.volume) {
+        title += 'V' + book.volume
+    }
+    if (book.chapter) {
+        if (title !== '') {
+            title += ' '
+        }
+        title += '#' + book.chapter
+    }
+    if (book.title) {
+        if (title !== '') {
+            title += ' • '
+        }
+        title += book.title
+    }
+
+    return title
+}
+
+export async function downloadBook(book: Book, series?: Series): Promise<void> {
+    if (!backgroundFetchEnabled) {
+        await post({
+            type: 'download-book',
+            bookID: book.id,
+        })
+        return
+    }
+    const seriesName = series?.name ?? book.series?.name ?? book.series_slug
+    const reg = await backgroundFetch().fetch(
+        `book:${book.id}`,
+        await Promise.all(book.pages.map(p => pageURL(p))),
+        {
+            title: seriesName + ' ' + bookFullName(book),
+            downloadTotal: book.download_size,
+            icons: [{ src: icon }],
+        },
+    )
+
+    await sendCacheUpdate({
+        type: 'download',
+        downloadType: 'progress',
+        id: book.id,
+        model: 'book',
+        progress: 0,
+    })
+
+    reg.addEventListener('progress', async () => {
+        if (reg.downloadTotal) {
+            await sendCacheUpdate({
+                type: 'download',
+                downloadType: 'progress',
+                id: book.id,
+                model: 'book',
+                progress: reg.downloaded / reg.downloadTotal,
+            })
+        }
+        if (reg.result === 'success') {
+            await sendCacheUpdate({
+                type: 'download',
+                downloadType: 'progress',
+                id: book.id,
+                model: 'book',
+                progress: 1,
+            })
+        }
+    })
 }

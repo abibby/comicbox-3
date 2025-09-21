@@ -190,8 +190,7 @@ export async function pageURL(
     if (encode) {
         u.searchParams.set('encode', 'true')
     }
-
-    return u.toString()
+    return u.toString().replace(/^https?:/, '')
 }
 
 export async function apiFetch<T>(

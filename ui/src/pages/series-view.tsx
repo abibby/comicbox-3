@@ -25,14 +25,17 @@ import { useBookList } from 'src/hooks/book'
 import { useImageURL } from 'src/hooks/image'
 import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
-import { post } from 'src/message'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
 import styles from 'src/pages/series-view.module.css'
 import { route } from 'src/routes'
-import { updateSeriesMetadata } from 'src/services/series-service'
+import {
+    downloadSeries,
+    updateSeriesMetadata,
+} from 'src/services/series-service'
 import { encode } from 'src/util'
 import { isList } from 'src/pages/lists'
+import { removeBookCache } from 'src/caches'
 
 const listOptions = [['', 'None'], ...listNames] as const
 
@@ -142,6 +145,7 @@ function SeriesHeader({
             await persist(true)
         }
     }, [series])
+
     const markAllUnread = useCallback(async () => {
         if (series?.slug !== undefined) {
             const seriesBooks = await DB.books
@@ -167,12 +171,25 @@ function SeriesHeader({
         }
     }, [liveBooks, series])
 
-    const downloadSeries = useCallback(async () => {
-        await post({
-            type: 'download-series',
-            seriesSlug: slug,
-        })
-    }, [slug])
+    const removeAllDownloads = useCallback(async () => {
+        if (series?.slug === undefined) {
+            return
+        }
+        const seriesBooks = await DB.books
+            .where(['series_slug', 'sort'])
+            .between([series?.slug, Dexie.minKey], [series?.slug, Dexie.maxKey])
+            .toArray()
+
+        for (const book of seriesBooks) {
+            await removeBookCache(book.id)
+        }
+    }, [series])
+
+    const download = useCallback(async () => {
+        if (series) {
+            await downloadSeries(series)
+        }
+    }, [series])
 
     const updateMetadata = useCallback(async () => {
         await updateSeriesMetadata(slug)
@@ -203,10 +220,11 @@ function SeriesHeader({
             await openContextMenu(e, [
                 ['Mark All Read', markAllRead],
                 ['Mark All Unread', markAllUnread],
+                ['Remove Downloaded Books', removeAllDownloads],
                 ['Update Metadata', updateMetadata],
             ])
         },
-        [markAllRead, markAllUnread, updateMetadata],
+        [markAllRead, markAllUnread, removeAllDownloads, updateMetadata],
     )
 
     const coverURL = useImageURL(series?.cover_url)
@@ -265,11 +283,7 @@ function SeriesHeader({
                     options={listOptions}
                     onChange={bookmarkSeries}
                 />
-                <Button
-                    color='clear'
-                    icon={Download}
-                    onClick={downloadSeries}
-                />
+                <Button color='clear' icon={Download} onClick={download} />
                 <Button
                     color='clear'
                     icon={MoreHorizontal}

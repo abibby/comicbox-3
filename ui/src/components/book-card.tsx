@@ -6,12 +6,15 @@ import { Card } from 'src/components/card'
 import { ContextMenuItems } from 'src/components/context-menu'
 import { DB, DBBook, DBSeries } from 'src/database'
 import { usePageURL } from 'src/hooks/page'
-import { post } from 'src/message'
 import { route } from 'src/routes'
 import { openModal } from 'src/components/modal-controller'
 import { useMemo } from 'preact/hooks'
 import { encode } from 'src/util'
-import { translate } from 'src/services/book-service'
+import {
+    bookFullName,
+    downloadBook,
+    translate,
+} from 'src/services/book-service'
 
 interface BookProps {
     book: DBBook
@@ -52,14 +55,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
                     await persist(true)
                 },
             ],
-            !downloaded && [
-                'Download',
-                () =>
-                    post({
-                        type: 'download-book',
-                        bookID: book.id,
-                    }),
-            ],
+            !downloaded && ['Download', () => downloadBook(book)],
             downloaded && ['Remove', () => removeBookCache(book.id)],
             ['Delete', () => deleteBook(book)],
             [
@@ -82,22 +78,6 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     }, [book, downloaded])
     const online = useOnline()
 
-    let title = ''
-    if (book.volume) {
-        title += 'V' + book.volume
-    }
-    if (book.chapter) {
-        if (title !== '') {
-            title += ' '
-        }
-        title += '#' + book.chapter
-    }
-    if (book.title) {
-        if (title !== '') {
-            title += ' • '
-        }
-        title += book.title
-    }
     const coverURL = usePageURL(book)
     const currentPage = translate(book, book.user_book?.current_page ?? 0)
         .from('sourcePage')
@@ -112,7 +92,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
             image={coverURL}
             link={route('book.view', { id: book.id })}
             title={s?.name ?? book.series_slug}
-            subtitle={title}
+            subtitle={bookFullName(book)}
             menu={menu}
             disabled={!online && !downloaded}
             progress={progress}

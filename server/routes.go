@@ -107,9 +107,9 @@ func InitRouter(r *router.Router) {
 			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
 
 			r.Group("/meta", func(r *router.Router) {
-				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+				r.Get("", controllers.MetaList).Name("meta.list")
 				r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
-				r.Get("/", controllers.MetaList).Name("meta.list")
+				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
 			})
 		})
 

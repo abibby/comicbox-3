@@ -35,20 +35,20 @@
         opacity: 1;
     }
 }
-@keyframes slide-in {
-    0% {
-        transform: translateY(100%);
-    }
-    100% {
-        transform: translateY(0);
-    }
-}
 @keyframes fade-out {
     0% {
         opacity: 1;
     }
     100% {
         opacity: 0;
+    }
+}
+@keyframes slide-in {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(0);
     }
 }
 @keyframes slide-out {
@@ -202,23 +202,36 @@
 }
 
 @media (min-width: 500px) {
+    @keyframes slide-in {
+        0% {
+            transform: translate(-50%, calc(-100% - var(--top)));
+        }
+        100% {
+            transform: translate(-50%, 0);
+        }
+    }
+    @keyframes slide-out {
+        0% {
+            transform: translate(-50%, 0);
+        }
+        100% {
+            transform: translate(-50%, calc(-100% - var(--top)));
+        }
+    }
+
     .modal {
+        --top: 3.75rem;
         left: 50%;
         transform: translate(-50%, 0);
         width: 90%;
         bottom: unset;
-        top: 3.75rem;
+        top: var(--top);
         max-width: 45rem;
         max-height: calc(100dvh - env(keyboard-inset-height, 0px) - 8rem);
         border-radius: var(--border-radius-large);
-        animation: fade-in var(--transition-time);
     }
     .headActions > button:not(:last-child) {
         display: initial;
         animation: none;
-    }
-
-    .modal.closing {
-        animation: fade-out var(--transition-time) forwards;
     }
 }

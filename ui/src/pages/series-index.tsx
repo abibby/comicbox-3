@@ -18,7 +18,7 @@ export const SeriesIndex: FunctionalComponent = () => {
     const filteredSeries = useMemo(() => {
         return (
             series?.filter(s => {
-                if (genreFilter && !s.genres.includes(genreFilter)) {
+                if (genreFilter && !s.genres?.includes(genreFilter)) {
                     return false
                 }
                 if (yearFilter && String(s.year) !== yearFilter) {

@@ -46,7 +46,7 @@ export const MetadataMatch: FunctionalComponent = () => {
 
     return (
         <Modal>
-            <ModalHead>Anilist Match</ModalHead>
+            <ModalHead>Find Match</ModalHead>
             <ModalBody>
                 <Input
                     title='Search'

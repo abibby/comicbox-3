@@ -251,7 +251,7 @@ function SeriesHeader({
                 {series?.year}
             </a>
             <div class={styles.genres}>
-                {series?.genres.map((g, i) => (
+                {series?.genres?.map((g, i) => (
                     <Fragment key={g}>
                         {i > 0 && ', '}
                         <a

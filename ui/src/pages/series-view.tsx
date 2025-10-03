@@ -36,6 +36,7 @@ import {
 import { encode } from 'src/util'
 import { isList } from 'src/pages/lists'
 import { removeBookCache } from 'src/caches'
+import { useHasScope } from 'src/api/auth'
 
 const listOptions = [['', 'None'], ...listNames] as const
 
@@ -218,10 +219,13 @@ function SeriesHeader({
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
             await openContextMenu(e, [
-                ['Mark All Read', markAllRead],
-                ['Mark All Unread', markAllUnread],
-                ['Remove Downloaded Books', removeAllDownloads],
-                ['Update Metadata', updateMetadata],
+                { label: 'Mark All Read', action: markAllRead },
+                { label: 'Mark All Unread', action: markAllUnread },
+                {
+                    label: 'Remove Downloaded Books',
+                    action: removeAllDownloads,
+                },
+                { label: 'Update Metadata', action: updateMetadata },
             ])
         },
         [markAllRead, markAllUnread, removeAllDownloads, updateMetadata],
@@ -239,6 +243,7 @@ function SeriesHeader({
         const client = descriptionRef.current?.base?.clientHeight ?? 0
         setShowMoreButton(scroll > client)
     }, [series?.description])
+    const seriesWrite = useHasScope('series:write')
 
     return (
         <section class={styles.header}>
@@ -275,7 +280,9 @@ function SeriesHeader({
                 >
                     Read
                 </Button>
-                <Button color='clear' icon={Edit} onClick={editSeries} />
+                {seriesWrite && (
+                    <Button color='clear' icon={Edit} onClick={editSeries} />
+                )}
                 <SelectButton
                     color='clear'
                     icon={Bookmark}

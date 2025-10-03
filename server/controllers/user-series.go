@@ -20,7 +20,7 @@ type UserSeriesUpdateRequest struct {
 	UpdateMap  map[string]string `json:"update_map" validate:"require"`
 }
 
-func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
+var UserSeriesUpdate = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 	req := &UserSeriesUpdateRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -66,4 +66,4 @@ func UserSeriesUpdate(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJSON(rw, us)
-}
+})

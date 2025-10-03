@@ -29,6 +29,10 @@ export const claims = computed((): Claims | undefined => {
     return jwt.parse(tokens.value.token).claims
 })
 
+export const scopeSet = computed((): Set<string> => {
+    return new Set(claims.value?.scope.split(' '))
+})
+
 export function encodeParams(
     req: Record<string, string | number | boolean | undefined>,
 ): string {

@@ -33,7 +33,7 @@ func CreatesUser(id uuid.UUID) func(claims *Claims) *Claims {
 		return claims
 	}
 }
-func WithPurpose(purpose ...TokenScope) func(claims *Claims) *Claims {
+func WithScope(purpose ...TokenScope) func(claims *Claims) *Claims {
 	scopes := make(auth.ScopeStrings, len(purpose))
 	for i, v := range purpose {
 		scopes[i] = string(v)

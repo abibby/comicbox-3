@@ -4,14 +4,15 @@ import { useRef, useState } from 'preact/hooks'
 import styles from 'src/components/context-menu.module.css'
 import { Factory, SubComponentProps } from 'src/components/factory'
 import { useResizeEffect } from 'src/hooks/resize-effect'
-import { truthy } from 'src/util'
 
-export type ContextMenuItems = Array<
-    [string, (() => void) | string] | undefined | null | false
->
+export type ContextMenuItem = {
+    label: string
+    action: (() => void) | string
+    active?: boolean
+}
 
 export interface MenuProps extends SubComponentProps {
-    items: ContextMenuItems
+    items: ContextMenuItem[]
     event: MouseEvent
 }
 
@@ -44,25 +45,29 @@ const Menu: FunctionalComponent<MenuProps> = props => {
         <div onClick={props.close}>
             <div class={styles.screen} />
             <ul class={styles.menu} style={listStyle} ref={menu}>
-                {props.items.filter(truthy).map(([text, action]) => {
-                    if (typeof action === 'string') {
-                        if (encodeURI(action) === loc.path) {
-                            return <Fragment key={text + 'matching link'} />
+                {props.items
+                    .filter(({ active }) => active !== false)
+                    .map(({ label, action }) => {
+                        if (typeof action === 'string') {
+                            if (encodeURI(action) === loc.path) {
+                                return (
+                                    <Fragment key={label + 'matching link'} />
+                                )
+                            }
+                            return (
+                                <li key={label + 'link'}>
+                                    <a key={label} href={action}>
+                                        {label}
+                                    </a>
+                                </li>
+                            )
                         }
                         return (
-                            <li key={text + 'link'}>
-                                <a key={text} href={action}>
-                                    {text}
-                                </a>
+                            <li key={label + 'click'} onClick={action}>
+                                {label}
                             </li>
                         )
-                    }
-                    return (
-                        <li key={text + 'click'} onClick={action}>
-                            {text}
-                        </li>
-                    )
-                })}
+                    })}
             </ul>
         </div>
     )
@@ -74,7 +79,7 @@ export const ContextMenuController = contextMenu.Controller
 
 export async function openContextMenu(
     e: MouseEvent,
-    items: ContextMenuItems,
+    items: ContextMenuItem[],
 ): Promise<void> {
     await contextMenu.open({
         items: items,

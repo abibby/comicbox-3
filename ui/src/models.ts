@@ -55,6 +55,7 @@ export interface User {
     update_map: Record<string, string>
     id: string
     username: string
+    role: Role | null
 }
 export interface UserBook {
     created_at: string
@@ -72,6 +73,10 @@ export interface UserSeries {
     last_read_at: string
     latest_book_id: string | null
     latest_book: Book | null
+}
+export interface Role {
+    name: string
+    scopes: Array<string>
 }
 export interface Staff {
     name: string

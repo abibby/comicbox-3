@@ -30,6 +30,7 @@ var types = map[string]string{
 	"String":          "string",
 	"bool":            "boolean",
 	"Bool":            "boolean",
+	"TokenScope":      "string",
 }
 
 func main() {
@@ -40,6 +41,7 @@ func main() {
 		models.User{},
 		models.UserBook{},
 		models.UserSeries{},
+		models.Role{},
 		metadata.Staff{},
 		metadata.SeriesMetadata{},
 		metadata.DistanceMetadata{},

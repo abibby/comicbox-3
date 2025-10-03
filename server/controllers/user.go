@@ -87,7 +87,7 @@ var UserCurrent = request.Handler(func(r *UserCurrentRequest) (*UserCurrentRespo
 	var u *models.User
 	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery(r.Ctx).Find(tx, uid)
+		u, err = models.UserQuery(r.Ctx).With("Role").Find(tx, uid)
 		return err
 	})
 	if err != nil {

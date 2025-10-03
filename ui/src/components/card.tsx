@@ -8,7 +8,7 @@ import {
 import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
-import { ContextMenuItems, openContextMenu } from 'src/components/context-menu'
+import { ContextMenuItem, openContextMenu } from 'src/components/context-menu'
 import { LazyImg } from 'src/components/lazy-img'
 import {
     ChevronRight,
@@ -23,7 +23,7 @@ interface CardProps {
     subtitle?: string
     image?: string
     link?: string | (() => void)
-    menu?: ContextMenuItems
+    menu?: ContextMenuItem[]
     placeholder?: boolean
     disabled?: boolean
     progress?: number

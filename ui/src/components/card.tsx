@@ -5,7 +5,13 @@ import {
     JSX,
     ComponentChildren,
 } from 'preact'
-import { useCallback, useLayoutEffect, useRef, useState } from 'preact/hooks'
+import {
+    useCallback,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'preact/hooks'
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
 import { ContextMenuItem, openContextMenu } from 'src/components/context-menu'
@@ -65,6 +71,12 @@ export const Card: FunctionalComponent<CardProps> = props => {
         }
     }, [props.scrollIntoView])
 
+    const showMenu = useMemo(() => {
+        return (
+            (props.menu?.filter(item => item.active !== false).length ?? 0) > 0
+        )
+    }, [props.menu])
+
     return (
         <div
             ref={card}
@@ -82,7 +94,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
                     <Progress progress={props.progress ?? 0} />
                     <LazyImg src={props.image} alt={alt} />
                 </div>
-                {props.menu && (
+                {showMenu && (
                     <button class={styles.menu} onClick={open}>
                         <MoreVertical />
                     </button>

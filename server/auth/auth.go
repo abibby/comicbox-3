@@ -25,8 +25,6 @@ const (
 
 	ScopeAdmin = TokenScope("admin")
 
-	ScopeSync = TokenScope("sync")
-
 	ScopeUserIndex  = TokenScope("user:index")
 	ScopeUserRead   = TokenScope("user:read")
 	ScopeUserWrite  = TokenScope("user:write")
@@ -36,6 +34,7 @@ const (
 	ScopeBookRead   = TokenScope("book:read")
 	ScopeBookWrite  = TokenScope("book:write")
 	ScopeBookDelete = TokenScope("book:delete")
+	ScopeBookSync   = TokenScope("book:sync")
 
 	ScopeSeriesIndex = TokenScope("series:index")
 	ScopeSeriesRead  = TokenScope("series:read")

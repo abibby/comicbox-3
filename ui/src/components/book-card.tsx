@@ -30,6 +30,8 @@ export const BookCard: FunctionalComponent<BookProps> = ({
 }) => {
     const [downloaded, downloadProgress] = useBookCached(book)
     const bookWrite = useHasScope('book:write')
+    const bookDelete = useHasScope('book:delete')
+    const admin = useHasScope('admin')
     const menu = useMemo((): ContextMenuItem[] => {
         const currentPage = book.user_book?.current_page ?? 0
         return [
@@ -79,6 +81,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
             {
                 label: 'Delete',
                 action: () => deleteBook(book),
+                active: bookDelete,
             },
             {
                 label: 'Delete file',
@@ -95,9 +98,10 @@ export const BookCard: FunctionalComponent<BookProps> = ({
                         await deleteBook(book, true)
                     }
                 },
+                active: admin,
             },
         ]
-    }, [book, bookWrite, downloaded])
+    }, [admin, book, bookDelete, bookWrite, downloaded])
     const online = useOnline()
 
     const coverURL = usePageURL(book)

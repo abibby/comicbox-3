@@ -98,7 +98,7 @@ func InitRouter(r *router.Router) {
 			r.Delete("/books/{id}", scoped(controllers.BookDelete, auth.ScopeBookDelete)).Name("book.delete")
 			r.Post("/books/{id}/user-book", scoped(controllers.UserBookUpdate, auth.ScopeUserBookWrite)).Name("user-book.update")
 
-			r.Post("/sync", scoped(controllers.Sync, auth.ScopeSync)).Name("sync")
+			r.Post("/sync", scoped(controllers.Sync, auth.ScopeBookSync)).Name("sync")
 
 			// r.Post("/anilist/update", scoped(controllers.AnilistUpdate)).Name("anilist.update")
 			// r.Post("/anilist/login", scoped(controllers.AnilistLogin)).Name("anilist.login")

@@ -7,6 +7,7 @@ import { Book, Series } from 'src/models'
 import { route } from 'src/routes'
 import { translate } from 'src/services/book-service'
 import { openModal } from 'src/components/modal-controller'
+import { useHasScope } from 'src/api/auth'
 
 interface OverlayProps {
     book: Book
@@ -21,6 +22,7 @@ interface OverlayProps {
 export const Overlay: FunctionalComponent<OverlayProps> = props => {
     const book = props.book
 
+    const bookWrite = useHasScope('book:write')
     const [displayPage, setDisplayPage] = useState(0)
     const sliderInput = useCallback((p: string) => {
         setDisplayPage(Number(p))
@@ -65,11 +67,18 @@ export const Overlay: FunctionalComponent<OverlayProps> = props => {
             <div class={styles.content}>
                 <div class={styles.sidebar}>
                     <ul>
-                        <li>
-                            <a onClick={bind(`/book/${book.id}`, openModal)}>
-                                Edit
-                            </a>
-                        </li>
+                        {bookWrite && (
+                            <li>
+                                <a
+                                    onClick={bind(
+                                        `/book/${book.id}`,
+                                        openModal,
+                                    )}
+                                >
+                                    Edit
+                                </a>
+                            </li>
+                        )}
                         <li>
                             <a
                                 href={route('series.view', {

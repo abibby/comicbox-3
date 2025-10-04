@@ -215,6 +215,7 @@ function SeriesHeader({
         },
         [series],
     )
+    const seriesWrite = useHasScope('series:write')
 
     const contextMenu = useCallback(
         async (e: MouseEvent) => {
@@ -225,10 +226,20 @@ function SeriesHeader({
                     label: 'Remove Downloaded Books',
                     action: removeAllDownloads,
                 },
-                { label: 'Update Metadata', action: updateMetadata },
+                {
+                    label: 'Update Metadata',
+                    action: updateMetadata,
+                    active: seriesWrite,
+                },
             ])
         },
-        [markAllRead, markAllUnread, removeAllDownloads, updateMetadata],
+        [
+            markAllRead,
+            markAllUnread,
+            removeAllDownloads,
+            seriesWrite,
+            updateMetadata,
+        ],
     )
 
     const coverURL = useImageURL(series?.cover_url)
@@ -243,7 +254,6 @@ function SeriesHeader({
         const client = descriptionRef.current?.base?.clientHeight ?? 0
         setShowMoreButton(scroll > client)
     }, [series?.description])
-    const seriesWrite = useHasScope('series:write')
 
     return (
         <section class={styles.header}>

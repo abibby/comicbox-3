@@ -2,7 +2,6 @@ import { FunctionalComponent, h } from 'preact'
 import { Card } from 'src/components/card'
 import { ContextMenuItem } from 'src/components/context-menu'
 import { usePageURL } from 'src/hooks/page'
-import { post } from 'src/message'
 import { Series } from 'src/models'
 import { route } from 'src/routes'
 import { openModal } from 'src/components/modal-controller'
@@ -23,16 +22,8 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
                 action: () => openModal(encode`/series/${props.series.slug}`),
                 active: seriesWrite,
             },
-            {
-                label: 'Download',
-                action: () =>
-                    post({
-                        type: 'download-series',
-                        seriesSlug: props.series.name,
-                    }),
-            },
         ]
-    }, [props.series.name, props.series.slug, seriesWrite])
+    }, [props.series.slug, seriesWrite])
 
     const coverURL = usePageURL(props.series)
 

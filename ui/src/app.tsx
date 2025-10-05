@@ -17,8 +17,8 @@ import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
 import { MetadataMatch } from 'src/modals/metadata-match'
 import { ErrorBoundary } from 'src/components/error-boundry'
-import { UserIndex } from './modals/user-index'
-import { UserEdit } from './modals/user-edit'
+import { UserIndex } from 'src/modals/user-index'
+import { UserEdit } from 'src/modals/user-edit'
 
 function changePage(): void {
     clearToasts()

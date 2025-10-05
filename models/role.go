@@ -15,7 +15,7 @@ import (
 type Role struct {
 	model.BaseModel
 
-	ID     int                               `json:"-"      db:"id,primary,autoincrement"`
+	ID     int                               `json:"id"     db:"id,primary,autoincrement"`
 	Name   string                            `json:"name"   db:"name"`
 	Scopes jsoncolumn.Slice[auth.TokenScope] `json:"scopes" db:"scopes"`
 }

@@ -93,6 +93,7 @@ export class FetchError<T> extends Error {
 export async function setAuthToken(
     resp: LoginResponse | null | undefined,
 ): Promise<void> {
+    tokens.value = resp ?? undefined
     if (resp === null || resp === undefined) {
         await del('tokens')
     } else {

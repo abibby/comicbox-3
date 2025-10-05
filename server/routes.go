@@ -113,6 +113,15 @@ func InitRouter(r *router.Router) {
 				r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
 				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
 			})
+
+			r.Group("", func(r *router.Router) {
+				r.Use(controllers.HasScope(auth.ScopeAdmin))
+
+				r.Get("/users", controllers.UserList).Name("user.list")
+				r.Put("/users/{id}", controllers.UserUpdate).Name("user.update")
+
+				r.Get("/roles", controllers.RoleList).Name("role.list")
+			})
 		})
 
 		r.Group("", func(r *router.Router) {

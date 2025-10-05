@@ -75,6 +75,7 @@ export interface UserSeries {
     latest_book: Book | null
 }
 export interface Role {
+    id: number
     name: string
     scopes: Array<string>
 }

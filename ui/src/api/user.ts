@@ -1,5 +1,11 @@
-import { apiFetch } from 'src/api/internal'
+import {
+    apiFetch,
+    encodeParams,
+    PaginatedRequest,
+    PaginatedResponse,
+} from 'src/api/internal'
 import { User } from 'src/models'
+import { encode } from 'src/util'
 
 export interface CreateRequest {
     username: string
@@ -27,4 +33,24 @@ export async function create(
         },
         false,
     )
+}
+
+export type UserIndexRequest = PaginatedRequest & {
+    id?: string
+}
+
+export async function index(
+    req: UserIndexRequest = {},
+): Promise<PaginatedResponse<User>> {
+    return await apiFetch('/api/users?' + encodeParams(req), {})
+}
+
+export async function update(
+    id: string,
+    req: unknown = {},
+): Promise<PaginatedResponse<User>> {
+    return await apiFetch(encode`/api/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(req),
+    })
 }

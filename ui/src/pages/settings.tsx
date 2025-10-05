@@ -98,6 +98,11 @@ export const Settings: FunctionalComponent = () => {
                     {!PUBLIC_USER_CREATE && scopeAdmin && (
                         <Button onClick={generateToken}>Invite User</Button>
                     )}
+                    {scopeAdmin && (
+                        <Button onClick={bind(`/user`, openModal)}>
+                            View Users
+                        </Button>
+                    )}
                 </section>
             )}
         </div>

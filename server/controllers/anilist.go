@@ -27,7 +27,7 @@ type AnilistUpdateResponse struct {
 	Success bool `json:"success"`
 }
 
-func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
+var AnilistUpdate = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 	req := &AnilistUpdateRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -50,7 +50,7 @@ func AnilistUpdate(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, &AnilistUpdateResponse{
 		Success: true,
 	})
-}
+})
 
 func getUser(r *http.Request) (*models.User, error) {
 	userID, ok := auth.UserID(r.Context())
@@ -88,7 +88,7 @@ type anilistTokenResponse struct {
 	AccessToken string `json:"access_token"`
 }
 
-func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
+var AnilistLogin = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 	req := &AnilistUpdateGrantRequest{}
 	err := validate.Run(r, req)
 	if err != nil {
@@ -125,7 +125,7 @@ func AnilistLogin(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, &AnilistUpdateGrantResponse{
 		Success: true,
 	})
-}
+})
 
 func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 	u := &models.User{}

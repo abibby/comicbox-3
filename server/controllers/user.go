@@ -10,11 +10,47 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
+	salusadb "github.com/abibby/salusa/database"
+	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
+
+type UserListRequest struct {
+	PaginatedRequest
+
+	ID uuid.UUID `query:"id"`
+
+	Ctx context.Context `inject:""`
+}
+type UserListResponse = PaginatedResponse[*models.User]
+
+var UserList = request.Handler(func(r *UserListRequest) (*UserListResponse, error) {
+	q := models.UserQuery(r.Ctx).
+		Where("id", "!=", uuid.UUID{}).
+		OrderBy("username").
+		With("Role")
+
+	if (r.ID != uuid.UUID{}) {
+		q = q.Where("id", "=", r.ID)
+	}
+
+	return paginatedList(&r.PaginatedRequest, q)
+})
+
+type RoleListRequest struct {
+	Read salusadb.Read `inject:""`
+
+	Ctx context.Context `inject:""`
+}
+
+var RoleList = request.Handler(func(r *RoleListRequest) ([]*models.Role, error) {
+	return salusadb.Value(r.Read, func(tx *sqlx.Tx) ([]*models.Role, error) {
+		return models.RoleQuery(r.Ctx).Get(tx)
+	})
+})
 
 type UserCreateRequest struct {
 	Username string `json:"username" validate:"require"`
@@ -87,7 +123,7 @@ var UserCurrent = request.Handler(func(r *UserCurrentRequest) (*UserCurrentRespo
 	var u *models.User
 	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery(r.Ctx).Find(tx, uid)
+		u, err = models.UserQuery(r.Ctx).With("Role").Find(tx, uid)
 		return err
 	})
 	if err != nil {
@@ -100,7 +136,12 @@ var UserCurrent = request.Handler(func(r *UserCurrentRequest) (*UserCurrentRespo
 })
 
 type UserUpdateRequest struct {
-	Ctx context.Context `inject:""`
+	ID       uuid.UUID `path:"id"`
+	Password string    `json:"password"`
+	RoleID   int       `json:"role_id"`
+
+	Update salusadb.Update `inject:""`
+	Ctx    context.Context `inject:""`
 }
 type UserUpdateResponse struct {
 	User *models.User `json:"user"`
@@ -112,17 +153,33 @@ var UserUpdate = request.Handler(func(r *UserUpdateRequest) (*UserUpdateResponse
 		return nil, ErrUnauthorized
 	}
 
-	var u *models.User
-	err := database.ReadTx(r.Ctx, func(tx *sqlx.Tx) error {
-		var err error
-		u, err = models.UserQuery(r.Ctx).Find(tx, uid)
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
+	return salusadb.Value(r.Update, func(tx *sqlx.Tx) (*UserUpdateResponse, error) {
+		u, err := models.UserQuery(r.Ctx).Find(tx, r.ID)
+		if err != nil {
+			return nil, err
+		}
 
-	return &UserUpdateResponse{
-		User: u,
-	}, nil
+		if r.Password != "" {
+			u.Password = []byte(r.Password)
+		}
+
+		if r.ID != uid {
+			u.RoleID = r.RoleID
+		}
+
+		err = builder.LoadContext(r.Ctx, tx, u, "Role")
+		if err != nil {
+			return nil, err
+		}
+
+		err = model.SaveContext(r.Ctx, tx, u)
+		if err != nil {
+			return nil, err
+		}
+
+		return &UserUpdateResponse{
+			User: u,
+		}, nil
+	})
+
 })

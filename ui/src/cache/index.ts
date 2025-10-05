@@ -147,7 +147,7 @@ export async function persist(
         for (const b of dirtyBooks) {
             let result: Partial<DBBook> = {}
             try {
-                if (b.update_map !== undefined) {
+                if (b.update_map !== undefined && ((b.dirty ?? 0) & 1) !== 0) {
                     result = await bookAPI.update(b.id, {
                         title: b.title,
                         series_slug: b.series_slug,
@@ -163,7 +163,10 @@ export async function persist(
                     result.dirty = 0
                 }
 
-                if (b.user_book?.update_map !== undefined) {
+                if (
+                    b.user_book?.update_map !== undefined &&
+                    (b.user_book?.dirty ?? 0) !== 0
+                ) {
                     result.user_book = await userBookAPI.update(b.id, {
                         current_page: b.user_book.current_page,
                         update_map: b.user_book.update_map,
@@ -182,18 +185,20 @@ export async function persist(
         for (const s of dirtySeries) {
             let result: Partial<DBSeries> = {}
             try {
-                result = await seriesAPI.update(s.slug, {
-                    name: s.name,
-                    year: s.year,
-                    aliases: s.aliases,
-                    tags: s.tags,
-                    genres: s.genres,
-                    description: s.description,
-                    metadata_id: s.metadata_id,
-                    locked_fields: s.locked_fields,
-                    update_map: s.update_map,
-                })
-                result.dirty = 0
+                if (s.update_map !== undefined && ((s.dirty ?? 0) & 1) !== 0) {
+                    result = await seriesAPI.update(s.slug, {
+                        name: s.name,
+                        year: s.year,
+                        aliases: s.aliases,
+                        tags: s.tags,
+                        genres: s.genres,
+                        description: s.description,
+                        metadata_id: s.metadata_id,
+                        locked_fields: s.locked_fields,
+                        update_map: s.update_map,
+                    })
+                    result.dirty = 0
+                }
                 if (s.user_series !== null) {
                     try {
                         result.user_series = await userSeriesAPI.update(

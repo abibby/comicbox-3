@@ -3,7 +3,7 @@ import { deleteBook, persist, useOnline } from 'src/cache'
 import { removeBookCache, useBookCached } from 'src/caches'
 import { openToast } from 'src/components/toast'
 import { Card } from 'src/components/card'
-import { ContextMenuItems } from 'src/components/context-menu'
+import { ContextMenuItem } from 'src/components/context-menu'
 import { DB, DBBook, DBSeries } from 'src/database'
 import { usePageURL } from 'src/hooks/page'
 import { route } from 'src/routes'
@@ -15,6 +15,7 @@ import {
     downloadBook,
     translate,
 } from 'src/services/book-service'
+import { useHasScope } from 'src/api/auth'
 
 interface BookProps {
     book: DBBook
@@ -28,14 +29,24 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     scrollIntoView,
 }) => {
     const [downloaded, downloadProgress] = useBookCached(book)
-    const menu = useMemo((): ContextMenuItems => {
+    const bookWrite = useHasScope('book:write')
+    const bookDelete = useHasScope('book:delete')
+    const admin = useHasScope('admin')
+    const menu = useMemo((): ContextMenuItem[] => {
         const currentPage = book.user_book?.current_page ?? 0
         return [
-            ['View series', route('series.view', { series: book.series_slug })],
-            ['Edit', () => openModal(encode`/book/${book.id}/meta`)],
-            currentPage < book.page_count - 1 && [
-                'Mark as read',
-                async () => {
+            {
+                label: 'View series',
+                action: route('series.view', { series: book.series_slug }),
+            },
+            {
+                label: 'Edit',
+                action: () => openModal(encode`/book/${book.id}/meta`),
+                active: bookWrite,
+            },
+            {
+                label: 'Mark as read',
+                action: async () => {
                     await DB.saveBook(book, {
                         user_book: {
                             current_page: book.page_count - 1,
@@ -43,10 +54,11 @@ export const BookCard: FunctionalComponent<BookProps> = ({
                     })
                     await persist(true)
                 },
-            ],
-            currentPage > 0 && [
-                'Mark as unread',
-                async () => {
+                active: currentPage < book.page_count - 1,
+            },
+            {
+                label: 'Mark as unread',
+                action: async () => {
                     await DB.saveBook(book, {
                         user_book: {
                             current_page: 0,
@@ -54,13 +66,26 @@ export const BookCard: FunctionalComponent<BookProps> = ({
                     })
                     await persist(true)
                 },
-            ],
-            !downloaded && ['Download', () => downloadBook(book)],
-            downloaded && ['Remove', () => removeBookCache(book.id)],
-            ['Delete', () => deleteBook(book)],
-            [
-                'Delete file',
-                async () => {
+                active: currentPage > 0,
+            },
+            {
+                label: 'Download',
+                action: () => downloadBook(book),
+                active: !downloaded,
+            },
+            {
+                label: 'Remove',
+                action: () => removeBookCache(book.id),
+                active: downloaded,
+            },
+            {
+                label: 'Delete',
+                action: () => deleteBook(book),
+                active: bookDelete,
+            },
+            {
+                label: 'Delete file',
+                action: async () => {
                     const shouldDelete = await openToast(
                         `Are you sure you want to delete ${book.file}?`,
                         {
@@ -73,9 +98,10 @@ export const BookCard: FunctionalComponent<BookProps> = ({
                         await deleteBook(book, true)
                     }
                 },
-            ],
+                active: admin,
+            },
         ]
-    }, [book, downloaded])
+    }, [admin, book, bookDelete, bookWrite, downloaded])
     const online = useOnline()
 
     const coverURL = usePageURL(book)

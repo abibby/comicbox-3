@@ -1,4 +1,4 @@
-import type { BackgroundFetchOptions } from './background-fetch'
+import type { BackgroundFetchOptions } from 'src/background-fetch'
 
 export type Message =
     | DownloadBookMessage

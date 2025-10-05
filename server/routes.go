@@ -87,34 +87,46 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			r.Use(controllers.HasScope(auth.ScopeAPI))
+			// r.Use(controllers.HasScope(auth.ScopeAPI))
 
-			r.Get("/series", controllers.SeriesIndex).Name("series.index")
-			r.Post("/series/{slug}", controllers.SeriesUpdate).Name("series.update")
-			r.PostFunc("/series/{slug}/user-series", controllers.UserSeriesUpdate).Name("user-series.update")
+			r.Get("/series", scoped(controllers.SeriesIndex, auth.ScopeBookIndex)).Name("series.index")
+			r.Post("/series/{slug}", scoped(controllers.SeriesUpdate, auth.ScopeSeriesWrite)).Name("series.update")
+			r.Post("/series/{slug}/user-series", scoped(controllers.UserSeriesUpdate, auth.ScopeUserSeriesWrite)).Name("user-series.update")
 
-			r.Get("/books", controllers.BookIndex).Name("book.index")
-			r.Post("/books/{id}", controllers.BookUpdate).Name("book.update")
-			r.Delete("/books/{id}", controllers.BookDelete).Name("book.delete")
-			r.Post("/books/{id}/user-book", controllers.UserBookUpdate).Name("user-book.update")
+			r.Get("/books", scoped(controllers.BookIndex, auth.ScopeBookIndex)).Name("book.index")
+			r.Post("/books/{id}", scoped(controllers.BookUpdate, auth.ScopeBookWrite)).Name("book.update")
+			r.Delete("/books/{id}", scoped(controllers.BookDelete, auth.ScopeBookDelete)).Name("book.delete")
+			r.Post("/books/{id}/user-book", scoped(controllers.UserBookUpdate, auth.ScopeUserBookWrite)).Name("user-book.update")
 
-			r.Post("/sync", controllers.Sync).Name("sync")
+			r.Post("/sync", scoped(controllers.Sync, auth.ScopeBookSync)).Name("sync")
 
-			r.PostFunc("/anilist/update", controllers.AnilistUpdate).Name("anilist.update")
-			r.PostFunc("/anilist/login", controllers.AnilistLogin).Name("anilist.login")
+			// r.Post("/anilist/update", scoped(controllers.AnilistUpdate)).Name("anilist.update")
+			// r.Post("/anilist/login", scoped(controllers.AnilistLogin)).Name("anilist.login")
 
-			r.GetFunc("/users/create-token", controllers.UserCreateToken).Name("user-create-token")
-			r.Get("/users/current", controllers.UserCurrent).Name("user.current")
+			r.Get("/users/create-token", scoped(controllers.UserCreateToken, auth.ScopeUserWrite)).Name("user-create-token")
+			r.Get("/users/current", scoped(controllers.UserCurrent, auth.ScopeUserRead)).Name("user.current")
 
 			r.Group("/meta", func(r *router.Router) {
+				r.Use(controllers.HasScope(auth.ScopeSeriesWrite))
+
 				r.Get("", controllers.MetaList).Name("meta.list")
 				r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
 				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
+			})
+
+			r.Group("", func(r *router.Router) {
+				r.Use(controllers.HasScope(auth.ScopeAdmin))
+
+				r.Get("/users", controllers.UserList).Name("user.list")
+				r.Put("/users/{id}", controllers.UserUpdate).Name("user.update")
+
+				r.Get("/roles", controllers.RoleList).Name("role.list")
 			})
 		})
 
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.HasScope(auth.ScopeImage))
+
 			r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
@@ -142,4 +154,8 @@ func InitRouter(r *router.Router) {
 	r.GetFunc("/static-files", controllers.StaticFiles)
 
 	r.Handle("/", FileServerDefault(ui.Content, "dist", "index.html")).Name("static.files")
+}
+
+func scoped(handler http.Handler, scopes ...auth.TokenScope) http.Handler {
+	return controllers.HasScope(scopes...).Middleware(handler)
 }

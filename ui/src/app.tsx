@@ -17,6 +17,8 @@ import { EditSeries } from 'src/modals/series-edit'
 import { EditBook } from 'src/modals/book-edit'
 import { MetadataMatch } from 'src/modals/metadata-match'
 import { ErrorBoundary } from 'src/components/error-boundry'
+import { UserIndex } from 'src/modals/user-index'
+import { UserEdit } from 'src/modals/user-edit'
 
 function changePage(): void {
     clearToasts()
@@ -73,6 +75,8 @@ function Main() {
                         <Route path='/series/:series' component={EditSeries} />
                         <Route path='/book/:book' component={EditBook} />
                         <Route path='/book/:book/*' component={EditBook} />
+                        <Route path='/user' component={UserIndex} />
+                        <Route path='/user/:user' component={UserEdit} />
                         <Route
                             path='/metadata/:slug'
                             component={MetadataMatch}

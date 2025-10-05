@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'preact/hooks'
-import { apiFetch, claims, getAuthToken, setAuthToken } from 'src/api/internal'
+import {
+    apiFetch,
+    claims,
+    getAuthToken,
+    scopeSet,
+    setAuthToken,
+} from 'src/api/internal'
 import { clearDatabase } from 'src/database'
 import { useSignal } from 'src/hooks/signals'
 import jwt, { Claims } from 'src/jwt'
@@ -91,6 +97,16 @@ export function useUser(): User | undefined {
         void userCurrent().then(u => setUser(u.user))
     }, [claims])
     return user
+}
+
+export function useHasScope(scope: string): boolean {
+    const usersScopes = useSignal(scopeSet)
+    return usersScopes.has(scope) || usersScopes.has('admin')
+}
+
+export function hasScope(scope: string) {
+    const usersScopes = scopeSet.value
+    return usersScopes.has(scope) || usersScopes.has('admin')
 }
 
 void getAuthToken()

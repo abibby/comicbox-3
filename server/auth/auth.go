@@ -22,6 +22,34 @@ const (
 	ScopeAPI     = TokenScope("api")
 	ScopeRefresh = TokenScope("refresh")
 	ScopeImage   = TokenScope("image")
+
+	ScopeAdmin = TokenScope("admin")
+
+	ScopeUserIndex  = TokenScope("user:index")
+	ScopeUserRead   = TokenScope("user:read")
+	ScopeUserWrite  = TokenScope("user:write")
+	ScopeUserDelete = TokenScope("user:delete")
+
+	ScopeBookIndex  = TokenScope("book:index")
+	ScopeBookRead   = TokenScope("book:read")
+	ScopeBookWrite  = TokenScope("book:write")
+	ScopeBookDelete = TokenScope("book:delete")
+	ScopeBookSync   = TokenScope("book:sync")
+
+	ScopeSeriesIndex = TokenScope("series:index")
+	ScopeSeriesRead  = TokenScope("series:read")
+	ScopeSeriesWrite = TokenScope("series:write")
+	// ScopeSeriesDelete = TokenScope("series:delete")
+
+	// ScopeUserBookIndex  = TokenScope("userbook:index")
+	// ScopeUserBookRead   = TokenScope("userbook:read")
+	ScopeUserBookWrite = TokenScope("userbook:write")
+	// ScopeUserBookDelete = TokenScope("userbook:delete")
+
+	// ScopeUserSeriesIndex  = TokenScope("userseries:index")
+	// ScopeUserSeriesRead   = TokenScope("userseries:read")
+	ScopeUserSeriesWrite = TokenScope("userseries:write")
+	// ScopeUserSeriesDelete = TokenScope("userseries:delete")
 )
 
 type contextKey uint8

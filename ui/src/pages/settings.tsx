@@ -1,6 +1,6 @@
 import { FunctionalComponent, h } from 'preact'
 import { useCallback } from 'preact/hooks'
-import { logout, userCreateToken } from 'src/api/auth'
+import { logout, useHasScope, userCreateToken } from 'src/api/auth'
 import { bookSync } from 'src/api/sync'
 import { openToast } from 'src/components/toast'
 import { Button } from 'src/components/button'
@@ -41,7 +41,11 @@ export const Settings: FunctionalComponent = () => {
         )
     }, [])
 
-    const redirectURI = location.origin + '/anilist/login'
+    // const redirectURI = location.origin + '/anilist/login'
+
+    const scopeBookSync = useHasScope('book:sync')
+    const scopeSeriesWrite = useHasScope('series:write')
+    const scopeAdmin = useHasScope('series:write')
 
     /*
      settings
@@ -78,24 +82,29 @@ export const Settings: FunctionalComponent = () => {
                 </RadioButtonGroup>
                 <Button onClick={clearDatabase}>Clear Local Cache</Button>
             </section>
-            <section>
-                <h3>Admin</h3>
-                <Button onClick={bookSync}>Scan Library Files</Button>
-                <Button onClick={metadataSync}>Update Series Metadata</Button>
-                {!PUBLIC_USER_CREATE && (
-                    <Button onClick={generateToken}>Invite User</Button>
-                )}
-            </section>
-            <section>
-                <h3>Anilist</h3>
-                <Button
-                    href={`https://anilist.co/api/v2/oauth/authorize?client_id=${ANILIST_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-                        redirectURI,
-                    )}&response_type=code`}
-                >
-                    Login with AniList
-                </Button>
-            </section>
+            {(scopeBookSync ||
+                scopeSeriesWrite ||
+                (!PUBLIC_USER_CREATE && scopeAdmin)) && (
+                <section>
+                    <h3>Admin</h3>
+                    {scopeBookSync && (
+                        <Button onClick={bookSync}>Scan Library Files</Button>
+                    )}
+                    {scopeSeriesWrite && (
+                        <Button onClick={metadataSync}>
+                            Update Series Metadata
+                        </Button>
+                    )}
+                    {!PUBLIC_USER_CREATE && scopeAdmin && (
+                        <Button onClick={generateToken}>Invite User</Button>
+                    )}
+                    {scopeAdmin && (
+                        <Button onClick={bind(`/user`, openModal)}>
+                            View Users
+                        </Button>
+                    )}
+                </section>
+            )}
         </div>
     )
 }

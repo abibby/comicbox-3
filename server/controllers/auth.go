@@ -49,6 +49,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		var err error
 		u, err = models.UserQuery(r.Context()).
 			Where("username", "=", strings.ToLower(req.Username)).
+			With("Role").
 			First(tx)
 		return err
 	})
@@ -89,7 +90,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 	var u *models.User
 	err := database.ReadTx(r.Context(), func(tx *sqlx.Tx) error {
 		var err error
-		u, err = models.UserQuery(r.Context()).Find(tx, uid)
+		u, err = models.UserQuery(r.Context()).With("Role").Find(tx, uid)
 		return err
 	})
 	if err != nil {
@@ -112,18 +113,21 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 }
 
 func generateLoginResponse(u *models.User) (*LoginResponse, error) {
-
-	token, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeAPI))
+	role, ok := u.Role.Value()
+	if !ok {
+		return nil, fmt.Errorf("generateLoginResponse: role must be loaded on the user")
+	}
+	token, err := auth.GenerateToken(u.ID, auth.WithScope(role.Scopes...))
 	if err != nil {
 		return nil, err
 	}
 
-	imageToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeImage))
+	imageToken, err := auth.GenerateToken(u.ID, auth.WithScope(auth.ScopeImage))
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := auth.GenerateToken(u.ID, auth.WithPurpose(auth.ScopeRefresh), auth.WithLifetime(time.Hour*24*30))
+	refreshToken, err := auth.GenerateToken(u.ID, auth.WithScope(auth.ScopeRefresh), auth.WithLifetime(time.Hour*24*30))
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +143,7 @@ type UserCreateTokenResponse struct {
 	Token string `json:"token"`
 }
 
-func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
+var UserCreateToken = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 	token, err := auth.GenerateToken(uuid.UUID{}, auth.CreatesUser(uuid.New()))
 	if err != nil {
 		sendError(rw, err)
@@ -149,7 +153,7 @@ func UserCreateToken(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, &UserCreateTokenResponse{
 		Token: token,
 	})
-}
+})
 
 type ChangePasswordRequest struct {
 	OldPassword string `json:"old_password"`
@@ -222,12 +226,13 @@ func (m *authMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		for _, scope := range claims.Scope {
-			if slices.Contains(m.purposes, auth.TokenScope(scope)) {
+			tokenScope := auth.TokenScope(scope)
+			if slices.Contains(m.purposes, tokenScope) || tokenScope == auth.ScopeAdmin {
 				next.ServeHTTP(w, r)
 				return
 			}
 		}
-		sendError(w, ErrUnauthorized)
+		sendError(w, ErrForbidden)
 	})
 }
 func (m *authMiddleware) OperationMiddleware(s *spec.Operation) *spec.Operation {

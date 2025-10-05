@@ -1,0 +1,29 @@
+.userList {
+    width: 100%;
+}
+
+.userList thead tr {
+    background-color: rgba(var(--text-on-surface), 0.1);
+}
+.userList thead th {
+    font-weight: bold;
+    border-bottom: rgba(var(--text-on-surface), 0.8) solid 2px;
+}
+
+.userList tbody tr:nth-child(even) {
+    background-color: rgba(var(--text-on-surface), 0.05);
+}
+
+.userList {
+    margin: 0 -5px;
+}
+
+.userList td,
+.userList th {
+    padding: 5px;
+}
+
+.buttons {
+    text-align: right;
+    width: 4rem;
+}

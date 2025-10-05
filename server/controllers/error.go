@@ -20,8 +20,9 @@ type HttpError struct {
 	status int
 }
 
-var Err404 = NewDefaultHttpError(404)
-var ErrUnauthorized = NewDefaultHttpError(401)
+var Err404 = NewDefaultHttpError(http.StatusNotFound)
+var ErrUnauthorized = NewDefaultHttpError(http.StatusUnauthorized)
+var ErrForbidden = NewDefaultHttpError(http.StatusForbidden)
 
 func NewDefaultHttpError(status int) *HttpError {
 	return NewHttpError(status, errors.New(http.StatusText(status)))

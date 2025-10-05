@@ -95,7 +95,7 @@ func addToken(uri string) (string, error) {
 		return "", err
 	}
 
-	token, err := auth.GenerateToken(uuid.UUID{}, auth.WithPurpose(auth.ScopeImage), auth.WithLifetime(time.Hour))
+	token, err := auth.GenerateToken(uuid.UUID{}, auth.WithScope(auth.ScopeImage), auth.WithLifetime(time.Hour))
 	if err != nil {
 		return "", err
 	}

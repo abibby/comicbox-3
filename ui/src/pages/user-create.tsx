@@ -56,10 +56,10 @@ export const UserCreate: FunctionalComponent = () => {
             <h1>Create User</h1>
             <Form onSubmit={submit} errors={errors}>
                 <Input title='Username' type='text' name='username' focused />
-                <Input title='Password' type='text' name='password' />
+                <Input title='Password' type='password' name='password' />
                 <Input
                     title='Repeat Password'
-                    type='text'
+                    type='password'
                     name='password_rep'
                 />
                 <button type='submit'>Create</button>

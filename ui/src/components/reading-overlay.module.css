@@ -40,6 +40,7 @@
         'range range'
         'title options';
     background-color: #313131e5;
+    color: rgba(255, 255, 255, 90%);
     grid-template-columns: auto 1fr;
     column-gap: 0.5rem;
     position: absolute;
@@ -139,11 +140,16 @@
     cursor: pointer;
 }
 
+.title .book {
+    color: rgba(255, 255, 255, 70%);
+}
+
 .options {
     grid-area: options;
     display: flex;
-    justify-self: flex-end;
     gap: 1rem;
+    align-items: center;
+    justify-self: flex-end;
 }
 
 .pageCount {
@@ -152,10 +158,3 @@
 .pageNumber {
     white-space: nowrap;
 }
-
-/* @media (min-width: 500px) or (pointer: fine) {
-    .content {
-        margin-top: calc(var(--nav-height) + var(--body-margins));
-        margin-bottom: 0;
-    }
-} */

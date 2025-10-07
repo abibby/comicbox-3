@@ -26,10 +26,10 @@ export class ErrorBoundary extends Component<
         if (this.state.error) {
             return (
                 <Fragment>
-                    <pre onClick={this.closeError}>
+                    <pre>
                         {this.state.error.stack ?? String(this.state.error)}
                     </pre>
-                    <Button href='/'>Home</Button>
+                    <Button onClick={this.closeError}>Home</Button>
                 </Fragment>
             )
         }
@@ -37,6 +37,6 @@ export class ErrorBoundary extends Component<
     }
 
     closeError = () => {
-        this.setState({ error: undefined })
+        window.location.href = '/'
     }
 }

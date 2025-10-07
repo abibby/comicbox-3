@@ -1,9 +1,6 @@
 import { h, render } from 'preact'
-import { ToastController, clearToasts } from 'src/components/toast'
-import {
-    clearContextMenus,
-    ContextMenuController,
-} from 'src/components/context-menu'
+import { ToastController } from 'src/components/toast'
+import { ContextMenuController } from 'src/components/context-menu'
 import { ModalController } from 'src/components/modal-controller'
 import { Shell } from 'src/components/shell'
 import { Error404 } from 'src/pages/errors'
@@ -19,11 +16,7 @@ import { MetadataMatch } from 'src/modals/metadata-match'
 import { ErrorBoundary } from 'src/components/error-boundry'
 import { UserIndex } from 'src/modals/user-index'
 import { UserEdit } from 'src/modals/user-edit'
-
-function changePage(): void {
-    clearToasts()
-    clearContextMenus()
-}
+import { changePage } from 'src/history'
 
 function hideShell(route: RouteDef): boolean {
     return 'noshell' in route && route.noshell

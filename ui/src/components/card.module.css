@@ -120,12 +120,25 @@
 
 .progress {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    border: #555 solid 1px;
+    border-radius: 99px;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    right: 0.25rem;
     height: 0.5rem;
+    overflow: auto;
+
+    background-color: #ccc;
+    /* transform: translate(calc(-100% + var(--progress) * 100%)); */
+}
+.progress::after {
+    content: ' ';
+    display: block;
+    position: absolute;
     background-color: rgb(var(--primary));
     transform: translate(calc(-100% + var(--progress) * 100%));
+    inset: 0;
+    border-radius: 99px;
 }
 
 @property --download-progress {

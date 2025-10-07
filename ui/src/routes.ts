@@ -18,6 +18,7 @@ export const routes = {
     'book.view': {
         path: '/book/:id/:page?',
         component: BookView,
+        noshell: true,
     },
     list: {
         path: '/list/:list',

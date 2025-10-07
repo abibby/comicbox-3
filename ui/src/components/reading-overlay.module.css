@@ -14,8 +14,7 @@
 
 .content {
     position: absolute;
-    inset: var(--body-margins);
-    margin-bottom: calc(var(--nav-height) + var(--body-margins));
+    inset: 0;
     pointer-events: none;
 }
 
@@ -27,43 +26,33 @@
     display: block;
 }
 
-.sidebar {
-    background-color: rgba(var(--surface), 0.75);
-    color: rgb(var(--text-on-surface));
-    box-shadow: var(--surface-box-shadow);
-    backdrop-filter: blur(10px);
-    padding: 0.5rem;
-    border-radius: var(--border-radius-large);
-    width: 250px;
-}
-
-.sidebar ul {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-.sidebar li {
-    padding: 0.75rem;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-.sidebar li a {
-    display: inline;
+.close {
+    position: absolute;
+    top: var(--body-margins);
+    left: var(--body-margins);
+    padding: 1rem;
 }
 
 .slider {
     grid-area: slider;
-    display: flex;
+    display: grid;
+    grid-template-areas:
+        'range range'
+        'title options';
+    background-color: #313131e5;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
     position: absolute;
-    bottom: 0.75rem;
+    bottom: 0rem;
     width: 100%;
+    z-index: -1;
+    padding: 0 var(--body-margins) var(--body-margins) var(--body-margins);
+    align-items: center;
 }
 
 .slider .range {
+    margin: 0 -1rem;
+    grid-area: range;
     --percent: calc(
         (var(--value) - var(--min, 0)) / (var(--max) - var(--min, 0)) * 100%
     );
@@ -71,21 +60,19 @@
     -webkit-appearance: none; /* Override default CSS styles */
     appearance: none;
     position: relative;
-    width: 100%;
-    margin-right: var(--body-margins);
+    width: calc(100% + 2rem);
+    transform: translateY(-50%);
 }
 .range::before {
     position: absolute;
     display: block;
     content: ' ';
-    background-color: #fff;
     top: 50%;
     left: 0;
     right: 0;
     height: 0.5rem;
     transform: translateY(-50%);
     z-index: -1;
-    border-radius: 9999px;
     background: linear-gradient(
         to right,
         rgb(var(--primary)) 0%,
@@ -135,9 +122,40 @@
     outline: solid rgb(var(--primary)) 2px;
 }
 
-@media (min-width: 500px) or (pointer: fine) {
+.title {
+    grid-area: title;
+    overflow: hidden;
+}
+.title .book,
+.title .series {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+.title .series:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.options {
+    grid-area: options;
+    display: flex;
+    justify-self: flex-end;
+    gap: 1rem;
+}
+
+.pageCount {
+    color: rgba(255, 255, 255, 60%);
+}
+.pageNumber {
+    white-space: nowrap;
+}
+
+/* @media (min-width: 500px) or (pointer: fine) {
     .content {
         margin-top: calc(var(--nav-height) + var(--body-margins));
         margin-bottom: 0;
     }
-}
+} */

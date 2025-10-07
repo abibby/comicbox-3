@@ -77,6 +77,8 @@ export const Card: FunctionalComponent<CardProps> = props => {
         )
     }, [props.menu])
 
+    const progress = props.progress ?? 0
+
     return (
         <div
             ref={card}
@@ -91,7 +93,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
                         progress={props.downloadProgress}
                         completed={props.downloaded}
                     />
-                    <Progress progress={props.progress ?? 0} />
+                    {progress > 0 && <Progress progress={progress} />}
                     <LazyImg src={props.image} alt={alt} />
                 </div>
                 {showMenu && (

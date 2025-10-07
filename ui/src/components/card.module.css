@@ -129,7 +129,6 @@
     overflow: auto;
 
     background-color: #ccc;
-    /* transform: translate(calc(-100% + var(--progress) * 100%)); */
 }
 .progress::after {
     content: ' ';

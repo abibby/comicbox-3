@@ -140,6 +140,18 @@
     border-radius: 99px;
 }
 
+.done {
+    position: absolute;
+    top: 0;
+    right: 0;
+    box-sizing: content-box;
+    padding: 0.125rem;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-bottom-left-radius: var(--border-radius-small);
+    backdrop-filter: blur(10px);
+}
+
 @property --download-progress {
     syntax: '<number>';
     inherits: false;

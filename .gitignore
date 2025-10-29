@@ -1,5 +1,6 @@
 /ui/node_modules
 /ui/dist
+/ui/coverage
 /bin
 /cache
 /files

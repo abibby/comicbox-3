@@ -219,7 +219,6 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
     return (
         <div
             class={classNames(styles.reader, {
-                [styles.menuOpen]: menuOpen,
                 [styles.rtl]: book.rtl,
             })}
             onClick={click}

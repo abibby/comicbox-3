@@ -100,6 +100,6 @@ export const NewSeries: FunctionalComponent = () => {
     )
 }
 
-function readingBookCompare(a: Book, b: Book): boolean {
-    return a.series_slug === b.series_slug
+function readingBookCompare(b: Book): string {
+    return b.series_slug
 }

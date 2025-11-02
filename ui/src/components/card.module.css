@@ -148,7 +148,7 @@
     padding: 0.125rem;
     color: #fff;
     background-color: rgba(0, 0, 0, 0.6);
-    border-bottom-left-radius: var(--border-radius-small);
+    border-bottom-left-radius: var(--border-radius-large);
     backdrop-filter: blur(10px);
 }
 

@@ -3,7 +3,7 @@ import { ComponentChildren, Fragment, FunctionalComponent, h } from 'preact'
 import { X } from 'preact-feather'
 import { useMemo } from 'preact/hooks'
 import { SeriesList } from 'src/components/series-list'
-import { seriesCompare, usePromptUpdate } from 'src/hooks/prompt-update'
+import { seriesKey, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useQueryState } from 'src/hooks/query-state'
 import { useSeriesList } from 'src/hooks/series'
 import styles from 'src/pages/series-index.module.css'
@@ -11,7 +11,7 @@ import styles from 'src/pages/series-index.module.css'
 export const SeriesIndex: FunctionalComponent = () => {
     const [liveSeries] = useSeriesList('series-index', { limit: null })
 
-    const series = usePromptUpdate(liveSeries, seriesCompare)
+    const series = usePromptUpdate(liveSeries, seriesKey)
     const [genreFilter, setGenreFilter] = useQueryState('genre', '')
     const [yearFilter, setYearFilter] = useQueryState('year', '')
 

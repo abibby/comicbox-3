@@ -23,7 +23,7 @@ import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
 import { useImageURL } from 'src/hooks/image'
-import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
+import { bookKey, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
@@ -66,7 +66,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
         order: 'desc',
     })
 
-    const books = usePromptUpdate(liveBooks, bookCompare)
+    const books = usePromptUpdate(liveBooks, bookKey)
 
     const currentBooks = useMemo(() => {
         const current =

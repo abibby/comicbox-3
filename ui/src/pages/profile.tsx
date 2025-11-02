@@ -8,7 +8,7 @@ import { Button } from 'src/components/button'
 import { Settings } from 'preact-feather'
 import { useSeriesList } from 'src/hooks/series'
 import { SeriesList } from 'src/components/series-list'
-import { seriesCompare, usePromptUpdate } from 'src/hooks/prompt-update'
+import { seriesKey, usePromptUpdate } from 'src/hooks/prompt-update'
 
 export function Profile(): JSX.Element {
     return (
@@ -49,7 +49,7 @@ interface SeriesRowProps {
 }
 function SeriesRow(props: SeriesRowProps): JSX.Element {
     const [liveSeries, loading] = useSeriesList(props.listName, props.request)
-    const series = usePromptUpdate(liveSeries, seriesCompare)
+    const series = usePromptUpdate(liveSeries, seriesKey)
     return (
         <SeriesList
             title={props.listName}

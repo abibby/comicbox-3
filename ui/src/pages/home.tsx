@@ -3,11 +3,7 @@ import { useMemo } from 'preact/hooks'
 import { BookList } from 'src/components/book-list'
 import { SeriesList } from 'src/components/series-list'
 import { useBookList } from 'src/hooks/book'
-import {
-    bookCompare,
-    seriesCompare,
-    usePromptUpdate,
-} from 'src/hooks/prompt-update'
+import { bookKey, seriesKey, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeriesList } from 'src/hooks/series'
 import { Book, Series, SeriesOrder } from 'src/models'
 import { notNullish } from 'src/util'
@@ -81,7 +77,7 @@ export const Latest: FunctionalComponent = () => {
         with_series: true,
     })
 
-    const books = usePromptUpdate(liveBooks, bookCompare)
+    const books = usePromptUpdate(liveBooks, bookKey)
 
     return <BookList title='Latest Books' books={books} loading={loading} />
 }
@@ -93,7 +89,7 @@ export const NewSeries: FunctionalComponent = () => {
         order: 'desc',
     })
 
-    const series = usePromptUpdate(liveSeries, seriesCompare)
+    const series = usePromptUpdate(liveSeries, seriesKey)
 
     return (
         <SeriesList title='Latest Series' series={series} loading={loading} />

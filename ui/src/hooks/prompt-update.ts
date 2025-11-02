@@ -95,10 +95,10 @@ function shouldPrompt<T, K>(
     return false
 }
 
-export function bookCompare(b: Book): string {
+export function bookKey(b: Book): string {
     return b.id
 }
 
-export function seriesCompare(s: Series): string {
+export function seriesKey(s: Series): string {
     return s.slug
 }

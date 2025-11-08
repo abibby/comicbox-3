@@ -26,6 +26,7 @@ export function usePromptUpdate<T, K>(
         triggerUpdates,
         'update',
         () => {
+            console.log('update', liveValuesRef.current)
             setValues(liveValuesRef.current)
         },
         [],

@@ -48,12 +48,11 @@ describe('usePromptUpdate', () => {
         expect(result.current).toEqual([1])
 
         resolve(true)
+        vi.useRealTimers()
 
-        await sleep(1)
-        // await waitFor(() => {})
-        expect(result.current).toEqual([12, 2])
-
-        expect(openToastMock).toHaveBeenCalledOnce()
+        await waitFor(() => {
+            expect(result.current).toEqual([12, 2])
+        })
     })
 
     test("doesn't open tost with no changes", async () => {

@@ -23,7 +23,7 @@ import { openModal } from 'src/components/modal-controller'
 import { DB } from 'src/database'
 import { useBookList } from 'src/hooks/book'
 import { useImageURL } from 'src/hooks/image'
-import { bookCompare, usePromptUpdate } from 'src/hooks/prompt-update'
+import { bookKey, usePromptUpdate } from 'src/hooks/prompt-update'
 import { useSeries } from 'src/hooks/series'
 import { Book, Series } from 'src/models'
 import { Error404 } from 'src/pages/errors'
@@ -63,9 +63,10 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const [liveBooks] = useBookList(listName, {
         series_slug: slug,
         limit: null,
+        order: 'desc',
     })
 
-    const books = usePromptUpdate(liveBooks, bookCompare)
+    const books = usePromptUpdate(liveBooks, bookKey)
 
     const currentBooks = useMemo(() => {
         const current =
@@ -95,7 +96,7 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
             <BookList
                 title={hasCurrentBooks ? 'All Books' : undefined}
                 scroll='vertical'
-                books={reverse(books)}
+                books={books}
                 series={series ? [series] : null}
             />
         </>
@@ -337,11 +338,4 @@ function SeriesHeader({
             )}
         </section>
     )
-}
-
-function reverse<T>(a: T[] | null): T[] | null {
-    if (a === null) {
-        return null
-    }
-    return Array.from(a).reverse()
 }

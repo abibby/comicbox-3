@@ -3,6 +3,7 @@ declare const styles: {
   readonly "cardList": string;
   readonly "cover": string;
   readonly "disabled": string;
+  readonly "done": string;
   readonly "downloaded": string;
   readonly "end": string;
   readonly "header": string;

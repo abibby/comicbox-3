@@ -21,6 +21,7 @@ import {
     ChevronLeft,
     MoreVertical,
     CheckCircle,
+    Check,
 } from 'preact-feather'
 import { useResizeEffect } from 'src/hooks/resize-effect'
 
@@ -93,7 +94,10 @@ export const Card: FunctionalComponent<CardProps> = props => {
                         progress={props.downloadProgress}
                         completed={props.downloaded}
                     />
-                    {progress > 0 && <Progress progress={progress} />}
+                    {progress > 0 && progress < 1 && (
+                        <Progress progress={progress} />
+                    )}
+                    {progress >= 1 && <Check class={styles.done} />}
                     <LazyImg src={props.image} alt={alt} />
                 </div>
                 {showMenu && (

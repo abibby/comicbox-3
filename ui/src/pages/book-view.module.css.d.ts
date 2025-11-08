@@ -3,7 +3,6 @@ declare const styles: {
   readonly "direction": string;
   readonly "longStrip": string;
   readonly "longStripPage": string;
-  readonly "menuOpen": string;
   readonly "moving": string;
   readonly "next": string;
   readonly "page": string;

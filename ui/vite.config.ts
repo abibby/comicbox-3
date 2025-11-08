@@ -37,6 +37,7 @@ export default defineConfig(({ mode }): UserConfig => {
             constantsPlugin({
                 ANILIST_CLIENT_ID: '',
                 PUBLIC_USER_CREATE: true,
+                BUILD_VERSION: process.env.BUILD_VERSION,
                 __ENV: mode,
             }),
             staticOutputPlugin(['sw', 'manifest.json']),

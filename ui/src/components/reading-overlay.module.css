@@ -42,7 +42,7 @@
     background-color: #313131e5;
     color: rgba(255, 255, 255, 90%);
     grid-template-columns: auto 1fr;
-    column-gap: 0.5rem;
+    gap: 0.5rem;
     position: absolute;
     bottom: 0rem;
     width: 100%;
@@ -52,28 +52,16 @@
 }
 
 .slider .range {
-    margin: 0 -1rem;
+    position: relative;
+    margin: 0 -1rem 0.5rem -1rem;
     grid-area: range;
     --percent: calc(
         (var(--value) - var(--min, 0)) / (var(--max) - var(--min, 0)) * 100%
     );
 
-    -webkit-appearance: none; /* Override default CSS styles */
-    appearance: none;
-    position: relative;
-    width: calc(100% + 2rem);
-    transform: translateY(-50%);
-}
-.range::before {
-    position: absolute;
-    display: block;
-    content: ' ';
-    top: 50%;
     left: 0;
     right: 0;
     height: 0.5rem;
-    transform: translateY(-50%);
-    z-index: -1;
     background: linear-gradient(
         to right,
         rgb(var(--primary)) 0%,
@@ -84,8 +72,6 @@
 }
 .rtl .slider .range {
     direction: rtl;
-}
-.rtl .slider .range::before {
     background: linear-gradient(
         to left,
         rgb(var(--primary)) 0%,
@@ -95,16 +81,11 @@
     );
 }
 
-.range::-webkit-slider-thumb {
+.range::-webkit-slider-thumb,
+.range::-moz-range-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.5rem;
-    height: 1.5rem;
-    background: rgb(var(--primary));
-    cursor: pointer;
-    border-radius: 50%;
-}
-.range::-moz-range-thumb {
+    all: unset;
     width: 1.5rem;
     height: 1.5rem;
     background: rgb(var(--primary));

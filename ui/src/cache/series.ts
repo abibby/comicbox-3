@@ -59,21 +59,5 @@ export async function seriesCache(
         }),
     )
 
-    if (req.order_by === SeriesOrder.LastRead) {
-        series.sort((a, b) => {
-            if (!a.user_series && !b.user_series) {
-                return 0
-            }
-            if (!a.user_series) {
-                return 1
-            }
-            if (!b.user_series) {
-                return -1
-            }
-            return b.user_series.last_read_at.localeCompare(
-                a.user_series.last_read_at,
-            )
-        })
-    }
     return series
 }

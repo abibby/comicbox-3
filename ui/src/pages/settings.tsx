@@ -103,6 +103,9 @@ export const Settings: FunctionalComponent = () => {
                             View Users
                         </Button>
                     )}
+                    <div class={styles.buildVersion}>
+                        ComicBox {BUILD_VERSION}
+                    </div>
                 </section>
             )}
         </div>

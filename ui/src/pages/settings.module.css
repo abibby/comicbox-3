@@ -18,3 +18,7 @@
 .settings > section > a {
     display: block;
 }
+
+.buildVersion {
+    color: rgba(var(--text-on-background), 50%);
+}

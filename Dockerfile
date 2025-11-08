@@ -1,4 +1,8 @@
-FROM node:20 AS ui
+ARG BUILD_VERSION="develop"
+
+FROM node:22 AS ui
+
+ENV BUILD_VERSION=${BUILD_VERSION}
 
 WORKDIR /ui
 

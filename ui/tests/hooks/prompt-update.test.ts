@@ -5,7 +5,6 @@ import { act } from 'preact/test-utils'
 import { openToast } from 'src/components/toast'
 import { splitPromise } from 'src/util'
 import { afterEach } from 'node:test'
-import { sleep } from 'helpers/sleep'
 
 vi.mock('src/components/toast', () => ({
     openToast: vi.fn(() => Promise.resolve()),

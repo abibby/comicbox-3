@@ -16,6 +16,7 @@
         "lint-fix": "npm run eslint-fix && npm run prettier-fix",
         "eslint-fix": "eslint ./src ./lib --fix",
         "prettier-fix": "prettier ./src ./lib --write",
+        "quality": "npm run typecheck && npm run lint",
         "test": "vitest"
     },
     "keywords": [],

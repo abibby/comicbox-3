@@ -69,15 +69,16 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const books = usePromptUpdate(liveBooks, bookKey)
 
     const currentBooks = useMemo(() => {
+        const orderedBooks = Array.from(books ?? []).reverse()
         const current =
-            books?.findIndex(
+            orderedBooks.findIndex(
                 b => b.id === series?.user_series?.latest_book_id,
             ) ?? 0
-        return books?.slice(current, current + 7) ?? []
+        return orderedBooks.slice(current, current + 7)
     }, [books, series?.user_series?.latest_book_id])
     const currentBook = currentBooks[0] ?? null
 
-    const hasCurrentBooks = (currentBooks?.length ?? 0) > 0
+    const hasCurrentBooks = currentBooks.length > 0
     return (
         <>
             <SeriesHeader

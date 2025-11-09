@@ -1,6 +1,6 @@
-ARG BUILD_VERSION="develop"
-
 FROM node:22 AS ui
+
+ARG BUILD_VERSION="develop"
 
 ENV BUILD_VERSION=${BUILD_VERSION}
 

@@ -34,6 +34,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             title={props.series.name}
             subtitle={props.series.year?.toString()}
             menu={menu}
+            testID='series-card'
         />
     )
 }

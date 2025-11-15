@@ -7,6 +7,8 @@ import cssModuleTypes from './lib/css-module-types'
 import manifestPlugin from './lib/manifest-plugin'
 import staticOutputPlugin from './lib/static-output-plugin'
 import constantsPlugin from './lib/constants-plugin'
+import screenshotList from './res/screenshots/index.json'
+import { Screenshot } from 'lib/webmanifest'
 
 export default defineConfig(({ mode }): UserConfig => {
     const env = {
@@ -18,21 +20,23 @@ export default defineConfig(({ mode }): UserConfig => {
         envPrefix: 'COMICBOX_',
         plugins: [
             manifestPlugin({
-                appName: 'ComicBox',
+                name: 'ComicBox',
                 source: resolve(__dirname, './res/images/logo.svg'),
                 maskableSource: resolve(
                     __dirname,
                     './res/images/logo-maskable.svg',
                 ),
-                appShortName: 'ComicBox',
-                appDescription:
+                short_name: 'ComicBox',
+                description:
                     'ComicBox allows you to read your digital comic collection where ever you are',
                 display: 'standalone',
+                id: 'ca.comicbox',
                 start_url: '/',
                 theme_color: '#2196F3',
-                background: '#F0F0F0',
-                dir: undefined,
-                orientation: undefined,
+                background_color: '#F0F0F0',
+                categories: ['books', 'entertainment'],
+                scope: '/',
+                screenshots: screenshotList as Screenshot[],
             }),
             constantsPlugin({
                 ANILIST_CLIENT_ID: '',

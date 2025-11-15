@@ -37,6 +37,7 @@ interface CardProps {
     downloaded?: boolean
     downloadProgress?: number
     scrollIntoView?: boolean | ScrollIntoViewOptions
+    testID?: string
 }
 
 export const Card: FunctionalComponent<CardProps> = props => {
@@ -82,6 +83,7 @@ export const Card: FunctionalComponent<CardProps> = props => {
 
     return (
         <div
+            data-testid={props.testID}
             ref={card}
             class={classNames(styles.card, {
                 [styles.placeholder]: props.placeholder,

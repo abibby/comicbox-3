@@ -82,6 +82,7 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		ID:       id,
 		Username: req.Username,
 		Password: []byte(req.Password),
+		RoleID:   models.RoleReaderID,
 	}
 	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
 		count := 0

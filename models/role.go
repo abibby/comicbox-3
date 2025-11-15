@@ -20,6 +20,12 @@ type Role struct {
 	Scopes jsoncolumn.Slice[auth.TokenScope] `json:"scopes" db:"scopes"`
 }
 
+const (
+	RoleAdminID  = 1
+	RoleReaderID = 2
+	RoleEditorID = 3
+)
+
 func init() {
 	providers.Add(modeldi.Register[*Role])
 }

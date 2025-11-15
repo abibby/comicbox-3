@@ -193,6 +193,9 @@ export function DefaultModal() {
 }
 
 function getTransitionTime() {
+    if (!('CSSStyleValue' in window)) {
+        return 200
+    }
     const tt = CSSStyleValue.parse(
         'transition-duration',
         getComputedStyle(document.body).getPropertyValue('--transition-time'),

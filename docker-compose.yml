@@ -17,6 +17,7 @@ services:
       # - DB_NAME=comicbox
       # - SCAN_ON_STARTUP=false
       # - SCAN_INTERVAL=""
+      - COMIC_VINE_API_KEY=${COMIC_VINE_API_KEY}
     ports:
       - 8080:8080
     volumes:

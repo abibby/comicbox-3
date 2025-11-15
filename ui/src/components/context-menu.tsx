@@ -63,8 +63,8 @@ const Menu: FunctionalComponent<MenuProps> = props => {
                             )
                         }
                         return (
-                            <li key={label + 'click'} onClick={action}>
-                                {label}
+                            <li key={label + 'click'}>
+                                <button onClick={action}>{label}</button>
                             </li>
                         )
                     })}

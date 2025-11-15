@@ -1,7 +1,6 @@
 import { vi, describe, test, expect, beforeEach, Mock } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/preact'
+import { renderHook, waitFor, act } from '@testing-library/preact'
 import { usePromptUpdate } from 'src/hooks/prompt-update'
-import { act } from 'preact/test-utils'
 import { openToast } from 'src/components/toast'
 import { splitPromise } from 'src/util'
 import { afterEach } from 'node:test'
@@ -46,7 +45,9 @@ describe('usePromptUpdate', () => {
 
         expect(result.current).toEqual([1])
 
-        resolve(true)
+        await act(() => {
+            resolve(true)
+        })
         vi.useRealTimers()
 
         await waitFor(() => {

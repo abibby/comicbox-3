@@ -16,8 +16,6 @@ export default defineConfig(({ mode }): UserConfig => {
         ...loadEnv(mode, resolve(__dirname, '..')),
     }
 
-    const screenshotDir = resolve(__dirname, './res/screenshots')
-
     return {
         envPrefix: 'COMICBOX_',
         plugins: [

@@ -15,12 +15,14 @@ config({
  * @typedef {(typeof devices)[string]} DeviceDescriptor
  */
 
+const baseHeight = 800
+
 /** @type {DeviceDescriptor} */
 const desktop = {
     ...devices['Desktop Chrome'],
     viewport: {
-        width: 1500,
-        height: 1000,
+        width: baseHeight * 1.5,
+        height: baseHeight,
     },
 }
 /** @type {DeviceDescriptor} */
@@ -28,8 +30,8 @@ const mobile = {
     ...devices['iPhone 15 Pro'],
     deviceScaleFactor: 1,
     viewport: {
-        width: 500,
-        height: 1000,
+        width: baseHeight / 2,
+        height: baseHeight,
     },
 }
 

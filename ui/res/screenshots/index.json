@@ -2,66 +2,66 @@
     {
         "src": "res/screenshots/desktop-light-home.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-light-book-edit.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-light-book-edit-pages.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-dark-search.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-dark-series.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-dark-reading.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-dark-profile.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/desktop-dark-settings.png",
         "form_factor": "wide",
-        "sizes": "1500x1000"
+        "sizes": "1200x800"
     },
     {
         "src": "res/screenshots/mobile-light-home.png",
         "form_factor": "narrow",
-        "sizes": "500x1000"
+        "sizes": "400x800"
     },
     {
         "src": "res/screenshots/mobile-light-book-edit.png",
         "form_factor": "narrow",
-        "sizes": "500x1000"
+        "sizes": "400x800"
     },
     {
         "src": "res/screenshots/mobile-dark-search.png",
         "form_factor": "narrow",
-        "sizes": "500x1000"
+        "sizes": "400x800"
     },
     {
         "src": "res/screenshots/mobile-dark-series.png",
         "form_factor": "narrow",
-        "sizes": "500x1000"
+        "sizes": "400x800"
     },
     {
         "src": "res/screenshots/mobile-dark-reading.png",
         "form_factor": "narrow",
-        "sizes": "500x1000"
+        "sizes": "400x800"
     }
 ]

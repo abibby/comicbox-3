@@ -81,7 +81,7 @@ body {
     display: none;
 }
 
-@media (min-width: 600px) or (pointer: fine) {
+@media (min-width: 500px) or (pointer: fine) {
     body {
         margin-top: calc(var(--nav-height) + var(--body-margins) * 2);
         margin-bottom: 0;

@@ -11,12 +11,34 @@ config({
     quiet: true
 })
 
-/** @type {['narrow'|'wide', 'light'|'dark', (typeof devices)[string]][]} */
+/**
+ * @typedef {(typeof devices)[string]} DeviceDescriptor
+ */
+
+/** @type {DeviceDescriptor} */
+const desktop = {
+    ...devices['Desktop Chrome'],
+    viewport: {
+        width: 1500,
+        height: 1000,
+    },
+}
+/** @type {DeviceDescriptor} */
+const mobile = {
+    ...devices['iPhone 15 Pro'],
+    deviceScaleFactor: 1,
+    viewport: {
+        width: 500,
+        height: 1000,
+    },
+}
+
+/** @type {['narrow'|'wide', 'light'|'dark', DeviceDescriptor][]} */
 const cases = [
-    ['wide', 'light', devices['Desktop Chrome']],
-    ['wide', 'light', devices['Desktop Chrome']],
-    ['narrow', 'light', devices['iPhone 15 Pro']],
-    ['narrow', 'light', devices['iPhone 15 Pro']],
+    ['wide', 'light', desktop],
+    ['wide', 'dark', desktop],
+    ['narrow', 'light', mobile],
+    ['narrow', 'dark', mobile],
 ]
 
 
@@ -24,13 +46,15 @@ const screenshotDir = resolve(import.meta.dirname, `../res/screenshots`)
 
 async function main() {
     await rm(screenshotDir, { recursive: true }).catch(() => console.warn('failed to delete screenshot dir'))
-    const browser = await chromium.launch({ headless: false })
+
+    const browser = await chromium.launch({ headless: true })
+
     /** @type {import('../lib/webmanifest').Screenshot[]} */
     const screenshots = []
     for (const [formFactor, colorScheme, device] of cases) {
         const context = await browser.newContext({
             ...device,
-            baseURL: 'http://localhost:12388',
+            baseURL: 'http://localhost:5173',
             colorScheme: colorScheme,
         })
         const page = await context.newPage()
@@ -78,8 +102,6 @@ async function generateScreenshots(formFactor, colorScheme, page) {
         }[formFactor]
         console.log(`Capturing screenshot ${browser} ${colorScheme} ${name}`)
 
-
-
         const relativePath = `res/screenshots/${browser}-${colorScheme}-${name}.png`
         const src = resolve(import.meta.dirname, '..', relativePath)
 
@@ -96,7 +118,8 @@ async function generateScreenshots(formFactor, colorScheme, page) {
                 sizes: `${width}x${height}`,
             })
         }
-        await page.waitForTimeout(1_000)
+
+        await page.waitForTimeout(5_000)
 
         const hasReload = await page.getByRole('button', { name: 'reload' }).count()
         if (hasReload > 0) {

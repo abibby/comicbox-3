@@ -6,8 +6,8 @@ import {
     FaviconFile,
     FaviconImage,
 } from 'favicons'
-import { WebManifest } from './webmanifest'
-import { basename, parse } from 'node:path'
+import { WebManifest } from 'lib/webmanifest'
+import { basename } from 'node:path'
 import { readFile } from 'node:fs/promises'
 import { imageSize } from 'image-size'
 
@@ -69,11 +69,6 @@ export default async function manifestPlugin(
             }
         },
     }
-}
-
-type ScreenshotFile = {
-    name: string
-    src: string
 }
 
 async function multiFavicons(options: Options): Promise<FaviconResponse> {

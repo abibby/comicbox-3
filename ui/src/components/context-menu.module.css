@@ -11,7 +11,11 @@
 }
 .menu li {
     display: block;
+}
+.menu li > * {
+    display: block;
     padding: 0.5rem 1.25rem;
+    width: 100%;
 }
 .menu li:hover {
     background-color: rgba(var(--surface-hover));

@@ -1,9 +1,12 @@
 /ui/node_modules
 /ui/dist
 /ui/coverage
+/ui/playwright-report/
+/ui/test-results/
 /bin
 /cache
 /files
+/test-data
 .env
 pgsql
 *.sqlite

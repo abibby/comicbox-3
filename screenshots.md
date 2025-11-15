@@ -1,28 +1,39 @@
 ## Home
 
-<img src=".github/readme/home-light-mobile.png" width="20%"> <img src=".github/readme/home-dark-mobile.png" width="20%">
-
-### Offline
-
-<img src=".github/readme/home-light-mobile-offline.png" width="20%">
+<img src="ui/res/screenshots/mobile-light-home.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-home.png" width="60%">
+<img src="ui/res/screenshots/mobile-dark-home.png" width="20%">
+<img src="ui/res/screenshots/desktop-dark-home.png" width="60%">
 
 ## Search
 
-<img src=".github/readme/search-light-mobile.png" width="20%"> <img src=".github/readme/search-dark-mobile.png" width="20%">
+<img src="ui/res/screenshots/mobile-light-search.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-search.png" width="60%">
+<img src="ui/res/screenshots/mobile-dark-search.png" width="20%">
+<img src="ui/res/screenshots/desktop-dark-search.png" width="60%">
 
-## Library
+## Profile
 
-<img src=".github/readme/library-light-mobile.png" width="20%"> <img src=".github/readme/library-dark-mobile.png" width="20%">
+<img src="ui/res/screenshots/mobile-light-profile.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-profile.png" width="60%">
+<img src="ui/res/screenshots/mobile-dark-profile.png" width="20%">
+<img src="ui/res/screenshots/desktop-dark-profile.png" width="60%">
 
 ## Reading
-### Single Page
 
-<img src=".github/readme/reading-mobile.png" width="20%"> <img src=".github/readme/reading-menu-light-mobile.png" width="20%">
-
-### Two Page
-
-<img src=".github/readme/reading-desktop.png" width="59%">
+<img src="ui/res/screenshots/mobile-light-reading.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-reading.png" width="60%">
 
 ## Editing
 
-<img src=".github/readme/book-edit-light-mobile.png" width="20%"> <img src=".github/readme/book-edit-light-desktop.png" width="59%">
+<img src="ui/res/screenshots/mobile-light-book-edit.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-book-edit.png" width="60%">
+<img src="ui/res/screenshots/mobile-dark-book-edit.png" width="20%">
+<img src="ui/res/screenshots/desktop-dark-book-edit.png" width="60%">
+
+## Settings
+
+<img src="ui/res/screenshots/mobile-light-settings.png" width="20%">
+<img src="ui/res/screenshots/desktop-light-settings.png" width="60%">
+<img src="ui/res/screenshots/mobile-dark-settings.png" width="20%">
+<img src="ui/res/screenshots/desktop-dark-settings.png" width="60%">

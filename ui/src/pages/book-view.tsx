@@ -211,6 +211,10 @@ const Reader: FunctionalComponent<ReaderProps> = props => {
                     e.preventDefault()
                     await setPageRight()
                     break
+                case 'Escape':
+                    e.preventDefault()
+                    setMenuOpen(open => !open)
+                    break
             }
         },
         [setPageLeft, setPageRight],

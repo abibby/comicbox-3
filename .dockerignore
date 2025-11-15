@@ -13,4 +13,6 @@ bin/*
 
 ui/dist/*
 
+/test-data
+
 **/node_modules/*

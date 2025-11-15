@@ -18,12 +18,12 @@ func init() {
 		Up: schema.Run(func(ctx context.Context, tx database.DB) error {
 			roles := []*models.Role{
 				{
-					ID:     1,
+					ID:     models.RoleAdminID,
 					Name:   "Admin",
 					Scopes: jsoncolumn.Slice[auth.TokenScope]{"admin"},
 				},
 				{
-					ID:   2,
+					ID:   models.RoleReaderID,
 					Name: "Reader",
 					Scopes: jsoncolumn.Slice[auth.TokenScope]{
 						"book:index", "book:read",
@@ -33,7 +33,7 @@ func init() {
 					},
 				},
 				{
-					ID:   3,
+					ID:   models.RoleEditorID,
 					Name: "Editor",
 					Scopes: jsoncolumn.Slice[auth.TokenScope]{
 						"book:index", "book:read", "book:write",

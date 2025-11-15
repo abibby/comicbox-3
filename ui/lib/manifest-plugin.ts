@@ -4,20 +4,14 @@ import {
     FaviconResponse,
     favicons,
     FaviconFile,
+    FaviconImage,
 } from 'favicons'
+import { WebManifest } from './webmanifest'
+import { basename, parse } from 'node:path'
+import { readFile } from 'node:fs/promises'
+import { imageSize } from 'image-size'
 
-type WebManifest = {
-    icons?: WebManifestIcon[]
-}
-
-type WebManifestIcon = {
-    src: string
-    sizes?: string
-    type?: string
-    purpose?: string
-}
-
-type Options = FaviconOptions & {
+type Options = WebManifest & {
     source: string
     maskableSource?: string
 }
@@ -31,7 +25,7 @@ export default async function manifestPlugin(
     const files = new Map(
         [...faviconResponse.files, ...faviconResponse.images].map(f => [
             '/' + f.name,
-            f.contents,
+            f,
         ]),
     )
 
@@ -46,7 +40,7 @@ export default async function manifestPlugin(
                     return
                 }
 
-                resp.write(files.get(url))
+                resp.write(files.get(url)?.contents)
                 resp.end()
                 return
             })
@@ -60,7 +54,7 @@ export default async function manifestPlugin(
         },
 
         async generateBundle(_options, bundle) {
-            for (const [name, content] of files) {
+            for (const [name, file] of files) {
                 const relName = name.slice(1)
                 bundle[relName] = {
                     type: 'asset',
@@ -69,7 +63,7 @@ export default async function manifestPlugin(
                     fileName: relName,
                     originalFileName: relName,
                     originalFileNames: [relName],
-                    source: content,
+                    source: file.contents,
                     needsCodeReference: false,
                 }
             }
@@ -77,11 +71,22 @@ export default async function manifestPlugin(
     }
 }
 
+type ScreenshotFile = {
+    name: string
+    src: string
+}
+
 async function multiFavicons(options: Options): Promise<FaviconResponse> {
+    const faviconOptions: FaviconOptions = {
+        appName: options.name,
+        appShortName: options.short_name,
+        appDescription: options.description,
+        background: options.background_color,
+        theme_color: options.theme_color,
+    }
     const maskedPromise = favicons(options.source, {
-        ...options,
+        ...faviconOptions,
         icons: {
-            // ...options.icons,
             android: true,
             appleIcon: options.maskableSource === undefined,
             appleStartup: true,
@@ -93,9 +98,8 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
     let maskablePromise: Promise<FaviconResponse> | undefined
     if (options.maskableSource) {
         maskablePromise = favicons(options.maskableSource, {
-            ...options,
+            ...faviconOptions,
             icons: {
-                // ...options.icons,
                 android: true,
                 appleIcon: true,
                 appleStartup: false,
@@ -114,6 +118,7 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
     }
 
     const files: FaviconFile[] = []
+    const screenshots: FaviconImage[] = []
 
     const maskedImages = new Set(masked.images.map(f => f.name))
 
@@ -123,7 +128,12 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
 
     for (const name of names) {
         if (name === 'manifest.webmanifest') {
-            const manifest: WebManifest = JSON.parse(
+            const manifest = {
+                ...options,
+                source: undefined,
+                maskableSource: undefined,
+            }
+            const iconManifest: WebManifest = JSON.parse(
                 maskedFiles.get(name) ?? '',
             )
             const maskableManifest: WebManifest = JSON.parse(
@@ -131,13 +141,30 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
             )
 
             manifest.icons = [
-                ...(manifest.icons ?? []),
+                ...(iconManifest.icons ?? []),
                 ...(maskableManifest.icons ?? []).map(icon => ({
                     ...icon,
                     src: icon.src.replace('.', '-maskable.'),
                     purpose: 'maskable',
                 })),
             ]
+
+            manifest.screenshots = await Promise.all(
+                manifest.screenshots?.map(async screenshot => {
+                    const name = basename(screenshot.src)
+                    const contents = await readFile(screenshot.src)
+                    screenshots.push({
+                        name: name,
+                        contents: contents,
+                    })
+                    const size = imageSize(contents)
+
+                    screenshot.src = '/' + name
+                    screenshot.sizes = `${size.width}x${size.height}`
+
+                    return screenshot
+                }) ?? [],
+            )
 
             files.push({
                 name: name,
@@ -162,6 +189,7 @@ async function multiFavicons(options: Options): Promise<FaviconResponse> {
                     : f.name,
                 contents: f.contents,
             })),
+            screenshots,
         ),
     }
 }

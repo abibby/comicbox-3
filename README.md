@@ -4,11 +4,9 @@
 
 <!-- ![logo](ui/res/images/logo.svg) -->
 
-[![Build](https://github.com/abibby/comicbox-3/actions/workflows/build.yml/badge.svg)](https://github.com/abibby/comicbox-3/actions/workflows/build.yml)
-
 ComicBox is a free and open comic book reader. ComicBox lets you host your digital comic collection and access it from anywhere. It keeps track of your progress in each book and series you are reading so you can jump back in where you left off on any device. ComicBox allows you to download books to your device so you can keep reading even without the internet, then everything is synced back up when you are back online.
 
-<img src=".github/readme/home-light-desktop.png" width="59%"><img src=".github/readme/search-dark-mobile.png" width="20%"><img src=".github/readme/library-light-mobile.png" width="20%">
+<img src="./ui/res/screenshots/desktop-light-home.png" width="59%"><img src="./ui/res/screenshots/mobile-dark-home.png" width="20%"><img src="./ui/res/screenshots/mobile-light-search.png" width="20%">
 
 ## Walkthrough
 

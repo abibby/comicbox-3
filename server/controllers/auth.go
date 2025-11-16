@@ -117,7 +117,11 @@ func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 	if !ok {
 		return nil, fmt.Errorf("generateLoginResponse: role must be loaded on the user")
 	}
-	token, err := auth.GenerateToken(u.ID, auth.WithScope(role.Scopes...))
+
+	token, err := auth.GenerateToken(
+		u.ID,
+		auth.WithScope(role.Scopes...),
+	)
 	if err != nil {
 		return nil, err
 	}

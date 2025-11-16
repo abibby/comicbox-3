@@ -44,6 +44,7 @@ export function Search(): JSX.Element {
                 ref={search}
                 onInput={bindValue(setQuery)}
                 value={query}
+                placeholder='Search Series'
             />
 
             <SeriesList series={foundSeries ?? []} scroll='vertical' />

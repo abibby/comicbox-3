@@ -125,6 +125,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
             downloaded={downloaded}
             downloadProgress={downloadProgress}
             scrollIntoView={scrollIntoView}
+            testID='book-card'
         />
     )
 }

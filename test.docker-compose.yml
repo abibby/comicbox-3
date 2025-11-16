@@ -1,0 +1,18 @@
+version: "3"
+services:
+  comicbox3-test:
+    container_name: comicbox3-test
+    build: .
+    restart: unless-stopped
+    environment:
+      - APP_KEY=secret
+      - SCAN_ON_STARTUP=true
+      - SCAN_INTERVAL=
+      - DB_PATH=/test-data/db.sqlite
+      - LIBRARY_PATH=/test-data/books
+      - COMIC_VINE_API_KEY=${COMIC_VINE_API_KEY}
+    ports:
+      - 12388:8080
+    volumes:
+      - ./test-data:/test-data
+      - ./cache:/cache

@@ -6,7 +6,6 @@ import { exec } from 'node:child_process'
 import { mkdir, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
-// pepper and carrot
 
 const bookDir = resolve(import.meta.dirname, '../../test-books')
 

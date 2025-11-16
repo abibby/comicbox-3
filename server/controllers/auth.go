@@ -18,7 +18,6 @@ import (
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-openapi/spec"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -118,7 +117,7 @@ func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 	if !ok {
 		return nil, fmt.Errorf("generateLoginResponse: role must be loaded on the user")
 	}
-	spew.Dump(role)
+
 	token, err := auth.GenerateToken(
 		u.ID,
 		auth.WithScope(role.Scopes...),

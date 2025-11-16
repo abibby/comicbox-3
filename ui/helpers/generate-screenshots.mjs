@@ -56,7 +56,7 @@ async function main() {
     for (const [formFactor, colorScheme, device] of cases) {
         const context = await browser.newContext({
             ...device,
-            baseURL: 'http://localhost:5173',
+            baseURL: 'http://localhost:12388',
             colorScheme: colorScheme,
         })
         const page = await context.newPage()
@@ -134,7 +134,7 @@ async function generateScreenshots(formFactor, colorScheme, page) {
 
         }
 
-        await page.screenshot({ path: src })
+        await page.screenshot({ path: src, type: 'jpeg' })
     }
 
     // Login

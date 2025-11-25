@@ -28,8 +28,8 @@ export const SeriesList: FunctionalComponent<SeriesListProps> = props => {
 
     return (
         <CardList title={props.title} scroll={props.scroll} link={props.link}>
-            {props.series.map(s => (
-                <SeriesCard key={s.slug} series={s} />
+            {props.series.map((s, i) => (
+                <SeriesCard key={s.slug} series={s} lazy={i > 4} />
             ))}
         </CardList>
     )

@@ -160,13 +160,13 @@ var BookThumbnail = request.Handler(func(r *BookThumbnailRequest) (*JpegHandler,
 		}
 	}
 
-	thumbHeight := 500
+	thumbHeight := 252
 	thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
 
 	dst := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
 	draw.BiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
 
-	return NewJpegHandler(dst, time.Hour), nil
+	return NewJpegHandler(dst, time.Hour*24*30), nil
 })
 
 // cropImage takes an image and crops it to the specified rectangle.

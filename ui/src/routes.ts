@@ -1,14 +1,5 @@
 import { Home } from 'src/pages/home'
-import { BookView } from 'src/pages/book-view'
-import { Profile } from 'src/pages/profile'
-import { SeriesIndex } from 'src/pages/series-index'
-import { SeriesView } from 'src/pages/series-view'
-import { UserCreate } from 'src/pages/user-create'
-import { AnilistLogin } from 'src/pages/anilist-login'
-import { Login } from 'src/pages/login'
-import { List } from 'src/pages/lists'
-import { Search } from 'src/pages/search'
-import { Settings } from 'src/pages/settings'
+import { lazy } from 'preact-iso'
 
 export const routes = {
     home: {
@@ -17,45 +8,57 @@ export const routes = {
     },
     'book.view': {
         path: '/book/:id/:page?',
-        component: BookView,
+        component: lazy(() =>
+            import('src/pages/book-view').then(m => m.BookView),
+        ),
         noshell: true,
     },
     list: {
         path: '/list/:list',
-        component: List,
+        component: lazy(() => import('src/pages/lists').then(m => m.List)),
     },
     search: {
         path: '/search',
-        component: Search,
+        component: lazy(() => import('src/pages/search').then(m => m.Search)),
     },
     library: {
         path: '/profile',
-        component: Profile,
+        component: lazy(() => import('src/pages/profile').then(m => m.Profile)),
     },
     'series.index': {
         path: '/series',
-        component: SeriesIndex,
+        component: lazy(() =>
+            import('src/pages/series-index').then(m => m.SeriesIndex),
+        ),
     },
     'series.view': {
         path: '/series/:series',
-        component: SeriesView,
+        component: lazy(() =>
+            import('src/pages/series-view').then(m => m.SeriesView),
+        ),
     },
     settings: {
         path: '/settings',
-        component: Settings,
+        component: lazy(() =>
+            import('src/pages/settings').then(m => m.Settings),
+        ),
     },
     'user.create': {
         path: '/users/create',
-        component: UserCreate,
+        component: lazy(() =>
+            import('src/pages/user-create').then(m => m.UserCreate),
+        ),
     },
     'anilist.login': {
         path: '/anilist/login',
-        component: AnilistLogin,
+        component: lazy(() =>
+            import('src/pages/anilist-login').then(m => m.AnilistLogin),
+        ),
     },
     login: {
         path: '/login',
         noshell: true,
-        component: Login,
+        component: lazy(() => import('src/pages/login').then(m => m.Login)),
     },
 } as const
 

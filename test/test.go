@@ -19,7 +19,7 @@ import (
 
 var r = dbtest.NewRunner(func() (*sqlx.DB, error) {
 	ctx := context.Background()
-	err := bootstrap.SetupDatabase()(ctx)
+	err := bootstrap.SetupDatabase(ctx)
 	if err != nil {
 		return nil, err
 	}

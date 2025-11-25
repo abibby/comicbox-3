@@ -3,12 +3,12 @@ package controllers
 import (
 	"fmt"
 	"image"
-	"image/jpeg"
 	"io"
 	"io/fs"
 	"net/http"
 	"time"
 
+	"github.com/abibby/comicbox-3/mozjpeg"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
@@ -38,9 +38,15 @@ func (h *JpegHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Content-Type", "image/jpeg")
 
-	err := jpeg.Encode(w, h.img, nil)
+	b, err := mozjpeg.Encode(h.img, mozjpeg.DefaultOptions)
+	// err := jpeg.Encode(w, h.img, nil)
 	if err != nil {
 		clog.Use(r.Context()).Error("failed to encode thumbnail", "err", err)
+	}
+
+	_, err = w.Write(b)
+	if err != nil {
+		clog.Use(r.Context()).Error("failed to write thumbnail", "err", err)
 	}
 }
 

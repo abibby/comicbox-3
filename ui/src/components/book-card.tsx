@@ -21,12 +21,14 @@ interface BookProps {
     book: DBBook
     series?: DBSeries
     scrollIntoView?: boolean | ScrollIntoViewOptions
+    lazy: boolean
 }
 
 export const BookCard: FunctionalComponent<BookProps> = ({
     book,
     series,
     scrollIntoView,
+    lazy,
 }) => {
     const [downloaded, downloadProgress] = useBookCached(book)
     const bookWrite = useHasScope('book:write')
@@ -126,6 +128,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
             downloadProgress={downloadProgress}
             scrollIntoView={scrollIntoView}
             testID='book-card'
+            lazy={lazy}
         />
     )
 }

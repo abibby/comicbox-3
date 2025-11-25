@@ -38,7 +38,7 @@ var Kernel = kernel.New(
 	kernel.Bootstrap(
 		config.Init,
 
-		bootstrap.SetupDatabase(),
+		bootstrap.SetupDatabase,
 
 		clog.Register,
 		request.Register,

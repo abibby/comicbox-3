@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
+	"image"
 	"os"
+	"time"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -14,6 +16,7 @@ import (
 	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"golang.org/x/image/draw"
 )
 
 type SeriesOrder string
@@ -183,5 +186,21 @@ var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, erro
 	if err != nil {
 		return nil, err
 	}
-	return request.NewResponse(f), nil
+
+	// resp := request.NewResponse(f)
+	// resp.Header.Add("Cache-Control", "max-age=604800")
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+
+	thumbHeight := 252
+	thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
+
+	dst := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
+	draw.BiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+
+	return NewJpegHandler(dst, time.Hour*24*30), nil
+	// return resp, nil
 })

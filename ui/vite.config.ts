@@ -8,7 +8,8 @@ import manifestPlugin from './lib/manifest-plugin'
 import staticOutputPlugin from './lib/static-output-plugin'
 import constantsPlugin from './lib/constants-plugin'
 import screenshotList from './res/screenshots/index.json'
-import { Screenshot } from 'lib/webmanifest'
+import { Screenshot } from './lib/webmanifest'
+import gzipPlugin from './lib/gzip-plugin'
 
 export default defineConfig(({ mode }): UserConfig => {
     const env = {
@@ -48,6 +49,7 @@ export default defineConfig(({ mode }): UserConfig => {
             preact(),
             buildAssetPlugin(),
             cssModuleTypes(),
+            gzipPlugin(),
         ],
         build: {
             rollupOptions: {

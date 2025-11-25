@@ -11,6 +11,7 @@ import { useHasScope } from 'src/api/auth'
 
 interface SeriesCardProps {
     series: Series
+    lazy: boolean
 }
 
 export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
@@ -35,6 +36,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             subtitle={props.series.year?.toString()}
             menu={menu}
             testID='series-card'
+            lazy={props.lazy}
         />
     )
 }

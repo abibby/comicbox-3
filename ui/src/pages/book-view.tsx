@@ -1,5 +1,5 @@
 import noCover from 'res/images/no-cover.svg'
-import { FunctionalComponent, h, JSX } from 'preact'
+import { FunctionalComponent, h, HTMLAttributes, JSX } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import classNames from 'src/classnames'
@@ -505,7 +505,7 @@ const PageView: FunctionalComponent<PageProps> = props => {
     )
 }
 
-interface PageImageProps extends h.JSX.HTMLAttributes<HTMLImageElement> {
+interface PageImageProps extends HTMLAttributes<HTMLImageElement> {
     page: Page
     onPageVisible?: () => void
 }

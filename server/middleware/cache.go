@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -108,6 +109,40 @@ func CacheMiddleware() router.Middleware {
 		defer cacheRW.Close()
 
 		next.ServeHTTP(cacheRW, r)
+	})
+}
+
+type GzipResponseWriter struct {
+	w  http.ResponseWriter
+	gz *gzip.Writer
+}
+
+var _ http.ResponseWriter = (*GzipResponseWriter)(nil)
+
+// Header implements http.ResponseWriter.
+func (g *GzipResponseWriter) Header() http.Header {
+	return g.w.Header()
+}
+
+// Write implements http.ResponseWriter.
+func (g *GzipResponseWriter) Write(b []byte) (int, error) {
+	return g.gz.Write(b)
+}
+
+// WriteHeader implements http.ResponseWriter.
+func (g *GzipResponseWriter) WriteHeader(statusCode int) {
+	g.w.WriteHeader(statusCode)
+}
+
+func Gzip() router.Middleware {
+	return router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+		gz := gzip.NewWriter(w)
+		w.Header().Set("Content-Encoding", "gzip")
+		next.ServeHTTP(&GzipResponseWriter{
+			w:  w,
+			gz: gz,
+		}, r)
+		gz.Close()
 	})
 }
 

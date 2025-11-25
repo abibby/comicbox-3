@@ -52,12 +52,18 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 			return
 		}
 
-		f, err := root.Open(p)
+		f, err := root.Open(p + ".gz")
 		if err != nil {
-			log.Print(err)
-			return
+			f, err = root.Open(p)
+			if err != nil {
+				log.Print(err)
+				return
+			}
+		} else {
+			w.Header().Set("Content-Encoding", "gzip")
 		}
 
+		w.Header().Add("Cache-Control", "public, max-age=31536000, immutable")
 		w.Header().Add("Content-Type", mime.TypeByExtension(path.Ext(p)))
 
 		_, err = io.Copy(w, f)

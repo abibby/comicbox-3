@@ -7,7 +7,6 @@ import { openToast } from 'src/components/toast'
 import styles from 'src/modals/book-edit.module.css'
 import { Data, Form } from 'src/components/form/form'
 import { Input } from 'src/components/form/input'
-import { LazyImg } from 'src/components/lazy-img'
 import {
     Modal,
     ModalBody,
@@ -293,7 +292,7 @@ const PageThumb: FunctionalComponent<PageThumbProps> = props => {
     return (
         <div class={styles.page}>
             <label>
-                <LazyImg src={url} />
+                <img src={url} loading='lazy' />
                 <span class={styles.index}>{props.page.index + 1}</span>
                 <select
                     class={styles.pageTypeSelect}

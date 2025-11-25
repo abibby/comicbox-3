@@ -15,7 +15,6 @@ import {
 import classNames from 'src/classnames'
 import styles from 'src/components/card.module.css'
 import { ContextMenuItem, openContextMenu } from 'src/components/context-menu'
-import { LazyImg } from 'src/components/lazy-img'
 import {
     ChevronRight,
     ChevronLeft,
@@ -38,6 +37,7 @@ interface CardProps {
     downloadProgress?: number
     scrollIntoView?: boolean | ScrollIntoViewOptions
     testID?: string
+    lazy?: boolean
 }
 
 export const Card: FunctionalComponent<CardProps> = props => {
@@ -100,7 +100,12 @@ export const Card: FunctionalComponent<CardProps> = props => {
                         <Progress progress={progress} />
                     )}
                     {progress >= 1 && <Check class={styles.done} />}
-                    <LazyImg src={props.image} alt={alt} />
+                    <img
+                        src={props.image}
+                        alt={alt}
+                        loading={props.lazy ? 'lazy' : 'eager'}
+                        fetchPriority={props.lazy ? undefined : 'high'}
+                    />
                 </div>
                 {showMenu && (
                     <button class={styles.menu} onClick={open}>

@@ -9,7 +9,6 @@ import (
 
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
-	"github.com/abibby/comicbox-3/server/middleware"
 	"github.com/abibby/comicbox-3/ui"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/openapidoc"
@@ -127,11 +126,11 @@ func InitRouter(r *router.Router) {
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.HasScope(auth.ScopeImage))
 
-			r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("book.page")
 			r.Group("", func(r *router.Router) {
-				r.Use(middleware.CacheMiddleware())
+				// r.Use(middleware.CacheMiddleware())
 				r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("book.thumbnail")
+				r.Get("/series/{slug}/thumbnail", controllers.SeriesThumbnail).Name("series.thumbnail")
 			})
 		})
 		r.PostFunc("/users", controllers.UserCreate).Name("user.create")

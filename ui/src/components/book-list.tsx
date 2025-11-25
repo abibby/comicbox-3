@@ -35,7 +35,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
     }
     return (
         <CardList title={props.title} scroll={props.scroll}>
-            {props.books.map(b => (
+            {props.books.map((b, i) => (
                 <BookCard
                     key={b.id}
                     book={b}
@@ -43,6 +43,7 @@ export const BookList: FunctionalComponent<BookListProps> = props => {
                     scrollIntoView={
                         b === props.scrollTo ? scrollOptions : false
                     }
+                    lazy={i > 4}
                 />
             ))}
         </CardList>

@@ -11,20 +11,18 @@ import (
 
 const DriverName = "sqlite3_custom"
 
-func SetupDatabase() func(ctx context.Context) error {
-	return func(ctx context.Context) error {
-		sql.Register(DriverName, &sqlite3.SQLiteDriver{
-			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
-				if err := conn.RegisterFunc("slug", models.Slug, true); err != nil {
-					return err
-				}
-				if err := conn.RegisterFunc("dir", path.Dir, true); err != nil {
-					return err
-				}
-				return nil
-			},
-		})
+func SetupDatabase(ctx context.Context) error {
+	sql.Register(DriverName, &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+			if err := conn.RegisterFunc("slug", models.Slug, true); err != nil {
+				return err
+			}
+			if err := conn.RegisterFunc("dir", path.Dir, true); err != nil {
+				return err
+			}
+			return nil
+		},
+	})
 
-		return nil
-	}
+	return nil
 }

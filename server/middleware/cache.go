@@ -15,6 +15,7 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/router"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type cachedResponseWriter struct {
@@ -134,20 +135,8 @@ func (g *GzipResponseWriter) WriteHeader(statusCode int) {
 	g.w.WriteHeader(statusCode)
 }
 
-func Gzip() router.Middleware {
-	return router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-		gz := gzip.NewWriter(w)
-		w.Header().Set("Content-Encoding", "gzip")
-		next.ServeHTTP(&GzipResponseWriter{
-			w:  w,
-			gz: gz,
-		}, r)
-		gz.Close()
-	})
-}
-
 func serveFromCache(rw http.ResponseWriter, cachePath string) error {
-
+	spew.Dump(rw.Header().Get("Last-Modified"))
 	f, err := os.Open(cachePath)
 	if err != nil {
 		return err

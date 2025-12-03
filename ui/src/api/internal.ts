@@ -158,14 +158,21 @@ export async function getAuthImageToken(): Promise<string | null> {
     return t?.image_token ?? null
 }
 
+export type PageURLOptions = {
+    thumbnail?: boolean
+    encode?: boolean
+    width?: number
+    height?: number
+}
+
 export async function pageURL(
     model: Book | Series | Page,
     page?: number,
-    { thumbnail = false, encode = false } = {},
+    options: PageURLOptions = {},
 ): Promise<string> {
     let u: URL
     if ('url' in model) {
-        if (thumbnail) {
+        if (options.thumbnail) {
             u = new URL(model.thumbnail_url, location.href)
         } else {
             u = new URL(model.url, location.href)
@@ -178,10 +185,13 @@ export async function pageURL(
         if (p === undefined) {
             return noImage
         }
-        if (thumbnail) {
+        if (options.thumbnail) {
             u = new URL(p.thumbnail_url, location.href)
         } else {
             u = new URL(p.url, location.href)
+        }
+        if (options.height && options.width) {
+            u.pathname += `/${options.width}x${options.height}.jpg`
         }
     } else {
         u = new URL(model.cover_url, location.href)
@@ -192,9 +202,10 @@ export async function pageURL(
         u.searchParams.set('_token', token)
     }
 
-    if (encode) {
+    if (options.encode) {
         u.searchParams.set('encode', 'true')
     }
+
     return u.toString().replace(/^https?:/, '')
 }
 

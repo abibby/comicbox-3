@@ -106,7 +106,11 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     }, [admin, book, bookDelete, bookWrite, downloaded])
     const online = useOnline()
 
-    const coverURL = usePageURL(book)
+    const coverURL = usePageURL(book, 0, {
+        thumbnail: false,
+        width: 100,
+        height: 500,
+    })
     const currentPage = translate(book, book.user_book?.current_page ?? 0)
         .from('sourcePage')
         .to('activePage')

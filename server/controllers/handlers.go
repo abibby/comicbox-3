@@ -26,17 +26,32 @@ func init() {
 type JpegHandler struct {
 	img           image.Image
 	cacheLifetime time.Duration
+	header        http.Header
 }
 
 func NewJpegHandler(img image.Image, cacheLifetime time.Duration) *JpegHandler {
-	return &JpegHandler{img: img, cacheLifetime: cacheLifetime}
+	return &JpegHandler{
+		img:           img,
+		cacheLifetime: cacheLifetime,
+		header:        http.Header{},
+	}
 }
 
+func (h *JpegHandler) AddHeader(key, value string) *JpegHandler {
+	h.header.Add(key, value)
+	return h
+}
 func (h *JpegHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if h.cacheLifetime != 0 {
 		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d", h.cacheLifetime/time.Second))
 	}
 	w.Header().Add("Content-Type", "image/jpeg")
+
+	for key, values := range h.header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
 
 	b, err := mozjpeg.Encode(h.img, mozjpeg.DefaultOptions)
 	// err := jpeg.Encode(w, h.img, nil)

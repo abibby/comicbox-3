@@ -7,7 +7,6 @@ import (
 	"image"
 	"io"
 	"log/slog"
-	"math"
 	"net/http"
 	"os"
 	"time"
@@ -108,9 +107,12 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 type BookPageRequest struct {
 	ID     string `path:"id"   validate:"uuid"`
 	Page   int    `path:"page" validate:"min:0"`
+	Width  int    `path:"width"  validate:"min:0"`
+	Height int    `path:"height" validate:"min:0"`
 	Encode bool   `query:"encode"`
 
-	Ctx context.Context `inject:""`
+	Ctx    context.Context `inject:""`
+	Logger *slog.Logger    `inject:""`
 }
 
 var BookPage = request.Handler(func(r *BookPageRequest) (http.Handler, error) {
@@ -119,16 +121,26 @@ var BookPage = request.Handler(func(r *BookPageRequest) (http.Handler, error) {
 		return nil, err
 	}
 
-	if r.Encode {
-		defer f.Close()
-		img, _, err := image.Decode(f)
-		if err != nil {
-			return nil, err
-		}
-		return NewJpegHandler(img, time.Hour), nil
+	if !r.Encode && r.Width == 0 && r.Height == 0 {
+		return NewReaderHandler(f).AddHeaderCacheMaxAge(time.Hour), nil
+	}
+	defer f.Close()
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
 	}
 
-	return NewReaderHandler(f).AddHeaderCacheMaxAge(time.Hour), nil
+	if r.Height != 0 {
+		thumbHeight := r.Height
+		thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
+
+		dst := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
+		draw.BiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
+		img = dst
+	}
+
+	return NewJpegHandler(img, time.Hour), nil
+
 }).Docs(&spec.OperationProps{
 	Produces: []string{"image/jpeg", "image/png", "image/webp", "image/gif"},
 	Responses: &spec.Responses{ResponsesProps: spec.ResponsesProps{
@@ -136,37 +148,12 @@ var BookPage = request.Handler(func(r *BookPageRequest) (http.Handler, error) {
 	}},
 })
 
-type BookThumbnailRequest struct {
-	BookPageRequest
-
-	Logger *slog.Logger `inject:""`
-}
-
-var BookThumbnail = request.Handler(func(r *BookThumbnailRequest) (*JpegHandler, error) {
-	f, err := bookPageFile(r.Ctx, r.ID, r.Page)
+var BookThumbnail = request.Handler(func(r *BookPageRequest) (*JpegHandler, error) {
+	resp, err := BookPage.Run(r)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-
-	img, _, err := image.Decode(f)
-	if err != nil {
-		return nil, err
-	}
-	if img.Bounds().Dy() > img.Bounds().Dx()*2 {
-		img, err = cropImage(img, image.Rect(0, 0, img.Bounds().Dx(), int(float64(img.Bounds().Dx())*math.Phi)))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	thumbHeight := 252
-	thumbWidth := int(float64(img.Bounds().Dx()) * (float64(thumbHeight) / float64(img.Bounds().Dy())))
-
-	dst := image.NewRGBA(image.Rect(0, 0, thumbWidth, thumbHeight))
-	draw.BiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Over, nil)
-
-	return NewJpegHandler(dst, time.Hour*24*30), nil
+	return resp.(*JpegHandler), nil
 })
 
 // cropImage takes an image and crops it to the specified rectangle.

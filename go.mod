@@ -2,7 +2,7 @@ module github.com/abibby/comicbox-3
 
 go 1.23.1
 
-// replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
+replace github.com/abibby/salusa => ../salusa
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.3.2

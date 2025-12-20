@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/deps"
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/database/migrations"
 	"github.com/abibby/comicbox-3/models"
@@ -13,9 +15,12 @@ import (
 	"github.com/abibby/salusa/database/dbtest"
 	"github.com/abibby/salusa/database/dialects/sqlite"
 	"github.com/abibby/salusa/di"
+	"github.com/abibby/salusa/testing/kerneltest"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jmoiron/sqlx"
 )
+
+var Kernel = kerneltest.NewTestKernelFactory(app.Kernel, config.Load())
 
 var r = dbtest.NewRunner(func() (*sqlx.DB, error) {
 	ctx := context.Background()

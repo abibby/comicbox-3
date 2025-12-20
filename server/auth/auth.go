@@ -19,7 +19,6 @@ type Claims struct {
 type TokenScope string
 
 const (
-	ScopeAPI     = TokenScope("api")
 	ScopeRefresh = TokenScope("refresh")
 	ScopeImage   = TokenScope("image")
 
@@ -50,6 +49,11 @@ const (
 	// ScopeUserSeriesRead   = TokenScope("userseries:read")
 	ScopeUserSeriesWrite = TokenScope("userseries:write")
 	// ScopeUserSeriesDelete = TokenScope("userseries:delete")
+
+	// ScopeFileIndex  = TokenScope("file:index")
+	ScopeFileRead  = TokenScope("file:read")
+	ScopeFileWrite = TokenScope("file:write")
+	// ScopeFileDelete = TokenScope("file:delete")
 )
 
 type contextKey uint8

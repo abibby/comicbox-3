@@ -147,6 +147,14 @@ export const EditSeries: FunctionalComponent = () => {
                     </Input>
                 </ModalBody>
             </Form>
+            <form
+                action={`/api/files`}
+                enctype='multipart/form-data'
+                method='POST'
+            >
+                <input type='file' name='file' />
+                <button type='submit'>Save</button>
+            </form>
         </Modal>
     )
 }

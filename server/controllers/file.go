@@ -17,7 +17,11 @@ type FileViewRequest struct {
 }
 
 var FileView = request.Handler(func(r *FileViewRequest) (*http.Response, error) {
-	return nil, nil
+	f, err := r.File.Open()
+	if err != nil {
+		return nil, err
+	}
+	return request.NewResponse(f).Build(), nil
 })
 
 type FileCreateRequest struct {

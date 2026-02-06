@@ -1,5 +1,5 @@
 import { bindValue } from '@zwzn/spicy'
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, InputEventHandler } from 'preact'
 import { useEffect, useRef } from 'preact/hooks'
 import {
     FormElement,
@@ -39,6 +39,36 @@ export const Input: FunctionalComponent<InputProps> = props => {
                         ? bindValue(props.onInput)
                         : undefined
                 }
+            />
+        </FormElement>
+    )
+}
+
+export interface FileInputProps extends FormElementOptions {
+    focused?: boolean
+    step?: 'any' | number
+    readonly?: boolean
+    onInput?: (event: InputEventHandler<HTMLInputElement>) => void
+}
+
+export const FileInput: FunctionalComponent<FileInputProps> = props => {
+    const input = useRef<HTMLInputElement>(null)
+    useEffect(() => {
+        if (props.focused) {
+            input.current?.focus()
+        }
+    }, [props.focused])
+
+    return (
+        <FormElement props={props}>
+            <input
+                class={styles.input}
+                type={'file'}
+                name={props.name}
+                step={props.step}
+                ref={input}
+                readOnly={props.readonly}
+                onInput={props.onInput}
             />
         </FormElement>
     )

@@ -6,11 +6,13 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path"
 
 	"github.com/abibby/comicbox-3/app/providers"
+	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model/modeldi"
 	"github.com/jmoiron/sqlx"
@@ -23,6 +25,7 @@ type File struct {
 	ID             string `json:"id"   db:"id,primary"`
 	Mime           string `json:"mime" db:"mime"`
 	ReferenceCount int    `json:"-"    db:"reference_count"`
+	URL            string `json:"url"  db:"-"`
 }
 
 func init() {
@@ -84,4 +87,17 @@ func NewFile(ctx context.Context, tx *sqlx.Tx, r io.Reader) (*File, error) {
 
 func (f *File) osPath() string {
 	return fmt.Sprintf("./files/%s/%s", f.ID[:2], f.ID)
+}
+
+func (f *File) Open() (fs.File, error) {
+	return os.Open(f.osPath())
+}
+
+func (f *File) AfterLoad(ctx context.Context, tx salusadb.DB) error {
+	f.updateURL()
+	return nil
+}
+
+func (f *File) updateURL() {
+	f.URL = fmt.Sprintf("/api/files/%s", f.ID)
 }

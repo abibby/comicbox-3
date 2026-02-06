@@ -1,9 +1,9 @@
-import { FunctionalComponent, h } from 'preact'
+import { FunctionalComponent, h, InputEventHandler } from 'preact'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { persist } from 'src/cache'
 import { Button } from 'src/components/button'
 import { Data, Form } from 'src/components/form/form'
-import { Input } from 'src/components/form/input'
+import { FileInput, Input } from 'src/components/form/input'
 import {
     Modal,
     ModalBody,
@@ -42,6 +42,10 @@ export const EditSeries: FunctionalComponent = () => {
     useEffect(() => {
         setMetadataID(String(series?.metadata_id ?? ''))
     }, [series?.metadata_id, series?.name])
+
+    const selectFile = useCallback((e: InputEventHandler<HTMLInputElement>) => {
+        console.log(e)
+    }, [])
 
     const submit = useCallback(
         async (data: Data) => {
@@ -136,6 +140,11 @@ export const EditSeries: FunctionalComponent = () => {
                         name='directory'
                         readonly
                         value={series?.directory}
+                    />
+                    <FileInput
+                        title='Cover'
+                        name='cover'
+                        onInput={selectFile}
                     />
                     <Input
                         title='Metadata ID'

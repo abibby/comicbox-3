@@ -201,6 +201,28 @@ func (b *Book) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	b.updateOriginals()
 	return nil
 }
+func (b *Book) FullTitle(s *Series) string {
+	sb := strings.Builder{}
+
+	sb.WriteString(s.Name)
+
+	sb.WriteString(" -")
+
+	if b.Title != "" {
+		sb.WriteString(" ")
+		sb.WriteString(b.Title)
+	}
+	if b.Volume != nil {
+		sb.WriteString(" V")
+		sb.WriteString(b.Volume.String())
+	}
+	if b.Chapter != nil {
+		sb.WriteString(" #")
+		sb.WriteString(b.Chapter.String())
+	}
+
+	return sb.String()
+}
 
 func (b *Book) updateOriginals() {
 	b.saved = true

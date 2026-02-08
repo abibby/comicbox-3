@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/abibby/comicbox-3/database"
+	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/middleware"
@@ -16,6 +18,7 @@ import (
 	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -123,7 +126,6 @@ func InitRouter(r *router.Router) {
 				r.Get("/roles", controllers.RoleList).Name("role.list")
 			})
 		})
-
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.HasScope(auth.ScopeImage))
 
@@ -134,6 +136,7 @@ func InitRouter(r *router.Router) {
 				r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("book.thumbnail")
 			})
 		})
+
 		r.PostFunc("/users", controllers.UserCreate).Name("user.create")
 		r.Post("/users/password", controllers.ChangePassword).Name("user.change.password")
 
@@ -145,6 +148,36 @@ func InitRouter(r *router.Router) {
 			r.Use(controllers.HasScope(auth.ScopeRefresh))
 			r.PostFunc("/login/refresh", controllers.Refresh).Name("refresh")
 		})
+
+		r.Group("/opds", func(r *router.Router) {
+			r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+				// username, _, _ := r.BasicAuth()
+				var user *models.User
+				err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+					u, err := models.UserQuery(r.Context()).Where("username", "=", "adam").First(tx)
+					if err != nil {
+						return err
+					}
+					if u == nil {
+						return controllers.ErrUnauthorized
+					}
+					user = u
+					return nil
+				})
+				if err != nil {
+					request.Respond(w, r, err)
+					return
+				}
+				claims := auth.GenerateClaims(user.ID)
+				r = auth.WithClaims(r, claims)
+				next.ServeHTTP(w, r)
+			}))
+
+			r.Get("", controllers.OPDSIndex).Name("opds.index")
+			r.Get("/list/{list}", controllers.OPDSReading).Name("opds.list")
+			r.Handle("/", http.HandlerFunc(controllers.OPDS404)).Name("opds.404")
+		})
+		r.Get("/books/{id}/download", controllers.BookDownload).Name("book.download")
 
 		r.Handle("/docs", openapidoc.SwaggerUI())
 

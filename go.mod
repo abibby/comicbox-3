@@ -1,6 +1,8 @@
 module github.com/abibby/comicbox-3
 
-go 1.23.1
+go 1.24.0
+
+toolchain go1.24.4
 
 // replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
 
@@ -16,16 +18,18 @@ require (
 	github.com/go-openapi/spec v0.21.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/feeds v1.2.0
 	github.com/gorilla/mux v1.8.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.37.0
+	golang.org/x/crypto v0.47.0
 	golang.org/x/image v0.26.0
-	golang.org/x/text v0.24.0
+	golang.org/x/text v0.33.0
 	golang.org/x/time v0.11.0
+	golang.org/x/tools v0.41.0
 )
 
 require (
@@ -75,12 +79,11 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.26 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.29.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.40.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34 // indirect
 	google.golang.org/grpc v1.72.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect

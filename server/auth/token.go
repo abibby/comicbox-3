@@ -11,6 +11,11 @@ import (
 
 // https://www.iana.org/assignments/jwt/jwt.xhtml#claims
 func GenerateToken(userID uuid.UUID, modifyClaims ...func(*Claims) *Claims) (string, error) {
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, GenerateClaims(userID, modifyClaims...)).SignedString(config.AppKey)
+}
+
+// https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+func GenerateClaims(userID uuid.UUID, modifyClaims ...func(*Claims) *Claims) *Claims {
 	now := time.Now()
 	claims := &Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -22,7 +27,7 @@ func GenerateToken(userID uuid.UUID, modifyClaims ...func(*Claims) *Claims) (str
 	for _, m := range modifyClaims {
 		claims = m(claims)
 	}
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString(config.AppKey)
+	return claims
 }
 
 func CreatesUser(id uuid.UUID) func(claims *Claims) *Claims {

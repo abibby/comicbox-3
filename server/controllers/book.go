@@ -327,3 +327,38 @@ var BookDelete = request.Handler(func(r *BookDeleteRequest) (*BookDeleteResponse
 		Success: true,
 	}, nil
 })
+
+type BookDownloadRequest struct {
+	ID string `path:"id" validate:"require|uuid"`
+
+	Ctx context.Context `inject:""`
+}
+
+var BookDownload = request.Handler(func(r *BookDownloadRequest) (io.Reader, error) {
+	var f *os.File
+	err := database.UpdateTx(r.Ctx, func(tx *sqlx.Tx) error {
+		b, err := models.BookQuery(r.Ctx).Find(tx, r.ID)
+		if err != nil {
+			return err
+		}
+		if b == nil {
+			return Err404
+		}
+		b.DeletedAt = database.TimePtr(time.Now())
+		err = model.SaveContext(r.Ctx, tx, b)
+		if err != nil {
+			return err
+		}
+
+		f, err = os.Open(b.FilePath())
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+})

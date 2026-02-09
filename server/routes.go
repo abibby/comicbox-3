@@ -90,7 +90,6 @@ func InitRouter(r *router.Router) {
 
 	r.Group("/api", func(r *router.Router) {
 		r.Group("", func(r *router.Router) {
-			// r.Use(controllers.HasScope(auth.ScopeAPI))
 
 			r.Get("/series", scoped(controllers.SeriesIndex, auth.ScopeBookIndex)).Name("series.index")
 			r.Post("/series/{slug}", scoped(controllers.SeriesUpdate, auth.ScopeSeriesWrite)).Name("series.update")
@@ -102,9 +101,6 @@ func InitRouter(r *router.Router) {
 			r.Post("/books/{id}/user-book", scoped(controllers.UserBookUpdate, auth.ScopeUserBookWrite)).Name("user-book.update")
 
 			r.Post("/sync", scoped(controllers.Sync, auth.ScopeBookSync)).Name("sync")
-
-			// r.Post("/anilist/update", scoped(controllers.AnilistUpdate)).Name("anilist.update")
-			// r.Post("/anilist/login", scoped(controllers.AnilistLogin)).Name("anilist.login")
 
 			r.Get("/users/create-token", scoped(controllers.UserCreateToken, auth.ScopeUserWrite)).Name("user-create-token")
 			r.Get("/users/current", scoped(controllers.UserCurrent, auth.ScopeUserRead)).Name("user.current")
@@ -175,9 +171,11 @@ func InitRouter(r *router.Router) {
 
 			r.Get("", controllers.OPDSIndex).Name("opds.index")
 			r.Get("/list/{list}", controllers.OPDSReading).Name("opds.list")
+			r.Get("/books/{id}/download", controllers.BookDownload).Name("opds.download")
+			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("opds.page")
+			r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("opds.thumbnail")
 			r.Handle("/", http.HandlerFunc(controllers.OPDS404)).Name("opds.404")
 		})
-		r.Get("/books/{id}/download", controllers.BookDownload).Name("book.download")
 
 		r.Handle("/docs", openapidoc.SwaggerUI())
 

@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/abibby/comicbox-3/services/atom"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
-	"golang.org/x/tools/blog/atom"
 )
 
 type Stater interface {

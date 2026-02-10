@@ -34,15 +34,19 @@ type Entry struct {
 }
 
 type Link struct {
-	Rel             string  `xml:"rel,attr,omitempty"`
-	Href            string  `xml:"href,attr"`
-	Type            string  `xml:"type,attr,omitempty"`
-	HrefLang        string  `xml:"hreflang,attr,omitempty"`
-	Title           string  `xml:"title,attr,omitempty"`
-	Length          uint    `xml:"length,attr,omitempty"`
-	PSECount        uint    `xml:"pse:count,attr,omitempty"`
-	PSELastRead     uint    `xml:"pse:lastRead,attr,omitempty"`
-	PSELastReadDate TimeStr `xml:"pse:lastReadDate,attr,omitempty"`
+	Rel      string `xml:"rel,attr,omitempty"`
+	Href     string `xml:"href,attr"`
+	Type     string `xml:"type,attr,omitempty"`
+	HrefLang string `xml:"hreflang,attr,omitempty"`
+	Title    string `xml:"title,attr,omitempty"`
+	Length   uint   `xml:"length,attr,omitempty"`
+	PSE
+}
+
+type PSE struct {
+	Count        uint    `xml:"pse:count,attr,omitempty"`
+	LastRead     uint    `xml:"pse:lastRead,attr,omitempty"`
+	LastReadDate TimeStr `xml:"pse:lastReadDate,attr,omitempty"`
 }
 
 type Person struct {

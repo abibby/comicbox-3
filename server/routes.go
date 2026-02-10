@@ -147,14 +147,17 @@ func InitRouter(r *router.Router) {
 
 		r.Group("/opds", func(r *router.Router) {
 			r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-				// username, _, _ := r.BasicAuth()
+				username, pass, _ := r.BasicAuth()
 				var user *models.User
 				err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-					u, err := models.UserQuery(r.Context()).Where("username", "=", "adam").First(tx)
+					u, err := models.UserQuery(r.Context()).Where("username", "=", username).First(tx)
 					if err != nil {
 						return err
 					}
 					if u == nil {
+						return controllers.ErrUnauthorized
+					}
+					if pass != "test" {
 						return controllers.ErrUnauthorized
 					}
 					user = u
@@ -175,6 +178,33 @@ func InitRouter(r *router.Router) {
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("opds.page")
 			r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("opds.thumbnail")
 			r.Handle("/", http.HandlerFunc(controllers.OPDS404)).Name("opds.404")
+		})
+
+		r.Group("/koreader", func(r *router.Router) {
+			r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
+				var user *models.User
+				err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+					u, err := models.UserQuery(r.Context()).Where("username", "=", r.Header.Get("X-Auth-User")).First(tx)
+					if err != nil {
+						return err
+					}
+					if u == nil {
+						return controllers.ErrUnauthorized
+					}
+					user = u
+					return nil
+				})
+				if err != nil {
+					request.Respond(w, r, err)
+					return
+				}
+				claims := auth.GenerateClaims(user.ID)
+				r = auth.WithClaims(r, claims)
+				next.ServeHTTP(w, r)
+			}))
+			r.Put("/syncs/progress", controllers.KoreaderPutPorgress).Name("koreader.put.progress")
+			r.Get("/syncs/progress/{document}", controllers.KoreaderGetPorgress).Name("koreader.get.progress")
+			// r.Handle("", controllers.KoreaderLog).Name("koreader.log")
 		})
 
 		r.Handle("/docs", openapidoc.SwaggerUI())

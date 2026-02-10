@@ -2,7 +2,10 @@ package controllers
 
 import (
 	"context"
+	"io"
+	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/abibby/comicbox-3/models"
@@ -86,12 +89,14 @@ func BookEntry(book *models.Book, series *models.Series, urlResolver router.URLR
 				Rel:  "http://opds-spec.org/image/thumbnail",
 			},
 			{
-				Type:            "image/jpeg",
-				Href:            urlResolver.Resolve("opds.page", "id", book.ID.String(), "page", "{pageNumber}"),
-				Rel:             "http://vaemendis.net/opds-pse/stream",
-				PSECount:        uint(book.PageCount),
-				PSELastRead:     uint(userBook.CurrentPage),
-				PSELastReadDate: lastReadAt,
+				Type: "image/jpeg",
+				Href: urlResolver.Resolve("opds.page", "id", book.ID.String(), "page", "{pageNumber}"),
+				Rel:  "http://vaemendis.net/opds-pse/stream",
+				PSE: atom.PSE{
+					Count:        uint(book.PageCount),
+					LastRead:     uint(userBook.CurrentPage),
+					LastReadDate: lastReadAt,
+				},
 			},
 		},
 	}
@@ -163,3 +168,83 @@ var OPDSReading = request.Handler(func(r *OPDSReadingRequest) (*OPDSHandler, err
 func OPDS404(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 }
+
+var KoreaderLog = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	body, _ := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	slog.Info("koreader", "method", r.Method, "url", r.URL, "body", string(body))
+})
+
+type KoreaderPutPorgressRequest struct {
+	Device     string  `json:"device"`     // "cph2749"
+	DeviceID   string  `json:"device_id"`  // "2C7AD002ECFD410091C9F9300DEB4BF1"
+	Progress   string  `json:"progress"`   // "174"
+	Document   string  `json:"document"`   // "0517f0ea976a6dae479227d036667dff"
+	Percentage float32 `json:"percentage"` // 0.983
+
+	Read database.Read   `inject:""`
+	Ctx  context.Context `inject:""`
+}
+type KoreaderPutPorgressResponse struct {
+}
+
+var KoreaderPutPorgress = request.Handler(func(r *KoreaderPutPorgressRequest) (*KoreaderPutPorgressResponse, error) {
+	page, err := strconv.Atoi(r.Progress)
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("KoreaderPorgress", "document", r.Document, "page", page)
+
+	_, err = UserBookUpdate.Run(&UserBookUpdateRequest{
+		BookID:      "",
+		CurrentPage: page,
+		UpdateMap: map[string]string{
+			"current_page": models.UpdateID(),
+		},
+		Ctx: r.Ctx,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+})
+
+type KoreaderGetPorgressRequest struct {
+	Document string `path:"document"`
+
+	Request *http.Request   `inject:""`
+	Read    database.Read   `inject:""`
+	Ctx     context.Context `inject:""`
+}
+type KoreaderGetPorgressResponse struct {
+	Percentage float32 `json:"percentage"`
+	Device     string  `json:"device"`
+	DeviceID   string  `json:"device_id"`
+	Progress   string  `json:"progress"`
+	Timestamp  int     `json:"timestamp"`
+}
+
+var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*KoreaderGetPorgressResponse, error) {
+	book, err := database.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
+		return models.BookQuery(r.Ctx).With("UserBook").Find(tx, "8849bb7d-349d-4c1a-876c-3b20ed87911c")
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	userbook, ok := book.UserBook.Value()
+	if !ok {
+		userbook = &models.UserBook{}
+	}
+
+	slog.Info("sync progress", "document", r.Document)
+	return &KoreaderGetPorgressResponse{
+		Percentage: float32(userbook.CurrentPage) / float32(book.PageCount),
+		Progress:   strconv.FormatInt(int64(userbook.CurrentPage), 10),
+		Timestamp:  int(userbook.UpdatedAt.Time().Unix()),
+	}, nil
+})
+
+// https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6
+// md5sum file name for id maybe
+// https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/main.lua#L645

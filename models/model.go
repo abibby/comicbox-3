@@ -29,15 +29,21 @@ type BaseModel struct {
 
 var updateIndex int32
 
-func (b *BaseModel) UpdateField(name string) {
+func UpdateID() string {
 	index := atomic.AddInt32(&updateIndex, 1)
-	b.UpdateMap[name] = fmt.Sprintf("%d-SERVER-%d", time.Now().UnixMilli(), index)
+	a := fmt.Sprintf("%d-SERVER-%d", time.Now().UnixMilli(), index)
 	if index == 1 {
 		go func() {
 			time.Sleep(time.Second)
 			updateIndex = 0
 		}()
 	}
+
+	return a
+}
+
+func (b *BaseModel) UpdateField(name string) {
+	b.UpdateMap[name] = UpdateID()
 }
 
 func (*BaseModel) Scopes() []*builder.Scope {

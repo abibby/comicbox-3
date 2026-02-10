@@ -2,9 +2,14 @@ package controllers
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/hex"
+	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -60,9 +65,11 @@ func BookEntry(book *models.Book, series *models.Series, urlResolver router.URLR
 			Type: "text",
 			Body: series.Description,
 		},
+		Author: &atom.Person{
+			Name: "ComicBox",
+		},
 		Updated: atom.Time(time.Now()),
 		Link: []atom.Link{
-			// href="/get/pdf/52/Calibre_Library" rel="http://opds-spec.org/acquisition" length="4925958" mtime="2026-02-06T18:41:18.978263+00:00"
 			{
 				Type: "application/vnd.comicbook+zip",
 				Href: urlResolver.Resolve("opds.download", "id", book.ID.String()),
@@ -237,7 +244,11 @@ var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*
 		userbook = &models.UserBook{}
 	}
 
-	slog.Info("sync progress", "document", r.Document)
+	hash, err := PartialMD5(book.FilePath())
+	if err != nil {
+		return nil, err
+	}
+	slog.Info("sync progress", "document", r.Document, "book", book.FullTitle(nil), "hash", hash)
 	return &KoreaderGetPorgressResponse{
 		Percentage: float32(userbook.CurrentPage) / float32(book.PageCount),
 		Progress:   strconv.FormatInt(int64(userbook.CurrentPage), 10),
@@ -248,3 +259,52 @@ var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6
 // md5sum file name for id maybe
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/main.lua#L645
+
+// https://github.com/koreader/koreader/blob/master/frontend/util.lua#L1111
+func PartialMD5(filepath string) (string, error) {
+	slog.Info("PartialMD5", "filepath", filepath)
+	file, err := os.Open(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	const step int64 = 1024
+	const size = 1024
+
+	buf := make([]byte, size)
+	for i := -1; i <= 10; i++ {
+		// Mimic LuaJIT/bit32 behavior:
+		// lshift(1024, -2) results in 0 because it treats it as 1024 << 30
+		// and truncates to a 32-bit signed integer.
+		shiftCount := uint(2*i) & 31
+		offset := int64(int32(step << shiftCount))
+
+		slog.Info("offset", "i", i, "offset", offset)
+
+		// Seek to the calculated position
+		_, err := file.Seek(offset, io.SeekStart)
+		if err != nil {
+			slog.Error("failed to seek", "err", err)
+			// If we seek beyond the file size, we stop sampling
+			break
+		}
+
+		// Read the sample
+		n, err := file.Read(buf)
+
+		// If we hit the end of the file or an error, break the loop
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return "", fmt.Errorf("failed to read file: %w", err)
+		}
+		if n > 0 {
+			hash.Write(buf[:n])
+		}
+	}
+
+	return hex.EncodeToString(hash.Sum(nil)), nil
+}

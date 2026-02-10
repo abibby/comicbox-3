@@ -202,23 +202,28 @@ func (b *Book) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	return nil
 }
 func (b *Book) FullTitle(s *Series) string {
-	sb := strings.Builder{}
+	sb := &strings.Builder{}
 
-	sb.WriteString(s.Name)
+	if s == nil {
+		s, _ = b.Series.Value()
+	}
+	if s != nil {
+		sb.WriteString(s.Name)
+	} else {
+		sb.WriteString(b.SeriesSlug)
+	}
 
 	sb.WriteString(" -")
 
+	if v, ok := b.Volume.Ok(); ok && v != 0 {
+		fmt.Fprintf(sb, " V%v", v)
+	}
+	if ch, ok := b.Chapter.Ok(); ok && ch != 0 {
+		fmt.Fprintf(sb, " #%v", ch)
+	}
+
 	if b.Title != "" {
-		sb.WriteString(" ")
-		sb.WriteString(b.Title)
-	}
-	if b.Volume != nil {
-		sb.WriteString(" V")
-		sb.WriteString(b.Volume.String())
-	}
-	if b.Chapter != nil {
-		sb.WriteString(" #")
-		sb.WriteString(b.Chapter.String())
+		fmt.Fprintf(sb, " %s", b.Title)
 	}
 
 	return sb.String()

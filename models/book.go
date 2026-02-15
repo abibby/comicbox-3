@@ -72,7 +72,7 @@ type Book struct {
 	File         string                   `json:"file"          db:"file"`
 	CoverURL     string                   `json:"cover_url"     db:"-"`
 	DownloadSize int                      `json:"download_size" db:"download_size"`
-	KoreaderMD5  string                   `json:"koreader_md5"  db:"koreader_md5,index"`
+	KOReaderMD5  string                   `json:"koreader_md5"  db:"koreader_md5,index"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`

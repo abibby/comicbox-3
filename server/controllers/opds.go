@@ -2,11 +2,8 @@ package controllers
 
 import (
 	"context"
-	"io"
-	"log/slog"
 	"net/http"
 	goslices "slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -291,100 +288,3 @@ var OPDSSeries = request.Handler(func(r *OPDSSeriesRequest) (*OPDSHandler, error
 func OPDS404(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 }
-
-var KoreaderLog = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	body, _ := io.ReadAll(r.Body)
-	defer r.Body.Close()
-	slog.Info("koreader", "method", r.Method, "url", r.URL, "body", string(body))
-})
-
-type KoreaderPutPorgressRequest struct {
-	Device     string  `json:"device"`     // "cph2749"
-	DeviceID   string  `json:"device_id"`  // "2C7AD002ECFD410091C9F9300DEB4BF1"
-	Progress   string  `json:"progress"`   // "174"
-	Document   string  `json:"document"`   // "0517f0ea976a6dae479227d036667dff"
-	Percentage float32 `json:"percentage"` // 0.983
-
-	Read database.Read   `inject:""`
-	Ctx  context.Context `inject:""`
-}
-type KoreaderPutPorgressResponse struct {
-	State string `json:"state"`
-}
-
-var KoreaderUpdatePorgress = request.Handler(func(r *KoreaderPutPorgressRequest) (*KoreaderPutPorgressResponse, error) {
-	slog.Info("KoreaderUpdatePorgress", "document", r.Document)
-	book, err := database.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
-		return models.BookQuery(r.Ctx).With("UserBook").Where("koreader_md5", "=", r.Document).First(tx)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if book == nil {
-		return nil, Err404
-	}
-
-	page, err := strconv.Atoi(r.Progress)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = UserBookUpdate.Run(&UserBookUpdateRequest{
-		BookID:      book.ID.String(),
-		CurrentPage: page - 1,
-		UpdateMap: map[string]string{
-			"current_page": models.UpdateID(),
-		},
-		Ctx: r.Ctx,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &KoreaderPutPorgressResponse{
-		State: "OK",
-	}, nil
-})
-
-type KoreaderGetPorgressRequest struct {
-	Document string `path:"document"`
-
-	Request *http.Request   `inject:""`
-	Read    database.Read   `inject:""`
-	Ctx     context.Context `inject:""`
-}
-type KoreaderGetPorgressResponse struct {
-	Percentage float32 `json:"percentage"`
-	Device     string  `json:"device"`
-	DeviceID   string  `json:"device_id"`
-	Progress   string  `json:"progress"`
-	Timestamp  int     `json:"timestamp"`
-}
-
-var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*KoreaderGetPorgressResponse, error) {
-	book, err := database.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
-		return models.BookQuery(r.Ctx).With("UserBook").Where("koreader_md5", "=", r.Document).First(tx)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if book == nil {
-		return nil, Err404
-	}
-
-	userbook, ok := book.UserBook.Value()
-	if !ok {
-		userbook = &models.UserBook{}
-	}
-	currentPage := userbook.CurrentPage + 1
-	return &KoreaderGetPorgressResponse{
-		Percentage: float32(currentPage) / float32(book.PageCount),
-		Progress:   strconv.FormatInt(int64(currentPage), 10),
-		Timestamp:  int(userbook.UpdatedAt.Time().Unix()),
-	}, nil
-})
-
-// https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6
-// md5sum file name for id maybe
-// https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/main.lua#L645

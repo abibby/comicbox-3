@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/middleware"
@@ -18,7 +16,6 @@ import (
 	"github.com/abibby/salusa/request"
 	"github.com/abibby/salusa/router"
 	"github.com/gorilla/mux"
-	"github.com/jmoiron/sqlx"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -73,6 +70,7 @@ func InitRouter(r *router.Router) {
 			u.RawQuery = q.Encode()
 
 			clog.Use(r.Context()).Info("request",
+				"metod", r.Method,
 				"url", u.String(),
 				"status", rr.StatusCode,
 				"user_agent", r.Header.Get("User-Agent"),
@@ -89,39 +87,38 @@ func InitRouter(r *router.Router) {
 	}))
 
 	r.Group("/api", func(r *router.Router) {
-		r.Group("", func(r *router.Router) {
 
-			r.Get("/series", scoped(controllers.SeriesIndex, auth.ScopeBookIndex)).Name("series.index")
-			r.Post("/series/{slug}", scoped(controllers.SeriesUpdate, auth.ScopeSeriesWrite)).Name("series.update")
-			r.Post("/series/{slug}/user-series", scoped(controllers.UserSeriesUpdate, auth.ScopeUserSeriesWrite)).Name("user-series.update")
+		r.Get("/series", scoped(controllers.SeriesIndex, auth.ScopeBookIndex)).Name("series.index")
+		r.Post("/series/{slug}", scoped(controllers.SeriesUpdate, auth.ScopeSeriesWrite)).Name("series.update")
+		r.Post("/series/{slug}/user-series", scoped(controllers.UserSeriesUpdate, auth.ScopeUserSeriesWrite)).Name("user-series.update")
 
-			r.Get("/books", scoped(controllers.BookIndex, auth.ScopeBookIndex)).Name("book.index")
-			r.Post("/books/{id}", scoped(controllers.BookUpdate, auth.ScopeBookWrite)).Name("book.update")
-			r.Delete("/books/{id}", scoped(controllers.BookDelete, auth.ScopeBookDelete)).Name("book.delete")
-			r.Post("/books/{id}/user-book", scoped(controllers.UserBookUpdate, auth.ScopeUserBookWrite)).Name("user-book.update")
+		r.Get("/books", scoped(controllers.BookIndex, auth.ScopeBookIndex)).Name("book.index")
+		r.Post("/books/{id}", scoped(controllers.BookUpdate, auth.ScopeBookWrite)).Name("book.update")
+		r.Delete("/books/{id}", scoped(controllers.BookDelete, auth.ScopeBookDelete)).Name("book.delete")
+		r.Post("/books/{id}/user-book", scoped(controllers.UserBookUpdate, auth.ScopeUserBookWrite)).Name("user-book.update")
 
-			r.Post("/sync", scoped(controllers.Sync, auth.ScopeBookSync)).Name("sync")
+		r.Post("/sync", scoped(controllers.Sync, auth.ScopeBookSync)).Name("sync")
 
-			r.Get("/users/create-token", scoped(controllers.UserCreateToken, auth.ScopeUserWrite)).Name("user-create-token")
-			r.Get("/users/current", scoped(controllers.UserCurrent, auth.ScopeUserRead)).Name("user.current")
+		r.Get("/users/create-token", scoped(controllers.UserCreateToken, auth.ScopeUserWrite)).Name("user-create-token")
+		r.Get("/users/current", scoped(controllers.UserCurrent, auth.ScopeUserRead)).Name("user.current")
 
-			r.Group("/meta", func(r *router.Router) {
-				r.Use(controllers.HasScope(auth.ScopeSeriesWrite))
+		r.Group("/meta", func(r *router.Router) {
+			r.Use(controllers.HasScope(auth.ScopeSeriesWrite))
 
-				r.Get("", controllers.MetaList).Name("meta.list")
-				r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
-				r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
-			})
-
-			r.Group("", func(r *router.Router) {
-				r.Use(controllers.HasScope(auth.ScopeAdmin))
-
-				r.Get("/users", controllers.UserList).Name("user.list")
-				r.Put("/users/{id}", controllers.UserUpdate).Name("user.update")
-
-				r.Get("/roles", controllers.RoleList).Name("role.list")
-			})
+			r.Get("", controllers.MetaList).Name("meta.list")
+			r.Post("/sync", controllers.MetaStartScan).Name("meta.scan")
+			r.Post("/update/{slug}", controllers.MetaUpdate).Name("meta.update")
 		})
+
+		r.Group("", func(r *router.Router) {
+			r.Use(controllers.HasScope(auth.ScopeAdmin))
+
+			r.Get("/users", controllers.UserList).Name("user.list")
+			r.Put("/users/{id}", controllers.UserUpdate).Name("user.update")
+
+			r.Get("/roles", controllers.RoleList).Name("role.list")
+		})
+
 		r.Group("", func(r *router.Router) {
 			r.Use(controllers.HasScope(auth.ScopeImage))
 
@@ -131,6 +128,13 @@ func InitRouter(r *router.Router) {
 				r.Use(middleware.CacheMiddleware())
 				r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("book.thumbnail")
 			})
+		})
+
+		r.Group("/access-token", func(r *router.Router) {
+			r.Use(controllers.HasScope(auth.ScopeAdmin))
+			r.Get("", controllers.AccessTokenIndex)
+			r.Post("", controllers.AccessTokenCreate)
+			r.Delete("/{id}", controllers.AccessTokenDelete)
 		})
 
 		r.PostFunc("/users", controllers.UserCreate).Name("user.create")
@@ -146,31 +150,7 @@ func InitRouter(r *router.Router) {
 		})
 
 		r.Group("/opds", func(r *router.Router) {
-			r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-				username, pass, _ := r.BasicAuth()
-				var user *models.User
-				err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-					u, err := models.UserQuery(r.Context()).Where("username", "=", username).First(tx)
-					if err != nil {
-						return err
-					}
-					if u == nil {
-						return controllers.ErrUnauthorized
-					}
-					if pass != "test" {
-						return controllers.ErrUnauthorized
-					}
-					user = u
-					return nil
-				})
-				if err != nil {
-					request.Respond(w, r, err)
-					return
-				}
-				claims := auth.GenerateClaims(user.ID)
-				r = auth.WithClaims(r, claims)
-				next.ServeHTTP(w, r)
-			}))
+			r.Use(middleware.OPDSAuth)
 
 			r.Get("", controllers.OPDSIndex).Name("opds.index")
 			r.Get("/list/{list}", controllers.OPDSList).Name("opds.list")
@@ -183,30 +163,10 @@ func InitRouter(r *router.Router) {
 		})
 
 		r.Group("/koreader", func(r *router.Router) {
-			r.Use(router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-				var user *models.User
-				err := database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
-					u, err := models.UserQuery(r.Context()).Where("username", "=", r.Header.Get("X-Auth-User")).First(tx)
-					if err != nil {
-						return err
-					}
-					if u == nil {
-						return controllers.ErrUnauthorized
-					}
-					user = u
-					return nil
-				})
-				if err != nil {
-					request.Respond(w, r, err)
-					return
-				}
-				claims := auth.GenerateClaims(user.ID)
-				r = auth.WithClaims(r, claims)
-				next.ServeHTTP(w, r)
-			}))
-			r.Put("/syncs/progress", controllers.KoreaderUpdatePorgress).Name("koreader.put.progress")
-			r.Get("/syncs/progress/{document}", controllers.KoreaderGetPorgress).Name("koreader.get.progress")
-			r.Handle("", controllers.KoreaderLog).Name("koreader.log")
+			r.Use(middleware.KOReaderAuth)
+			r.Put("/syncs/progress", controllers.KOReaderUpdatePorgress).Name("koreader.put.progress")
+			r.Get("/syncs/progress/{document}", controllers.KOReaderGetPorgress).Name("koreader.get.progress")
+			r.Handle("", controllers.KOReaderLog).Name("koreader.log")
 		})
 
 		r.Handle("/docs", openapidoc.SwaggerUI())

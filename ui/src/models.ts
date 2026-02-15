@@ -80,6 +80,14 @@ export interface Role {
     name: string
     scopes: Array<string>
 }
+export interface AccessToken {
+    created_at: string
+    updated_at: string
+    deleted_at: string | null
+    update_map: Record<string, string>
+    id: string
+    name: string
+}
 export interface Staff {
     name: string
     role: StaffRole
@@ -143,6 +151,13 @@ export interface SeriesUpdateRequest {
 }
 export interface PageUpdate {
     type: string
+}
+export interface AccessTokenCreateRequest {
+    name: string
+}
+export interface AccessTokenCreateResponse {
+    key: string
+    token: AccessToken | null
 }
 export enum PageType {
     Deleted = "Deleted",

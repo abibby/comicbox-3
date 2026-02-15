@@ -366,11 +366,11 @@ var BookDownload = request.Handler(func(r *BookDownloadRequest) (*http.Response,
 			}
 
 			sum := md5Recorder.Sum()
-			if b.KoreaderMD5 == sum {
+			if b.KOReaderMD5 == sum {
 				return nil
 			}
 
-			b.KoreaderMD5 = sum
+			b.KOReaderMD5 = sum
 
 			return model.SaveContext(r.Ctx, tx, b)
 		})

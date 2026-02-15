@@ -23,11 +23,11 @@ var KOReaderLog = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) 
 })
 
 type KOReaderPutPorgressRequest struct {
-	Device     string  `json:"device"`     // "cph2749"
-	DeviceID   string  `json:"device_id"`  // "2C7AD002ECFD410091C9F9300DEB4BF1"
-	Progress   string  `json:"progress"`   // "174"
-	Document   string  `json:"document"`   // "0517f0ea976a6dae479227d036667dff"
-	Percentage float32 `json:"percentage"` // 0.983
+	Device     string  `json:"device"`
+	DeviceID   string  `json:"device_id"`
+	Progress   string  `json:"progress"`
+	Document   string  `json:"document"`
+	Percentage float32 `json:"percentage"`
 
 	Read database.Read   `inject:""`
 	Ctx  context.Context `inject:""`

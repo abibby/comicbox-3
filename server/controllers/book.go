@@ -3,17 +3,13 @@ package controllers
 import (
 	"archive/zip"
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"hash"
 	"image"
 	"io"
 	"log/slog"
 	"math"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	_ "image/gif"
@@ -25,7 +21,6 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
 	"github.com/abibby/salusa/database/builder"
 	"github.com/abibby/salusa/database/model"
 	"github.com/abibby/salusa/request"
@@ -329,167 +324,3 @@ var BookDelete = request.Handler(func(r *BookDeleteRequest) (*BookDeleteResponse
 		Success: true,
 	}, nil
 })
-
-type BookDownloadRequest struct {
-	ID string `path:"id" validate:"require|uuid"`
-
-	Read   salusadb.Read   `inject:""`
-	Update salusadb.Update `inject:""`
-	Ctx    context.Context `inject:""`
-}
-
-var BookDownload = request.Handler(func(r *BookDownloadRequest) (*http.Response, error) {
-	book, err := salusadb.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
-		return models.BookQuery(r.Ctx).Find(tx, r.ID)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if book == nil {
-		return nil, Err404
-	}
-
-	pr, pw := io.Pipe()
-
-	go func() {
-		md5Recorder := NewPartialMD5Recorder(pw)
-		err := BuildCBZ(book, md5Recorder)
-		if err != nil {
-			pw.CloseWithError(err)
-		}
-
-		err = r.Update(func(tx *sqlx.Tx) error {
-			b, err := models.BookQuery(r.Ctx).Find(tx, r.ID)
-			if err != nil {
-				return err
-			}
-
-			sum := md5Recorder.Sum()
-			if b.KOReaderMD5 == sum {
-				return nil
-			}
-
-			b.KOReaderMD5 = sum
-
-			return model.SaveContext(r.Ctx, tx, b)
-		})
-		if err != nil {
-			pw.CloseWithError(err)
-		}
-		err = pw.Close()
-		if err != nil {
-			slog.Error("BookDownload: failed to close pipe writer", "err", err)
-			return
-		}
-	}()
-
-	return request.NewResponse(pr).Response, nil
-})
-
-func BuildCBZ(book *models.Book, w io.Writer) error {
-	reader, err := zip.OpenReader(book.FilePath())
-	if err != nil {
-		return err
-	}
-
-	writer := zip.NewWriter(w)
-
-	for i, f := range models.ZippedImages(reader) {
-		if book.Pages[i].Type == models.PageTypeDeleted {
-			continue
-		}
-		f.Name, _ = strings.CutPrefix(f.Name, "/")
-		err = writer.Copy(f)
-		if err != nil {
-			return fmt.Errorf("copy image: %w", err)
-		}
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return fmt.Errorf("close writer: %w", err)
-	}
-	return nil
-}
-
-var targets = []int64{
-	0,
-	1024,
-	4096,
-	16384,
-	65536,
-	262144,
-	1048576,
-	4194304,
-	16777216,
-	67108864,
-	268435456,
-	1073741824,
-}
-
-type PartialMD5Recorder struct {
-	writer        io.Writer
-	hash          hash.Hash
-	currentTarget int
-	bytesRead     int64
-}
-
-var _ io.Writer = (*PartialMD5Recorder)(nil)
-
-func NewPartialMD5Recorder(w io.Writer) *PartialMD5Recorder {
-	return &PartialMD5Recorder{
-		writer: w,
-		hash:   md5.New(),
-	}
-}
-
-// Write implements io.Writer. Pass your stream through this.
-func (p *PartialMD5Recorder) Write(p_buf []byte) (n int, err error) {
-	n = len(p_buf)
-	startPos := p.bytesRead
-	endPos := p.bytesRead + int64(n)
-
-	// Check if any of our target offsets fall within this chunk of data
-	for p.currentTarget < len(targets) {
-		targetStart := targets[p.currentTarget]
-		targetEnd := targetStart + 1024
-
-		// If the target window is completely behind us, skip it
-		if targetEnd <= startPos {
-			p.currentTarget++
-			continue
-		}
-
-		// If the target window is entirely ahead of this chunk, stop checking
-		if targetStart >= endPos {
-			break
-		}
-
-		// Calculate the overlap between the current buffer and the 1024-byte target window
-		overlapStart := max(startPos, targetStart)
-		overlapEnd := min(endPos, targetEnd)
-
-		if overlapStart < overlapEnd {
-			// Map the global offset to the local buffer index
-			bufStart := overlapStart - startPos
-			bufEnd := overlapEnd - startPos
-			p.hash.Write(p_buf[bufStart:bufEnd])
-			slog.Warn("write", "from", p.bytesRead+bufStart, "to", p.bytesRead+bufEnd, "size", bufEnd-bufStart)
-		}
-
-		// If we've finished reading this 1024-byte window, move to the next target
-		if endPos >= targetEnd {
-			p.currentTarget++
-		} else {
-			// Window not yet fully consumed, wait for next Write call
-			break
-		}
-	}
-	p.bytesRead += int64(n)
-	return p.writer.Write(p_buf)
-}
-
-func (h *PartialMD5Recorder) Sum() string {
-	return hex.EncodeToString(h.hash.Sum(nil))
-}

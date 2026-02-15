@@ -156,7 +156,7 @@ func InitRouter(r *router.Router) {
 			r.Get("/list/{list}", controllers.OPDSList).Name("opds.list")
 			r.Get("/series/{slug}", controllers.OPDSSeries).Name("opds.series")
 			r.Get("/unread", controllers.OPDSUnread).Name("opds.unread")
-			r.Get("/books/{id}/download", controllers.BookDownload).Name("opds.download")
+			r.Get("/books/{id}/download", controllers.OPDSBookDownload).Name("opds.download")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("opds.page")
 			r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("opds.thumbnail")
 			r.Handle("/", http.HandlerFunc(controllers.OPDS404)).Name("opds.404")

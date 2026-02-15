@@ -2,15 +2,12 @@ package controllers
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
-	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
+	goslices "slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/abibby/comicbox-3/models"
@@ -24,14 +21,15 @@ import (
 )
 
 const (
-	IDMain = "urn:comicbox:main"
-	IDList = "urn:comicbox:list:"
-	IDBook = "urn:comicbox:book:"
+	IDMain   = "urn:comicbox:main"
+	IDUnread = "urn:comicbox:unread"
+	IDList   = "urn:comicbox:list:"
+	IDSeries = "urn:comicbox:series:"
 )
 
 func ListEntry(list models.List, urlResolver router.URLResolver) *atom.Entry {
 	return &atom.Entry{
-		Title: string(list),
+		Title: strings.ToUpper(string(list[:1])) + string(list[1:]),
 		ID:    IDList + string(list),
 		Content: &atom.Text{
 			Type: "text",
@@ -42,6 +40,48 @@ func ListEntry(list models.List, urlResolver router.URLResolver) *atom.Entry {
 			{
 				Type: "application/atom+xml;type=feed;profile=opds-catalog",
 				Href: urlResolver.Resolve("opds.list", "list", string(list)),
+			},
+		},
+	}
+}
+
+func UnreadEntry(urlResolver router.URLResolver) *atom.Entry {
+	return &atom.Entry{
+		Title: "Unread",
+		ID:    IDUnread,
+		Content: &atom.Text{
+			Type: "text",
+			Body: "Unread books in the reading list",
+		},
+		Updated: atom.Time(time.Now()),
+		Link: []atom.Link{
+			{
+				Type: "application/atom+xml;type=feed;profile=opds-catalog",
+				Href: urlResolver.Resolve("opds.unread"),
+			},
+		},
+	}
+}
+
+func SeriesEntry(s *models.Series, urlResolver router.URLResolver) *atom.Entry {
+	us, ok := s.UserSeries.Value()
+	if !ok {
+		us = &models.UserSeries{
+			LastReadAt: s.UpdatedAt,
+		}
+	}
+	return &atom.Entry{
+		Title: s.Name,
+		ID:    IDSeries + s.Slug,
+		Content: &atom.Text{
+			Type: "text",
+			Body: "Books in the " + s.Name + " series",
+		},
+		Updated: atom.Time(us.LastReadAt.Time()),
+		Link: []atom.Link{
+			{
+				Type: "application/atom+xml;type=feed;profile=opds-catalog",
+				Href: urlResolver.Resolve("opds.series", "slug", s.Slug),
 			},
 		},
 	}
@@ -60,7 +100,7 @@ func BookEntry(book *models.Book, series *models.Series, urlResolver router.URLR
 
 	return &atom.Entry{
 		Title: book.FullTitle(series),
-		ID:    IDBook + book.ID.String(),
+		ID:    book.ID.URN(),
 		Content: &atom.Text{
 			Type: "text",
 			Body: series.Description,
@@ -68,7 +108,7 @@ func BookEntry(book *models.Book, series *models.Series, urlResolver router.URLR
 		Author: &atom.Person{
 			Name: "ComicBox",
 		},
-		Updated: atom.Time(time.Now()),
+		Updated: atom.Time(book.UpdatedAt.Time()),
 		Link: []atom.Link{
 			{
 				Type: "application/vnd.comicbook+zip",
@@ -97,7 +137,7 @@ func BookEntry(book *models.Book, series *models.Series, urlResolver router.URLR
 			},
 			{
 				Type: "image/jpeg",
-				Href: urlResolver.Resolve("opds.page", "id", book.ID.String(), "page", "{pageNumber}"),
+				Href: urlResolver.Resolve("opds.page", "id", book.ID.String(), "page", "{pageNumber}", "update_progress", "true"),
 				Rel:  "http://vaemendis.net/opds-pse/stream",
 				PSE: atom.PSE{
 					Count:        uint(book.PageCount),
@@ -120,25 +160,28 @@ var OPDSIndex = request.Handler(func(r *OPDSIndexRequest) (*OPDSHandler, error) 
 		ID:      IDMain,
 		Updated: atom.Time(time.Now()),
 		Entry: []*atom.Entry{
+			UnreadEntry(r.URL),
 			ListEntry(models.ListReading, r.URL),
+			ListEntry(models.ListPaused, r.URL),
+			ListEntry(models.ListCompleted, r.URL),
+			ListEntry(models.ListDropped, r.URL),
+			ListEntry(models.ListPlanning, r.URL),
 		},
 	}), nil
 })
 
-type OPDSReadingRequest struct {
-	List *models.List `path:"list" validate:"require"`
-
+type OPDSUnreadRequest struct {
 	URL  router.URLResolver `inject:""`
 	Read database.Read      `inject:""`
 	Ctx  context.Context    `inject:""`
 }
 
-var OPDSReading = request.Handler(func(r *OPDSReadingRequest) (*OPDSHandler, error) {
+var OPDSUnread = request.Handler(func(r *OPDSUnreadRequest) (*OPDSHandler, error) {
 	series, err := database.Value(r.Read, func(tx *sqlx.Tx) ([]*models.Series, error) {
 		return models.SeriesQuery(r.Ctx).
 			With("UserSeries.LatestBook.UserBook").
 			WhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
-				return q.Where("list", "=", r.List)
+				return q.Where("list", "=", models.ListReading)
 			}).
 			Get(tx)
 	})
@@ -164,11 +207,84 @@ var OPDSReading = request.Handler(func(r *OPDSReadingRequest) (*OPDSHandler, err
 		return i != nil
 	})
 
+	goslices.SortFunc(books, func(a, b *atom.Entry) int {
+		return strings.Compare(string(b.Updated), string(a.Updated))
+	})
+
 	return NewOPDSHandler(&atom.Feed{
-		Title:   "ComicBox library | reading",
-		ID:      IDList + string(*r.List),
+		Title:   "ComicBox library | unread",
+		ID:      IDUnread,
 		Updated: atom.Time(time.Now()),
 		Entry:   books,
+	}), nil
+})
+
+type OPDSListRequest struct {
+	List *models.List `path:"list" validate:"require"`
+
+	URL  router.URLResolver `inject:""`
+	Read database.Read      `inject:""`
+	Ctx  context.Context    `inject:""`
+}
+
+var OPDSList = request.Handler(func(r *OPDSListRequest) (*OPDSHandler, error) {
+	series, err := database.Value(r.Read, func(tx *sqlx.Tx) ([]*models.Series, error) {
+		return models.SeriesQuery(r.Ctx).
+			With("UserSeries").
+			WhereHas("UserSeries", func(q *builder.Builder) *builder.Builder {
+				return q.Where("list", "=", r.List)
+			}).
+			Get(tx)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	seriesEntries := slices.Map(series, func(s *models.Series) *atom.Entry {
+		return SeriesEntry(s, r.URL)
+	})
+
+	goslices.SortFunc(seriesEntries, func(a, b *atom.Entry) int {
+		return strings.Compare(string(b.Updated), string(a.Updated))
+	})
+	return NewOPDSHandler(&atom.Feed{
+		Title:   "ComicBox library | " + string(*r.List),
+		ID:      IDList + string(*r.List),
+		Updated: atom.Time(time.Now()),
+		Entry:   seriesEntries,
+	}), nil
+})
+
+type OPDSSeriesRequest struct {
+	Slug string `path:"slug" validate:"require"`
+
+	URL  router.URLResolver `inject:""`
+	Read database.Read      `inject:""`
+	Ctx  context.Context    `inject:""`
+}
+
+var OPDSSeries = request.Handler(func(r *OPDSSeriesRequest) (*OPDSHandler, error) {
+	books, err := database.Value(r.Read, func(tx *sqlx.Tx) ([]*models.Book, error) {
+		return models.BookQuery(r.Ctx).
+			With("UserBook", "Series").
+			Where("series", "=", r.Slug).
+			OrderBy("sort").
+			Get(tx)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	seriesEntries := slices.Map(books, func(b *models.Book) *atom.Entry {
+		s, _ := b.Series.Value()
+		return BookEntry(b, s, r.URL)
+	})
+
+	return NewOPDSHandler(&atom.Feed{
+		Title:   "ComicBox library | " + r.Slug,
+		ID:      IDSeries + r.Slug,
+		Updated: atom.Time(time.Now()),
+		Entry:   seriesEntries,
 	}), nil
 })
 
@@ -193,18 +309,30 @@ type KoreaderPutPorgressRequest struct {
 	Ctx  context.Context `inject:""`
 }
 type KoreaderPutPorgressResponse struct {
+	State string `json:"state"`
 }
 
-var KoreaderPutPorgress = request.Handler(func(r *KoreaderPutPorgressRequest) (*KoreaderPutPorgressResponse, error) {
+var KoreaderUpdatePorgress = request.Handler(func(r *KoreaderPutPorgressRequest) (*KoreaderPutPorgressResponse, error) {
+	slog.Info("KoreaderUpdatePorgress", "document", r.Document)
+	book, err := database.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
+		return models.BookQuery(r.Ctx).With("UserBook").Where("koreader_md5", "=", r.Document).First(tx)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if book == nil {
+		return nil, Err404
+	}
+
 	page, err := strconv.Atoi(r.Progress)
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("KoreaderPorgress", "document", r.Document, "page", page)
 
 	_, err = UserBookUpdate.Run(&UserBookUpdateRequest{
-		BookID:      "",
-		CurrentPage: page,
+		BookID:      book.ID.String(),
+		CurrentPage: page - 1,
 		UpdateMap: map[string]string{
 			"current_page": models.UpdateID(),
 		},
@@ -213,7 +341,9 @@ var KoreaderPutPorgress = request.Handler(func(r *KoreaderPutPorgressRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
+	return &KoreaderPutPorgressResponse{
+		State: "OK",
+	}, nil
 })
 
 type KoreaderGetPorgressRequest struct {
@@ -233,25 +363,24 @@ type KoreaderGetPorgressResponse struct {
 
 var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*KoreaderGetPorgressResponse, error) {
 	book, err := database.Value(r.Read, func(tx *sqlx.Tx) (*models.Book, error) {
-		return models.BookQuery(r.Ctx).With("UserBook").Find(tx, "8849bb7d-349d-4c1a-876c-3b20ed87911c")
+		return models.BookQuery(r.Ctx).With("UserBook").Where("koreader_md5", "=", r.Document).First(tx)
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if book == nil {
+		return nil, Err404
 	}
 
 	userbook, ok := book.UserBook.Value()
 	if !ok {
 		userbook = &models.UserBook{}
 	}
-
-	hash, err := PartialMD5(book.FilePath())
-	if err != nil {
-		return nil, err
-	}
-	slog.Info("sync progress", "document", r.Document, "book", book.FullTitle(nil), "hash", hash)
+	currentPage := userbook.CurrentPage + 1
 	return &KoreaderGetPorgressResponse{
-		Percentage: float32(userbook.CurrentPage) / float32(book.PageCount),
-		Progress:   strconv.FormatInt(int64(userbook.CurrentPage), 10),
+		Percentage: float32(currentPage) / float32(book.PageCount),
+		Progress:   strconv.FormatInt(int64(currentPage), 10),
 		Timestamp:  int(userbook.UpdatedAt.Time().Unix()),
 	}, nil
 })
@@ -259,52 +388,3 @@ var KoreaderGetPorgress = request.Handler(func(r *KoreaderGetPorgressRequest) (*
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6
 // md5sum file name for id maybe
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/main.lua#L645
-
-// https://github.com/koreader/koreader/blob/master/frontend/util.lua#L1111
-func PartialMD5(filepath string) (string, error) {
-	slog.Info("PartialMD5", "filepath", filepath)
-	file, err := os.Open(filepath)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	hash := md5.New()
-	const step int64 = 1024
-	const size = 1024
-
-	buf := make([]byte, size)
-	for i := -1; i <= 10; i++ {
-		// Mimic LuaJIT/bit32 behavior:
-		// lshift(1024, -2) results in 0 because it treats it as 1024 << 30
-		// and truncates to a 32-bit signed integer.
-		shiftCount := uint(2*i) & 31
-		offset := int64(int32(step << shiftCount))
-
-		slog.Info("offset", "i", i, "offset", offset)
-
-		// Seek to the calculated position
-		_, err := file.Seek(offset, io.SeekStart)
-		if err != nil {
-			slog.Error("failed to seek", "err", err)
-			// If we seek beyond the file size, we stop sampling
-			break
-		}
-
-		// Read the sample
-		n, err := file.Read(buf)
-
-		// If we hit the end of the file or an error, break the loop
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			return "", fmt.Errorf("failed to read file: %w", err)
-		}
-		if n > 0 {
-			hash.Write(buf[:n])
-		}
-	}
-
-	return hex.EncodeToString(hash.Sum(nil)), nil
-}

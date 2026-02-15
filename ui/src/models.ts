@@ -20,6 +20,7 @@ export interface Book {
     file: string
     cover_url: string
     download_size: number
+    koreader_md5: string
     user_book: UserBook | null
     series: Series | null
 }

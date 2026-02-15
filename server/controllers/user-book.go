@@ -15,7 +15,7 @@ import (
 )
 
 type UserBookUpdateRequest struct {
-	BookID      string            `path:"id"            validate:"uuid"`
+	BookID      string            `path:"id"           validate:"uuid"`
 	CurrentPage int               `json:"current_page" validate:"require|min:0" model:"current_page"`
 	UpdateMap   map[string]string `json:"update_map"   validate:"require"`
 

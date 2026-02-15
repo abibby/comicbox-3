@@ -72,6 +72,7 @@ type Book struct {
 	File         string                   `json:"file"          db:"file"`
 	CoverURL     string                   `json:"cover_url"     db:"-"`
 	DownloadSize int                      `json:"download_size" db:"download_size"`
+	KoreaderMD5  string                   `json:"koreader_md5"  db:"koreader_md5,index"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
@@ -177,10 +178,7 @@ func (b *Book) calculateDownloadSize() (int, error) {
 		return 0, err
 	}
 
-	imgs, err := ZippedImages(reader)
-	if err != nil {
-		return 0, err
-	}
+	imgs := ZippedImages(reader)
 
 	totalSize := 0
 
@@ -213,8 +211,6 @@ func (b *Book) FullTitle(s *Series) string {
 		sb.WriteString(b.SeriesSlug)
 	}
 
-	sb.WriteString(" -")
-
 	if v, ok := b.Volume.Ok(); ok && v != 0 {
 		fmt.Fprintf(sb, " V%v", v)
 	}
@@ -223,7 +219,7 @@ func (b *Book) FullTitle(s *Series) string {
 	}
 
 	if b.Title != "" {
-		fmt.Fprintf(sb, " %s", b.Title)
+		fmt.Fprintf(sb, " - %s", b.Title)
 	}
 
 	return sb.String()
@@ -251,7 +247,7 @@ func (b *Book) FilePath() string {
 	return path.Join(config.LibraryPath, b.File)
 }
 
-func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
+func ZippedImages(reader *zip.ReadCloser) []*zip.File {
 	sort.Slice(reader.File, func(i, j int) bool {
 		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0
 	})
@@ -269,5 +265,5 @@ func ZippedImages(reader *zip.ReadCloser) ([]*zip.File, error) {
 			imageFiles = append(imageFiles, x)
 		}
 	}
-	return imageFiles, nil
+	return imageFiles
 }

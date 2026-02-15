@@ -173,7 +173,9 @@ func InitRouter(r *router.Router) {
 			}))
 
 			r.Get("", controllers.OPDSIndex).Name("opds.index")
-			r.Get("/list/{list}", controllers.OPDSReading).Name("opds.list")
+			r.Get("/list/{list}", controllers.OPDSList).Name("opds.list")
+			r.Get("/series/{slug}", controllers.OPDSSeries).Name("opds.series")
+			r.Get("/unread", controllers.OPDSUnread).Name("opds.unread")
 			r.Get("/books/{id}/download", controllers.BookDownload).Name("opds.download")
 			r.Get("/books/{id}/page/{page}", controllers.BookPage).Name("opds.page")
 			r.Get("/books/{id}/page/{page}/thumbnail", controllers.BookThumbnail).Name("opds.thumbnail")
@@ -202,9 +204,9 @@ func InitRouter(r *router.Router) {
 				r = auth.WithClaims(r, claims)
 				next.ServeHTTP(w, r)
 			}))
-			r.Put("/syncs/progress", controllers.KoreaderPutPorgress).Name("koreader.put.progress")
+			r.Put("/syncs/progress", controllers.KoreaderUpdatePorgress).Name("koreader.put.progress")
 			r.Get("/syncs/progress/{document}", controllers.KoreaderGetPorgress).Name("koreader.get.progress")
-			// r.Handle("", controllers.KoreaderLog).Name("koreader.log")
+			r.Handle("", controllers.KoreaderLog).Name("koreader.log")
 		})
 
 		r.Handle("/docs", openapidoc.SwaggerUI())

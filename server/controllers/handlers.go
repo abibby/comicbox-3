@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/xml"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/abibby/comicbox-3/services/atom"
 	"github.com/abibby/salusa/clog"
 	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
@@ -94,5 +96,24 @@ func (h *ReaderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_, err := io.Copy(w, h.reader)
 	if err != nil {
 		clog.Use(r.Context()).Warn("failed to write", "err", err)
+	}
+}
+
+type OPDSHandler struct {
+	feed *atom.Feed
+}
+
+func NewOPDSHandler(feed *atom.Feed) *OPDSHandler {
+	return &OPDSHandler{feed: feed}
+}
+
+func (h *OPDSHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/atom+xml;type=entry;profile=opds-catalog")
+
+	encoder := xml.NewEncoder(w)
+	encoder.Indent("", "    ")
+	err := encoder.Encode(h.feed)
+	if err != nil {
+		clog.Use(r.Context()).Error("failed to encode opds feed", "err", err)
 	}
 }

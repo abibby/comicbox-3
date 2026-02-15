@@ -67,6 +67,9 @@ export const Settings: FunctionalComponent = () => {
                     Change Password
                 </Button>
                 <Button onClick={logoutAndRoute}>Logout</Button>
+                <Button onClick={bind(`/access-token`, openModal)}>
+                    Access Tokens
+                </Button>
             </section>
 
             <section>

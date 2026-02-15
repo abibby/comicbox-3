@@ -42,6 +42,7 @@ func main() {
 		models.UserBook{},
 		models.UserSeries{},
 		models.Role{},
+		models.AccessToken{},
 		metadata.Staff{},
 		metadata.SeriesMetadata{},
 		metadata.DistanceMetadata{},
@@ -50,6 +51,8 @@ func main() {
 		controllers.BookUpdateRequest{},
 		controllers.SeriesUpdateRequest{},
 		controllers.PageUpdate{},
+		controllers.AccessTokenCreateRequest{},
+		controllers.AccessTokenCreateResponse{},
 	}
 	enums := []models.Enum{
 		models.PageType(""),

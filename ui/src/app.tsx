@@ -17,6 +17,7 @@ import { ErrorBoundary } from 'src/components/error-boundry'
 import { UserIndex } from 'src/modals/user-index'
 import { UserEdit } from 'src/modals/user-edit'
 import { changePage } from 'src/history'
+import { AccessTokenList } from 'src/modals/access-token-list'
 
 function hideShell(route: RouteDef): boolean {
     return 'noshell' in route && route.noshell
@@ -73,6 +74,10 @@ function Main() {
                         <Route
                             path='/metadata/:slug'
                             component={MetadataMatch}
+                        />
+                        <Route
+                            path='/access-token'
+                            component={AccessTokenList}
                         />
                     </Router>
                 </ModalController>

@@ -39,11 +39,7 @@ func init() {
 						continue
 					}
 
-					imgs, err := models.ZippedImages(reader)
-					if err != nil {
-						log.Print(err)
-						continue
-					}
+					imgs := models.ZippedImages(reader)
 					for i, p := range book.Pages {
 						if i < len(imgs) {
 							img := imgs[i]

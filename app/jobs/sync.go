@@ -195,10 +195,7 @@ func (h *SyncHandler) loadBookData(file string) (*models.Book, error) {
 		return nil, errors.Wrap(err, "could not open zip file")
 	}
 
-	imgs, err := models.ZippedImages(reader)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not list page images from zip file")
-	}
+	imgs := models.ZippedImages(reader)
 
 	book.Pages = make([]*models.Page, len(imgs))
 	for i, img := range imgs {

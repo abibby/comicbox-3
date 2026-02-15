@@ -206,10 +206,7 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 		return nil, err
 	}
 
-	imgs, err := models.ZippedImages(reader)
-	if err != nil {
-		return nil, err
-	}
+	imgs := models.ZippedImages(reader)
 
 	if page < 0 || page >= len(imgs) {
 		return nil, Err404

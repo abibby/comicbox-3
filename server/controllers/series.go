@@ -45,8 +45,7 @@ type SeriesIndexRequest struct {
 
 var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedResponse[*models.Series], error) {
 
-	query := models.SeriesQuery(req.Ctx).
-		With("UserSeries.LatestBook.UserBook")
+	query := models.SeriesQuery(req.Ctx).With("UserSeries.LatestBook.UserBook")
 
 	orderColumn := "name"
 	if req.OrderBy != nil {
@@ -172,7 +171,7 @@ type SeriesThumbnailRequest struct {
 	Ctx context.Context `inject:""`
 }
 
-var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, error) {
+var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (request.Responder, error) {
 	series, err := salusadb.Value(r.Read, func(tx *sqlx.Tx) (*models.Series, error) {
 		return models.SeriesQuery(r.Ctx).Find(tx, r.Slug)
 	})

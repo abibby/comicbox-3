@@ -58,27 +58,29 @@ const (
 //go:generate spice generate:migration
 type Book struct {
 	BaseModel
-	ID           uuid.UUID                `json:"id"            db:"id,primary"`
-	Title        string                   `json:"title"         db:"title"`
-	Chapter      *nulls.Float64           `json:"chapter"       db:"chapter"`
-	Volume       *nulls.Float64           `json:"volume"        db:"volume"`
-	SeriesSlug   string                   `json:"series_slug"   db:"series"`
-	Authors      jsoncolumn.Slice[string] `json:"authors"       db:"authors,type:json"`
-	Pages        jsoncolumn.Slice[*Page]  `json:"pages"         db:"pages"`
-	PageCount    int                      `json:"page_count"    db:"page_count"`
-	RightToLeft  bool                     `json:"rtl"           db:"rtl"`
-	LongStrip    bool                     `json:"long_strip"    db:"long_strip"`
-	Sort         string                   `json:"sort"          db:"sort,index"`
-	File         string                   `json:"file"          db:"file"`
-	CoverURL     string                   `json:"cover_url"     db:"-"`
-	DownloadSize int                      `json:"download_size" db:"download_size"`
-	KOReaderMD5  string                   `json:"-"             db:"koreader_md5,index"`
+	ID            uuid.UUID                `json:"id"              db:"id,primary"`
+	Title         string                   `json:"title"           db:"title"`
+	Chapter       *nulls.Float64           `json:"chapter"         db:"chapter"`
+	Volume        *nulls.Float64           `json:"volume"          db:"volume"`
+	SeriesSlug    string                   `json:"series_slug"     db:"series"`
+	Authors       jsoncolumn.Slice[string] `json:"authors"         db:"authors,type:json"`
+	Pages         jsoncolumn.Slice[*Page]  `json:"pages"           db:"pages"`
+	PageCount     int                      `json:"page_count"      db:"page_count"`
+	RightToLeft   bool                     `json:"rtl"             db:"rtl"`
+	LongStrip     bool                     `json:"long_strip"      db:"long_strip"`
+	Sort          string                   `json:"sort"            db:"sort,index"`
+	File          string                   `json:"file"            db:"file"`
+	CoverURL      string                   `json:"cover_url"       db:"-"`
+	DownloadSize  int                      `json:"download_size"   db:"download_size"`
+	KOReaderMD5   string                   `json:"-"               db:"koreader_md5,index"`
+	CoverBlurHash string                   `json:"cover_blur_hash" db:"cover_blur_hash"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
 	Series     *builder.BelongsTo[*Series]  `json:"series"    db:"-" foreign:"series" owner:"name"`
 
 	originalSeriesSlug string
+	originalCoverURL   string
 	saved              bool
 }
 
@@ -228,6 +230,7 @@ func (b *Book) FullTitle(s *Series) string {
 func (b *Book) updateOriginals() {
 	b.saved = true
 	b.originalSeriesSlug = b.SeriesSlug
+	b.originalCoverURL = b.CoverURL
 }
 
 func (b *Book) CoverPage() int {

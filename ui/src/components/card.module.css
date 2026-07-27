@@ -33,24 +33,30 @@
     background-color: lightgrey;
 }
 
-.cover > img {
+.cover .blurHash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.cover .coverImage {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
     contain: size;
     z-index: 1;
+    opacity: 0;
+    filter: blur(10px);
+    transition: opacity var(--transition-time), filter var(--transition-time);
 }
-.cover > img[alt]::after {
-    display: flex;
-    content: attr(alt);
-    position: absolute;
-    font-family: 'Helvetica';
-
-    inset: 0;
-    padding: 0.25rem;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
+.cover .imageLoaded {
+    opacity: 1;
+    filter: blur(0);
 }
 
 .title,

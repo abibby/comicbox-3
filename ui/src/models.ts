@@ -20,6 +20,7 @@ export interface Book {
     file: string
     cover_url: string
     download_size: number
+    cover_blur_hash: string
     user_book: UserBook | null
     series: Series | null
 }
@@ -46,6 +47,7 @@ export interface Series {
     tags: Array<string>
     year: number | null
     locked_fields: Array<string>
+    cover_image_blur_hash: string
     user_series: UserSeries | null
 }
 export interface User {

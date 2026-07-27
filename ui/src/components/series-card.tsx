@@ -35,6 +35,7 @@ export const SeriesCard: FunctionalComponent<SeriesCardProps> = props => {
             subtitle={props.series.year?.toString()}
             menu={menu}
             testID='series-card'
+            blurHash={props.series.cover_image_blur_hash}
         />
     )
 }

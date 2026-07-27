@@ -105,6 +105,11 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 
 	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 
+	err = series.UpdateBlurHash()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -39,7 +39,7 @@ type Series struct {
 	CoverImage         string                   `json:"-"             db:"cover_image_path"`
 	MetadataUpdatedAt  *database.Time           `json:"-"             db:"metadata_updated_at"`
 	LockedFields       jsoncolumn.Slice[string] `json:"locked_fields" db:"locked_fields"`
-	CoverImageBlurHash string                   `json:"cover_image_blur_hash" db:"-"`
+	CoverImageBlurHash string                   `json:"cover_image_blur_hash" db:"cover_image_blur_hash"`
 
 	UserSeries *builder.HasOne[*UserSeries] `json:"user_series" db:"-" local:"name" foreign:"series_name"`
 }
@@ -90,7 +90,6 @@ func SeriesQuery(ctx context.Context) *builder.ModelBuilder[*Series] {
 	return builder.From[*Series]().WithContext(ctx)
 }
 
-var _ hooks.BeforeSaver = &Series{}
 var _ hooks.AfterLoader = &Series{}
 var _ builder.Scoper = &Series{}
 
@@ -103,16 +102,6 @@ func (*Series) PrimaryKey() string {
 
 func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
-
-	f, err := os.Open(s.CoverImagePath())
-	if err != nil {
-		return err
-	}
-	img, _, err := image.Decode(f)
-	if err != nil {
-		return err
-	}
-	s.CoverImageBlurHash, err = blurhash.Encode(4, 4, img)
 	return nil
 }
 func (s *Series) DirectoryPath() string {
@@ -120,6 +109,19 @@ func (s *Series) DirectoryPath() string {
 }
 func (s *Series) CoverImagePath() string {
 	return path.Join(config.LibraryPath, s.CoverImage)
+}
+
+func (s *Series) UpdateBlurHash() error {
+	f, err := os.Open(s.CoverImagePath())
+	if err != nil {
+		return fmt.Errorf("Series.updateBlurHash: open file: %w", err)
+	}
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return fmt.Errorf("Series.updateBlurHash: decode: %w", err)
+	}
+	s.CoverImageBlurHash, err = blurhash.Encode(4, 4, img)
+	return nil
 }
 
 func Slug(s string) string {

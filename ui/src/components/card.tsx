@@ -114,7 +114,8 @@ export const Card: FunctionalComponent<CardProps> = props => {
                     <LazyImg
                         onLoad={bind(true, setImageLoaded)}
                         class={classNames(styles.coverImage, {
-                            [styles.imageLoaded]: imageLoaded,
+                            [styles.imageLoaded]:
+                                imageLoaded || !props.blurHash,
                         })}
                         src={props.image}
                         alt={alt}

@@ -24,8 +24,6 @@ import {
     Check,
 } from 'preact-feather'
 import { useResizeEffect } from 'src/hooks/resize-effect'
-import { BlurHash } from 'src/components/blur-hash'
-import { bind } from '@zwzn/spicy'
 
 interface CardProps {
     title: string
@@ -84,8 +82,6 @@ export const Card: FunctionalComponent<CardProps> = props => {
 
     const progress = props.progress ?? 0
 
-    const [imageLoaded, setImageLoaded] = useState(false)
-
     return (
         <div
             data-testid={props.testID}
@@ -105,18 +101,10 @@ export const Card: FunctionalComponent<CardProps> = props => {
                         <Progress progress={progress} />
                     )}
                     {progress >= 1 && <Check class={styles.done} />}
-                    {props.blurHash && (
-                        <BlurHash
-                            class={styles.blurHash}
-                            blurHash={props.blurHash}
-                        />
-                    )}
+
                     <LazyImg
-                        onLoad={bind(true, setImageLoaded)}
-                        class={classNames(styles.coverImage, {
-                            [styles.imageLoaded]:
-                                imageLoaded || !props.blurHash,
-                        })}
+                        blurHash={props.blurHash}
+                        class={styles.coverImage}
                         src={props.image}
                         alt={alt}
                     />

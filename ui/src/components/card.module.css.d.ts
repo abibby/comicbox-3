@@ -1,5 +1,4 @@
 declare const styles: {
-  readonly "blurHash": string;
   readonly "card": string;
   readonly "cardList": string;
   readonly "cover": string;
@@ -10,7 +9,6 @@ declare const styles: {
   readonly "end": string;
   readonly "header": string;
   readonly "horizontal": string;
-  readonly "imageLoaded": string;
   readonly "listTitle": string;
   readonly "menu": string;
   readonly "next": string;

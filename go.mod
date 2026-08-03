@@ -1,10 +1,10 @@
 module github.com/abibby/comicbox-3
 
-go 1.24.0
+go 1.26.5
 
-toolchain go1.24.4
+toolchain go1.26.5
 
-// replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
+replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.3.2

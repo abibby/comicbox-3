@@ -116,6 +116,7 @@ export const BookCard: FunctionalComponent<BookProps> = ({
     return (
         <Card
             image={coverURL}
+            blurHash={book.cover_blur_hash}
             link={route('book.view', { id: book.id })}
             title={s?.name ?? book.series_slug}
             subtitle={bookFullName(book)}

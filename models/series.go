@@ -114,14 +114,16 @@ func (s *Series) CoverImagePath() string {
 func (s *Series) UpdateBlurHash() error {
 	f, err := os.Open(s.CoverImagePath())
 	if err != nil {
-		return fmt.Errorf("Series.updateBlurHash: open file: %w", err)
+		return fmt.Errorf("Series.UpdateBlurHash: open file: %w", err)
 	}
+	defer f.Close()
+
 	img, _, err := image.Decode(f)
 	if err != nil {
-		return fmt.Errorf("Series.updateBlurHash: decode: %w", err)
+		return fmt.Errorf("Series.UpdateBlurHash: decode: %w", err)
 	}
 	s.CoverImageBlurHash, err = blurhash.Encode(4, 4, img)
-	return nil
+	return err
 }
 
 func Slug(s string) string {
@@ -130,7 +132,7 @@ func Slug(s string) string {
 	lastC := byte(0)
 	for _, c := range []byte(s) {
 		var newC byte
-		if 'a' <= c && c <= 'z' {
+		if ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') {
 			newC = c
 		} else if 'A' <= c && c <= 'Z' {
 			newC = c + capOffset

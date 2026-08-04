@@ -4,6 +4,9 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
+	"image"
+	"io"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -17,7 +20,9 @@ import (
 	"github.com/abibby/salusa/database/hooks"
 	"github.com/abibby/salusa/database/jsoncolumn"
 	"github.com/abibby/salusa/database/model"
+	"github.com/buckket/go-blurhash"
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -175,12 +180,10 @@ func (b *Book) updateUserSeries(ctx context.Context, tx salusadb.DB) error {
 }
 
 func (b *Book) calculateDownloadSize() (int, error) {
-	reader, err := zip.OpenReader(b.FilePath())
+	imgs, err := b.ZippedImages()
 	if err != nil {
 		return 0, err
 	}
-
-	imgs := ZippedImages(reader)
 
 	totalSize := 0
 
@@ -246,8 +249,45 @@ func (b *Book) CoverPage() int {
 	return fallback
 }
 
+func (b *Book) UpdateBlurHash() error {
+	var f io.ReadCloser
+	var err error
+	f, err = os.Open(path.Join(config.CachePath, "api/books", b.ID.String(), "thumbnail"))
+	if errors.Is(err, os.ErrNotExist) {
+		imgs, err := b.ZippedImages()
+		if err != nil {
+			return fmt.Errorf("Book.UpdateBlurHash: open book file: %w", err)
+		}
+		if len(imgs) == 0 {
+			return nil
+		}
+		f, err = imgs[b.CoverPage()].Open()
+		if err != nil {
+			return fmt.Errorf("Book.UpdateBlurHash: open image file: %w", err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("Book.UpdateBlurHash: open file: %w", err)
+	}
+	defer f.Close()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return fmt.Errorf("Book.UpdateBlurHash: decode: %w", err)
+	}
+	b.CoverBlurHash, err = blurhash.Encode(4, 4, img)
+	return err
+}
+
 func (b *Book) FilePath() string {
 	return path.Join(config.LibraryPath, b.File)
+}
+
+func (b *Book) ZippedImages() ([]*zip.File, error) {
+	reader, err := zip.OpenReader(b.FilePath())
+	if err != nil {
+		return nil, err
+	}
+	return ZippedImages(reader), nil
 }
 
 func ZippedImages(reader *zip.ReadCloser) []*zip.File {

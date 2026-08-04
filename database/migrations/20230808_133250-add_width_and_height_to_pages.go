@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"archive/zip"
 	"context"
 	"image"
 	"log"
@@ -33,13 +32,12 @@ func init() {
 				}
 
 				for _, book := range books {
-					reader, err := zip.OpenReader(book.File)
+					imgs, err := book.ZippedImages()
 					if err != nil {
 						log.Printf("could not open zip file: %v", err)
 						continue
 					}
 
-					imgs := models.ZippedImages(reader)
 					for i, p := range book.Pages {
 						if i < len(imgs) {
 							img := imgs[i]

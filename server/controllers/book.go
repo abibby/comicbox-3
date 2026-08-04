@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"archive/zip"
 	"context"
 	"fmt"
 	"image"
@@ -201,12 +200,11 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	if book == nil {
 		return nil, Err404
 	}
-	reader, err := zip.OpenReader(book.FilePath())
+
+	imgs, err := book.ZippedImages()
 	if err != nil {
 		return nil, err
 	}
-
-	imgs := models.ZippedImages(reader)
 
 	if page < 0 || page >= len(imgs) {
 		return nil, Err404

@@ -45,6 +45,9 @@ func (h *JpegHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		clog.Use(r.Context()).Error("failed to encode thumbnail", "err", err)
 	}
 }
+func (h *JpegHandler) Image() image.Image {
+	return h.img
+}
 
 type ReaderHandler struct {
 	reader io.Reader

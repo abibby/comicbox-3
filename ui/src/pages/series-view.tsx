@@ -79,6 +79,22 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
     const currentBook = currentBooks[0] ?? null
 
     const hasCurrentBooks = currentBooks.length > 0
+
+    const bookGroups = useMemo((): Book[][] => {
+        if (!books) {
+            return []
+        }
+        const groupSize = 50
+        const groups = new Array(Math.ceil(books.length / groupSize))
+        for (let i = books.length; i >= 0; i -= groupSize) {
+            groups[Math.ceil(i / groupSize) - 1] = books.slice(
+                Math.max(i - groupSize, 0),
+                i,
+            )
+        }
+        return groups
+    }, [books])
+
     return (
         <>
             <SeriesHeader
@@ -94,12 +110,23 @@ const SeriesList: FunctionalComponent<SeriesListProps> = ({ slug, series }) => {
                     series={series ? [series] : null}
                 />
             )}
-            <BookList
-                title={hasCurrentBooks ? 'All Books' : undefined}
-                scroll='vertical'
-                books={books}
-                series={series ? [series] : null}
-            />
+            {bookGroups.length > 1 ? (
+                bookGroups.map((g, i) => (
+                    <BookGroup
+                        key={g[0]?.id}
+                        books={g}
+                        series={series}
+                        startOpen={i === 0}
+                    />
+                ))
+            ) : (
+                <BookList
+                    title={hasCurrentBooks ? 'All Books' : undefined}
+                    scroll='vertical'
+                    books={books}
+                    series={series ? [series] : null}
+                />
+            )}
         </>
     )
 }
@@ -339,4 +366,53 @@ function SeriesHeader({
             )}
         </section>
     )
+}
+
+type BookGroupProps = {
+    books: Book[]
+    series: Series | null
+    startOpen?: boolean
+}
+
+function BookGroup(props: BookGroupProps) {
+    const start = chapterAndVolume(props.books[props.books.length - 1])
+    const end = chapterAndVolume(props.books[0])
+
+    const [open, setOpen] = useState(() => props.startOpen ?? false)
+    const toggleOpen = useCallback(() => setOpen(o => !o), [])
+    return (
+        <div>
+            <div class={styles.bookGroupHeader}>
+                <button onClick={toggleOpen}>
+                    {open ? <ChevronUp /> : <ChevronDown />}
+                </button>
+                <span>
+                    {start} - {end}
+                </span>
+            </div>
+            {open && (
+                <BookList
+                    scroll='vertical'
+                    books={props.books}
+                    series={props.series ? [props.series] : null}
+                />
+            )}
+        </div>
+    )
+}
+
+function chapterAndVolume(b: Book | undefined): string {
+    if (!b) {
+        return ''
+    }
+    let title = ''
+    if (b.volume) {
+        title += ` V${b.volume}`
+    }
+
+    if (b.chapter) {
+        title += ` #${b.chapter}`
+    }
+
+    return title.trim()
 }

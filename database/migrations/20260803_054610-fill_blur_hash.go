@@ -21,7 +21,9 @@ func init() {
 				return err
 			}
 			numFinished := 0
-			return models.SeriesQuery(ctx).Each(tx, func(s *models.Series) error {
+			logger.Info("Starting series blur hash update",
+				"total", seriesCount)
+			err = models.SeriesQuery(ctx).Each(tx, func(s *models.Series) error {
 				defer func() {
 					numFinished++
 					if numFinished%10 == 0 {
@@ -31,6 +33,7 @@ func init() {
 					}
 				}()
 
+				logger.Info("series", "name", s.Name)
 				err := s.UpdateBlurHash()
 				if err != nil {
 					logger.Error("Blur hash update failed", "error", err)
@@ -42,6 +45,43 @@ func init() {
 				}
 				return nil
 			})
+			if err != nil {
+				return err
+			}
+
+			bookCount, err := models.BookQuery(ctx).Count(tx)
+			if err != nil {
+				return err
+			}
+			numFinished = 0
+
+			logger.Info("Starting book blur hash update",
+				"total", bookCount)
+			err = models.BookQuery(ctx).Each(tx, func(b *models.Book) error {
+				defer func() {
+					numFinished++
+					if numFinished%10 == 0 {
+						logger.Info("Updating book blur hash",
+							"total", bookCount,
+							"finished", numFinished)
+					}
+				}()
+
+				err := b.UpdateBlurHash()
+				if err != nil {
+					logger.Error("Blur hash update failed", "error", err)
+					return nil
+				}
+				err = model.SaveContext(ctx, tx, b)
+				if err != nil {
+					return err
+				}
+				return nil
+			})
+			if err != nil {
+				return err
+			}
+			return nil
 		}),
 		Down: schema.Run(func(ctx context.Context, tx database.DB) error {
 			return nil

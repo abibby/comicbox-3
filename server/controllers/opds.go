@@ -365,14 +365,14 @@ func OPDS404(w http.ResponseWriter, r *http.Request) {
 }
 
 func buildCBZ(book *models.Book, w io.Writer) error {
-	reader, err := zip.OpenReader(book.FilePath())
+	imgs, err := book.ZippedImages()
 	if err != nil {
 		return err
 	}
 
 	writer := zip.NewWriter(w)
 
-	for i, f := range models.ZippedImages(reader) {
+	for i, f := range imgs {
 		if book.Pages[i].Type == models.PageTypeDeleted {
 			continue
 		}

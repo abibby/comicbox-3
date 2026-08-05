@@ -1,5 +1,6 @@
 declare const styles: {
   readonly "actions": string;
+  readonly "bookGroupHeader": string;
   readonly "btnDescriptionExpand": string;
   readonly "buttons": string;
   readonly "cover": string;

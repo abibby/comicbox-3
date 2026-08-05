@@ -125,18 +125,41 @@ export const EditBook: FunctionalComponent = () => {
     }, [book?.pages])
 
     const changePageType = useCallback(
-        (page: number, type: string) => {
-            setEditedPages(pages =>
-                pages.map((p, i) => {
-                    if (i === page && isPageType(type)) {
-                        return {
+        (
+            page: number,
+            type: string,
+            spreadPages: [PageWithIndex] | [PageWithIndex, PageWithIndex],
+        ) => {
+            setEditedPages(pages => {
+                let allDeleted = true
+                return pages.map((p, i) => {
+                    if (
+                        p.type !== PageType.Deleted &&
+                        allDeleted &&
+                        type === PageType.Deleted &&
+                        page < i
+                    ) {
+                        p = {
+                            ...p,
+                            type: PageType.FrontCover,
+                        }
+                    }
+                    if (
+                        (type === PageType.SpreadSplit &&
+                            spreadPages.find(p => p.index === i)) ||
+                        (i === page && isPageType(type))
+                    ) {
+                        p = {
                             ...p,
                             type: type,
                         }
                     }
+                    if (p.type !== PageType.Deleted) {
+                        allDeleted = false
+                    }
                     return p
-                }),
-            )
+                })
+            })
         },
         [setEditedPages],
     )
@@ -246,7 +269,7 @@ export const EditBook: FunctionalComponent = () => {
                             ).map(p => (
                                 <SpreadThumb
                                     key={p[0].url}
-                                    page={p}
+                                    pages={p}
                                     onPageTypeChange={changePageType}
                                 />
                             ))}
@@ -266,17 +289,30 @@ function isPageType(s: string): s is PageType {
 }
 
 interface SpreadThumbProps {
-    page: [PageWithIndex] | [PageWithIndex, PageWithIndex]
-    onPageTypeChange: (page: number, type: string) => void
+    pages: [PageWithIndex] | [PageWithIndex, PageWithIndex]
+    onPageTypeChange: (
+        page: number,
+        type: string,
+        pages: [PageWithIndex] | [PageWithIndex, PageWithIndex],
+    ) => void
 }
-const SpreadThumb: FunctionalComponent<SpreadThumbProps> = props => {
+const SpreadThumb: FunctionalComponent<SpreadThumbProps> = ({
+    pages,
+    onPageTypeChange,
+}) => {
+    const pageTypeChange = useCallback(
+        (page: number, type: string) => {
+            onPageTypeChange(page, type, pages)
+        },
+        [pages, onPageTypeChange],
+    )
     return (
         <div class={styles.spread}>
-            {props.page.map(p => (
+            {pages.map(p => (
                 <PageThumb
                     key={p.url}
                     page={p}
-                    onPageTypeChange={props.onPageTypeChange}
+                    onPageTypeChange={pageTypeChange}
                 />
             ))}
         </div>

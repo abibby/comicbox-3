@@ -43,6 +43,7 @@
 }
 .page:nth-child(1) img {
     object-position: right;
+    border-right: solid 1px red;
 }
 .page:nth-child(1):last-child img {
     object-position: center;
@@ -59,12 +60,14 @@
 }
 .rtl .page:nth-child(1) img {
     object-position: left;
+    border-right: none;
 }
 .rtl .page:nth-child(1):last-child img {
     object-position: center;
 }
 .rtl .page:nth-child(2) img {
     object-position: right;
+    border-right: solid 1px red;
 }
 
 .page img {

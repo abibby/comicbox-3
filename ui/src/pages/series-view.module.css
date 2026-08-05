@@ -77,6 +77,17 @@
     transform: translate(0em, 0.1em);
 }
 
+.bookGroupHeader {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 1rem;
+    border-radius: var(--border-radius-large);
+    background-color: rgba(var(--text-on-background), 0.1);
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+}
+
 @media (min-width: 600px) {
     .header {
         grid-template-areas:

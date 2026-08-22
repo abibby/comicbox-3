@@ -8,7 +8,7 @@ import (
 	"image"
 	"io"
 	"io/fs"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -36,7 +36,8 @@ import (
 var syncMtx = &sync.Mutex{}
 
 type SyncHandler struct {
-	Queue event.Queue `inject:""`
+	Dispatch event.Dispatch `inject:""`
+	Log      *slog.Logger   `inject:""`
 
 	seriesCache map[string]*models.Series
 }
@@ -49,7 +50,7 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 
 	h.seriesCache = map[string]*models.Series{}
 
-	log.Print("Starting sync")
+	h.Log.Info("Starting sync")
 
 	bookFiles, err := getBookFiles(ctx, config.LibraryPath)
 	if err != nil {
@@ -89,7 +90,7 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 		return nil
 	})
 	if err != nil {
-		log.Printf("Failed to remove books from the library: %v", err)
+		h.Log.Error("Failed to remove books from the library", "error", err)
 	}
 
 	count := 0
@@ -99,13 +100,13 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 			return h.addBook(ctx, tx, file)
 		})
 		if err != nil {
-			log.Printf("failed to add %s to the library: %v", file, err)
+			h.Log.Error("Failed to add book to the library", "file", file, "error", err)
 		} else {
-			log.Printf("Added %s to the library (%d of %d)", file, count, bookFiles.Len())
+			h.Log.Info("Added %s to the library (%d of %d)", file, count, bookFiles.Len())
 		}
 	}
 
-	log.Print("Finished sync")
+	h.Log.Info("Finished sync")
 	return nil
 }
 
@@ -131,7 +132,7 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 				return nil, err
 			}
 
-			h.Queue.Push(&events.UpdateMetadataEvent{SeriesSlug: series.Slug})
+			h.Dispatch(ctx, &events.UpdateMetadataEvent{SeriesSlug: series.Slug})
 		}
 		h.seriesCache[name] = series
 	}

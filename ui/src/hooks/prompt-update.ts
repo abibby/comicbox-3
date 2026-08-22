@@ -12,6 +12,7 @@ export function usePromptUpdate<T, K>(
     liveValues: T[] | null | undefined,
     getKey: (a: T) => K,
 ): T[] | null {
+    return liveValues ?? null
     const [values, setValues] = useState(liveValues)
     const liveValuesRef = useStateRef(liveValues)
     const valuesRef = useStateRef(values)

@@ -18,12 +18,12 @@ import (
 
 	_ "golang.org/x/image/webp"
 
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
 	"github.com/go-openapi/spec"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

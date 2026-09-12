@@ -3,10 +3,10 @@ package migrations
 import (
 	"context"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/migrate"
+	"abibby.com/salusa/database/schema"
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/migrate"
-	"github.com/abibby/salusa/database/schema"
 )
 
 func init() {

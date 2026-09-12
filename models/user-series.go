@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/database"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 )
 

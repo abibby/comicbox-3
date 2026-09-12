@@ -10,11 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/clog/loki"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/dialects/sqlite"
-	"github.com/abibby/salusa/salusaconfig"
+	"abibby.com/salusa/clog"
+	"abibby.com/salusa/clog/loki"
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/dialects/sqlite"
 	"github.com/go-kit/kit/log"
 	"github.com/joho/godotenv"
 )
@@ -108,17 +107,11 @@ func Init(ctx context.Context) error {
 	return nil
 }
 
-type Config interface {
-	salusaconfig.Config
-	database.DBConfiger
-	clog.LoggerConfiger
+func Load() *Config {
+	return &Config{}
 }
 
-func Load() Config {
-	return &cfg{}
-}
-
-type cfg struct{}
+type Config struct{}
 
 type localLogger struct{ logger *slog.Logger }
 
@@ -131,7 +124,7 @@ func (l *localLogger) Log(keyvals ...any) error {
 }
 
 // LoggerConfig implements Config.
-func (c *cfg) LoggerConfig() clog.Config {
+func (c *Config) LoggerConfig() clog.Config {
 	level := slog.LevelInfo
 	if Verbose {
 		level = slog.LevelDebug - 4
@@ -158,18 +151,18 @@ func (c *CustomSQLiteConfig) DriverName() string {
 }
 
 // DBConfig implements Config.
-func (c *cfg) DBConfig() database.Config {
+func (c *Config) DBConfig() database.Config {
 	return &CustomSQLiteConfig{
 		Config: *sqlite.NewConfig(DBPath),
 	}
 }
 
 // GetBaseURL implements Config.
-func (c *cfg) GetBaseURL() string {
+func (c *Config) GetBaseURL() string {
 	return BaseURL
 }
 
 // GetHTTPPort implements Config.
-func (c *cfg) GetHTTPPort() int {
+func (c *Config) GetHTTPPort() int {
 	return Port
 }

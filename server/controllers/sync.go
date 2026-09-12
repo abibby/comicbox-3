@@ -1,13 +1,16 @@
 package controllers
 
 import (
+	"context"
+
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/app/events"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/request"
 )
 
 type SyncRequest struct {
-	Queue event.Queue `inject:""`
+	Dispatch event.Dispatch  `inject:""`
+	Ctx      context.Context `inject:""`
 }
 
 type SyncResponse struct {
@@ -15,7 +18,7 @@ type SyncResponse struct {
 }
 
 var Sync = request.Handler(func(r *SyncRequest) (*SyncResponse, error) {
-	err := r.Queue.Push(&events.SyncEvent{})
+	err := r.Dispatch(r.Ctx, &events.SyncEvent{})
 	if err != nil {
 		return nil, err
 	}

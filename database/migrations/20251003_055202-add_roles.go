@@ -3,13 +3,13 @@ package migrations
 import (
 	"context"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/jsoncolumn"
+	"abibby.com/salusa/database/migrate"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/database/schema"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/jsoncolumn"
-	"github.com/abibby/salusa/database/migrate"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/schema"
 )
 
 func init() {

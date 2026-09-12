@@ -1,7 +1,7 @@
 package migrations
 
 import (
-	"github.com/abibby/salusa/database/migrate"
+	"abibby.com/salusa/database/migrate"
 )
 
 var migrations = migrate.New()

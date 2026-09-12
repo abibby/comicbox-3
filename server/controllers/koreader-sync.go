@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
 )
 

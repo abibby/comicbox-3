@@ -6,12 +6,12 @@ import (
 	"log/slog"
 	"reflect"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/event"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/event"
 	"github.com/jmoiron/sqlx"
 )
 

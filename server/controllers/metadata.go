@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -78,15 +78,15 @@ var MetaList = request.Handler(func(req *MetaListRequest) (*MetaListResponse, er
 })
 
 type MetaStartScanRequest struct {
-	Queue event.Queue     `inject:""`
-	Ctx   context.Context `inject:""`
+	Dispatch event.Dispatch  `inject:""`
+	Ctx      context.Context `inject:""`
 }
 type MetaStartScanResponse struct {
 	Success bool `json:"success"`
 }
 
 var MetaStartScan = request.Handler(func(req *MetaStartScanRequest) (*MetaStartScanResponse, error) {
-	err := req.Queue.Push(&events.UpdateMetadataEvent{})
+	err := req.Dispatch(req.Ctx, &events.UpdateMetadataEvent{})
 	if err != nil {
 		return nil, err
 	}

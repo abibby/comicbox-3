@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/di"
+	"abibby.com/salusa/extra/sets"
+	"abibby.com/salusa/kernel"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/extra/sets"
-	"github.com/abibby/salusa/kernel"
 )
 
 func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *models.Series) error {

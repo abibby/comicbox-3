@@ -5,6 +5,16 @@ import (
 	"fmt"
 	"net/http"
 
+	"abibby.com/salusa/clog"
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/di"
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/event/cron"
+	"abibby.com/salusa/kernel"
+	"abibby.com/salusa/openapidoc"
+	"abibby.com/salusa/openapidoc/openapidocdi"
+	"abibby.com/salusa/pubsub/channelpubsub"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/app/jobs"
@@ -15,16 +25,6 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/clog"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/databasedi"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/event/cron"
-	"github.com/abibby/salusa/kernel"
-	"github.com/abibby/salusa/openapidoc"
-	"github.com/abibby/salusa/openapidoc/openapidocdi"
-	"github.com/abibby/salusa/request"
 	"github.com/go-openapi/spec"
 	"github.com/jmoiron/sqlx"
 )
@@ -38,18 +38,20 @@ var Kernel = kernel.New(
 	kernel.Bootstrap(
 		config.Init,
 
-		bootstrap.SetupDatabase(),
+		kernel.Register(func(ctx context.Context, c *config.Config) {
+			salusadb.Register(ctx, c.DBConfig(), migrations.Use())
+			clog.Register(ctx, c.LoggerConfig())
+			channelpubsub.Register(ctx)
 
-		clog.Register,
-		request.Register,
-		databasedi.RegisterFromConfig(migrations.Use()),
-		databasedi.RegisterTransactions(nil),
-		event.RegisterChannelQueue,
-		openapidocdi.Register,
+			request.Register(ctx)
+			event.Register(ctx)
+			openapidocdi.Register(ctx)
+			providers.Register(ctx)
+		}),
 
+		events.InitSync,
+		bootstrap.SetupDatabase,
 		database.Init,
-		events.RegisterSync,
-		providers.Register,
 	),
 	kernel.APIDocumentation(
 		openapidoc.Info(spec.InfoProps{

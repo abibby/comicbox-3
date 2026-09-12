@@ -3,10 +3,10 @@ package events
 import (
 	"context"
 
+	"abibby.com/salusa/di"
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/event/cron"
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/event/cron"
 )
 
 type SyncEvent struct {
@@ -20,7 +20,7 @@ func (s *SyncEvent) Type() event.EventType {
 	return "comicbox:sync"
 }
 
-func RegisterSync(ctx context.Context) error {
+func InitSync(ctx context.Context) error {
 	if config.ScanInterval != "" {
 		cronService, err := di.Resolve[*cron.CronService](ctx)
 		if err != nil {
@@ -30,11 +30,11 @@ func RegisterSync(ctx context.Context) error {
 	}
 
 	if config.ScanOnStartup {
-		queue, err := di.Resolve[event.Queue](ctx)
+		dispatch, err := di.Resolve[event.Dispatch](ctx)
 		if err != nil {
 			return err
 		}
-		err = queue.Push(&SyncEvent{})
+		err = dispatch(ctx, &SyncEvent{})
 		if err != nil {
 			return err
 		}

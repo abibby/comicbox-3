@@ -23,7 +23,10 @@ declare global {
 }
 
 export class UpdateEvent extends Event<'update'> {
-    constructor(public readonly fromUserInteraction: boolean) {
+    constructor(
+        public readonly fromUserInteraction: boolean,
+        public readonly list?: string,
+    ) {
         super('update')
     }
 }
@@ -34,8 +37,13 @@ export type CacheEventMap = {
 
 export const cacheEventTarget = new EventTarget<CacheEventMap, 'strict'>()
 
-export function invalidateCache(fromUserInteraction: boolean): void {
-    cacheEventTarget.dispatchEvent(new UpdateEvent(fromUserInteraction))
+export function invalidateCache(
+    fromUserInteraction: boolean,
+    listName?: string,
+): void {
+    cacheEventTarget.dispatchEvent(
+        new UpdateEvent(fromUserInteraction, listName),
+    )
 }
 
 addRespondListener('book-update', () => invalidateCache(false))
@@ -49,11 +57,8 @@ export async function updateList<
     table: Table<T>,
     network: (req: TRequest) => Promise<T[]>,
 ): Promise<void> {
-    listName = `${table.name}:${listName}`
-    const lastUpdated = await DB.lastUpdated
-        .where('list')
-        .equals(listName)
-        .first()
+    const name = fullListName(table, listName)
+    const lastUpdated = await DB.lastUpdated.where('list').equals(name).first()
 
     const items = await network({
         ...request,
@@ -64,11 +69,15 @@ export async function updateList<
     await Promise.all([
         DB.fromNetwork(items),
         DB.lastUpdated.put({
-            list: listName,
+            list: name,
             updatedAt: new Date().toISOString(),
         }),
     ])
-    invalidateCache(false)
+    invalidateCache(false, name)
+}
+
+function fullListName(table: Table, listName: string): string {
+    return `${table.name}:${listName}`
 }
 
 export type CacheOptions<
@@ -99,11 +108,17 @@ export function useCached<
     useEventListener(
         cacheEventTarget,
         'update',
-        (_e: UpdateEvent) => {
+        (e: UpdateEvent) => {
             if (wait) {
                 return
             }
 
+            if (
+                e.list !== fullListName(table, listName) &&
+                e.list !== undefined
+            ) {
+                return
+            }
             void cache(request).then(setItems)
         },
         [cache, ...Object.values(request), wait],

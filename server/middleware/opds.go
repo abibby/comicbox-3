@@ -4,12 +4,12 @@ import (
 	"crypto/sha256"
 	"net/http"
 
+	"abibby.com/salusa/request"
+	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
 	"github.com/jmoiron/sqlx"
 )
 

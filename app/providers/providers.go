@@ -12,9 +12,8 @@ func Add(register func(context.Context)) {
 }
 
 // Register registers any custom di providers
-func Register(ctx context.Context) error {
+func Register(ctx context.Context) {
 	for _, register := range registrar {
 		register(ctx)
 	}
-	return nil
 }

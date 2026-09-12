@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
+	"abibby.com/salusa/extra/sets"
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/anilist"
-	"github.com/abibby/salusa/extra/sets"
 )
 
 type AnilistMetaProvider struct {

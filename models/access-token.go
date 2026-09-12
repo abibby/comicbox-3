@@ -3,9 +3,9 @@ package models
 import (
 	"context"
 
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/model/modeldi"
 	"github.com/abibby/comicbox-3/app/providers"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model/modeldi"
 	"github.com/google/uuid"
 )
 

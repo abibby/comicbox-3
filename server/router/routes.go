@@ -3,8 +3,8 @@ package router
 import (
 	"context"
 
+	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/app/deps"
-	"github.com/abibby/salusa/router"
 )
 
 func URL(ctx context.Context, name string, pairs ...string) (string, error) {

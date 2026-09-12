@@ -3,12 +3,12 @@ package models
 import (
 	"context"
 
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/jsoncolumn"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/database/model/modeldi"
 	"github.com/abibby/comicbox-3/app/providers"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/jsoncolumn"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/modeldi"
 )
 
 //go:generate spice generate:migration

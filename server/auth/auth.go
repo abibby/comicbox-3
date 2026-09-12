@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/abibby/salusa/auth"
-	"github.com/abibby/salusa/clog"
+	"abibby.com/salusa/auth"
+	"abibby.com/salusa/clog"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )

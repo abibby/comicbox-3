@@ -11,9 +11,9 @@ import (
 	"os"
 	"path"
 
+	"abibby.com/salusa/clog"
+	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/router"
 )
 
 type cachedResponseWriter struct {

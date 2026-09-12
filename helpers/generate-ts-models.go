@@ -9,10 +9,10 @@ import (
 	"sort"
 	"strings"
 
+	"abibby.com/salusa/database/builder"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/metadata"
-	"github.com/abibby/salusa/database/builder"
 )
 
 var types = map[string]string{

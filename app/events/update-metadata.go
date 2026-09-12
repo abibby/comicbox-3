@@ -1,8 +1,8 @@
 package events
 
 import (
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/event/cron"
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/event/cron"
 )
 
 type UpdateMetadataEvent struct {

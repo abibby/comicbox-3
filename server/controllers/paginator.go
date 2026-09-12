@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/database/model/mixins"
 	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
 	"github.com/jmoiron/sqlx"
 )
 

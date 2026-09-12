@@ -9,12 +9,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/hooks"
+	"abibby.com/salusa/database/model"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/hooks"
-	"github.com/abibby/salusa/database/model"
 )
 
 type BaseModel struct {

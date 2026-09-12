@@ -3,9 +3,9 @@ package migrations
 import (
 	"context"
 
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/migrate"
-	"github.com/abibby/salusa/database/schema"
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/migrate"
+	"abibby.com/salusa/database/schema"
 )
 
 func init() {

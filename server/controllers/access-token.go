@@ -7,11 +7,11 @@ import (
 	"encoding/hex"
 	"math/rand/v2"
 
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )

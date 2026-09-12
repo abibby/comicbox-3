@@ -3,8 +3,8 @@ package auth
 import (
 	"time"
 
+	"abibby.com/salusa/auth"
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/auth"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )

@@ -3,8 +3,8 @@ package models
 import (
 	"context"
 
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
 	"github.com/google/uuid"
 )
 

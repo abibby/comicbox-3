@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/abibby/salusa/database/dialects"
+	"abibby.com/salusa/database/dialects"
 )
 
 type Time time.Time

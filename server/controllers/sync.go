@@ -3,9 +3,9 @@ package controllers
 import (
 	"context"
 
+	"abibby.com/salusa/event"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/app/events"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/request"
 )
 
 type SyncRequest struct {

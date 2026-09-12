@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"time"
 
+	"abibby.com/salusa/clog"
+	"abibby.com/salusa/openapidoc"
 	"github.com/abibby/comicbox-3/services/atom"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
 )
 

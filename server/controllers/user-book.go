@@ -3,12 +3,12 @@ package controllers
 import (
 	"context"
 
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/database/model/mixins"
+	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"

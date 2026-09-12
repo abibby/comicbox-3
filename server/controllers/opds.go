@@ -14,15 +14,15 @@ import (
 	"strings"
 	"time"
 
+	"abibby.com/salusa/database"
+	salusadb "abibby.com/salusa/database"
+	"abibby.com/salusa/database/builder"
+	"abibby.com/salusa/database/model"
+	"abibby.com/salusa/request"
+	"abibby.com/salusa/router"
+	"abibby.com/salusa/slices"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/atom"
-	"github.com/abibby/salusa/database"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
-	"github.com/abibby/salusa/slices"
 	"github.com/jmoiron/sqlx"
 )
 

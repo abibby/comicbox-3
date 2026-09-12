@@ -2,13 +2,13 @@ module github.com/abibby/comicbox-3
 
 go 1.26.7
 
-replace github.com/abibby/salusa => /home/adam/github.com/abibby/salusa
+// replace abibby.com/salusa => /home/adam/abibby.com/salusa
 
 require (
+	abibby.com/salusa v0.24.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/Khan/genqlient v0.8.1
 	github.com/abibby/nulls v1.1.0
-	github.com/abibby/salusa v0.22.0
 	github.com/agnivade/levenshtein v1.2.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222
@@ -49,14 +49,12 @@ require (
 	github.com/go-openapi/swag/stringutils v0.29.1 // indirect
 	github.com/go-openapi/swag/typeutils v0.29.1 // indirect
 	github.com/go-openapi/swag/yamlutils v0.29.1 // indirect
-	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/lmittmann/tint v1.2.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stoewer/go-strcase v1.3.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.36 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect

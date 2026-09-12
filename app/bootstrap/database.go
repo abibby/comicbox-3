@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"path"
 
+	"abibby.com/salusa/database/dialects"
+	"abibby.com/salusa/database/dialects/sqlite"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/salusa/database/dialects"
-	"github.com/abibby/salusa/database/dialects/sqlite"
 	"github.com/mattn/go-sqlite3"
 )
 

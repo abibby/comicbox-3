@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"path"
 
+	salusaauth "abibby.com/salusa/auth"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	salusaauth "github.com/abibby/salusa/auth"
 )
 
 type Request struct {

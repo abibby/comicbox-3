@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/clog/loki"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/dialects/sqlite"
+	"abibby.com/salusa/clog"
+	"abibby.com/salusa/clog/loki"
+	"abibby.com/salusa/database"
+	"abibby.com/salusa/database/dialects/sqlite"
 	"github.com/go-kit/kit/log"
 	"github.com/joho/godotenv"
 )

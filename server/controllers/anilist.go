@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"abibby.com/salusa/database/model"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -14,6 +13,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database/model"
 )
 
 type BookWithAnilistID struct {

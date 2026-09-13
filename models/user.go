@@ -4,14 +4,14 @@ import (
 	"context"
 	"strings"
 
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/hooks"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
 )
 
 //go:generate spice generate:migration

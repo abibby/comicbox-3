@@ -3,10 +3,10 @@ package auth
 import (
 	"time"
 
-	"abibby.com/salusa/auth"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"gosalusa.com/auth"
 )
 
 // https://www.iana.org/assignments/jwt/jwt.xhtml#claims

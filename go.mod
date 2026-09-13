@@ -1,11 +1,10 @@
 module github.com/abibby/comicbox-3
 
-go 1.26.7
+go 1.27.0
 
 // replace abibby.com/salusa => /home/adam/abibby.com/salusa
 
 require (
-	abibby.com/salusa v0.24.0
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/Khan/genqlient v0.8.1
 	github.com/abibby/nulls v1.1.0
@@ -27,6 +26,7 @@ require (
 	golang.org/x/image v0.45.0
 	golang.org/x/text v0.41.0
 	golang.org/x/time v0.15.0
+	gosalusa.com v0.26.0
 )
 
 require (

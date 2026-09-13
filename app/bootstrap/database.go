@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"path"
 
-	"abibby.com/salusa/database/dialects"
-	"abibby.com/salusa/database/dialects/sqlite"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/mattn/go-sqlite3"
+	"gosalusa.com/database/dialects"
+	"gosalusa.com/database/dialects/sqlite"
 )
 
 const DriverName = "sqlite3_custom"

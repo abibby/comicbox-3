@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/di"
-	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
 	"github.com/abibby/comicbox-3/test"
@@ -14,6 +11,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/router"
 )
 
 func TestBook_save(t *testing.T) {

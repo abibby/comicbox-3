@@ -8,16 +8,16 @@ import (
 	"sort"
 	"strings"
 
-	"abibby.com/salusa/clog"
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/hooks"
-	"abibby.com/salusa/database/jsoncolumn"
-	"abibby.com/salusa/database/model"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
 	"github.com/google/uuid"
+	"gosalusa.com/clog"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
+	"gosalusa.com/database/jsoncolumn"
+	"gosalusa.com/database/model"
 )
 
 var (

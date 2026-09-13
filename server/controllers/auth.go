@@ -9,10 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/openapidoc"
-	"abibby.com/salusa/request"
-	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -23,6 +19,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
+	"gosalusa.com/database/model"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
 )
 
 type LoginRequest struct {

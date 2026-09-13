@@ -3,15 +3,15 @@ package controllers
 import (
 	"context"
 
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/database/model/mixins"
-	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"gosalusa.com/database/model"
+	"gosalusa.com/database/model/mixins"
+	"gosalusa.com/request"
 )
 
 type UserBookUpdateRequest struct {

@@ -4,10 +4,10 @@ import (
 	"context"
 	"os"
 
-	"abibby.com/salusa/clog"
-	"abibby.com/salusa/di"
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/app/deps"
+	"gosalusa.com/clog"
+	"gosalusa.com/di"
 )
 
 func main() {

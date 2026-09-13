@@ -8,16 +8,16 @@ import (
 	"strconv"
 	"strings"
 
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/hooks"
-	"abibby.com/salusa/database/jsoncolumn"
-	"abibby.com/salusa/database/model/modeldi"
 	"github.com/abibby/comicbox-3/app/providers"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/abibby/nulls"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
+	"gosalusa.com/database/jsoncolumn"
+	"gosalusa.com/database/model/modeldi"
 )
 
 //go:generate spice generate:migration

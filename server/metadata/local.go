@@ -5,12 +5,12 @@ import (
 	"net/url"
 	"time"
 
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/di"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/di"
 )
 
 type LocalMetaProvider struct {

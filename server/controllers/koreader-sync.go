@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"abibby.com/salusa/database"
-	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	"gosalusa.com/request"
 )
 
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6

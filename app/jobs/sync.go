@@ -19,9 +19,6 @@ import (
 	"sync"
 	"time"
 
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/event"
-	"abibby.com/salusa/extra/sets"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
@@ -31,6 +28,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"gosalusa.com/database/model"
+	"gosalusa.com/event"
+	"gosalusa.com/extra/sets"
 )
 
 var syncMtx = &sync.Mutex{}

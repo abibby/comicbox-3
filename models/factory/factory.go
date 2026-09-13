@@ -4,12 +4,12 @@ import (
 	"math"
 	"math/rand/v2"
 
-	"abibby.com/salusa/database"
-	"abibby.com/salusa/database/dbtest"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/nulls"
 	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
+	"gosalusa.com/database"
+	"gosalusa.com/database/dbtest"
 )
 
 var (

@@ -3,10 +3,10 @@ package models
 import (
 	"context"
 
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/model/modeldi"
 	"github.com/abibby/comicbox-3/app/providers"
 	"github.com/google/uuid"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model/modeldi"
 )
 
 //go:generate spice generate:migration

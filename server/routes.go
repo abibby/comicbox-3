@@ -7,15 +7,15 @@ import (
 	"net/http"
 	"time"
 
-	"abibby.com/salusa/clog"
-	"abibby.com/salusa/openapidoc"
-	"abibby.com/salusa/request"
-	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/middleware"
 	"github.com/abibby/comicbox-3/ui"
 	"github.com/gorilla/mux"
+	"gosalusa.com/clog"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

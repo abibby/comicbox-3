@@ -4,9 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"abibby.com/salusa/database/dbtest"
-	"abibby.com/salusa/database/dialects/sqlite"
-	"abibby.com/salusa/di"
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/deps"
 	"github.com/abibby/comicbox-3/database"
@@ -15,6 +12,9 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database/dbtest"
+	"gosalusa.com/database/dialects/sqlite"
+	"gosalusa.com/di"
 )
 
 var r = dbtest.NewRunner(func() (*sqlx.DB, error) {

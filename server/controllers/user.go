@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -16,6 +12,10 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/request"
 )
 
 type UserListRequest struct {

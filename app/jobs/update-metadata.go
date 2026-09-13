@@ -6,13 +6,13 @@ import (
 	"log/slog"
 	"reflect"
 
-	"abibby.com/salusa/database"
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/event"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	"gosalusa.com/database/model"
+	"gosalusa.com/event"
 )
 
 type UpdateMetadataHandler struct {

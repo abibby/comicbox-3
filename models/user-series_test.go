@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/di"
-	"abibby.com/salusa/router"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
 	"github.com/abibby/comicbox-3/test"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/router"
 )
 
 func TestUserSeries_save(t *testing.T) {

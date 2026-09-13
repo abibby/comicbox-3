@@ -10,20 +10,19 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	goslices "slices"
 	"strings"
 	"time"
 
-	"abibby.com/salusa/database"
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/request"
-	"abibby.com/salusa/router"
-	"abibby.com/salusa/slices"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/atom"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
+	"gosalusa.com/stream"
 )
 
 const (
@@ -203,7 +202,7 @@ var OPDSUnread = request.Handler(func(r *OPDSUnreadRequest) (*OPDSHandler, error
 		return nil, err
 	}
 
-	books := slices.Map(series, func(s *models.Series) *atom.Entry {
+	books := stream.Of(series).Map(func(s *models.Series) *atom.Entry {
 		userSeries, ok := s.UserSeries.Value()
 		if !ok {
 			return nil
@@ -215,15 +214,11 @@ var OPDSUnread = request.Handler(func(r *OPDSUnreadRequest) (*OPDSHandler, error
 		}
 
 		return BookEntry(book, s, r.URL)
-	})
-
-	books = slices.Filter(books, func(i *atom.Entry) bool {
+	}).Filter(func(i *atom.Entry) bool {
 		return i != nil
-	})
-
-	goslices.SortFunc(books, func(a, b *atom.Entry) int {
+	}).Sort(func(a, b *atom.Entry) int {
 		return strings.Compare(string(b.Updated), string(a.Updated))
-	})
+	}).Slice()
 
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | unread",
@@ -254,13 +249,11 @@ var OPDSList = request.Handler(func(r *OPDSListRequest) (*OPDSHandler, error) {
 		return nil, err
 	}
 
-	seriesEntries := slices.Map(series, func(s *models.Series) *atom.Entry {
+	seriesEntries := stream.Of(series).Map(func(s *models.Series) *atom.Entry {
 		return SeriesEntry(s, r.URL)
-	})
-
-	goslices.SortFunc(seriesEntries, func(a, b *atom.Entry) int {
+	}).Sort(func(a, b *atom.Entry) int {
 		return strings.Compare(string(b.Updated), string(a.Updated))
-	})
+	}).Slice()
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | " + string(*r.List),
 		ID:      IDList + string(*r.List),
@@ -289,10 +282,10 @@ var OPDSSeries = request.Handler(func(r *OPDSSeriesRequest) (*OPDSHandler, error
 		return nil, err
 	}
 
-	seriesEntries := slices.Map(books, func(b *models.Book) *atom.Entry {
+	seriesEntries := stream.Of(books).Map(func(b *models.Book) *atom.Entry {
 		s, _ := b.Series.Value()
 		return BookEntry(b, s, r.URL)
-	})
+	}).Slice()
 
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | " + r.Slug,

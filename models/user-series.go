@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/google/uuid"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/request"
 )
 
 //go:generate spice generate:migration

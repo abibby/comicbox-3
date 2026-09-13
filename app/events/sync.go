@@ -3,10 +3,10 @@ package events
 import (
 	"context"
 
-	"abibby.com/salusa/di"
-	"abibby.com/salusa/event"
-	"abibby.com/salusa/event/cron"
 	"github.com/abibby/comicbox-3/config"
+	"gosalusa.com/di"
+	"gosalusa.com/event"
+	"gosalusa.com/event/cron"
 )
 
 type SyncEvent struct {

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/database/builder"
-	"abibby.com/salusa/database/model"
-	"abibby.com/salusa/database/model/mixins"
 	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/database/model/mixins"
 )
 
 type PaginatedRequest struct {

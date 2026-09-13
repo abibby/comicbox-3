@@ -1,8 +1,8 @@
 package models
 
 import (
-	"abibby.com/salusa/database/builder"
 	"github.com/abibby/comicbox-3/server/auth"
+	"gosalusa.com/database/builder"
 )
 
 var UserScoped = &builder.Scope{

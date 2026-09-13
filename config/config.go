@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"abibby.com/salusa/clog"
-	"abibby.com/salusa/clog/loki"
-	"abibby.com/salusa/database"
-	"abibby.com/salusa/database/dialects/sqlite"
 	"github.com/go-kit/kit/log"
 	"github.com/joho/godotenv"
+	"gosalusa.com/clog"
+	"gosalusa.com/clog/loki"
+	"gosalusa.com/database"
+	"gosalusa.com/database/dialects/sqlite"
 )
 
 func env(key string, def string) string {

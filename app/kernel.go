@@ -5,16 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"abibby.com/salusa/clog"
-	salusadb "abibby.com/salusa/database"
-	"abibby.com/salusa/di"
-	"abibby.com/salusa/event"
-	"abibby.com/salusa/event/cron"
-	"abibby.com/salusa/kernel"
-	"abibby.com/salusa/openapidoc"
-	"abibby.com/salusa/openapidoc/openapidocdi"
-	"abibby.com/salusa/pubsub/channelpubsub"
-	"abibby.com/salusa/request"
 	"github.com/abibby/comicbox-3/app/bootstrap"
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/app/jobs"
@@ -27,6 +17,16 @@ import (
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/go-openapi/spec"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/clog"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/di"
+	"gosalusa.com/event"
+	"gosalusa.com/event/cron"
+	"gosalusa.com/kernel"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/openapidoc/openapidocdi"
+	"gosalusa.com/pubsub/channelpubsub"
+	"gosalusa.com/request"
 )
 
 func init() {

@@ -23,7 +23,6 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
 	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -31,6 +30,7 @@ import (
 	"gosalusa.com/database/model"
 	"gosalusa.com/event"
 	"gosalusa.com/extra/sets"
+	"gosalusa.com/optional"
 )
 
 var syncMtx = &sync.Mutex{}
@@ -274,11 +274,11 @@ func parseFileName(book *models.Book, path string) {
 
 	chapter, err := strconv.ParseFloat(result["chapter"], 64)
 	if err == nil {
-		book.Chapter = nulls.NewFloat64(chapter)
+		book.Chapter = optional.Some(chapter)
 	}
 	volume, err := strconv.ParseFloat(result["volume"], 64)
 	if err == nil {
-		book.Volume = nulls.NewFloat64(volume)
+		book.Volume = optional.Some(volume)
 	}
 	if result["title"] != "" {
 		book.Title = result["title"]
@@ -288,9 +288,9 @@ func parseFileName(book *models.Book, path string) {
 func parseBookJSON(book *models.Book, f fs.File) error {
 	type comboBook struct {
 		*models.Book
-		Series string         `json:"series"`
-		Author string         `json:"author"`
-		Number *nulls.Float64 `json:"number"`
+		Series string                     `json:"series"`
+		Author string                     `json:"author"`
+		Number optional.Optional[float64] `json:"number"`
 	}
 
 	b, err := fileBytes(f)
@@ -308,7 +308,7 @@ func parseBookJSON(book *models.Book, f fs.File) error {
 		tmpBook.Authors = []string{tmpBook.Author}
 	}
 
-	if tmpBook.Number != nil {
+	if tmpBook.Number.Valid {
 		tmpBook.Chapter = tmpBook.Number
 	}
 

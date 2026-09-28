@@ -12,12 +12,12 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
-	"github.com/abibby/nulls"
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/hooks"
 	"gosalusa.com/database/jsoncolumn"
 	"gosalusa.com/database/model/modeldi"
+	"gosalusa.com/optional"
 )
 
 //go:generate spice generate:migration
@@ -32,7 +32,7 @@ type Series struct {
 	Aliases           jsoncolumn.Slice[string] `json:"aliases"       db:"aliases"`
 	Genres            jsoncolumn.Slice[string] `json:"genres"        db:"genres"`
 	Tags              jsoncolumn.Slice[string] `json:"tags"          db:"tags"`
-	Year              *nulls.Int               `json:"year"          db:"year"`
+	Year              optional.Optional[int]   `json:"year"          db:"year"`
 	CoverImage        string                   `json:"-"             db:"cover_image_path"`
 	MetadataUpdatedAt *database.Time           `json:"-"             db:"metadata_updated_at"`
 	LockedFields      jsoncolumn.Slice[string] `json:"locked_fields" db:"locked_fields"`

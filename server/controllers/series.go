@@ -7,12 +7,12 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/nulls"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/model"
+	"gosalusa.com/optional"
 	"gosalusa.com/request"
 )
 
@@ -35,10 +35,10 @@ const (
 type SeriesIndexRequest struct {
 	PaginatedRequest
 
-	Slug    *nulls.String `query:"slug"`
-	List    models.List   `query:"list"`
-	OrderBy *SeriesOrder  `query:"order_by"`
-	Order   *nulls.String `query:"order" validate:"in:asc,desc"`
+	Slug    optional.Optional[string] `query:"slug"`
+	List    models.List               `query:"list"`
+	OrderBy *SeriesOrder              `query:"order_by"`
+	Order   optional.Optional[string] `query:"order" validate:"in:asc,desc"`
 
 	Ctx context.Context `inject:""`
 }
@@ -65,7 +65,7 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		}
 	}
 
-	if req.Order.Value() == "desc" {
+	if req.Order.V == "desc" {
 		query = query.OrderByDesc(orderColumn)
 	} else {
 		query = query.OrderBy(orderColumn)
@@ -95,16 +95,16 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug         string             `path:"slug"`
-	Name         string             `json:"name" validate:"require"`
-	Aliases      []string           `json:"aliases"`
-	Genres       []string           `json:"genres"`
-	Tags         []string           `json:"tags"`
-	Description  string             `json:"description"`
-	Year         *nulls.Int         `json:"year"`
-	MetadataID   *models.MetadataID `json:"metadata_id"`
-	LockedFields []string           `json:"locked_fields"`
-	UpdateMap    map[string]string  `json:"update_map" validate:"require"`
+	Slug         string                 `path:"slug"`
+	Name         string                 `json:"name" validate:"require"`
+	Aliases      []string               `json:"aliases"`
+	Genres       []string               `json:"genres"`
+	Tags         []string               `json:"tags"`
+	Description  string                 `json:"description"`
+	Year         optional.Optional[int] `json:"year"`
+	MetadataID   *models.MetadataID     `json:"metadata_id"`
+	LockedFields []string               `json:"locked_fields"`
+	UpdateMap    map[string]string      `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }

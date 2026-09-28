@@ -15,11 +15,11 @@ import (
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/di"
 	"gosalusa.com/extra/sets"
 	"gosalusa.com/kernel"
+	"gosalusa.com/optional"
 )
 
 func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *models.Series) error {
@@ -94,7 +94,7 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 
 	if metadata.Year != 0 && !lockedFields.Has("year") {
 		series.UpdateField("year")
-		series.Year = nulls.NewInt(metadata.Year)
+		series.Year = optional.Some(metadata.Year)
 	}
 
 	coverPath, err := downloadFile(ctx, metadata.CoverImageURL, path.Join(series.DirectoryPath(), ".comicbox/cover"))

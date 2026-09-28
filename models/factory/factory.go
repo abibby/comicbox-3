@@ -5,11 +5,11 @@ import (
 	"math/rand/v2"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
 	"github.com/go-faker/faker/v4"
 	"github.com/google/uuid"
 	"gosalusa.com/database"
 	"gosalusa.com/database/dbtest"
+	"gosalusa.com/optional"
 )
 
 var (
@@ -32,8 +32,8 @@ var (
 		return &models.Book{
 			ID:      uuid.New(),
 			Title:   faker.Word(),
-			Chapter: nulls.NewFloat64(math.Floor(rand.Float64() * 1000)),
-			Volume:  nulls.NewFloat64(math.Floor(rand.Float64() * 1000)),
+			Chapter: optional.Some(math.Floor(rand.Float64() * 1000)),
+			Volume:  optional.Some(math.Floor(rand.Float64() * 1000)),
 		}
 	})
 	UserBook = dbtest.NewFactory(func(tx database.DB) *models.UserBook {

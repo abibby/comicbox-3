@@ -7,12 +7,12 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
 	"github.com/abibby/comicbox-3/test"
-	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"gosalusa.com/database/model"
 	"gosalusa.com/di"
+	"gosalusa.com/optional"
 	"gosalusa.com/router"
 )
 
@@ -36,8 +36,8 @@ func TestBook_save(t *testing.T) {
 		factory.Book.State(func(b *models.Book) {
 			chapter++
 			b.SeriesSlug = seriesSlug
-			b.Chapter = nulls.NewFloat64(chapter)
-			b.Volume = nulls.NewFloat64(1)
+			b.Chapter = optional.Some(chapter)
+			b.Volume = optional.Some(1.0)
 			b.Pages = []*models.Page{{}, {}}
 			factory.UserBook.State(func(ub *models.UserBook) {
 				ub.BookID = b.ID

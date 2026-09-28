@@ -20,27 +20,27 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
 	"github.com/go-openapi/spec"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/image/draw"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/model"
+	"gosalusa.com/optional"
 	"gosalusa.com/request"
 )
 
 type BookIndexRequest struct {
 	PaginatedRequest
 
-	ID         *uuid.UUID    `query:"id"        validate:"uuid"`
-	SeriesSlug *nulls.String `query:"series_slug"`
-	List       *models.List  `query:"list"`
-	BeforeID   *uuid.UUID    `query:"before_id" validate:"uuid"`
-	AfterID    *uuid.UUID    `query:"after_id"  validate:"uuid"`
-	Order      *nulls.String `query:"order"     validate:"in:asc,desc"`
-	OrderBy    *nulls.String `query:"order_by"  validate:"in:default,created_at"`
-	WithSeries bool          `query:"with_series"`
+	ID         *uuid.UUID                `query:"id"        validate:"uuid"`
+	SeriesSlug optional.Optional[string] `query:"series_slug"`
+	List       *models.List              `query:"list"`
+	BeforeID   *uuid.UUID                `query:"before_id" validate:"uuid"`
+	AfterID    *uuid.UUID                `query:"after_id"  validate:"uuid"`
+	Order      optional.Optional[string] `query:"order"     validate:"in:asc,desc"`
+	OrderBy    optional.Optional[string] `query:"order_by"  validate:"in:default,created_at"`
+	WithSeries bool                      `query:"with_series"`
 }
 
 var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[*models.Book], error) {
@@ -54,7 +54,7 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 	}
 
 	orderColumn := "sort"
-	switch req.OrderBy.String() {
+	switch req.OrderBy.OrElse("") {
 	case "created_at":
 		orderColumn = "created_at"
 	}
@@ -219,15 +219,15 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 }
 
 type BookUpdateRequest struct {
-	ID          string            `path:"id"          validate:"require|uuid"`
-	Title       string            `json:"title"`
-	SeriesSlug  string            `json:"series_slug" validate:"require"`
-	Volume      *nulls.Float64    `json:"volume"`
-	Chapter     *nulls.Float64    `json:"chapter"`
-	RightToLeft bool              `json:"rtl"        validate:"require"`
-	LongStrip   bool              `json:"long_strip" validate:"require"`
-	Pages       []PageUpdate      `json:"pages"      validate:"require"`
-	UpdateMap   map[string]string `json:"update_map" validate:"require"`
+	ID          string                     `path:"id"          validate:"require|uuid"`
+	Title       string                     `json:"title"`
+	SeriesSlug  string                     `json:"series_slug" validate:"require"`
+	Volume      optional.Optional[float64] `json:"volume"`
+	Chapter     optional.Optional[float64] `json:"chapter"`
+	RightToLeft bool                       `json:"rtl"        validate:"require"`
+	LongStrip   bool                       `json:"long_strip" validate:"require"`
+	Pages       []PageUpdate               `json:"pages"      validate:"require"`
+	UpdateMap   map[string]string          `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }

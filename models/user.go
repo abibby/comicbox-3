@@ -5,26 +5,26 @@ import (
 	"strings"
 
 	"github.com/abibby/comicbox-3/database"
-	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/hooks"
+	"gosalusa.com/optional"
 )
 
 //go:generate spice generate:migration
 type User struct {
 	BaseModel
-	ID               uuid.UUID      `json:"id"         db:"id,primary"`
-	Username         string         `json:"username"   db:"username"`
-	Password         []byte         `json:"-"          db:"-"`
-	PasswordHash     []byte         `json:"-"          db:"password"`
-	AnilistGrant     *nulls.String  `json:"-"          db:"anilist_grant"`
-	AnilistToken     *nulls.String  `json:"-"          db:"anilist_token"`
-	AnilistExpiresAt *database.Time `json:"-"          db:"anilist_expires_at"`
-	RoleID           int            `json:"-"          db:"role_id"`
+	ID               uuid.UUID                 `json:"id"         db:"id,primary"`
+	Username         string                    `json:"username"   db:"username"`
+	Password         []byte                    `json:"-"          db:"-"`
+	PasswordHash     []byte                    `json:"-"          db:"password"`
+	AnilistGrant     optional.Optional[string] `json:"-"          db:"anilist_grant"`
+	AnilistToken     optional.Optional[string] `json:"-"          db:"anilist_token"`
+	AnilistExpiresAt *database.Time            `json:"-"          db:"anilist_expires_at"`
+	RoleID           int                       `json:"-"          db:"role_id"`
 
 	Role *builder.BelongsTo[*Role] `json:"role"`
 }

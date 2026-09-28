@@ -10,7 +10,6 @@ import (
 
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
-	"github.com/abibby/nulls"
 	"github.com/google/uuid"
 	"gosalusa.com/clog"
 	salusadb "gosalusa.com/database"
@@ -18,6 +17,7 @@ import (
 	"gosalusa.com/database/hooks"
 	"gosalusa.com/database/jsoncolumn"
 	"gosalusa.com/database/model"
+	"gosalusa.com/optional"
 )
 
 var (
@@ -58,21 +58,21 @@ const (
 //go:generate spice generate:migration
 type Book struct {
 	BaseModel
-	ID           uuid.UUID                `json:"id"            db:"id,primary"`
-	Title        string                   `json:"title"         db:"title"`
-	Chapter      *nulls.Float64           `json:"chapter"       db:"chapter"`
-	Volume       *nulls.Float64           `json:"volume"        db:"volume"`
-	SeriesSlug   string                   `json:"series_slug"   db:"series"`
-	Authors      jsoncolumn.Slice[string] `json:"authors"       db:"authors,type:json"`
-	Pages        jsoncolumn.Slice[*Page]  `json:"pages"         db:"pages"`
-	PageCount    int                      `json:"page_count"    db:"page_count"`
-	RightToLeft  bool                     `json:"rtl"           db:"rtl"`
-	LongStrip    bool                     `json:"long_strip"    db:"long_strip"`
-	Sort         string                   `json:"sort"          db:"sort,index"`
-	File         string                   `json:"file"          db:"file"`
-	CoverURL     string                   `json:"cover_url"     db:"-"`
-	DownloadSize int                      `json:"download_size" db:"download_size"`
-	KOReaderMD5  string                   `json:"-"             db:"koreader_md5,index"`
+	ID           uuid.UUID                  `json:"id"            db:"id,primary"`
+	Title        string                     `json:"title"         db:"title"`
+	Chapter      optional.Optional[float64] `json:"chapter"       db:"chapter"`
+	Volume       optional.Optional[float64] `json:"volume"        db:"volume"`
+	SeriesSlug   string                     `json:"series_slug"   db:"series"`
+	Authors      jsoncolumn.Slice[string]   `json:"authors"       db:"authors,type:json"`
+	Pages        jsoncolumn.Slice[*Page]    `json:"pages"         db:"pages"`
+	PageCount    int                        `json:"page_count"    db:"page_count"`
+	RightToLeft  bool                       `json:"rtl"           db:"rtl"`
+	LongStrip    bool                       `json:"long_strip"    db:"long_strip"`
+	Sort         string                     `json:"sort"          db:"sort,index"`
+	File         string                     `json:"file"          db:"file"`
+	CoverURL     string                     `json:"cover_url"     db:"-"`
+	DownloadSize int                        `json:"download_size" db:"download_size"`
+	KOReaderMD5  string                     `json:"-"             db:"koreader_md5,index"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
@@ -114,16 +114,13 @@ func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 
 	b.PageCount = len(b.Pages)
 
-	volume := float64(999_999_999.999)
-	if !b.Volume.IsNull() {
-		volume = b.Volume.Float64()
-	}
+	volume := b.Volume.OrElse(999_999_999.999)
 
 	b.Sort = fmt.Sprintf(
 		"%s|%013.3f|%013.3f|%s",
 		b.SeriesSlug,
 		volume,
-		b.Chapter.Float64(),
+		b.Chapter.OrElse(0),
 		b.Title,
 	)
 
@@ -211,11 +208,11 @@ func (b *Book) FullTitle(s *Series) string {
 		sb.WriteString(b.SeriesSlug)
 	}
 
-	if v, ok := b.Volume.Ok(); ok && v != 0 {
-		fmt.Fprintf(sb, " V%v", v)
+	if b.Volume.Valid && b.Volume.V != 0 {
+		fmt.Fprintf(sb, " V%v", b.Volume.V)
 	}
-	if ch, ok := b.Chapter.Ok(); ok && ch != 0 {
-		fmt.Fprintf(sb, " #%v", ch)
+	if b.Chapter.Valid && b.Chapter.V != 0 {
+		fmt.Fprintf(sb, " #%v", b.Chapter.V)
 	}
 
 	if b.Title != "" {

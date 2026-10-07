@@ -47,6 +47,7 @@ var Kernel = kernel.New(
 			event.Register(ctx)
 			openapidocdi.Register(ctx)
 			providers.Register(ctx)
+			providers.RegisterFileSystems(ctx, config.LibraryPath, config.CachePath)
 		}),
 
 		events.InitSync,

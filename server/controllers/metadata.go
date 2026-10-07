@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"io/fs"
 
 	"github.com/abibby/comicbox-3/app/events"
 	"github.com/abibby/comicbox-3/models"
@@ -20,6 +21,7 @@ type MetaUpdateRequest struct {
 
 	Update database.Update `inject:""`
 	Ctx    context.Context `inject:""`
+	FS     fs.FS           `inject:""`
 }
 type MetaUpdateResponse struct {
 	Success bool `json:"success"`
@@ -37,7 +39,7 @@ var MetaUpdate = request.Handler(func(req *MetaUpdateRequest) (*models.Series, e
 		}
 
 		meta := metadata.MetaProviderFactory()
-		err = metadata.Update(req.Ctx, tx, meta, series)
+		err = metadata.Update(req.Ctx, req.FS, tx, meta, series)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update metadata: %w", err)
 		}

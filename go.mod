@@ -7,7 +7,6 @@ replace gosalusa.com => /home/adam/github.com/gosalusa/framework
 require (
 	github.com/JohannesKaufmann/html-to-markdown/v2 v2.5.2
 	github.com/Khan/genqlient v0.8.1
-	github.com/abibby/nulls v1.1.0
 	github.com/agnivade/levenshtein v1.2.1
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/facebookgo/symwalk v0.0.0-20150726040526-42004b9f3222

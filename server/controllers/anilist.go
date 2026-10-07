@@ -13,13 +13,13 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/jmoiron/sqlx"
 	"gosalusa.com/database/model"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 )
 
 type BookWithAnilistID struct {
 	models.Book
 
-	AnilistId optional.Optional[int] `json:"anilist_id"    db:"anilist_id"`
+	AnilistId option.Option[int] `json:"anilist_id"    db:"anilist_id"`
 }
 
 type AnilistUpdateRequest SaveMediaListEntryArguments
@@ -108,7 +108,7 @@ var AnilistLogin = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request
 			return err
 		}
 
-		u.AnilistGrant = optional.Some(req.Grant)
+		u.AnilistGrant = option.Some(req.Grant)
 
 		return model.SaveContext(r.Context(), tx, u)
 	})
@@ -161,7 +161,7 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 			return err
 		}
 
-		u.AnilistToken = optional.Some(tokenResp.AccessToken)
+		u.AnilistToken = option.Some(tokenResp.AccessToken)
 		expiresAt := time.Now().Add(time.Second * time.Duration(tokenResp.ExpiresIn))
 		u.AnilistExpiresAt = (*database.Time)(&expiresAt)
 
@@ -187,10 +187,10 @@ type list struct {
 }
 
 type entry struct {
-	MediaID         int                    `json:"mediaId"`
-	Status          string                 `json:"status"`
-	Progress        optional.Optional[int] `json:"progress"`
-	ProgressVolumes optional.Optional[int] `json:"progressVolumes"`
+	MediaID         int                `json:"mediaId"`
+	Status          string             `json:"status"`
+	Progress        option.Option[int] `json:"progress"`
+	ProgressVolumes option.Option[int] `json:"progressVolumes"`
 }
 
 func lists(r *http.Request, u *models.User) (map[int]*entry, error) {
@@ -227,10 +227,10 @@ func lists(r *http.Request, u *models.User) (map[int]*entry, error) {
 }
 
 type SaveMediaListEntryArguments struct {
-	MediaID         int                    `json:"mediaId"`
-	Progress        optional.Optional[int] `json:"progress,omitempty"`
-	ProgressVolumes optional.Optional[int] `json:"progressVolumes,omitempty"`
-	StartedAt       *time.Time             `json:"startedAt,omitempty"`
+	MediaID         int                `json:"mediaId"`
+	Progress        option.Option[int] `json:"progress,omitempty"`
+	ProgressVolumes option.Option[int] `json:"progressVolumes,omitempty"`
+	StartedAt       *time.Time         `json:"startedAt,omitempty"`
 }
 
 func saveMediaListEntry(r *http.Request, u *models.User, arguments *SaveMediaListEntryArguments) error {

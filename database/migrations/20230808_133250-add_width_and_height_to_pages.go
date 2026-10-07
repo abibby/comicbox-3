@@ -39,7 +39,7 @@ func init() {
 						continue
 					}
 
-					imgs := models.ZippedImages(reader)
+					imgs := models.ZippedImages(&reader.Reader)
 					for i, p := range book.Pages {
 						if i < len(imgs) {
 							img := imgs[i]

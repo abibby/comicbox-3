@@ -10,14 +10,14 @@ import (
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/model"
 	"gosalusa.com/database/model/mixins"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 )
 
 type PaginatedRequest struct {
-	Page         optional.Optional[int] `query:"page"         validate:"min:1"`
-	PageSize     optional.Optional[int] `query:"page_size"    validate:"min:1|max:100"`
-	WithDeleted  bool                   `query:"with_deleted" validate:"boolean"`
-	UpdatedAfter *time.Time             `query:"updated_after"`
+	Page         option.Option[int] `query:"page"         validate:"min:1"`
+	PageSize     option.Option[int] `query:"page_size"    validate:"min:1|max:100"`
+	WithDeleted  bool               `query:"with_deleted" validate:"boolean"`
+	UpdatedAfter *time.Time         `query:"updated_after"`
 
 	Ctx  context.Context `inject:""`
 	Read salusadb.Read   `inject:""`

@@ -4,11 +4,11 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	"path"
+	"io"
+	"io/fs"
 	"sort"
 	"strings"
 
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
 	"github.com/google/uuid"
 	"gosalusa.com/clog"
@@ -17,7 +17,8 @@ import (
 	"gosalusa.com/database/hooks"
 	"gosalusa.com/database/jsoncolumn"
 	"gosalusa.com/database/model"
-	"gosalusa.com/optional"
+	"gosalusa.com/di"
+	"gosalusa.com/option"
 )
 
 var (
@@ -58,21 +59,21 @@ const (
 //go:generate spice generate:migration
 type Book struct {
 	BaseModel
-	ID           uuid.UUID                  `json:"id"            db:"id,primary"`
-	Title        string                     `json:"title"         db:"title"`
-	Chapter      optional.Optional[float64] `json:"chapter"       db:"chapter"`
-	Volume       optional.Optional[float64] `json:"volume"        db:"volume"`
-	SeriesSlug   string                     `json:"series_slug"   db:"series"`
-	Authors      jsoncolumn.Slice[string]   `json:"authors"       db:"authors,type:json"`
-	Pages        jsoncolumn.Slice[*Page]    `json:"pages"         db:"pages"`
-	PageCount    int                        `json:"page_count"    db:"page_count"`
-	RightToLeft  bool                       `json:"rtl"           db:"rtl"`
-	LongStrip    bool                       `json:"long_strip"    db:"long_strip"`
-	Sort         string                     `json:"sort"          db:"sort,index"`
-	File         string                     `json:"file"          db:"file"`
-	CoverURL     string                     `json:"cover_url"     db:"-"`
-	DownloadSize int                        `json:"download_size" db:"download_size"`
-	KOReaderMD5  string                     `json:"-"             db:"koreader_md5,index"`
+	ID           uuid.UUID                `json:"id"            db:"id,primary"`
+	Title        string                   `json:"title"         db:"title"`
+	Chapter      option.Option[float64]   `json:"chapter"       db:"chapter"`
+	Volume       option.Option[float64]   `json:"volume"        db:"volume"`
+	SeriesSlug   string                   `json:"series_slug"   db:"series"`
+	Authors      jsoncolumn.Slice[string] `json:"authors"       db:"authors,type:json"`
+	Pages        jsoncolumn.Slice[*Page]  `json:"pages"         db:"pages"`
+	PageCount    int                      `json:"page_count"    db:"page_count"`
+	RightToLeft  bool                     `json:"rtl"           db:"rtl"`
+	LongStrip    bool                     `json:"long_strip"    db:"long_strip"`
+	Sort         string                   `json:"sort"          db:"sort,index"`
+	File         string                   `json:"file"          db:"file"`
+	CoverURL     string                   `json:"cover_url"     db:"-"`
+	DownloadSize int                      `json:"download_size" db:"download_size"`
+	KOReaderMD5  string                   `json:"-"             db:"koreader_md5,index"`
 
 	UserBook   *builder.HasOne[*UserBook]   `json:"user_book" db:"-"`
 	UserSeries *builder.HasOne[*UserSeries] `json:"-"         db:"-" local:"series" foreign:"series_name"`
@@ -97,7 +98,11 @@ func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	}
 
 	if b.DownloadSize == 0 {
-		size, err := b.calculateDownloadSize()
+		fsys, err := di.Resolve[fs.FS](ctx)
+		if err != nil {
+			return err
+		}
+		size, err := b.calculateDownloadSize(fsys)
 		if err != nil {
 			clog.Use(ctx).Warn("failed to calculate download size", "err", err)
 		} else {
@@ -169,11 +174,12 @@ func (b *Book) updateUserSeries(ctx context.Context, tx salusadb.DB) error {
 	return nil
 }
 
-func (b *Book) calculateDownloadSize() (int, error) {
-	reader, err := zip.OpenReader(b.FilePath())
+func (b *Book) calculateDownloadSize(fsys fs.FS) (int, error) {
+	reader, zf, err := b.OpenZipReader(fsys)
 	if err != nil {
 		return 0, err
 	}
+	defer zf.Close()
 
 	imgs := ZippedImages(reader)
 
@@ -208,11 +214,11 @@ func (b *Book) FullTitle(s *Series) string {
 		sb.WriteString(b.SeriesSlug)
 	}
 
-	if b.Volume.Valid && b.Volume.V != 0 {
-		fmt.Fprintf(sb, " V%v", b.Volume.V)
+	if v := b.Volume.OrElse(0); v != 0 {
+		fmt.Fprintf(sb, " V%v", v)
 	}
-	if b.Chapter.Valid && b.Chapter.V != 0 {
-		fmt.Fprintf(sb, " #%v", b.Chapter.V)
+	if c := b.Chapter.OrElse(0); c != 0 {
+		fmt.Fprintf(sb, " #%v", c)
 	}
 
 	if b.Title != "" {
@@ -240,11 +246,7 @@ func (b *Book) CoverPage() int {
 	return fallback
 }
 
-func (b *Book) FilePath() string {
-	return path.Join(config.LibraryPath, b.File)
-}
-
-func ZippedImages(reader *zip.ReadCloser) []*zip.File {
+func ZippedImages(reader *zip.Reader) []*zip.File {
 	sort.Slice(reader.File, func(i, j int) bool {
 		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0
 	})
@@ -263,4 +265,22 @@ func ZippedImages(reader *zip.ReadCloser) []*zip.File {
 		}
 	}
 	return imageFiles
+}
+
+func (b *Book) OpenZipReader(fsys fs.FS) (*zip.Reader, io.Closer, error) {
+	zf, err := fsys.Open(b.File)
+	if err != nil {
+		return nil, nil, fmt.Errorf("open: %w", err)
+	}
+
+	stat, err := zf.Stat()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	reader, err := zip.NewReader(zf.(io.ReaderAt), stat.Size())
+	if err != nil {
+		return nil, nil, err
+	}
+	return reader, zf, nil
 }

@@ -17,7 +17,7 @@ import (
 	"gosalusa.com/database/hooks"
 	"gosalusa.com/database/jsoncolumn"
 	"gosalusa.com/database/model/modeldi"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 )
 
 //go:generate spice generate:migration
@@ -32,7 +32,7 @@ type Series struct {
 	Aliases           jsoncolumn.Slice[string] `json:"aliases"       db:"aliases"`
 	Genres            jsoncolumn.Slice[string] `json:"genres"        db:"genres"`
 	Tags              jsoncolumn.Slice[string] `json:"tags"          db:"tags"`
-	Year              optional.Optional[int]   `json:"year"          db:"year"`
+	Year              option.Option[int]       `json:"year"          db:"year"`
 	CoverImage        string                   `json:"-"             db:"cover_image_path"`
 	MetadataUpdatedAt *database.Time           `json:"-"             db:"metadata_updated_at"`
 	LockedFields      jsoncolumn.Slice[string] `json:"locked_fields" db:"locked_fields"`
@@ -101,9 +101,10 @@ func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
 	return nil
 }
-func (s *Series) DirectoryPath() string {
-	return path.Join(config.LibraryPath, s.Directory)
-}
+
+//	func (s *Series) DirectoryPath() string {
+//		return path.Join(config.LibraryPath, s.Directory)
+//	}
 func (s *Series) CoverImagePath() string {
 	return path.Join(config.LibraryPath, s.CoverImage)
 }

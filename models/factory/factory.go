@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"gosalusa.com/database"
 	"gosalusa.com/database/dbtest"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 )
 
 var (
@@ -32,8 +32,8 @@ var (
 		return &models.Book{
 			ID:      uuid.New(),
 			Title:   faker.Word(),
-			Chapter: optional.Some(math.Floor(rand.Float64() * 1000)),
-			Volume:  optional.Some(math.Floor(rand.Float64() * 1000)),
+			Chapter: option.Some(math.Floor(rand.Float64() * 1000)),
+			Volume:  option.Some(math.Floor(rand.Float64() * 1000)),
 		}
 	})
 	UserBook = dbtest.NewFactory(func(tx database.DB) *models.UserBook {

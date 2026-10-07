@@ -11,20 +11,20 @@ import (
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/hooks"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 )
 
 //go:generate spice generate:migration
 type User struct {
 	BaseModel
-	ID               uuid.UUID                 `json:"id"         db:"id,primary"`
-	Username         string                    `json:"username"   db:"username"`
-	Password         []byte                    `json:"-"          db:"-"`
-	PasswordHash     []byte                    `json:"-"          db:"password"`
-	AnilistGrant     optional.Optional[string] `json:"-"          db:"anilist_grant"`
-	AnilistToken     optional.Optional[string] `json:"-"          db:"anilist_token"`
-	AnilistExpiresAt *database.Time            `json:"-"          db:"anilist_expires_at"`
-	RoleID           int                       `json:"-"          db:"role_id"`
+	ID               uuid.UUID             `json:"id"         db:"id,primary"`
+	Username         string                `json:"username"   db:"username"`
+	Password         []byte                `json:"-"          db:"-"`
+	PasswordHash     []byte                `json:"-"          db:"password"`
+	AnilistGrant     option.Option[string] `json:"-"          db:"anilist_grant"`
+	AnilistToken     option.Option[string] `json:"-"          db:"anilist_token"`
+	AnilistExpiresAt *database.Time        `json:"-"          db:"anilist_expires_at"`
+	RoleID           int                   `json:"-"          db:"role_id"`
 
 	Role *builder.BelongsTo[*Role] `json:"role"`
 }

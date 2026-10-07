@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"reflect"
 
@@ -19,6 +20,7 @@ type UpdateMetadataHandler struct {
 	DB     *sqlx.DB        `inject:""`
 	Update database.Update `inject:""`
 	Log    *slog.Logger    `inject:""`
+	FS     fs.FS           `inject:""`
 }
 
 var _ event.Handler[*events.UpdateMetadataEvent] = (*UpdateMetadataHandler)(nil)
@@ -88,7 +90,7 @@ func (u *UpdateMetadataHandler) updateSeries(ctx context.Context, meta metadata.
 			return nil
 		}
 
-		err = metadata.ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+		err = metadata.ApplyMetadata(ctx, u.FS, tx, series, &bestMatch.SeriesMetadata)
 		if err != nil {
 			return fmt.Errorf("failed to update metadata: %w", err)
 		}

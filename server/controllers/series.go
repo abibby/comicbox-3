@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"os"
+	"io/fs"
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
@@ -12,7 +12,7 @@ import (
 	salusadb "gosalusa.com/database"
 	"gosalusa.com/database/builder"
 	"gosalusa.com/database/model"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 	"gosalusa.com/request"
 )
 
@@ -35,10 +35,10 @@ const (
 type SeriesIndexRequest struct {
 	PaginatedRequest
 
-	Slug    optional.Optional[string] `query:"slug"`
-	List    models.List               `query:"list"`
-	OrderBy *SeriesOrder              `query:"order_by"`
-	Order   optional.Optional[string] `query:"order" validate:"in:asc,desc"`
+	Slug    option.Option[string] `query:"slug"`
+	List    models.List           `query:"list"`
+	OrderBy *SeriesOrder          `query:"order_by"`
+	Order   option.Option[string] `query:"order" validate:"in:asc,desc"`
 
 	Ctx context.Context `inject:""`
 }
@@ -65,7 +65,7 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 		}
 	}
 
-	if req.Order.V == "desc" {
+	if req.Order.OrElse("") == "desc" {
 		query = query.OrderByDesc(orderColumn)
 	} else {
 		query = query.OrderBy(orderColumn)
@@ -95,16 +95,16 @@ var SeriesIndex = request.Handler(func(req *SeriesIndexRequest) (*PaginatedRespo
 })
 
 type SeriesUpdateRequest struct {
-	Slug         string                 `path:"slug"`
-	Name         string                 `json:"name" validate:"require"`
-	Aliases      []string               `json:"aliases"`
-	Genres       []string               `json:"genres"`
-	Tags         []string               `json:"tags"`
-	Description  string                 `json:"description"`
-	Year         optional.Optional[int] `json:"year"`
-	MetadataID   *models.MetadataID     `json:"metadata_id"`
-	LockedFields []string               `json:"locked_fields"`
-	UpdateMap    map[string]string      `json:"update_map" validate:"require"`
+	Slug         string             `path:"slug"`
+	Name         string             `json:"name" validate:"require"`
+	Aliases      []string           `json:"aliases"`
+	Genres       []string           `json:"genres"`
+	Tags         []string           `json:"tags"`
+	Description  string             `json:"description"`
+	Year         option.Option[int] `json:"year"`
+	MetadataID   *models.MetadataID `json:"metadata_id"`
+	LockedFields []string           `json:"locked_fields"`
+	UpdateMap    map[string]string  `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -166,10 +166,11 @@ var SeriesUpdate = request.Handler(func(r *SeriesUpdateRequest) (*models.Series,
 })
 
 type SeriesThumbnailRequest struct {
-	Slug string        `path:"slug"`
-	Read salusadb.Read `inject:""`
+	Slug string `path:"slug"`
 
-	Ctx context.Context `inject:""`
+	Read salusadb.Read   `inject:""`
+	Ctx  context.Context `inject:""`
+	FS   fs.FS           `inject:""`
 }
 
 var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, error) {
@@ -179,7 +180,8 @@ var SeriesThumbnail = request.Handler(func(r *SeriesThumbnailRequest) (any, erro
 	if err != nil {
 		return nil, err
 	}
-	f, err := os.Open(series.CoverImagePath())
+
+	f, err := r.FS.Open(series.CoverImage)
 	if err != nil {
 		return nil, err
 	}

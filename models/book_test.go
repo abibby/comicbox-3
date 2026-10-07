@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gosalusa.com/database/model"
 	"gosalusa.com/di"
-	"gosalusa.com/optional"
+	"gosalusa.com/option"
 	"gosalusa.com/router"
 )
 
@@ -36,8 +36,8 @@ func TestBook_save(t *testing.T) {
 		factory.Book.State(func(b *models.Book) {
 			chapter++
 			b.SeriesSlug = seriesSlug
-			b.Chapter = optional.Some(chapter)
-			b.Volume = optional.Some(1.0)
+			b.Chapter = option.Some(chapter)
+			b.Volume = option.Some(1.0)
 			b.Pages = []*models.Page{{}, {}}
 			factory.UserBook.State(func(ub *models.UserBook) {
 				ub.BookID = b.ID

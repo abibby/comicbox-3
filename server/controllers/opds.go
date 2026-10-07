@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -301,6 +302,7 @@ type OPDSBookDownloadRequest struct {
 	Read   salusadb.Read   `inject:""`
 	Update salusadb.Update `inject:""`
 	Ctx    context.Context `inject:""`
+	FS     fs.FS           `inject:""`
 }
 
 var OPDSBookDownload = request.Handler(func(r *OPDSBookDownloadRequest) (*http.Response, error) {
@@ -319,7 +321,7 @@ var OPDSBookDownload = request.Handler(func(r *OPDSBookDownloadRequest) (*http.R
 
 	go func() {
 		md5Recorder := NewPartialMD5Recorder(pw)
-		err := buildCBZ(book, md5Recorder)
+		err := buildCBZ(r.FS, book, md5Recorder)
 		if err != nil {
 			pw.CloseWithError(err)
 		}
@@ -357,11 +359,12 @@ func OPDS404(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 }
 
-func buildCBZ(book *models.Book, w io.Writer) error {
-	reader, err := zip.OpenReader(book.FilePath())
+func buildCBZ(fsys fs.FS, book *models.Book, w io.Writer) error {
+	reader, zf, err := book.OpenZipReader(fsys)
 	if err != nil {
 		return err
 	}
+	defer zf.Close()
 
 	writer := zip.NewWriter(w)
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/agnivade/levenshtein"
 	"golang.org/x/text/unicode/norm"
@@ -82,10 +83,10 @@ type MetaProvider interface {
 	SearchSeries(ctx context.Context, name string) ([]DistanceMetadata, error)
 }
 
-func MetaProviderFactory() MetaProvider {
+func MetaProviderFactory(cfg *config.Config) MetaProvider {
 	return NewMetadataMux(
 		NewAnilistMetaProvider(),
-		NewComicVineMetaProvider(),
+		NewComicVineMetaProvider(cfg.ComicVineAPIKey),
 		NewLocalMetaProvider(),
 	)
 }

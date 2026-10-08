@@ -14,9 +14,9 @@ type ComicVineMetaProvider struct {
 	client *comicvine.Client
 }
 
-func NewComicVineMetaProvider() *ComicVineMetaProvider {
+func NewComicVineMetaProvider(apiKey string) *ComicVineMetaProvider {
 	return &ComicVineMetaProvider{
-		client: comicvine.New(),
+		client: comicvine.New(apiKey),
 	}
 }
 

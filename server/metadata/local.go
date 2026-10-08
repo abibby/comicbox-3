@@ -40,7 +40,7 @@ func (l *LocalMetaProvider) GetSeries(ctx context.Context, id *models.MetadataID
 	if err != nil {
 		return SeriesMetadata{}, err
 	}
-	uri, err := addToken(book.CoverURL)
+	uri, err := addToken(ctx, book.CoverURL)
 	if err != nil {
 		return SeriesMetadata{}, err
 	}
@@ -71,7 +71,7 @@ func (l *LocalMetaProvider) SearchSeries(ctx context.Context, name string) ([]Di
 		return []DistanceMetadata{}, nil
 	}
 
-	uri, err := addToken(book.CoverURL)
+	uri, err := addToken(ctx, book.CoverURL)
 	if err != nil {
 		return nil, err
 	}
@@ -89,13 +89,13 @@ func (l *LocalMetaProvider) SearchSeries(ctx context.Context, name string) ([]Di
 	}, nil
 }
 
-func addToken(uri string) (string, error) {
+func addToken(ctx context.Context, uri string) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", err
 	}
 
-	token, err := auth.GenerateToken(uuid.UUID{}, auth.WithScope(auth.ScopeImage), auth.WithLifetime(time.Hour))
+	token, err := auth.GenerateToken(ctx, uuid.UUID{}, auth.WithScope(auth.ScopeImage), auth.WithLifetime(time.Hour))
 	if err != nil {
 		return "", err
 	}

@@ -6,6 +6,7 @@ import (
 	"io/fs"
 
 	"github.com/abibby/comicbox-3/app/events"
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
 	"github.com/jmoiron/sqlx"
@@ -22,6 +23,7 @@ type MetaUpdateRequest struct {
 	Update database.Update `inject:""`
 	Ctx    context.Context `inject:""`
 	FS     fs.FS           `inject:""`
+	Cfg    *config.Config  `inject:""`
 }
 type MetaUpdateResponse struct {
 	Success bool `json:"success"`
@@ -38,7 +40,7 @@ var MetaUpdate = request.Handler(func(req *MetaUpdateRequest) (*models.Series, e
 			return nil, request.ErrStatusNotFound
 		}
 
-		meta := metadata.MetaProviderFactory()
+		meta := metadata.MetaProviderFactory(req.Cfg)
 		err = metadata.Update(req.Ctx, req.FS, tx, meta, series)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update metadata: %w", err)
@@ -62,6 +64,7 @@ type MetaListRequest struct {
 	Title string `query:"title"`
 
 	Ctx context.Context `inject:""`
+	Cfg *config.Config  `inject:""`
 }
 type MetaListResponse struct {
 	Data []metadata.DistanceMetadata `json:"data"`
@@ -69,7 +72,7 @@ type MetaListResponse struct {
 
 var MetaList = request.Handler(func(req *MetaListRequest) (*MetaListResponse, error) {
 
-	provider := metadata.MetaProviderFactory()
+	provider := metadata.MetaProviderFactory(req.Cfg)
 	meta, err := provider.SearchSeries(req.Ctx, req.Title)
 	if err != nil {
 		return nil, err

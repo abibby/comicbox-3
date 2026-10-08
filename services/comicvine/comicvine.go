@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-
-	"github.com/abibby/comicbox-3/config"
 )
 
 // ApiResponse represents the top-level structure of the JSON response.
@@ -94,10 +92,10 @@ type Client struct {
 	apiKey     string
 }
 
-func New() *Client {
+func New(apiKey string) *Client {
 	return &Client{
 		httpClient: *http.DefaultClient,
-		apiKey:     config.ComicVineAPIKey,
+		apiKey:     apiKey,
 	}
 }
 func (c *Client) Get(rawURL string, v any) error {

@@ -13,6 +13,7 @@ import (
 	"github.com/abibby/comicbox-3/server/validate"
 	"github.com/jmoiron/sqlx"
 	"gosalusa.com/database/model"
+	"gosalusa.com/di"
 	"gosalusa.com/option"
 )
 
@@ -135,11 +136,14 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 		if err != nil {
 			return err
 		}
-
+		cfg, err := di.Resolve[*config.Config](r.Context())
+		if err != nil {
+			return err
+		}
 		body := map[string]string{
 			"grant_type":    "authorization_code",
-			"client_id":     config.AnilistClientID,
-			"client_secret": config.AnilistClientSecret,
+			"client_id":     cfg.AnilistClientID,
+			"client_secret": cfg.AnilistClientSecret,
 			"redirect_uri":  r.Header.Get("Origin") + "/anilist/login",
 			"code":          u.AnilistGrant.OrElse(""),
 		}

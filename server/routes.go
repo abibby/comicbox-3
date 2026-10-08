@@ -137,7 +137,7 @@ func InitRouter(r *router.Router) {
 			r.Delete("/{id}", controllers.AccessTokenDelete)
 		})
 
-		r.PostFunc("/users", controllers.UserCreate).Name("user.create")
+		r.Post("/users", controllers.UserCreate).Name("user.create")
 		r.Post("/users/password", controllers.ChangePassword).Name("user.change.password")
 
 		r.PostFunc("/login", controllers.Login).Name("login")

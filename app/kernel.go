@@ -90,7 +90,7 @@ var Kernel = kernel.New(
 			return fmt.Errorf("no user with the username %s", username)
 		}
 
-		token, err := auth.GenerateToken(user.ID, auth.WithScope(auth.ScopeAdmin, auth.ScopeImage))
+		token, err := auth.GenerateToken(ctx, user.ID, auth.WithScope(auth.ScopeAdmin, auth.ScopeImage))
 		if err != nil {
 			return err
 		}

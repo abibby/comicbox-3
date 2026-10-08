@@ -36,8 +36,6 @@ func init() {
 var Kernel = kernel.New(
 	kernel.Config(config.Load),
 	kernel.Bootstrap(
-		config.Init,
-
 		kernel.Register(func(ctx context.Context, c *config.Config) {
 			salusadb.Register(ctx, c.DBConfig(), migrations.Use())
 			clog.Register(ctx, c.LoggerConfig())
@@ -47,7 +45,7 @@ var Kernel = kernel.New(
 			event.Register(ctx)
 			openapidocdi.Register(ctx)
 			providers.Register(ctx)
-			providers.RegisterFileSystems(ctx, config.LibraryPath, config.CachePath)
+			providers.RegisterFileSystems(ctx, c.LibraryPath, c.CachePath)
 		}),
 
 		events.InitSync,

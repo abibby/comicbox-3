@@ -21,15 +21,20 @@ func (s *SyncEvent) Type() event.EventType {
 }
 
 func InitSync(ctx context.Context) error {
-	if config.ScanInterval != "" {
+	cfg, err := di.Resolve[*config.Config](ctx)
+	if err != nil {
+		return err
+	}
+
+	if cfg.ScanInterval != "" {
 		cronService, err := di.Resolve[*cron.CronService](ctx)
 		if err != nil {
 			return err
 		}
-		cronService.Schedule(config.ScanInterval, &SyncEvent{})
+		cronService.Schedule(cfg.ScanInterval, &SyncEvent{})
 	}
 
-	if config.ScanOnStartup {
+	if cfg.ScanOnStartup {
 		dispatch, err := di.Resolve[event.Dispatch](ctx)
 		if err != nil {
 			return err

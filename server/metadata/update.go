@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	salusadb "gosalusa.com/database"
@@ -102,7 +101,7 @@ func ApplyMetadata(ctx context.Context, fsys fs.FS, tx salusadb.DB, series *mode
 	if err != nil {
 		return fmt.Errorf("AnilistMetaProvider.UpdateMetadata: downloading cover: %w", err)
 	}
-	series.CoverImage = strings.Replace(coverPath, config.LibraryPath, "", 1)
+	series.CoverImage = coverPath
 
 	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 

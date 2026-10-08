@@ -5,10 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
-
-	"github.com/abibby/comicbox-3/config"
 )
 
 type ErrorResponse struct {
@@ -59,10 +58,8 @@ func sendError(rw http.ResponseWriter, err error) bool {
 	if err == nil {
 		return false
 	}
-	if config.Verbose {
-		fmt.Printf("%+v\n", err)
-		debug.PrintStack()
-	}
+
+	slog.Debug("request error", "error", err, "stack", string(debug.Stack()))
 
 	rw.Header().Add("Content-Type", "application/json")
 	if err, ok := err.(Sender); ok {

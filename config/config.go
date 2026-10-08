@@ -1,16 +1,12 @@
 package config
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/go-kit/kit/log"
 	"github.com/joho/godotenv"
 	"gosalusa.com/clog"
 	"gosalusa.com/clog/loki"
@@ -51,51 +47,36 @@ func envInt(key string, def int) int {
 
 var (
 	AppKey              []byte
-	BaseURL             string
-	DBPath              string
-	CachePath           string
-	LibraryPath         string
-	Port                int
-	Verbose             bool
 	PublicUserCreate    bool
 	AnilistClientID     string
 	AnilistClientSecret string
-	ScanOnStartup       bool
-	ScanInterval        string
-	Logger              string
-	LokiURL             string
-	LokiTenantID        string
-	FilePath            string
 	ComicVineAPIKey     string
 )
 
 var PublicConfig map[string]any
 
-func Init(ctx context.Context) error {
-	err := godotenv.Load("./.env")
-	if errors.Is(err, fs.ErrNotExist) {
-	} else if err != nil {
-		return err
-	}
+type Config struct {
+	BaseURL       string
+	DBPath        string
+	Port          int
+	ScanOnStartup bool
+	ScanInterval  string
+	CachePath     string
+	LibraryPath   string
+	Logger        string
+	LokiURL       string
+	LokiTenantID  string
+	Verbose       bool
+}
+
+func Load() *Config {
+	_ = godotenv.Load("./.env")
+
 	AppKey = []byte(mustEnv("APP_KEY"))
-	BaseURL = env("BASE_URL", "")
-	DBPath = env("DB_PATH", "./db.sqlite")
-	CachePath = env("CACHE_PATH", "./cache")
-	FilePath = env("FILE_PATH", "./files")
-	LibraryPath = mustEnv("LIBRARY_PATH")
-	Port = envInt("PORT", 8080)
 	PublicUserCreate = envBool("PUBLIC_USER_CREATE", true)
-	ScanOnStartup = envBool("SCAN_ON_STARTUP", true)
-	ScanInterval = env("SCAN_INTERVAL", "0 * * * *")
 
 	AnilistClientID = env("ANILIST_CLIENT_ID", "")
 	AnilistClientSecret = env("ANILIST_CLIENT_SECRET", "")
-
-	Verbose = envBool("VERBOSE", false)
-
-	Logger = env("LOGGER", "")
-	LokiURL = env("LOKI_URL", "")
-	LokiTenantID = env("LOKI_TENANT_ID", "comicbox-3")
 
 	PublicConfig = map[string]any{
 		"ANILIST_CLIENT_ID":  AnilistClientID,
@@ -104,37 +85,33 @@ func Init(ctx context.Context) error {
 
 	ComicVineAPIKey = env("COMIC_VINE_API_KEY", "")
 
-	return nil
-}
-
-func Load() *Config {
-	return &Config{}
-}
-
-type Config struct{}
-
-type localLogger struct{ logger *slog.Logger }
-
-var _ log.Logger = (*localLogger)(nil)
-
-// Log implements log.Logger.
-func (l *localLogger) Log(keyvals ...any) error {
-	l.logger.Log(context.Background(), slog.LevelInfo, "", keyvals...)
-	return nil
+	return &Config{
+		BaseURL:       env("BASE_URL", ""),
+		DBPath:        env("DB_PATH", "./db.sqlite"),
+		Port:          envInt("PORT", 8080),
+		ScanOnStartup: envBool("SCAN_ON_STARTUP", true),
+		ScanInterval:  env("SCAN_INTERVAL", "0 * * * *"),
+		CachePath:     env("CACHE_PATH", "./cache"),
+		LibraryPath:   mustEnv("LIBRARY_PATH"),
+		LokiURL:       env("LOKI_URL", ""),
+		LokiTenantID:  env("LOKI_TENANT_ID", "comicbox-3"),
+		Verbose:       envBool("VERBOSE", false),
+		Logger:        env("LOGGER", ""),
+	}
 }
 
 // LoggerConfig implements Config.
 func (c *Config) LoggerConfig() clog.Config {
 	level := slog.LevelInfo
-	if Verbose {
+	if c.Verbose {
 		level = slog.LevelDebug - 4
 	}
-	switch Logger {
+	switch c.Logger {
 	case "loki":
 		fmt.Println("using loki logging")
 		return &loki.Config{
-			URL:      LokiURL,
-			TenantID: LokiTenantID,
+			URL:      c.LokiURL,
+			TenantID: c.LokiTenantID,
 			Level:    level,
 		}
 	default:
@@ -153,16 +130,16 @@ func (c *CustomSQLiteConfig) DriverName() string {
 // DBConfig implements Config.
 func (c *Config) DBConfig() database.Config {
 	return &CustomSQLiteConfig{
-		Config: *sqlite.NewConfig(DBPath),
+		Config: *sqlite.NewConfig(c.DBPath),
 	}
 }
 
 // GetBaseURL implements Config.
 func (c *Config) GetBaseURL() string {
-	return BaseURL
+	return c.BaseURL
 }
 
 // GetHTTPPort implements Config.
 func (c *Config) GetHTTPPort() int {
-	return Port
+	return c.Port
 }

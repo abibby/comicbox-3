@@ -106,6 +106,18 @@ func generateTsInterfaceProps(t reflect.Type) string {
 }
 
 func generateTsType(t reflect.Type, allowNull bool) string {
+	if strings.HasPrefix(t.Name(), "Option[") {
+		n, ok := t.FieldByName("null")
+		if !ok {
+			panic("invalid type")
+		}
+		v, ok := n.Type.FieldByName("V")
+		if !ok {
+			panic("invalid type")
+		}
+
+		return generateTsType(v.Type, false) + " | null"
+	}
 	tsType, ok := types[t.Name()]
 	if ok {
 		return tsType

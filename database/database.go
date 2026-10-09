@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/di"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/clog"
+	"gosalusa.com/di"
 )
 
 var database *sqlx.DB

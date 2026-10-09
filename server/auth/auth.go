@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/abibby/salusa/auth"
-	"github.com/abibby/salusa/clog"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"gosalusa.com/auth"
+	"gosalusa.com/clog"
 )
 
 type Claims struct {

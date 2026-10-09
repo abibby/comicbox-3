@@ -3,9 +3,9 @@ package models
 import (
 	"context"
 
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
 	"github.com/google/uuid"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
 )
 
 //go:generate spice generate:migration

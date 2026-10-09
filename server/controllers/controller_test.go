@@ -10,7 +10,7 @@ import (
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	salusaauth "github.com/abibby/salusa/auth"
+	salusaauth "gosalusa.com/auth"
 )
 
 type Request struct {

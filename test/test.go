@@ -10,16 +10,16 @@ import (
 	"github.com/abibby/comicbox-3/database/migrations"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/dbtest"
-	"github.com/abibby/salusa/database/dialects/sqlite"
-	"github.com/abibby/salusa/di"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database/dbtest"
+	"gosalusa.com/database/dialects/sqlite"
+	"gosalusa.com/di"
 )
 
 var r = dbtest.NewRunner(func() (*sqlx.DB, error) {
 	ctx := context.Background()
-	err := bootstrap.SetupDatabase()(ctx)
+	err := bootstrap.SetupDatabase(ctx)
 	if err != nil {
 		return nil, err
 	}

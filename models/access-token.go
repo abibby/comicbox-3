@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/abibby/comicbox-3/app/providers"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model/modeldi"
 	"github.com/google/uuid"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model/modeldi"
 )
 
 //go:generate spice generate:migration

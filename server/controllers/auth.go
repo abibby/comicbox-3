@@ -14,15 +14,16 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/openapidoc"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
 	"github.com/go-openapi/spec"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
 )
 
 type LoginRequest struct {
@@ -71,7 +72,7 @@ func Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := generateLoginResponse(u)
+	resp, err := generateLoginResponse(r.Context(), u)
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -103,7 +104,7 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := generateLoginResponse(u)
+	resp, err := generateLoginResponse(r.Context(), u)
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -112,13 +113,13 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 	sendJSON(rw, resp)
 }
 
-func generateLoginResponse(u *models.User) (*LoginResponse, error) {
+func generateLoginResponse(ctx context.Context, u *models.User) (*LoginResponse, error) {
 	role, ok := u.Role.Value()
 	if !ok {
 		return nil, fmt.Errorf("generateLoginResponse: role must be loaded on the user")
 	}
 
-	token, err := auth.GenerateToken(
+	token, err := auth.GenerateToken(ctx,
 		u.ID,
 		auth.WithScope(role.Scopes...),
 	)
@@ -126,12 +127,12 @@ func generateLoginResponse(u *models.User) (*LoginResponse, error) {
 		return nil, err
 	}
 
-	imageToken, err := auth.GenerateToken(u.ID, auth.WithScope(auth.ScopeImage))
+	imageToken, err := auth.GenerateToken(ctx, u.ID, auth.WithScope(auth.ScopeImage))
 	if err != nil {
 		return nil, err
 	}
 
-	refreshToken, err := auth.GenerateToken(u.ID, auth.WithScope(auth.ScopeRefresh), auth.WithLifetime(time.Hour*24*30))
+	refreshToken, err := auth.GenerateToken(ctx, u.ID, auth.WithScope(auth.ScopeRefresh), auth.WithLifetime(time.Hour*24*30))
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ type UserCreateTokenResponse struct {
 }
 
 var UserCreateToken = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-	token, err := auth.GenerateToken(uuid.UUID{}, auth.CreatesUser(uuid.New()))
+	token, err := auth.GenerateToken(r.Context(), uuid.UUID{}, auth.CreatesUser(uuid.New()))
 	if err != nil {
 		sendError(rw, err)
 		return
@@ -266,15 +267,19 @@ func attachUser(r *http.Request) *http.Request {
 	if tokenStr == "" {
 		return r
 	}
-
+	cfg, err := di.Resolve[*config.Config](r.Context())
+	if err != nil {
+		slog.Error("Config not registered", "err", err)
+		return r
+	}
 	claims := &auth.Claims{}
-	_, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+	_, err = jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return config.AppKey, nil
+		return cfg.AppKey, nil
 	})
 	if err != nil {
 		slog.Error("failed to parse JWT", "err", err)

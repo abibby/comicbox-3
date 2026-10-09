@@ -6,12 +6,12 @@ import (
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"gosalusa.com/database/model"
+	"gosalusa.com/database/model/mixins"
+	"gosalusa.com/request"
 )
 
 type UserBookUpdateRequest struct {

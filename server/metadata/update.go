@@ -5,30 +5,30 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/extra/sets"
-	"github.com/abibby/salusa/kernel"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/di"
+	"gosalusa.com/extra/sets"
+	"gosalusa.com/kernel"
+	"gosalusa.com/option"
+	"gosalusa.com/wfs"
 )
 
-func Update(ctx context.Context, tx salusadb.DB, provider MetaProvider, series *models.Series) error {
+func Update(ctx context.Context, fsys fs.FS, tx salusadb.DB, provider MetaProvider, series *models.Series) error {
 	bestMatch, err := GetBestMatch(ctx, provider, series)
 	if err != nil {
 		return err
 	}
 
-	return ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+	return ApplyMetadata(ctx, fsys, tx, series, &bestMatch.SeriesMetadata)
 }
 
 func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Series) (*DistanceMetadata, error) {
@@ -57,7 +57,7 @@ func GetBestMatch(ctx context.Context, provider MetaProvider, series *models.Ser
 	return bestMatch, nil
 }
 
-func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, metadata *SeriesMetadata) error {
+func ApplyMetadata(ctx context.Context, fsys fs.FS, tx salusadb.DB, series *models.Series, metadata *SeriesMetadata) error {
 	if series.Directory == "" {
 		return fmt.Errorf("series directory is not set for %s", series.Slug)
 	}
@@ -94,21 +94,21 @@ func ApplyMetadata(ctx context.Context, tx salusadb.DB, series *models.Series, m
 
 	if metadata.Year != 0 && !lockedFields.Has("year") {
 		series.UpdateField("year")
-		series.Year = nulls.NewInt(metadata.Year)
+		series.Year = option.Some(metadata.Year)
 	}
 
-	coverPath, err := downloadFile(ctx, metadata.CoverImageURL, path.Join(series.DirectoryPath(), ".comicbox/cover"))
+	coverPath, err := downloadFile(ctx, fsys, metadata.CoverImageURL, path.Join(series.Directory, ".comicbox/cover"))
 	if err != nil {
 		return fmt.Errorf("AnilistMetaProvider.UpdateMetadata: downloading cover: %w", err)
 	}
-	series.CoverImage = strings.Replace(coverPath, config.LibraryPath, "", 1)
+	series.CoverImage = coverPath
 
 	series.MetadataUpdatedAt = database.TimePtr(time.Now())
 
 	return nil
 }
 
-func downloadFile(ctx context.Context, url, filePath string) (string, error) {
+func downloadFile(ctx context.Context, fsys fs.FS, url, filePath string) (string, error) {
 	client := http.DefaultClient
 
 	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
@@ -150,7 +150,7 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	ext := exts[len(exts)-1]
 
 	dir := path.Dir(filePath)
-	err = os.MkdirAll(dir, 0777)
+	err = wfs.Mkdir(fsys, dir)
 	if err != nil {
 		return "", fmt.Errorf("failed to create directory: %w", err)
 	}
@@ -158,10 +158,11 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 	fullPath := filePath + ext
 	downloadPath := fullPath + ".downloading"
 
-	f, err := os.OpenFile(downloadPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := wfs.OpenFile(fsys, downloadPath, wfs.O_CREATE|wfs.O_TRUNC|wfs.O_WRONLY)
 	if err != nil {
 		return "", fmt.Errorf("failed to open file: %w", err)
 	}
+	defer f.Close()
 
 	_, err = f.Write(buff[:n])
 	if err != nil {
@@ -173,7 +174,7 @@ func downloadFile(ctx context.Context, url, filePath string) (string, error) {
 		return "", fmt.Errorf("failed to write file: %w", err)
 	}
 
-	err = os.Rename(downloadPath, fullPath)
+	err = wfs.Rename(fsys, downloadPath, fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to rename file: %w", err)
 	}

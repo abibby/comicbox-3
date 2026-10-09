@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/abibby/comicbox-3/app/deps"
-	"github.com/abibby/salusa/router"
+	"gosalusa.com/router"
 )
 
 func URL(ctx context.Context, name string, pairs ...string) (string, error) {

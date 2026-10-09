@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/abibby/comicbox-3/database"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/request"
 )
 
 //go:generate spice generate:migration

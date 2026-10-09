@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database/builder"
+	"gosalusa.com/database/builder"
 )
 
 var UserScoped = &builder.Scope{

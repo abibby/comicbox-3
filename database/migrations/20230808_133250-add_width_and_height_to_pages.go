@@ -7,10 +7,10 @@ import (
 	"log"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/migrate"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/schema"
+	"gosalusa.com/database"
+	"gosalusa.com/database/migrate"
+	"gosalusa.com/database/model"
+	"gosalusa.com/database/schema"
 )
 
 func init() {
@@ -39,7 +39,7 @@ func init() {
 						continue
 					}
 
-					imgs := models.ZippedImages(reader)
+					imgs := models.ZippedImages(&reader.Reader)
 					for i, p := range book.Pages {
 						if i < len(imgs) {
 							img := imgs[i]

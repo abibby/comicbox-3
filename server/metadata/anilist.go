@@ -8,7 +8,7 @@ import (
 	htmltomarkdown "github.com/JohannesKaufmann/html-to-markdown/v2"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/anilist"
-	"github.com/abibby/salusa/extra/sets"
+	"gosalusa.com/extra/sets"
 )
 
 type AnilistMetaProvider struct {

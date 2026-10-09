@@ -3,19 +3,18 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/request"
 )
 
 type UserListRequest struct {
@@ -55,20 +54,15 @@ var RoleList = request.Handler(func(r *RoleListRequest) ([]*models.Role, error) 
 type UserCreateRequest struct {
 	Username string `json:"username" validate:"require"`
 	Password string `json:"password" validate:"require"`
+
+	Ctx context.Context `inject:""`
+	Cfg *config.Config  `inject:""`
 }
 
-func UserCreate(rw http.ResponseWriter, r *http.Request) {
-	claims, ok := auth.GetClaims(r.Context())
-	if !ok && !config.PublicUserCreate {
-		sendError(rw, ErrUnauthorized)
-		return
-	}
-
-	req := &UserCreateRequest{}
-	err := validate.Run(r, req)
-	if err != nil {
-		sendError(rw, err)
-		return
+var UserCreate = request.Handler(func(req *UserCreateRequest) (*models.User, error) {
+	claims, ok := auth.GetClaims(req.Ctx)
+	if !ok && !req.Cfg.PublicUserCreate {
+		return nil, ErrUnauthorized
 	}
 
 	var id uuid.UUID
@@ -84,9 +78,9 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 		Password: []byte(req.Password),
 		RoleID:   models.RoleReaderID,
 	}
-	err = database.UpdateTx(r.Context(), func(tx *sqlx.Tx) error {
+	err := database.UpdateTx(req.Ctx, func(tx *sqlx.Tx) error {
 		count := 0
-		err = models.UserQuery(r.Context()).
+		err := models.UserQuery(req.Ctx).
 			SelectFunction("count", "*").
 			Where("username", "=", u.Username).
 			OrWhere("id", "=", u.ID).
@@ -98,15 +92,14 @@ func UserCreate(rw http.ResponseWriter, r *http.Request) {
 			return validate.NewValidationError().
 				Push("username", []error{fmt.Errorf("username is already in use")})
 		}
-		return model.SaveContext(r.Context(), tx, u)
+		return model.SaveContext(req.Ctx, tx, u)
 	})
 	if err != nil {
-		sendError(rw, err)
-		return
+		return nil, err
 	}
 
-	sendJSON(rw, u)
-}
+	return u, nil
+})
 
 type UserCurrentRequest struct {
 	Ctx context.Context `inject:""`

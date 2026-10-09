@@ -8,10 +8,10 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/controllers"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
 )
 
 var KOReaderAuth = router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {

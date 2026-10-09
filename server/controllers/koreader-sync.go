@@ -8,9 +8,9 @@ import (
 	"strconv"
 
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/request"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	"gosalusa.com/request"
 )
 
 // https://github.com/koreader/koreader/blob/master/plugins/kosync.koplugin/api.json#L6

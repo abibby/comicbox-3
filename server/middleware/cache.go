@@ -5,33 +5,39 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
 	"path"
 
-	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/router"
+	"gosalusa.com/di"
+	"gosalusa.com/router"
+	"gosalusa.com/wfs"
 )
 
 type cachedResponseWriter struct {
 	cachePath  string
-	cacheFile  *os.File
+	cacheFile  wfs.File
 	statusCode int
 	rw         http.ResponseWriter
 	logger     *slog.Logger
+	fsys       fs.FS
+}
+type deps struct {
+	Logger *slog.Logger `inject:""`
+	FS     fs.FS        `inject:"cache"`
 }
 
 var _ http.ResponseWriter = &cachedResponseWriter{}
 
-func newCachedResponseWriter(ctx context.Context, rw http.ResponseWriter, path string) *cachedResponseWriter {
+func newCachedResponseWriter(ctx context.Context, d *deps, rw http.ResponseWriter, path string) *cachedResponseWriter {
 	return &cachedResponseWriter{
 		cachePath:  path,
 		statusCode: 200,
 		rw:         rw,
-		logger:     clog.Use(ctx),
+		logger:     d.Logger,
+		fsys:       d.FS,
 	}
 }
 
@@ -61,7 +67,7 @@ func (rw *cachedResponseWriter) fileWrite(b []byte) (int, error) {
 func (rw *cachedResponseWriter) cachePathTmp() string {
 	return rw.cachePath + ".tmp"
 }
-func (rw *cachedResponseWriter) file() (*os.File, error) {
+func (rw *cachedResponseWriter) file() (wfs.File, error) {
 	if rw.cacheFile != nil {
 		return rw.cacheFile, nil
 	}
@@ -70,11 +76,11 @@ func (rw *cachedResponseWriter) file() (*os.File, error) {
 		return nil, fmt.Errorf("non 200 status: %d", rw.statusCode)
 	}
 
-	err := os.MkdirAll(path.Dir(rw.cachePath), 0777)
+	err := wfs.Mkdir(rw.fsys, path.Dir(rw.cachePath))
 	if err != nil {
 		return nil, err
 	}
-	cacheFile, err := os.OpenFile(rw.cachePathTmp(), os.O_CREATE|os.O_RDWR, 0644)
+	cacheFile, err := wfs.OpenFile(rw.fsys, rw.cachePathTmp(), wfs.O_CREATE|wfs.O_RDWR)
 	if err != nil {
 		return nil, err
 	}
@@ -85,35 +91,48 @@ func (rw *cachedResponseWriter) file() (*os.File, error) {
 }
 
 func (rw *cachedResponseWriter) Close() error {
+	var fileCloseErr error
 	if rw.cacheFile != nil {
-		return rw.cacheFile.Close()
+		fileCloseErr = rw.cacheFile.Close()
 	}
 
-	return os.Rename(rw.cachePathTmp(), rw.cachePath)
+	return errors.Join(fileCloseErr, wfs.Rename(rw.fsys, rw.cachePathTmp(), rw.cachePath))
+}
+
+type cacheMiddleware struct {
+	di.Uses[*deps]
 }
 
 func CacheMiddleware() router.Middleware {
-	return router.InlineMiddlewareFunc(func(w http.ResponseWriter, r *http.Request, next http.Handler) {
-		cachePath := path.Join(config.CachePath, r.URL.Path)
-		err := serveFromCache(w, cachePath)
+	return &cacheMiddleware{}
+}
+
+// Middleware implements [router.Middleware].
+func (c *cacheMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d, err := di.Resolve[*deps](r.Context())
+		if err != nil {
+			return
+		}
+		cachePath := r.URL.Path[1:]
+		err = serveFromCache(r.Context(), d, w, cachePath)
 		if err == nil {
 			return
 		}
 		if !errors.Is(err, os.ErrNotExist) {
-			log.Print(err)
+			d.Logger.Warn("failed to serve cached response", "path", r.URL, "error", err)
 			return
 		}
 
-		cacheRW := newCachedResponseWriter(r.Context(), w, cachePath)
+		cacheRW := newCachedResponseWriter(r.Context(), d, w, cachePath)
 		defer cacheRW.Close()
 
 		next.ServeHTTP(cacheRW, r)
 	})
 }
 
-func serveFromCache(rw http.ResponseWriter, cachePath string) error {
-
-	f, err := os.Open(cachePath)
+func serveFromCache(ctx context.Context, d *deps, rw http.ResponseWriter, cachePath string) error {
+	f, err := d.FS.Open(cachePath)
 	if err != nil {
 		return err
 	}

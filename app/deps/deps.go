@@ -1,5 +1,5 @@
 package deps
 
-import "github.com/abibby/salusa/di"
+import "gosalusa.com/di"
 
 var Provider = di.NewDependencyProvider()

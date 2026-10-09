@@ -15,18 +15,18 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/clog"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/databasedi"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/event/cron"
-	"github.com/abibby/salusa/kernel"
-	"github.com/abibby/salusa/openapidoc"
-	"github.com/abibby/salusa/openapidoc/openapidocdi"
-	"github.com/abibby/salusa/request"
 	"github.com/go-openapi/spec"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/clog"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/di"
+	"gosalusa.com/event"
+	"gosalusa.com/event/cron"
+	"gosalusa.com/kernel"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/openapidoc/openapidocdi"
+	"gosalusa.com/pubsub/channelpubsub"
+	"gosalusa.com/request"
 )
 
 func init() {
@@ -36,20 +36,21 @@ func init() {
 var Kernel = kernel.New(
 	kernel.Config(config.Load),
 	kernel.Bootstrap(
-		config.Init,
+		kernel.Register(func(ctx context.Context, c *config.Config) {
+			salusadb.Register(ctx, c.DBConfig(), migrations.Use())
+			clog.Register(ctx, c.LoggerConfig())
+			channelpubsub.Register(ctx)
 
-		bootstrap.SetupDatabase(),
+			request.Register(ctx)
+			event.Register(ctx)
+			openapidocdi.Register(ctx)
+			providers.Register(ctx)
+			providers.RegisterFileSystems(ctx, c.LibraryPath, c.CachePath)
+		}),
 
-		clog.Register,
-		request.Register,
-		databasedi.RegisterFromConfig(migrations.Use()),
-		databasedi.RegisterTransactions(nil),
-		event.RegisterChannelQueue,
-		openapidocdi.Register,
-
+		events.InitSync,
+		bootstrap.SetupDatabase,
 		database.Init,
-		events.RegisterSync,
-		providers.Register,
 	),
 	kernel.APIDocumentation(
 		openapidoc.Info(spec.InfoProps{
@@ -89,7 +90,7 @@ var Kernel = kernel.New(
 			return fmt.Errorf("no user with the username %s", username)
 		}
 
-		token, err := auth.GenerateToken(user.ID, auth.WithScope(auth.ScopeAdmin, auth.ScopeImage))
+		token, err := auth.GenerateToken(ctx, user.ID, auth.WithScope(auth.ScopeAdmin, auth.ScopeImage))
 		if err != nil {
 			return err
 		}

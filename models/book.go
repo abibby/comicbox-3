@@ -4,20 +4,21 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	"path"
+	"io"
+	"io/fs"
 	"sort"
 	"strings"
 
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/server/router"
-	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/clog"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/hooks"
-	"github.com/abibby/salusa/database/jsoncolumn"
-	"github.com/abibby/salusa/database/model"
 	"github.com/google/uuid"
+	"gosalusa.com/clog"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
+	"gosalusa.com/database/jsoncolumn"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/option"
 )
 
 var (
@@ -60,8 +61,8 @@ type Book struct {
 	BaseModel
 	ID           uuid.UUID                `json:"id"            db:"id,primary"`
 	Title        string                   `json:"title"         db:"title"`
-	Chapter      *nulls.Float64           `json:"chapter"       db:"chapter"`
-	Volume       *nulls.Float64           `json:"volume"        db:"volume"`
+	Chapter      option.Option[float64]   `json:"chapter"       db:"chapter"`
+	Volume       option.Option[float64]   `json:"volume"        db:"volume"`
 	SeriesSlug   string                   `json:"series_slug"   db:"series"`
 	Authors      jsoncolumn.Slice[string] `json:"authors"       db:"authors,type:json"`
 	Pages        jsoncolumn.Slice[*Page]  `json:"pages"         db:"pages"`
@@ -97,7 +98,11 @@ func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 	}
 
 	if b.DownloadSize == 0 {
-		size, err := b.calculateDownloadSize()
+		fsys, err := di.Resolve[fs.FS](ctx)
+		if err != nil {
+			return err
+		}
+		size, err := b.calculateDownloadSize(fsys)
 		if err != nil {
 			clog.Use(ctx).Warn("failed to calculate download size", "err", err)
 		} else {
@@ -114,16 +119,13 @@ func (b *Book) BeforeSave(ctx context.Context, tx salusadb.DB) error {
 
 	b.PageCount = len(b.Pages)
 
-	volume := float64(999_999_999.999)
-	if !b.Volume.IsNull() {
-		volume = b.Volume.Float64()
-	}
+	volume := b.Volume.OrElse(999_999_999.999)
 
 	b.Sort = fmt.Sprintf(
 		"%s|%013.3f|%013.3f|%s",
 		b.SeriesSlug,
 		volume,
-		b.Chapter.Float64(),
+		b.Chapter.OrElse(0),
 		b.Title,
 	)
 
@@ -172,11 +174,12 @@ func (b *Book) updateUserSeries(ctx context.Context, tx salusadb.DB) error {
 	return nil
 }
 
-func (b *Book) calculateDownloadSize() (int, error) {
-	reader, err := zip.OpenReader(b.FilePath())
+func (b *Book) calculateDownloadSize(fsys fs.FS) (int, error) {
+	reader, zf, err := b.OpenZipReader(fsys)
 	if err != nil {
 		return 0, err
 	}
+	defer zf.Close()
 
 	imgs := ZippedImages(reader)
 
@@ -211,11 +214,11 @@ func (b *Book) FullTitle(s *Series) string {
 		sb.WriteString(b.SeriesSlug)
 	}
 
-	if v, ok := b.Volume.Ok(); ok && v != 0 {
+	if v := b.Volume.OrElse(0); v != 0 {
 		fmt.Fprintf(sb, " V%v", v)
 	}
-	if ch, ok := b.Chapter.Ok(); ok && ch != 0 {
-		fmt.Fprintf(sb, " #%v", ch)
+	if c := b.Chapter.OrElse(0); c != 0 {
+		fmt.Fprintf(sb, " #%v", c)
 	}
 
 	if b.Title != "" {
@@ -243,11 +246,7 @@ func (b *Book) CoverPage() int {
 	return fallback
 }
 
-func (b *Book) FilePath() string {
-	return path.Join(config.LibraryPath, b.File)
-}
-
-func ZippedImages(reader *zip.ReadCloser) []*zip.File {
+func ZippedImages(reader *zip.Reader) []*zip.File {
 	sort.Slice(reader.File, func(i, j int) bool {
 		return strings.Compare(reader.File[i].Name, reader.File[j].Name) < 0
 	})
@@ -266,4 +265,22 @@ func ZippedImages(reader *zip.ReadCloser) []*zip.File {
 		}
 	}
 	return imageFiles
+}
+
+func (b *Book) OpenZipReader(fsys fs.FS) (*zip.Reader, io.Closer, error) {
+	zf, err := fsys.Open(b.File)
+	if err != nil {
+		return nil, nil, fmt.Errorf("open: %w", err)
+	}
+
+	stat, err := zf.Stat()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	reader, err := zip.NewReader(zf.(io.ReaderAt), stat.Size())
+	if err != nil {
+		return nil, nil, err
+	}
+	return reader, zf, nil
 }

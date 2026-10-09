@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/abibby/comicbox-3/services/atom"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/openapidoc"
 	"github.com/go-openapi/spec"
+	"gosalusa.com/clog"
+	"gosalusa.com/openapidoc"
 )
 
 type Stater interface {

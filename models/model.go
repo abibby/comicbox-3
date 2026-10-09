@@ -11,10 +11,10 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/validate"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/hooks"
-	"github.com/abibby/salusa/database/model"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
+	"gosalusa.com/database/model"
 )
 
 type BaseModel struct {

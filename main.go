@@ -6,8 +6,8 @@ import (
 
 	"github.com/abibby/comicbox-3/app"
 	"github.com/abibby/comicbox-3/app/deps"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/di"
+	"gosalusa.com/clog"
+	"gosalusa.com/di"
 )
 
 func main() {

@@ -12,7 +12,7 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/metadata"
-	"github.com/abibby/salusa/database/builder"
+	"gosalusa.com/database/builder"
 )
 
 var types = map[string]string{
@@ -106,6 +106,18 @@ func generateTsInterfaceProps(t reflect.Type) string {
 }
 
 func generateTsType(t reflect.Type, allowNull bool) string {
+	if strings.HasPrefix(t.Name(), "Option[") {
+		n, ok := t.FieldByName("null")
+		if !ok {
+			panic("invalid type")
+		}
+		v, ok := n.Type.FieldByName("V")
+		if !ok {
+			panic("invalid type")
+		}
+
+		return generateTsType(v.Type, false) + " | null"
+	}
 	tsType, ok := types[t.Name()]
 	if ok {
 		return tsType

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/abibby/salusa/request"
+	"gosalusa.com/request"
 )
 
 type RumLoggingRequest struct {

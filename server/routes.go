@@ -11,11 +11,11 @@ import (
 	"github.com/abibby/comicbox-3/server/controllers"
 	"github.com/abibby/comicbox-3/server/middleware"
 	"github.com/abibby/comicbox-3/ui"
-	"github.com/abibby/salusa/clog"
-	"github.com/abibby/salusa/openapidoc"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
 	"github.com/gorilla/mux"
+	"gosalusa.com/clog"
+	"gosalusa.com/openapidoc"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
 )
 
 const randOpts = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -137,7 +137,7 @@ func InitRouter(r *router.Router) {
 			r.Delete("/{id}", controllers.AccessTokenDelete)
 		})
 
-		r.PostFunc("/users", controllers.UserCreate).Name("user.create")
+		r.Post("/users", controllers.UserCreate).Name("user.create")
 		r.Post("/users/password", controllers.ChangePassword).Name("user.change.password")
 
 		r.PostFunc("/login", controllers.Login).Name("login")

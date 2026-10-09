@@ -1,17 +1,23 @@
 package auth
 
 import (
+	"context"
 	"time"
 
 	"github.com/abibby/comicbox-3/config"
-	"github.com/abibby/salusa/auth"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"gosalusa.com/auth"
+	"gosalusa.com/di"
 )
 
 // https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-func GenerateToken(userID uuid.UUID, modifyClaims ...func(*Claims) *Claims) (string, error) {
-	return jwt.NewWithClaims(jwt.SigningMethodHS256, GenerateClaims(userID, modifyClaims...)).SignedString(config.AppKey)
+func GenerateToken(ctx context.Context, userID uuid.UUID, modifyClaims ...func(*Claims) *Claims) (string, error) {
+	cfg, err := di.Resolve[*config.Config](ctx)
+	if err != nil {
+		return "", err
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, GenerateClaims(userID, modifyClaims...)).SignedString(cfg.AppKey)
 }
 
 // https://www.iana.org/assignments/jwt/jwt.xhtml#claims

@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/database/model/mixins"
 	"github.com/jmoiron/sqlx"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/database/model/mixins"
+	"gosalusa.com/option"
 )
 
 type PaginatedRequest struct {
-	Page         *nulls.Int `query:"page"         validate:"min:1"`
-	PageSize     *nulls.Int `query:"page_size"    validate:"min:1|max:100"`
-	WithDeleted  bool       `query:"with_deleted" validate:"boolean"`
-	UpdatedAfter *time.Time `query:"updated_after"`
+	Page         option.Option[int] `query:"page"         validate:"min:1"`
+	PageSize     option.Option[int] `query:"page_size"    validate:"min:1|max:100"`
+	WithDeleted  bool               `query:"with_deleted" validate:"boolean"`
+	UpdatedAfter *time.Time         `query:"updated_after"`
 
 	Ctx  context.Context `inject:""`
 	Read salusadb.Read   `inject:""`

@@ -7,12 +7,12 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/models/factory"
 	"github.com/abibby/comicbox-3/test"
-	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/di"
-	"github.com/abibby/salusa/router"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/option"
+	"gosalusa.com/router"
 )
 
 func TestUserSeries_save(t *testing.T) {
@@ -30,8 +30,8 @@ func TestUserSeries_save(t *testing.T) {
 		books := factory.Book.State(func(b *models.Book) {
 			chapter++
 			b.SeriesSlug = seriesSlug
-			b.Chapter = nulls.NewFloat64(chapter)
-			b.Volume = nulls.NewFloat64(1)
+			b.Chapter = option.Some(chapter)
+			b.Volume = option.Some(1.0)
 			b.Pages = []*models.Page{{}, {}}
 			factory.UserBook.State(func(ub *models.UserBook) {
 				ub.BookID = b.ID

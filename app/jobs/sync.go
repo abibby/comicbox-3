@@ -8,7 +8,7 @@ import (
 	"image"
 	"io"
 	"io/fs"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,23 +20,23 @@ import (
 	"time"
 
 	"github.com/abibby/comicbox-3/app/events"
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/event"
-	"github.com/abibby/salusa/extra/sets"
-	"github.com/facebookgo/symwalk"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"gosalusa.com/database/model"
+	"gosalusa.com/event"
+	"gosalusa.com/extra/sets"
+	"gosalusa.com/option"
 )
 
 var syncMtx = &sync.Mutex{}
 
 type SyncHandler struct {
-	Queue event.Queue `inject:""`
+	Dispatch event.Dispatch `inject:""`
+	Log      *slog.Logger   `inject:""`
+	FS       fs.FS          `inject:""`
 
 	seriesCache map[string]*models.Series
 }
@@ -49,9 +49,9 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 
 	h.seriesCache = map[string]*models.Series{}
 
-	log.Print("Starting sync")
+	h.Log.Info("Starting sync")
 
-	bookFiles, err := getBookFiles(ctx, config.LibraryPath)
+	bookFiles, err := getBookFiles(ctx, h.FS)
 	if err != nil {
 		return errors.Wrap(err, "failed to fetch book files from disk")
 	}
@@ -71,9 +71,8 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 	removedFiles := []any{}
 
 	for _, file := range dbBookFiles {
-		fullPath := path.Join(config.LibraryPath, file)
-		if bookFiles.Has(fullPath) {
-			bookFiles.Delete(fullPath)
+		if bookFiles.Has(file) {
+			bookFiles.Delete(file)
 		} else {
 			removedFiles = append(removedFiles, file)
 		}
@@ -89,7 +88,7 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 		return nil
 	})
 	if err != nil {
-		log.Printf("Failed to remove books from the library: %v", err)
+		h.Log.Error("Failed to remove books from the library", "error", err)
 	}
 
 	count := 0
@@ -99,13 +98,13 @@ func (h *SyncHandler) Handle(ctx context.Context, event *events.SyncEvent) error
 			return h.addBook(ctx, tx, file)
 		})
 		if err != nil {
-			log.Printf("failed to add %s to the library: %v", file, err)
+			h.Log.Error("Failed to add book to the library", "file", file, "error", err)
 		} else {
-			log.Printf("Added %s to the library (%d of %d)", file, count, bookFiles.Len())
+			h.Log.Info(fmt.Sprintf("Added %s to the library (%d of %d)", file, count, bookFiles.Len()))
 		}
 	}
 
-	log.Print("Finished sync")
+	h.Log.Info("Finished sync")
 	return nil
 }
 
@@ -131,7 +130,7 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 				return nil, err
 			}
 
-			h.Queue.Push(&events.UpdateMetadataEvent{SeriesSlug: series.Slug})
+			h.Dispatch(ctx, &events.UpdateMetadataEvent{SeriesSlug: series.Slug})
 		}
 		h.seriesCache[name] = series
 	}
@@ -139,17 +138,16 @@ func (h *SyncHandler) createSeries(ctx context.Context, tx *sqlx.Tx, name string
 	return series, nil
 }
 
-func getBookFiles(ctx context.Context, libraryPath string) (sets.Set[string], error) {
+func getBookFiles(ctx context.Context, fsys fs.FS) (sets.Set[string], error) {
 	bookFiles := sets.New[string]()
 
-	err := symwalk.Walk(libraryPath, func(path string, info fs.FileInfo, err error) error {
+	err := fs.WalkDir(fsys, ".", func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-
 		if filepath.Ext(path) == ".cbz" {
 			bookFiles.Add(path)
 		}
@@ -188,12 +186,15 @@ func (h *SyncHandler) addBook(ctx context.Context, tx *sqlx.Tx, file string) err
 }
 
 func (h *SyncHandler) loadBookData(file string) (*models.Book, error) {
-	book := &models.Book{}
-
-	reader, err := zip.OpenReader(file)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not open zip file")
+	book := &models.Book{
+		File: file,
 	}
+
+	reader, zf, err := book.OpenZipReader(h.FS)
+	if err != nil {
+		return nil, fmt.Errorf("could not open zip file: %w", err)
+	}
+	defer zf.Close()
 
 	imgs := models.ZippedImages(reader)
 
@@ -218,7 +219,7 @@ func (h *SyncHandler) loadBookData(file string) (*models.Book, error) {
 		return nil, err
 	}
 
-	book.File = strings.Replace(file, config.LibraryPath, "", 1)
+	book.File = file
 	return book, nil
 }
 
@@ -273,11 +274,11 @@ func parseFileName(book *models.Book, path string) {
 
 	chapter, err := strconv.ParseFloat(result["chapter"], 64)
 	if err == nil {
-		book.Chapter = nulls.NewFloat64(chapter)
+		book.Chapter = option.Some(chapter)
 	}
 	volume, err := strconv.ParseFloat(result["volume"], 64)
 	if err == nil {
-		book.Volume = nulls.NewFloat64(volume)
+		book.Volume = option.Some(volume)
 	}
 	if result["title"] != "" {
 		book.Title = result["title"]
@@ -287,9 +288,9 @@ func parseFileName(book *models.Book, path string) {
 func parseBookJSON(book *models.Book, f fs.File) error {
 	type comboBook struct {
 		*models.Book
-		Series string         `json:"series"`
-		Author string         `json:"author"`
-		Number *nulls.Float64 `json:"number"`
+		Series string                 `json:"series"`
+		Author string                 `json:"author"`
+		Number option.Option[float64] `json:"number"`
 	}
 
 	b, err := fileBytes(f)
@@ -307,7 +308,7 @@ func parseBookJSON(book *models.Book, f fs.File) error {
 		tmpBook.Authors = []string{tmpBook.Author}
 	}
 
-	if tmpBook.Number != nil {
+	if tmpBook.Number.Valid() {
 		tmpBook.Chapter = tmpBook.Number
 	}
 

@@ -3,22 +3,26 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"reflect"
 
 	"github.com/abibby/comicbox-3/app/events"
+	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/metadata"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/event"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	"gosalusa.com/database/model"
+	"gosalusa.com/event"
 )
 
 type UpdateMetadataHandler struct {
 	DB     *sqlx.DB        `inject:""`
 	Update database.Update `inject:""`
 	Log    *slog.Logger    `inject:""`
+	FS     fs.FS           `inject:""`
+	Cfg    *config.Config  `inject:""`
 }
 
 var _ event.Handler[*events.UpdateMetadataEvent] = (*UpdateMetadataHandler)(nil)
@@ -28,7 +32,7 @@ func (u *UpdateMetadataHandler) Handle(ctx context.Context, event *events.Update
 	u.Log.Warn("Starting series metadata scan")
 	defer u.Log.Warn("Finished series metadata scan")
 
-	meta := metadata.MetaProviderFactory()
+	meta := metadata.MetaProviderFactory(u.Cfg)
 
 	q := models.SeriesQuery(ctx).Limit(50)
 	if event.SeriesSlug == "" {
@@ -88,7 +92,7 @@ func (u *UpdateMetadataHandler) updateSeries(ctx context.Context, meta metadata.
 			return nil
 		}
 
-		err = metadata.ApplyMetadata(ctx, tx, series, &bestMatch.SeriesMetadata)
+		err = metadata.ApplyMetadata(ctx, u.FS, tx, series, &bestMatch.SeriesMetadata)
 		if err != nil {
 			return fmt.Errorf("failed to update metadata: %w", err)
 		}

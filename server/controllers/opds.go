@@ -8,22 +8,22 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
-	goslices "slices"
 	"strings"
 	"time"
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/services/atom"
-	"github.com/abibby/salusa/database"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
-	"github.com/abibby/salusa/router"
-	"github.com/abibby/salusa/slices"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/request"
+	"gosalusa.com/router"
+	"gosalusa.com/stream"
 )
 
 const (
@@ -203,7 +203,7 @@ var OPDSUnread = request.Handler(func(r *OPDSUnreadRequest) (*OPDSHandler, error
 		return nil, err
 	}
 
-	books := slices.Map(series, func(s *models.Series) *atom.Entry {
+	books := stream.Of(series).Map(func(s *models.Series) *atom.Entry {
 		userSeries, ok := s.UserSeries.Value()
 		if !ok {
 			return nil
@@ -215,15 +215,11 @@ var OPDSUnread = request.Handler(func(r *OPDSUnreadRequest) (*OPDSHandler, error
 		}
 
 		return BookEntry(book, s, r.URL)
-	})
-
-	books = slices.Filter(books, func(i *atom.Entry) bool {
+	}).Filter(func(i *atom.Entry) bool {
 		return i != nil
-	})
-
-	goslices.SortFunc(books, func(a, b *atom.Entry) int {
+	}).Sort(func(a, b *atom.Entry) int {
 		return strings.Compare(string(b.Updated), string(a.Updated))
-	})
+	}).Slice()
 
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | unread",
@@ -254,13 +250,11 @@ var OPDSList = request.Handler(func(r *OPDSListRequest) (*OPDSHandler, error) {
 		return nil, err
 	}
 
-	seriesEntries := slices.Map(series, func(s *models.Series) *atom.Entry {
+	seriesEntries := stream.Of(series).Map(func(s *models.Series) *atom.Entry {
 		return SeriesEntry(s, r.URL)
-	})
-
-	goslices.SortFunc(seriesEntries, func(a, b *atom.Entry) int {
+	}).Sort(func(a, b *atom.Entry) int {
 		return strings.Compare(string(b.Updated), string(a.Updated))
-	})
+	}).Slice()
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | " + string(*r.List),
 		ID:      IDList + string(*r.List),
@@ -289,10 +283,10 @@ var OPDSSeries = request.Handler(func(r *OPDSSeriesRequest) (*OPDSHandler, error
 		return nil, err
 	}
 
-	seriesEntries := slices.Map(books, func(b *models.Book) *atom.Entry {
+	seriesEntries := stream.Of(books).Map(func(b *models.Book) *atom.Entry {
 		s, _ := b.Series.Value()
 		return BookEntry(b, s, r.URL)
-	})
+	}).Slice()
 
 	return NewOPDSHandler(&atom.Feed{
 		Title:   "ComicBox library | " + r.Slug,
@@ -308,6 +302,7 @@ type OPDSBookDownloadRequest struct {
 	Read   salusadb.Read   `inject:""`
 	Update salusadb.Update `inject:""`
 	Ctx    context.Context `inject:""`
+	FS     fs.FS           `inject:""`
 }
 
 var OPDSBookDownload = request.Handler(func(r *OPDSBookDownloadRequest) (*http.Response, error) {
@@ -326,7 +321,7 @@ var OPDSBookDownload = request.Handler(func(r *OPDSBookDownloadRequest) (*http.R
 
 	go func() {
 		md5Recorder := NewPartialMD5Recorder(pw)
-		err := buildCBZ(book, md5Recorder)
+		err := buildCBZ(r.FS, book, md5Recorder)
 		if err != nil {
 			pw.CloseWithError(err)
 		}
@@ -364,11 +359,12 @@ func OPDS404(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(404)
 }
 
-func buildCBZ(book *models.Book, w io.Writer) error {
-	reader, err := zip.OpenReader(book.FilePath())
+func buildCBZ(fsys fs.FS, book *models.Book, w io.Writer) error {
+	reader, zf, err := book.OpenZipReader(fsys)
 	if err != nil {
 		return err
 	}
+	defer zf.Close()
 
 	writer := zip.NewWriter(w)
 

@@ -9,11 +9,11 @@ import (
 
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
-	"github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database"
+	"gosalusa.com/database/model"
+	"gosalusa.com/request"
 )
 
 type AccessTokenIndexRequest struct {

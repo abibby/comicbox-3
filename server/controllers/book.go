@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"archive/zip"
 	"context"
+	"errors"
 	"fmt"
 	"image"
 	"io"
+	"io/fs"
 	"log/slog"
 	"math"
 	"net/http"
-	"os"
 	"time"
 
 	_ "image/gif"
@@ -20,27 +20,28 @@ import (
 
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/models"
-	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/model"
-	"github.com/abibby/salusa/request"
 	"github.com/go-openapi/spec"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/image/draw"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/model"
+	"gosalusa.com/option"
+	"gosalusa.com/request"
+	"gosalusa.com/wfs"
 )
 
 type BookIndexRequest struct {
 	PaginatedRequest
 
-	ID         *uuid.UUID    `query:"id"        validate:"uuid"`
-	SeriesSlug *nulls.String `query:"series_slug"`
-	List       *models.List  `query:"list"`
-	BeforeID   *uuid.UUID    `query:"before_id" validate:"uuid"`
-	AfterID    *uuid.UUID    `query:"after_id"  validate:"uuid"`
-	Order      *nulls.String `query:"order"     validate:"in:asc,desc"`
-	OrderBy    *nulls.String `query:"order_by"  validate:"in:default,created_at"`
-	WithSeries bool          `query:"with_series"`
+	ID         *uuid.UUID            `query:"id"        validate:"uuid"`
+	SeriesSlug option.Option[string] `query:"series_slug"`
+	List       *models.List          `query:"list"`
+	BeforeID   *uuid.UUID            `query:"before_id" validate:"uuid"`
+	AfterID    *uuid.UUID            `query:"after_id"  validate:"uuid"`
+	Order      option.Option[string] `query:"order"     validate:"in:asc,desc"`
+	OrderBy    option.Option[string] `query:"order_by"  validate:"in:default,created_at"`
+	WithSeries bool                  `query:"with_series"`
 }
 
 var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[*models.Book], error) {
@@ -54,7 +55,7 @@ var BookIndex = request.Handler(func(req *BookIndexRequest) (*PaginatedResponse[
 	}
 
 	orderColumn := "sort"
-	switch req.OrderBy.String() {
+	switch req.OrderBy.OrElse("") {
 	case "created_at":
 		orderColumn = "created_at"
 	}
@@ -111,10 +112,11 @@ type BookPageRequest struct {
 	Encode bool   `query:"encode"`
 
 	Ctx context.Context `inject:""`
+	FS  fs.FS           `inject:""`
 }
 
 var BookPage = request.Handler(func(r *BookPageRequest) (http.Handler, error) {
-	f, err := bookPageFile(r.Ctx, r.ID, r.Page)
+	f, err := bookPageFile(r.Ctx, r.FS, r.ID, r.Page)
 	if err != nil {
 		return nil, err
 	}
@@ -140,10 +142,11 @@ type BookThumbnailRequest struct {
 	BookPageRequest
 
 	Logger *slog.Logger `inject:""`
+	FS     fs.FS        `inject:""`
 }
 
 var BookThumbnail = request.Handler(func(r *BookThumbnailRequest) (*JpegHandler, error) {
-	f, err := bookPageFile(r.Ctx, r.ID, r.Page)
+	f, err := bookPageFile(r.Ctx, r.FS, r.ID, r.Page)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +190,7 @@ func cropImage(img image.Image, crop image.Rectangle) (image.Image, error) {
 	return simg.SubImage(crop), nil
 }
 
-func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, error) {
+func bookPageFile(ctx context.Context, fsys fs.FS, id string, page int) (io.ReadCloser, error) {
 	var book *models.Book
 	err := database.ReadTx(ctx, func(tx *sqlx.Tx) error {
 		var err error
@@ -201,7 +204,8 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	if book == nil {
 		return nil, Err404
 	}
-	reader, err := zip.OpenReader(book.FilePath())
+
+	reader, zf, err := book.OpenZipReader(fsys)
 	if err != nil {
 		return nil, err
 	}
@@ -215,19 +219,34 @@ func bookPageFile(ctx context.Context, id string, page int) (io.ReadCloser, erro
 	if err != nil {
 		return nil, err
 	}
-	return f, nil
+	return &ReadCloseExtender{
+		ReadCloser: f,
+		closer:     zf,
+	}, nil
+}
+
+type ReadCloseExtender struct {
+	io.ReadCloser
+	closer io.Closer
+}
+
+func (r *ReadCloseExtender) Close() error {
+	return errors.Join(
+		r.closer.Close(),
+		r.ReadCloser.Close(),
+	)
 }
 
 type BookUpdateRequest struct {
-	ID          string            `path:"id"          validate:"require|uuid"`
-	Title       string            `json:"title"`
-	SeriesSlug  string            `json:"series_slug" validate:"require"`
-	Volume      *nulls.Float64    `json:"volume"`
-	Chapter     *nulls.Float64    `json:"chapter"`
-	RightToLeft bool              `json:"rtl"        validate:"require"`
-	LongStrip   bool              `json:"long_strip" validate:"require"`
-	Pages       []PageUpdate      `json:"pages"      validate:"require"`
-	UpdateMap   map[string]string `json:"update_map" validate:"require"`
+	ID          string                 `path:"id"          validate:"require|uuid"`
+	Title       string                 `json:"title"`
+	SeriesSlug  string                 `json:"series_slug" validate:"require"`
+	Volume      option.Option[float64] `json:"volume"`
+	Chapter     option.Option[float64] `json:"chapter"`
+	RightToLeft bool                   `json:"rtl"        validate:"require"`
+	LongStrip   bool                   `json:"long_strip" validate:"require"`
+	Pages       []PageUpdate           `json:"pages"      validate:"require"`
+	UpdateMap   map[string]string      `json:"update_map" validate:"require"`
 
 	Ctx context.Context `inject:""`
 }
@@ -288,6 +307,7 @@ type BookDeleteRequest struct {
 	File bool   `json:"file"`
 
 	Ctx context.Context `inject:""`
+	FS  fs.FS           `inject:""`
 }
 type BookDeleteResponse struct {
 	Success bool `json:"success"`
@@ -309,7 +329,7 @@ var BookDelete = request.Handler(func(r *BookDeleteRequest) (*BookDeleteResponse
 		}
 
 		if r.File {
-			err = os.Remove(b.FilePath())
+			err = wfs.Remove(r.FS, b.File)
 			if err != nil {
 				return err
 			}

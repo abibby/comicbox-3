@@ -12,6 +12,8 @@ import (
 	"text/template"
 
 	"github.com/abibby/comicbox-3/config"
+	"gosalusa.com/clog"
+	"gosalusa.com/di"
 )
 
 type TemplateData struct {
@@ -31,8 +33,12 @@ func FileServerDefault(root fs.FS, basePath, fallbackPath string) http.Handler {
 			}
 
 			src := ""
-
-			for name, value := range config.PublicConfig {
+			cfg, err := di.Resolve[*config.Config](r.Context())
+			if err != nil {
+				clog.Use(r.Context()).Error("could not resolve config", "error", err)
+				return
+			}
+			for name, value := range cfg.PublicConfig() {
 				b, err := json.Marshal(value)
 				if err != nil {
 					log.Print(err)

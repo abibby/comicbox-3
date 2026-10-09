@@ -4,20 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"path"
 	"strconv"
 	"strings"
 
 	"github.com/abibby/comicbox-3/app/providers"
-	"github.com/abibby/comicbox-3/config"
 	"github.com/abibby/comicbox-3/database"
 	"github.com/abibby/comicbox-3/server/router"
-	"github.com/abibby/nulls"
-	salusadb "github.com/abibby/salusa/database"
-	"github.com/abibby/salusa/database/builder"
-	"github.com/abibby/salusa/database/hooks"
-	"github.com/abibby/salusa/database/jsoncolumn"
-	"github.com/abibby/salusa/database/model/modeldi"
+	salusadb "gosalusa.com/database"
+	"gosalusa.com/database/builder"
+	"gosalusa.com/database/hooks"
+	"gosalusa.com/database/jsoncolumn"
+	"gosalusa.com/database/model/modeldi"
+	"gosalusa.com/option"
 )
 
 //go:generate spice generate:migration
@@ -32,7 +30,7 @@ type Series struct {
 	Aliases           jsoncolumn.Slice[string] `json:"aliases"       db:"aliases"`
 	Genres            jsoncolumn.Slice[string] `json:"genres"        db:"genres"`
 	Tags              jsoncolumn.Slice[string] `json:"tags"          db:"tags"`
-	Year              *nulls.Int               `json:"year"          db:"year"`
+	Year              option.Option[int]       `json:"year"          db:"year"`
 	CoverImage        string                   `json:"-"             db:"cover_image_path"`
 	MetadataUpdatedAt *database.Time           `json:"-"             db:"metadata_updated_at"`
 	LockedFields      jsoncolumn.Slice[string] `json:"locked_fields" db:"locked_fields"`
@@ -101,12 +99,13 @@ func (s *Series) AfterLoad(ctx context.Context, tx salusadb.DB) error {
 	s.CoverURL = router.MustURL(ctx, "series.thumbnail", "slug", s.Slug)
 	return nil
 }
-func (s *Series) DirectoryPath() string {
-	return path.Join(config.LibraryPath, s.Directory)
-}
-func (s *Series) CoverImagePath() string {
-	return path.Join(config.LibraryPath, s.CoverImage)
-}
+
+//	func (s *Series) DirectoryPath() string {
+//		return path.Join(config.LibraryPath, s.Directory)
+//	}
+// func (s *Series) CoverImagePath() string {
+// 	return path.Join(config.LibraryPath, s.CoverImage)
+// }
 
 func Slug(s string) string {
 	capOffset := byte('a' - 'A')

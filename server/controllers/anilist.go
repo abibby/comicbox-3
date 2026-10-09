@@ -11,15 +11,16 @@ import (
 	"github.com/abibby/comicbox-3/models"
 	"github.com/abibby/comicbox-3/server/auth"
 	"github.com/abibby/comicbox-3/server/validate"
-	"github.com/abibby/nulls"
-	"github.com/abibby/salusa/database/model"
 	"github.com/jmoiron/sqlx"
+	"gosalusa.com/database/model"
+	"gosalusa.com/di"
+	"gosalusa.com/option"
 )
 
 type BookWithAnilistID struct {
 	models.Book
 
-	AnilistId *nulls.Int `json:"anilist_id"    db:"anilist_id"`
+	AnilistId option.Option[int] `json:"anilist_id"    db:"anilist_id"`
 }
 
 type AnilistUpdateRequest SaveMediaListEntryArguments
@@ -108,7 +109,7 @@ var AnilistLogin = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request
 			return err
 		}
 
-		u.AnilistGrant = nulls.NewString(req.Grant)
+		u.AnilistGrant = option.Some(req.Grant)
 
 		return model.SaveContext(r.Context(), tx, u)
 	})
@@ -135,13 +136,16 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 		if err != nil {
 			return err
 		}
-
+		cfg, err := di.Resolve[*config.Config](r.Context())
+		if err != nil {
+			return err
+		}
 		body := map[string]string{
 			"grant_type":    "authorization_code",
-			"client_id":     config.AnilistClientID,
-			"client_secret": config.AnilistClientSecret,
+			"client_id":     cfg.AnilistClientID,
+			"client_secret": cfg.AnilistClientSecret,
 			"redirect_uri":  r.Header.Get("Origin") + "/anilist/login",
-			"code":          u.AnilistGrant.String(),
+			"code":          u.AnilistGrant.OrElse(""),
 		}
 
 		b, err := json.Marshal(body)
@@ -161,7 +165,7 @@ func anilistLogin(r *http.Request, userID string) (*models.User, error) {
 			return err
 		}
 
-		u.AnilistToken = nulls.NewString(tokenResp.AccessToken)
+		u.AnilistToken = option.Some(tokenResp.AccessToken)
 		expiresAt := time.Now().Add(time.Second * time.Duration(tokenResp.ExpiresIn))
 		u.AnilistExpiresAt = (*database.Time)(&expiresAt)
 
@@ -187,10 +191,10 @@ type list struct {
 }
 
 type entry struct {
-	MediaID         int        `json:"mediaId"`
-	Status          string     `json:"status"`
-	Progress        *nulls.Int `json:"progress"`
-	ProgressVolumes *nulls.Int `json:"progressVolumes"`
+	MediaID         int                `json:"mediaId"`
+	Status          string             `json:"status"`
+	Progress        option.Option[int] `json:"progress"`
+	ProgressVolumes option.Option[int] `json:"progressVolumes"`
 }
 
 func lists(r *http.Request, u *models.User) (map[int]*entry, error) {
@@ -227,10 +231,10 @@ func lists(r *http.Request, u *models.User) (map[int]*entry, error) {
 }
 
 type SaveMediaListEntryArguments struct {
-	MediaID         int        `json:"mediaId"`
-	Progress        *nulls.Int `json:"progress,omitempty"`
-	ProgressVolumes *nulls.Int `json:"progressVolumes,omitempty"`
-	StartedAt       *time.Time `json:"startedAt,omitempty"`
+	MediaID         int                `json:"mediaId"`
+	Progress        option.Option[int] `json:"progress,omitempty"`
+	ProgressVolumes option.Option[int] `json:"progressVolumes,omitempty"`
+	StartedAt       *time.Time         `json:"startedAt,omitempty"`
 }
 
 func saveMediaListEntry(r *http.Request, u *models.User, arguments *SaveMediaListEntryArguments) error {
@@ -308,7 +312,7 @@ func anilistGQL[T any](r *http.Request, u *models.User, query string, variables 
 				var zero T
 				return zero, err
 			}
-			token = u.AnilistToken.String()
+			token = u.AnilistToken.OrElse("")
 		}
 
 		req.Header.Add("Authorization", "Bearer "+token)
